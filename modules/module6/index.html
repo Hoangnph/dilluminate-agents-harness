@@ -137,8 +137,8 @@
 
   <!-- Learning Map -->
   <div class="callout concept" style="margin-bottom: var(--space-8);">
-    <div class="callout-title">🗺️ Bản Đồ Học Tập Module 6</div>
-    <div class="step-flow" style="grid-template-columns: repeat(5,1fr);">
+    <div class="callout-header">🗺️ Bản Đồ Học Tập Module 6</div>
+    <div class="step-flow">
       <div class="step"><div class="step-num">1</div><div class="step-title">Multi-Agent Patterns</div><div class="step-desc">Supervisor, Peer-to-Peer, Pipeline, Debate</div></div>
       <div class="step"><div class="step-num">2</div><div class="step-title">LoanBot v2.0</div><div class="step-desc">5-agent architecture, role separation</div></div>
       <div class="step"><div class="step-num">3</div><div class="step-title">Agent Communication</div><div class="step-desc">Handoff protocol, shared context, result aggregation</div></div>
@@ -164,7 +164,7 @@
     </div>
 
     <div class="callout analogy">
-      <div class="callout-title">🏢 Analogy: Phòng ban trong công ty</div>
+      <div class="callout-header">🏢 Analogy: Phòng ban trong công ty</div>
       <p>Một công ty nhỏ có một nhân viên làm tất cả (kế toán + sales + support). Khi lớn lên, cần <strong>chuyên môn hóa</strong>: phòng kế toán, phòng sales, phòng kỹ thuật — và một <em>giám đốc điều phối</em>. Multi-agent AI làm điều tương tự: thay vì một LLM biết tất cả, ta có nhiều agent chuyên biệt và một Supervisor orchestrate workflow.</p>
     </div>
 
@@ -246,7 +246,7 @@
       </div>
 
       <div class="callout key-insight">
-        <div class="callout-title">💡 Tại sao cần Multi-Agent thay vì một LoanBot lớn hơn?</div>
+        <div class="callout-header">💡 Tại sao cần Multi-Agent thay vì một LoanBot lớn hơn?</div>
         <div class="comparison-table">
           <div class="table-scroll">
 <table>
@@ -303,7 +303,7 @@
     </div>
 
     <div class="callout analogy">
-      <div class="callout-title">🏦 Analogy: Hội đồng thẩm định tín dụng</div>
+      <div class="callout-header">🏦 Analogy: Hội đồng thẩm định tín dụng</div>
       <p>Tại ngân hàng lớn, một khoản vay không do một người quyết định. Có <strong>nhân viên tín dụng</strong> (thu thập hồ sơ), <strong>chuyên viên phân tích thu nhập</strong>, <strong>quản lý rủi ro</strong>, và <strong>hội đồng phê duyệt</strong>. LoanBot v2.0 mirror chính xác cấu trúc này: mỗi agent = một chuyên gia trong hội đồng.</p>
     </div>
 
@@ -396,7 +396,7 @@
       </div>
 
       <div class="callout example">
-        <div class="callout-title">📊 Agent Configuration: Model Tiering trong LoanBot v2.0</div>
+        <div class="callout-header">📊 Agent Configuration: Model Tiering trong LoanBot v2.0</div>
         <div class="comparison-table">
           <div class="table-scroll">
 <table>
@@ -435,7 +435,7 @@
     </div>
 
     <div class="callout analogy">
-      <div class="callout-title">📞 Analogy: Cuộc họp bàn giao ca làm việc</div>
+      <div class="callout-header">📞 Analogy: Cuộc họp bàn giao ca làm việc</div>
       <p>Khi ca làm việc chuyển giao, nhân viên không chỉ nói "xong rồi đó". Họ bàn giao <strong>structured handoff note</strong>: case ID, trạng thái, kết quả, vấn đề còn lại, việc cần làm tiếp theo. Agent handoff cũng vậy — không phải text tự do mà là <em>structured message schema</em> để đảm bảo không mất thông tin.</p>
     </div>
 
@@ -516,7 +516,7 @@
       </div>
 
       <div class="callout example">
-        <div class="callout-title">⚡ Parallel Execution: CreditAgent + IncomeAgent chạy đồng thời</div>
+        <div class="callout-header">⚡ Parallel Execution: CreditAgent + IncomeAgent chạy đồng thời</div>
         <p>Supervisor dispatch cả hai agents cùng lúc (asyncio.gather), KHÔNG chờ CreditAgent xong mới dispatch IncomeAgent. Tiết kiệm thời gian gần như bằng latency của một agent (nếu cả hai mất 60s → parallel = 65s thay vì 120s).</p>
         <pre style="background:#1e293b; color:#e2e8f0; padding:var(--space-3); border-radius:var(--radius); font-size:.82rem;"><code># Python conceptual (asyncio)
 credit_task  = asyncio.create_task(credit_agent.run(loan_data))
@@ -550,7 +550,7 @@ risk_result = await risk_agent.run(credit_result, income_result)</code></pre>
     </div>
 
     <div class="callout analogy">
-      <div class="callout-title">🔍 Analogy: Theo dõi đơn hàng online</div>
+      <div class="callout-header">🔍 Analogy: Theo dõi đơn hàng online</div>
       <p>Khi đặt hàng online, bạn có thể track: đơn đã xác nhận → kho đóng gói → đã giao shipper → đang vận chuyển → đã giao. Mỗi bước có timestamp và người phụ trách. Distributed tracing cho multi-agent AI làm điều tương tự: một <strong>trace_id duy nhất</strong> theo suốt từ user request đến final decision, qua mọi agent.</p>
     </div>
 
@@ -644,7 +644,7 @@ risk_result = await risk_agent.run(credit_result, income_result)</code></pre>
       </div>
 
       <div class="callout concept">
-        <div class="callout-title">📏 Per-Agent Metrics cho Dashboard</div>
+        <div class="callout-header">📏 Per-Agent Metrics cho Dashboard</div>
         <p>Mỗi agent publish metrics với <code>agent_id</code> prefix để có thể filter riêng:</p>
         <ul style="font-size:.9rem; line-height:1.8;">
           <li><code>loanbot.credit_agent.latency_p95</code> = 63s — CIC API là bottleneck</li>
@@ -675,7 +675,7 @@ risk_result = await risk_agent.run(credit_result, income_result)</code></pre>
     </div>
 
     <div class="callout analogy">
-      <div class="callout-title">🔌 Analogy: USB-C là chuẩn kết nối chung</div>
+      <div class="callout-header">🔌 Analogy: USB-C là chuẩn kết nối chung</div>
       <p>Trước USB-C, mỗi thiết bị có cổng riêng: mini-USB, micro-USB, Lightning... Rất bất tiện. USB-C là <strong>chuẩn chung</strong> — một cable kết nối được tất cả. <strong>MCP (Model Context Protocol)</strong> là "USB-C của AI tools": bất kỳ AI agent nào cũng có thể connect và dùng tool từ bất kỳ MCP server nào.</p>
     </div>
 
@@ -756,7 +756,7 @@ risk_result = await risk_agent.run(credit_result, income_result)</code></pre>
       </div>
 
       <div class="callout example">
-        <div class="callout-title">🎯 Lợi ích MCP cho LoanBot v2.0</div>
+        <div class="callout-header">🎯 Lợi ích MCP cho LoanBot v2.0</div>
         <ul style="font-size:.9rem; line-height:1.8;">
           <li><strong>Tool reuse:</strong> <code>check_credit_score</code> được define một lần trong CIC MCP Server, CreditAgent và RiskAgent đều dùng được</li>
           <li><strong>Centralized auth:</strong> Permission control tại MCP Server layer — không cần duplicate trong mỗi agent</li>
@@ -824,7 +824,8 @@ risk_result = await risk_agent.run(credit_result, income_result)</code></pre>
 
   <div class="bottom-nav">
     <a href="../module5/index.html" class="btn btn-outline">← Module 5: Governance</a>
-    <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 6 →</a>
+    <a href="quiz.html" class="btn btn-outline">📝 Quiz Module 6 →</a>
+    <a href="../module7/index.html" class="btn btn-primary">Module 7: Enterprise Multi-Agent →</a>
   </div>
 
   </main>
