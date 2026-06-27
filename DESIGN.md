@@ -247,8 +247,66 @@ SVG diagrams: always `rx="8"` on rectangles (12px on main containers), matching 
 
 ## Components
 
-### Sidebar (TOC)
-Every module page requires a sidebar with `.sidebar-nav` for TOC functionality. Scrollspy in `main.js` manages active state automatically.
+### Sidebar (TOC / Bản Đồ Học Tập)
+
+Every module page requires a sidebar. There are two patterns — choose based on module generation:
+
+**Pattern A (Modules 1–9) — Rich sidebar with progress tracking:**
+```html
+<aside class="sidebar">
+  <div class="sidebar-module-tag" style="background:#eff6ff;color:#0f4c81;border-color:#bfdbfe;">MODULE N</div>
+  <div class="sidebar-title">Tên Module</div>
+  <div class="module-progress">
+    <div class="progress-header"><span>Tiến độ</span><span class="progress-label">0 / N bài</span></div>
+    <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Bài Giảng</div>
+    <a href="#lesson1" class="sidebar-item active" data-lesson="mN-l1">
+      <div class="item-icon">🧠</div><span>Bài 1: ...</span><div class="status-dot"></div>
+    </a>
+  </div>
+</aside>
+```
+
+**Pattern B (Modules 10–30) — Compact sidebar-nav:**
+```html
+<aside class="sidebar">
+  <div class="sidebar-module-tag" style="background:var(--mN-light);color:var(--mN-primary);border-color:var(--mN-border);">MODULE N</div>
+  <div class="sidebar-title">Tên Module</div>
+  <nav class="sidebar-nav">
+    <a href="#lesson1" class="active">L1. Tên Bài</a>
+    <a href="#lesson2">L2. Tên Bài</a>
+    <a href="quiz.html" style="margin-top:var(--space-4);color:var(--mN-accent);">📝 Quiz</a>
+    <a href="lab.ipynb" download style="color:var(--mN-accent);">🔬 Lab Notebook</a>
+  </nav>
+  <div style="margin-top:auto;padding-top:var(--space-6);">
+    <a href="../moduleN-1/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module N-1</a>
+  </div>
+</aside>
+```
+
+**Touch targets (mobile):** All sidebar links must have `min-height: 44px`. The `.sidebar-nav a` achieves this via `min-height: 44px; display: flex; align-items: center;` in CSS.
+
+**Scrollspy:** `main.js` auto-highlights active link based on `IntersectionObserver` — no additional JS needed.
+
+### Learning Roadmap (Landing Page)
+The `.roadmap` section in `index.html` shows the 30-step FinTech Corp journey. Key structure:
+```html
+<div class="roadmap-item">
+  <div class="roadmap-left">
+    <div class="roadmap-circle" style="background:var(--primary);">N</div>
+    <div class="roadmap-line"></div>  <!-- omit on LAST item -->
+  </div>
+  <div class="roadmap-body">
+    <h4>Title</h4>
+    <p>Description</p>
+    <div class="roadmap-tags">...</div>
+  </div>
+</div>
+```
+**Rule:** `roadmap-line` must be INSIDE `.roadmap-left`, never a standalone sibling element.
+Roadmap CSS lives in `main.css` (not inline) — use `.roadmap`, `.roadmap-item`, `.roadmap-circle`, `.roadmap-line`, `.roadmap-body`, `.roadmap-tags` classes.
 
 ### Callout Boxes
 6 types: `example` (amber), `analogy` (sky), `warning` (red), `concept` (blue), `key-insight` (purple), `formula` (green). Max 3 per section, max 2 same-type consecutive.
