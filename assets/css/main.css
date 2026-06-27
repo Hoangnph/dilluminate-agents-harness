@@ -60,6 +60,11 @@
   --sidebar-width: 280px;
   --topbar-height: 64px;
   --content-max: 900px;
+
+  /* Responsive breakpoints (for use in JS if needed) */
+  --bp-lg: 1024px;
+  --bp-md: 768px;
+  --bp-sm: 480px;
 }
 
 /* ===== RESET & BASE ===== */
@@ -1181,11 +1186,237 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
   margin: var(--space-6) 0;
 }
 
-/* ===== RESPONSIVE ===== */
+/* =====================================================
+   MOBILE MENU BUTTON — injected by main.js
+   ===================================================== */
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  background: rgba(255,255,255,.1);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: background .2s ease;
+  position: relative;
+  z-index: 101;
+}
+.mobile-menu-btn:hover { background: rgba(255,255,255,.2); }
+.mobile-menu-btn .bar {
+  display: block; width: 20px; height: 2px;
+  background: #fff; border-radius: 2px;
+  transition: transform .28s ease, opacity .2s ease;
+  position: absolute;
+}
+.mobile-menu-btn .bar:nth-child(1) { top: 12px; }
+.mobile-menu-btn .bar:nth-child(2) { top: 19px; }
+.mobile-menu-btn .bar:nth-child(3) { top: 26px; }
+.mobile-menu-btn.open .bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.mobile-menu-btn.open .bar:nth-child(2) { opacity: 0; }
+.mobile-menu-btn.open .bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Overlay backdrop */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 150;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity .28s ease;
+}
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* =====================================================
+   RESPONSIVE — 1024px (Tablet landscape: sidebar → drawer)
+   ===================================================== */
 @media (max-width: 1024px) {
-  .sidebar { transform: translateX(-100%); }
-  .main-content { margin-left: 0; }
   :root { --content-max: 100%; }
+
+  /* Hide topbar nav links (only on sidebar pages); show hamburger */
+  body.has-sidebar .topbar-nav { display: none; }
+  .mobile-menu-btn { display: flex; }
+
+  /* On non-sidebar pages (quiz), shrink topbar-nav */
+  body:not(.has-sidebar) .topbar-nav a {
+    font-size: .8rem;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  /* Main content spans full width */
+  .main-content { margin-left: 0 !important; padding: var(--space-6) var(--space-6); }
+
+  /* Sidebar becomes off-canvas drawer */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .28s ease, box-shadow .28s ease;
+    z-index: 200;
+    box-shadow: none;
+  }
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+
+  /* Landing page adjustments */
+  .module-grid { grid-template-columns: repeat(2, 1fr) !important; padding: var(--space-4); }
+  .hero-actions { flex-direction: column; align-items: center; gap: var(--space-3); }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+
+  /* Quiz */
+  .quiz-container { padding: var(--space-6) var(--space-4); }
+}
+
+/* =====================================================
+   RESPONSIVE — 768px (Tablet portrait / large phone)
+   ===================================================== */
+@media (max-width: 768px) {
+  /* Typography */
+  h1 { font-size: 1.75rem; line-height: 1.25; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.05rem; }
+  .hero h1, .lesson-header h1 { font-size: 1.8rem; }
+
+  /* Topbar */
+  .topbar { padding: 0 var(--space-4); }
+  .topbar-brand .brand-text { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Layout */
+  .main-content { padding: var(--space-4) var(--space-4); }
+  .lesson-header { padding: var(--space-6) var(--space-4); }
+  .lesson-header-inner { gap: var(--space-4); }
+
+  /* Landing page hero */
+  .hero { padding: var(--space-12) var(--space-4); text-align: center; }
+  .hero h1 { font-size: 1.9rem; }
+  .hero p { font-size: 1rem; }
+  .module-grid { padding: var(--space-4); gap: var(--space-4); }
+
+  /* Stats */
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
+
+  /* Two-column → single column */
+  .two-col-explain, .two-col, .feature-grid { grid-template-columns: 1fr !important; }
+
+  /* Callout boxes */
+  .callout { padding: var(--space-4) var(--space-4); }
+  .callout-header { font-size: .85rem; }
+
+  /* Learning objective */
+  .learning-objective { padding: var(--space-4) var(--space-4); }
+  .learning-objective ul { padding-left: var(--space-4); }
+
+  /* Key formula */
+  .key-formula { padding: var(--space-5) var(--space-4); }
+  .key-formula .formula-text { font-size: 1.15rem; }
+
+  /* Concept check */
+  .concept-check { padding: var(--space-4); }
+  .concept-check-toggle { min-height: 44px; font-size: .9rem; }
+
+  /* Expand section */
+  .expand-trigger { min-height: 44px; padding: var(--space-3) var(--space-4); font-size: .9rem; }
+
+  /* Process steps */
+  .process-steps li { padding: var(--space-3) var(--space-4); }
+
+  /* Code blocks — horizontal scroll */
+  .code-block { border-radius: var(--radius-lg); }
+  .code-block pre { overflow-x: auto; font-size: .82rem; -webkit-overflow-scrolling: touch; }
+
+  /* SVG diagrams — horizontal scroll for wide diagrams */
+  .diagram-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .diagram-container svg { min-width: 320px; }
+
+  /* Tables — horizontal scroll */
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+  table th, table td { min-width: 80px; }
+
+  /* Bottom nav */
+  .bottom-nav { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .bottom-nav a, .bottom-nav .btn { text-align: center; justify-content: center; }
+  .lesson-nav { flex-direction: column; align-items: stretch; gap: var(--space-3); }
+  .lesson-nav .nav-btn { text-align: center; }
+
+  /* Glossary grid */
+  .glossary-grid { grid-template-columns: 1fr; }
+
+  /* Quiz */
+  .quiz-hero, .quiz-header { padding: var(--space-8) var(--space-4); }
+  .quiz-hero h1, .quiz-header h1 { font-size: 1.5rem; }
+  .quiz-container { padding: var(--space-5) var(--space-3); }
+  .quiz-question-card { padding: var(--space-5) var(--space-4); }
+  .quiz-option { padding: var(--space-4) var(--space-3); font-size: .9rem; }
+  .quiz-stats { gap: var(--space-2); }
+  .quiz-stats span { font-size: .78rem; padding: var(--space-1) var(--space-3); }
+  .quiz-navigation { flex-direction: column; gap: var(--space-3); align-items: stretch; }
+  .quiz-navigation .btn { text-align: center; justify-content: center; }
+  .result-actions { flex-direction: column; align-items: center; }
+
+  /* Step flow */
+  .step-flow { justify-content: flex-start; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* =====================================================
+   RESPONSIVE — 480px (Phone)
+   ===================================================== */
+@media (max-width: 480px) {
+  /* Typography */
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.15rem; }
+  .hero h1, .lesson-header h1 { font-size: 1.5rem; }
+
+  /* Topbar compact */
+  .topbar { padding: 0 var(--space-3); }
+  .topbar-brand .brand-icon { width: 30px; height: 30px; font-size: 1rem; }
+  .topbar-brand { font-size: .95rem; }
+  .topbar-brand .brand-text { max-width: 110px; }
+
+  /* Layout */
+  .main-content { padding: var(--space-3) var(--space-3); }
+
+  /* Module grid: 1 column */
+  .module-grid { grid-template-columns: 1fr !important; padding: var(--space-3); }
+
+  /* Stats: 2 col */
+  .stats-row { grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+  .stat-card { padding: var(--space-4); }
+  .stat-number { font-size: 1.8rem; }
+
+  /* Callouts: tighter */
+  .callout { padding: var(--space-3) var(--space-3); margin: var(--space-4) 0; }
+
+  /* Key formula */
+  .key-formula .formula-text { font-size: 1rem; }
+
+  /* Code */
+  .code-block pre { font-size: .78rem; }
+  .code-label { font-size: .7rem; padding: 3px 8px; }
+
+  /* Quiz hero */
+  .quiz-hero h1, .quiz-header h1 { font-size: 1.25rem; }
+  .quiz-container { padding: var(--space-4) var(--space-2); }
+  .quiz-question-card { padding: var(--space-4) var(--space-3); }
+  .quiz-question-text, .quiz-question { font-size: .95rem; }
+
+  /* Module tag pills */
+  .module-tag { font-size: .65rem; padding: 2px 8px; }
+
+  /* Lesson header */
+  .lesson-header { padding: var(--space-4) var(--space-3); }
+
+  /* Bottom nav */
+  .bottom-nav a, .bottom-nav .btn { padding: var(--space-3) var(--space-4); font-size: .9rem; }
+
+  /* Score badge */
+  .score-badge { padding: var(--space-4) var(--space-6); }
 }
 
 .module-card.m9::before  { background: linear-gradient(90deg, #b91c1c, #ef4444); }
@@ -1522,18 +1753,6 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
 }
 #score-num { font-size: 3rem; font-weight: 900; color: var(--primary); display: block; }
 #score-label { color: var(--text-muted); font-size: 1rem; margin-top: var(--space-2); display: block; }
-
-@media (max-width: 768px) {
-  h1 { font-size: 1.75rem; }
-  .hero h1 { font-size: 2rem; }
-  .main-content { padding: var(--space-4); }
-  .lesson-header { padding: var(--space-6); }
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .step-flow { justify-content: flex-start; overflow-x: auto; }
-  .two-col-explain { grid-template-columns: 1fr; }
-  .key-formula { padding: var(--space-5) var(--space-5); }
-  .key-formula .formula-text { font-size: 1.25rem; }
-}
 
 @media print {
   .topbar, .sidebar, .scroll-progress { display: none; }

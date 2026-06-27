@@ -180,6 +180,70 @@ function initAnimateOnScroll() {
   });
 }
 
+// ─── Mobile sidebar drawer ──────────────────────────────
+function initMobileMenu() {
+  const sidebar = document.querySelector('.sidebar');
+  const topbar  = document.querySelector('.topbar');
+  if (!topbar) return;
+  if (!sidebar) return; // Quiz/landing pages: topbar-nav stays visible, no hamburger needed
+  document.body.classList.add('has-sidebar');
+
+  // Inject hamburger button into topbar
+  const btn = document.createElement('button');
+  btn.className = 'mobile-menu-btn';
+  btn.setAttribute('aria-label', 'Mở menu');
+  btn.setAttribute('aria-expanded', 'false');
+  btn.innerHTML = '<span class="bar"></span><span class="bar"></span><span class="bar"></span>';
+  topbar.appendChild(btn);
+
+  // Inject overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'sidebar-overlay';
+  document.body.appendChild(overlay);
+
+  function openSidebar() {
+    sidebar.classList.add('sidebar-open');
+    overlay.classList.add('active');
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('sidebar-open');
+    overlay.classList.remove('active');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  btn.addEventListener('click', () => {
+    sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+  });
+
+  overlay.addEventListener('click', closeSidebar);
+
+  // Close on anchor click (navigate to section)
+  sidebar.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', () => {
+      if (window.innerWidth <= 1024) closeSidebar();
+    });
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeSidebar();
+  });
+
+  // Re-open body scroll if window resizes to desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024) {
+      closeSidebar();
+      document.body.style.overflow = '';
+    }
+  }, { passive: true });
+}
+
 // ─── Init ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initScrollProgress();
@@ -191,4 +255,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initCollapsible();
   initAnimateOnScroll();
+  initMobileMenu();
 });

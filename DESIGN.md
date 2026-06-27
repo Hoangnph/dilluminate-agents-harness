@@ -155,9 +155,58 @@ System fonts only — no web font loading, ensuring instant render on slow conne
 
 Never go below 0.8rem for reading text. Minimum touch target: 44×44px.
 
+## Responsive Design & Mobile
+
+### Breakpoints
+
+| Token | Value | Target |
+|-------|-------|--------|
+| `--bp-lg` | 1024px | Tablet landscape — sidebar collapses to drawer |
+| `--bp-md` | 768px | Tablet portrait / large phone — layout shifts to single column |
+| `--bp-sm` | 480px | Phone — compact spacing, stacked nav |
+
+### Mobile Sidebar (Drawer Pattern)
+On screens ≤ 1024px the sidebar becomes an off-canvas drawer:
+- Hidden off-screen via `transform: translateX(-260px)` (not `display:none` — preserves scrollspy)
+- `.sidebar-open` class (toggled by JS) slides it back in with `transition: 0.28s ease`
+- A semi-transparent `.sidebar-overlay` covers the content area; tapping it closes the drawer
+- Hamburger button (`.mobile-menu-btn`) is injected into `.topbar` by `main.js` — no HTML changes required
+- Active sidebar links auto-close the drawer on mobile (JS closes on anchor click)
+
+### Mobile Topbar
+- On ≤ 1024px: `.topbar-nav` links collapse (hidden); hamburger button appears at right
+- On ≤ 480px: brand text truncates with `text-overflow: ellipsis`
+- Hamburger icon: 3-bar `≡` → `✕` when open (CSS class toggle)
+
+### Touch Targets
+- Minimum 44×44px for all interactive elements (buttons, sidebar links, quiz options)
+- Quiz option padding increases on mobile: `var(--space-5)` vertical padding
+- Concept-check and expand buttons: min-height 48px on mobile
+
+### Typography Scaling
+- h1: `2rem` → `1.6rem` on md → `1.4rem` on sm
+- h2: `1.5rem` → `1.25rem` on md
+- Body text: stays at `1rem` (never reduce for readability)
+- Code blocks: `font-size: 0.82rem` on sm
+
+### Component Adaptations (≤ 768px)
+- `.module-grid`: 3 col → 2 col → 1 col
+- `.stats-row`: auto-fill → 2 col → 1 col
+- `.two-col-explain`: 2 col → 1 col
+- `.glossary-grid`: auto-fill → 1 col
+- `.bottom-nav`: flex-row → flex-col (stack buttons)
+- `.quiz-question-card`: `padding: var(--space-5)` (reduced from var(--space-7))
+- `.diagram-container svg`: `overflow-x: auto` + `min-width: 320px` for wide SVGs
+- `.code-block pre`: horizontal scroll (`overflow-x: auto`)
+- `table`: wrapped in `.table-scroll` or `overflow-x: auto` on parent
+
+### No-Sidebar Pages (Quiz, Landing)
+- Quiz pages are already single-column — only padding/font adjustments needed
+- Landing page hero: heading font scales, CTA buttons stack vertically on sm
+
 ## Layout
 
-Two-zone layout: fixed `<aside class="sidebar">` (260px) + scrolling `<main class="main-content">`. Sidebar is sticky on desktop; collapses to topbar links on mobile (≤768px).
+Two-zone layout: fixed `<aside class="sidebar">` (260px) + scrolling `<main class="main-content">`. Sidebar is fixed on desktop; becomes an off-canvas drawer on tablet/mobile (≤1024px), toggled via hamburger button injected by `main.js`.
 
 **MANDATORY structure for all module index.html pages:**
 ```html
@@ -230,3 +279,6 @@ All diagrams must be inline SVG. Required: `<title>` element (accessibility), `v
 - Don't use font-size below 0.8rem for reading text.
 - Don't use raster images — SVG only for diagrams.
 - Don't add inline scroll event listeners — main.js handles everything.
+- Don't add hamburger button markup to HTML — main.js injects it automatically.
+- Don't use `display:none` to hide the sidebar on mobile — use `transform` so scrollspy stays live.
+- Don't create breakpoint-specific JS — all responsive behavior lives in CSS; JS only toggles classes.
