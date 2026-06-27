@@ -504,7 +504,7 @@ table th {
   text-align: left;
   font-size: .85rem;
   font-weight: 600;
-  white-space: nowrap;
+  white-space: nowrap; /* keep headers on one line — critical for scroll trigger */
 }
 
 table td {
@@ -518,7 +518,15 @@ table tr:last-child td { border-bottom: none; }
 table tbody tr:nth-child(even) td { background: var(--surface-2); }
 table tbody tr:hover td { background: var(--info-light); transition: background .15s ease; }
 
-/* Scroll wrapper — wraps every <table> for mobile overflow */
+/* ===== TABLE SCROLL WRAPPER ===== */
+/*
+ * Key mechanics:
+ *   1. Wrapper: overflow-x:auto — activates scroll when table is wider than container
+ *   2. Table inside: width:max-content — table expands to natural content width
+ *                    min-width:100%    — but never narrower than the wrapper
+ * Result: narrow screens → table overflows wrapper → scroll appears
+ *         wide screens   → table fills wrapper width → no scroll needed
+ */
 .table-scroll {
   width: 100%;
   overflow-x: auto;
@@ -527,12 +535,41 @@ table tbody tr:hover td { background: var(--info-light); transition: background 
   border-radius: var(--radius-lg);
   margin: var(--space-5) 0;
   box-shadow: var(--shadow-sm);
+  /* Scroll indicator: right-edge fade when content overflows */
+  position: relative;
 }
+
+/* Fade hint — only visible when table actually overflows (JS adds class) */
+.table-scroll.is-scrollable::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 40px;
+  background: linear-gradient(to left, rgba(255,255,255,.9) 0%, transparent 100%);
+  pointer-events: none;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  z-index: 2;
+}
+/* Hide hint once user has scrolled to end */
+.table-scroll.scrolled-end::after { opacity: 0; transition: opacity .3s ease; }
+
 .table-scroll table {
-  margin: 0; /* reset margin — border/shadow is on wrapper */
-  border-radius: 0; /* wrapper handles corners */
+  /* THE critical fix: allow table to be wider than its container */
+  width: max-content;
+  min-width: 100%;
+  margin: 0;       /* border/shadow on wrapper */
+  border-radius: 0;
 }
-/* Mobile scroll hint added in main 768px media block below */
+
+/* Scroll caption below wide tables */
+.table-scroll-hint {
+  font-size: .78rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: var(--space-1);
+  display: none; /* shown by JS only when actually scrollable */
+}
+.table-scroll.is-scrollable + .table-scroll-hint { display: block; }
 
 /* ===== COMPARISON TABLE ===== */
 .comparison-table {
@@ -1380,21 +1417,12 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
   .diagram-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .diagram-container svg { min-width: 320px; }
 
-  /* Tables — wrapper handles horizontal scroll */
-  .table-scroll { margin: var(--space-4) 0; position: relative; }
-  /* Scroll hint: faint gradient on right edge indicates more content */
-  .table-scroll::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0; bottom: 0; width: 28px;
-    background: linear-gradient(to left, rgba(255,255,255,.75), transparent);
-    pointer-events: none;
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  }
+  /* Tables — reduce padding on mobile */
   table th, table td { padding: var(--space-2) var(--space-3); font-size: .82rem; }
-  /* Fallback for tables not wrapped in .table-scroll */
-  .table-scroll table { display: table; overflow: visible; }
-  table:not(.comparison-table):not(.table-scroll table) { display: block; overflow-x: auto; max-width: 100%; }
+  /* Ensure table-scroll works on all screen sizes */
+  .table-scroll { margin: var(--space-4) 0; }
+  /* Fallback: bare table outside wrapper */
+  table:not(.table-scroll table) { display: block; overflow-x: auto; max-width: 100%; }
 
   /* Bottom nav */
   .bottom-nav { flex-direction: column; align-items: stretch; gap: var(--space-3); }

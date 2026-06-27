@@ -180,6 +180,28 @@ function initAnimateOnScroll() {
   });
 }
 
+// ─── Table scroll enhancement ───────────────────────────
+function initTableScroll() {
+  document.querySelectorAll('.table-scroll').forEach(wrapper => {
+    const checkOverflow = () => {
+      const isScrollable = wrapper.scrollWidth > wrapper.clientWidth + 4;
+      wrapper.classList.toggle('is-scrollable', isScrollable);
+    };
+
+    // Update fade hint position as user scrolls
+    wrapper.addEventListener('scroll', () => {
+      const atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 8;
+      wrapper.classList.toggle('scrolled-end', atEnd);
+    }, { passive: true });
+
+    checkOverflow();
+    // Re-check on resize
+    if (window.ResizeObserver) {
+      new ResizeObserver(checkOverflow).observe(wrapper);
+    }
+  });
+}
+
 // ─── Mobile sidebar drawer ──────────────────────────────
 function initMobileMenu() {
   const sidebar = document.querySelector('.sidebar');
@@ -255,5 +277,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initCollapsible();
   initAnimateOnScroll();
+  initTableScroll();
   initMobileMenu();
 });
