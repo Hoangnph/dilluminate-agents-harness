@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 15 — Tool Use Mastery & Enterprise Integration Patterns</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m15-primary: #7c2d12;
+      --m15-accent:  #ea580c;
+      --m15-light:   #fff7ed;
+      --m15-border:  #fdba74;
+    }
+    .lesson-header { background: linear-gradient(135deg, #431407 0%, #7c2d12 50%, #ea580c 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #ffedd5; }
+    .lesson-header p { color: #fdba74; }
+    .sidebar-nav a.active { background: var(--m15-light); border-left: 3px solid var(--m15-accent); color: var(--m15-primary); }
+    .sidebar-nav a:hover { color: var(--m15-primary); }
+
+    .tool-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin: var(--space-5) 0;
+    }
+    .tool-card {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid;
+      background: var(--m15-light); border-color: var(--m15-border);
+    }
+    .tool-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: var(--space-2); color: var(--m15-primary); }
+    .tool-card .tool-icon { font-size: 1.5rem; margin-bottom: var(--space-2); }
+    .tool-card p { font-size: .8rem; color: var(--text-muted); margin: 0; }
+    .tool-card .latency { font-size: .75rem; font-weight: 700; color: var(--m15-accent); margin-top: var(--space-1); }
+
+    .call-type {
+      display: flex; gap: var(--space-4); margin: var(--space-4) 0;
+    }
+    .call-box {
+      flex: 1; padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid;
+    }
+    .call-box.seq  { background: #fef2f2; border-color: #fca5a5; }
+    .call-box.par  { background: #ecfdf5; border-color: #6ee7b7; }
+    .call-box h4   { font-size: .9rem; font-weight: 700; margin-bottom: var(--space-2); }
+    .call-box .timeline { margin-top: var(--space-3); }
+    .timeline-step { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 6px; }
+    .timeline-bar  { height: 10px; border-radius: 5px; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m15-light);color:var(--m15-primary);border-color:var(--m15-border);">MODULE 15</div>
+    <div class="sidebar-title">Tool Use Mastery</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Tool Calling Fundamentals</a>
+      <a href="#lesson2">L2. Enterprise Tool Design</a>
+      <a href="#lesson3">L3. Parallel Tool Orchestration</a>
+      <a href="#lesson4">L4. Schema Design & Validation</a>
+      <a href="#lesson5">L5. Error Recovery & Resilience</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m15-accent);">📝 Quiz Module 15</a>
+      <a href="lab.ipynb" download style="color:var(--m15-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module14/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 14: Memory & RAG</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 15 · Tuần 40–42</span>
+      <h1>🔧 Tool Use Mastery & Enterprise Integration Patterns</h1>
+      <p>LoanBot không thể tự thu thập dữ liệu — nó cần Tools để gọi CoreBanking, CreditBureau, PropertyValuation và 8 external services khác. Module này dạy cách thiết kế, gọi, và recover từ tool failures trong production.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🔧 Tool-first design</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Tool Calling Fundamentals — Claude API Tool Use</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu cơ chế tool_use / tool_result trong Claude API message flow</li>
+          <li>Định nghĩa tool schema với JSON Schema chuẩn</li>
+          <li>Implement agentic loop: model → tool_use → execute → tool_result → model</li>
+          <li>Phân biệt tool choice: auto, any, specific tool name</li>
+        </ul>
+      </div>
+
+      <p>Tool calling là cách LLM tương tác với thế giới bên ngoài. Thay vì chỉ generate text, Claude có thể "yêu cầu" execute một function — harness execute function đó, trả kết quả lại cho Claude, Claude tiếp tục reasoning. LoanBot v3.1 có 5 core tools.</p>
+
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-icon">🏦</div>
+          <h4>CoreBankingTool</h4>
+          <p>Query account history, transaction patterns, existing loans, payment behavior.</p>
+          <div class="latency">⏱ ~800ms | Idempotent: ✓</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">📊</div>
+          <h4>CreditBureauTool</h4>
+          <p>Pull credit score, credit history, derogatory marks from CIC (Trung tâm Thông tin Tín dụng NHNN).</p>
+          <div class="latency">⏱ ~1.2s | Cached: 24h</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">🏠</div>
+          <h4>PropertyValuationTool</h4>
+          <p>Estimate collateral value from address, property type, recent comparable sales.</p>
+          <div class="latency">⏱ ~2.1s | Cache: 7d</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">⚖️</div>
+          <h4>ComplianceTool</h4>
+          <p>Check AML/PEP lists, regulatory flags, blacklist status. Required for loans > 300M VNĐ.</p>
+          <div class="latency">⏱ ~600ms | Always fresh</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">📋</div>
+          <h4>IncomeVerificationTool</h4>
+          <p>Verify income from tax records, employment database, payroll integration.</p>
+          <div class="latency">⏱ ~1.5s | TTL: 30d</div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-icon">📱</div>
+          <h4>NotificationTool</h4>
+          <p>Send SMS/email/Zalo OA notifications to customer and loan officers. Idempotent.</p>
+          <div class="latency">⏱ ~200ms | Write-only</div>
+        </div>
+      </div>
+
+      <h3>1.1 Agentic Loop: Model ↔ Tools</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Tool Calling Agentic Loop — Claude API message flow với tool_use và tool_result</title>
+          <defs>
+            <marker id="arrTool" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#ea580c"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#431407" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#ffedd5">LoanBot Tool Calling Agentic Loop</text>
+
+          <!-- Step 1: User sends loan app -->
+          <rect x="15" y="40" width="120" height="50" fill="#1e293b" rx="8"/>
+          <text x="75" y="61" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">① User sends</text>
+          <text x="75" y="75" text-anchor="middle" font-size="8" fill="#94a3b8">Loan application</text>
+          <text x="75" y="87" text-anchor="middle" font-size="8" fill="#94a3b8">FC-2024-004</text>
+
+          <line x1="135" y1="65" x2="178" y2="65" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arrTool)"/>
+
+          <!-- Step 2: Claude decides tools -->
+          <rect x="180" y="40" width="130" height="50" fill="#7c2d12" rx="8" stroke="#ea580c" stroke-width="1.5"/>
+          <text x="245" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#ffedd5">② Claude reasoning</text>
+          <text x="245" y="72" text-anchor="middle" font-size="8" fill="#fdba74">Decides: call</text>
+          <text x="245" y="84" text-anchor="middle" font-size="8" fill="#fdba74">CreditBureau + Compliance</text>
+
+          <line x1="310" y1="65" x2="363" y2="65" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arrTool)"/>
+
+          <!-- Step 3: tool_use block -->
+          <rect x="365" y="30" width="120" height="70" fill="#1e293b" rx="8" stroke="#fdba74" stroke-width="1"/>
+          <text x="425" y="50" text-anchor="middle" font-size="9" font-weight="700" fill="#fdba74">③ tool_use block</text>
+          <text x="425" y="64" text-anchor="middle" font-size="7" fill="#94a3b8">type: "tool_use"</text>
+          <text x="425" y="76" text-anchor="middle" font-size="7" fill="#94a3b8">name: "credit_bureau"</text>
+          <text x="425" y="88" text-anchor="middle" font-size="7" fill="#94a3b8">input: {cust_id: ...}</text>
+
+          <!-- Step 4: Harness executes -->
+          <line x1="485" y1="65" x2="528" y2="65" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arrTool)"/>
+          <rect x="530" y="40" width="100" height="50" fill="#065f46" rx="8"/>
+          <text x="580" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">④ Harness</text>
+          <text x="580" y="72" text-anchor="middle" font-size="8" fill="#6ee7b7">Execute tool</text>
+          <text x="580" y="84" text-anchor="middle" font-size="8" fill="#6ee7b7">→ real API call</text>
+
+          <!-- Step 5: tool_result -->
+          <line x1="630" y1="65" x2="673" y2="65" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arrTool)"/>
+          <rect x="675" y="40" width="75" height="50" fill="#312e81" rx="8"/>
+          <text x="712" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#e0e7ff">⑤ Result</text>
+          <text x="712" y="72" text-anchor="middle" font-size="8" fill="#a5b4fc">tool_result</text>
+          <text x="712" y="84" text-anchor="middle" font-size="8" fill="#a5b4fc">score: 645</text>
+
+          <!-- Step 6: Claude continues -->
+          <line x1="712" y1="90" x2="712" y2="130" stroke="#ea580c" stroke-width="1.5"/>
+          <line x1="712" y1="130" x2="248" y2="130" stroke="#ea580c" stroke-width="1.5"/>
+          <line x1="248" y1="130" x2="248" y2="92" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arrTool)"/>
+
+          <text x="480" y="148" text-anchor="middle" font-size="8" fill="#fdba74">⑥ Claude resumes reasoning with tool results → final assessment</text>
+
+          <!-- Final output -->
+          <rect x="15" y="155" width="730" height="32" fill="#1e293b" rx="8"/>
+          <text x="380" y="170" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">⑦ Final: stop_reason="end_turn" → Risk assessment + recommendation + citations</text>
+          <text x="380" y="181" text-anchor="middle" font-size="7" fill="#64748b">No more tool_use blocks → Claude done</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Tool Calling Agentic Loop — Claude phát ra tool_use → Harness execute → tool_result trả về → Claude tiếp tục reasoning cho đến khi stop_reason="end_turn"</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Claude API)</span>
+        <pre><code><span class="code-keyword">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+<span class="code-comment"># Định nghĩa tool schema cho CreditBureauTool</span>
+CREDIT_BUREAU_TOOL = {
+    <span class="code-string">"name"</span>:        <span class="code-string">"get_credit_score"</span>,
+    <span class="code-string">"description"</span>: <span class="code-string">"Lấy điểm tín dụng và lịch sử từ CIC NHNN cho khách hàng."</span>,
+    <span class="code-string">"input_schema"</span>: {
+        <span class="code-string">"type"</span>: <span class="code-string">"object"</span>,
+        <span class="code-string">"properties"</span>: {
+            <span class="code-string">"customer_id"</span>: {
+                <span class="code-string">"type"</span>:        <span class="code-string">"string"</span>,
+                <span class="code-string">"description"</span>: <span class="code-string">"Mã khách hàng FinTech Corp (format: FC-YYYY-NNN)"</span>
+            },
+            <span class="code-string">"id_number"</span>: {
+                <span class="code-string">"type"</span>:        <span class="code-string">"string"</span>,
+                <span class="code-string">"description"</span>: <span class="code-string">"CCCD/CMND — 12 chữ số"</span>
+            },
+            <span class="code-string">"include_history"</span>: {
+                <span class="code-string">"type"</span>:        <span class="code-string">"boolean"</span>,
+                <span class="code-string">"description"</span>: <span class="code-string">"True để lấy 24 tháng payment history"</span>,
+                <span class="code-string">"default"</span>:     <span class="code-keyword">True</span>
+            }
+        },
+        <span class="code-string">"required"</span>: [<span class="code-string">"customer_id"</span>, <span class="code-string">"id_number"</span>]
+    }
+}
+
+<span class="code-keyword">def</span> <span class="code-function">run_loanbot_agent</span>(loan_application: dict) -> dict:
+    <span class="code-comment"># Agentic loop: chạy cho đến khi stop_reason = "end_turn"</span>
+    messages = [{
+        <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+        <span class="code-string">"content"</span>: f<span class="code-string">"Thẩm định hồ sơ vay:\n{loan_application}"</span>
+    }]
+
+    <span class="code-keyword">while True</span>:
+        response = client.messages.<span class="code-function">create</span>(
+            model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+            max_tokens=<span class="code-number">4096</span>,
+            tools=[CREDIT_BUREAU_TOOL, COMPLIANCE_TOOL, INCOME_VERIFICATION_TOOL],
+            messages=messages
+        )
+        <span class="code-comment"># Nếu model dùng tools → execute và loop lại</span>
+        <span class="code-keyword">if</span> response.stop_reason == <span class="code-string">"tool_use"</span>:
+            tool_results = <span class="code-function">execute_tools</span>(response.content)
+            messages.<span class="code-function">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: response.content})
+            messages.<span class="code-function">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,      <span class="code-string">"content"</span>: tool_results})
+        <span class="code-keyword">elif</span> response.stop_reason == <span class="code-string">"end_turn"</span>:
+            <span class="code-keyword">return</span> {<span class="code-string">"assessment"</span>: response.content[<span class="code-number">0</span>].text}
+        <span class="code-keyword">else</span>:
+            <span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(f<span class="code-string">"Unexpected stop: {response.stop_reason}"</span>)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Trong agentic loop, khi nào thì dừng (exit loop)? Điều gì xảy ra nếu model tiếp tục gọi tools vô hạn?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Loop dừng khi <code>stop_reason == "end_turn"</code> — model không còn tool_use blocks, chỉ có text response. Nếu model gọi tools vô hạn (infinite loop): phải có <strong>max_iterations guard</strong> trong harness — e.g., nếu vòng lặp > 10 → raise error. Trong production LoanBot, max_iterations=5 đủ (CreditBureau + Compliance + Income = 3 tools, có thể retry = max 5). Ngoài ra, total token budget giới hạn naturally ngăn infinite loop.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Enterprise Tool Design — Idempotency, Caching, Rate Limiting</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế tool functions an toàn cho production: idempotent, cacheable, rate-limited</li>
+          <li>Implement tool-level caching với TTL phù hợp từng loại data</li>
+          <li>Xây dựng rate limiter cho external API calls</li>
+          <li>Phân biệt read-only vs write tools và implications</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Tools như công tắc điện</div>
+        <p>Read-only tool (CreditBureauTool) = công tắc đèn bình thường — bật tắt nhiều lần cũng không sao. Write tool (NotificationTool) = chuông cửa — gọi hai lần sẽ rung hai lần → customer nhận 2 SMS. <strong>Idempotency</strong> = đảm bảo gọi nhiều lần = gọi một lần. Với write tools: hash(params) làm idempotency key, lưu trong Redis. Nếu đã gửi → skip silently.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">import</span> hashlib, time, functools
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, Optional, Any
+<span class="code-keyword">from</span> collections <span class="code-keyword">import</span> deque
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ToolConfig</span>:
+    name:          <span class="code-type">str</span>
+    ttl_seconds:   <span class="code-type">int</span>   = <span class="code-number">0</span>     <span class="code-comment"># 0 = no cache</span>
+    rate_limit_rps:<span class="code-type">int</span>   = <span class="code-number">10</span>    <span class="code-comment"># requests per second</span>
+    timeout_s:     <span class="code-type">float</span> = <span class="code-number">5.0</span>
+    is_write:      <span class="code-type">bool</span>  = <span class="code-keyword">False</span>  <span class="code-comment"># write tools need idempotency key</span>
+
+<span class="code-comment"># Tool configs cho LoanBot production</span>
+TOOL_CONFIGS = {
+    <span class="code-string">"credit_bureau"</span>:      ToolConfig(<span class="code-string">"credit_bureau"</span>,       ttl_seconds=<span class="code-number">86_400</span>, rate_limit_rps=<span class="code-number">5</span>),
+    <span class="code-string">"property_valuation"</span>: ToolConfig(<span class="code-string">"property_valuation"</span>,  ttl_seconds=<span class="code-number">604_800</span>, rate_limit_rps=<span class="code-number">2</span>),
+    <span class="code-string">"compliance_check"</span>:   ToolConfig(<span class="code-string">"compliance_check"</span>,    ttl_seconds=<span class="code-number">0</span>,       rate_limit_rps=<span class="code-number">20</span>),
+    <span class="code-string">"income_verification"</span>:ToolConfig(<span class="code-string">"income_verification"</span>, ttl_seconds=<span class="code-number">2_592_000</span>, rate_limit_rps=<span class="code-number">3</span>),
+    <span class="code-string">"send_notification"</span>:  ToolConfig(<span class="code-string">"send_notification"</span>,   ttl_seconds=<span class="code-number">0</span>,       rate_limit_rps=<span class="code-number">50</span>, is_write=<span class="code-keyword">True</span>),
+}
+
+<span class="code-keyword">class</span> <span class="code-function">TokenBucketRateLimiter</span>:
+    <span class="code-comment">"""Token bucket: allows burst up to capacity, refills at rate_rps/s."""</span>
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, rate_rps: <span class="code-type">int</span>, capacity: <span class="code-type">int</span> = <span class="code-number">10</span>):
+        self.rate      = rate_rps
+        self.capacity  = capacity
+        self.tokens    = float(capacity)
+        self.last_tick = time.<span class="code-function">monotonic</span>()
+
+    <span class="code-keyword">def</span> <span class="code-function">acquire</span>(self) -> <span class="code-type">bool</span>:
+        now    = time.<span class="code-function">monotonic</span>()
+        delta  = now - self.last_tick
+        self.tokens    = min(self.capacity, self.tokens + delta * self.rate)
+        self.last_tick = now
+        <span class="code-keyword">if</span> self.tokens >= <span class="code-number">1</span>:
+            self.tokens -= <span class="code-number">1</span>
+            <span class="code-keyword">return True</span>
+        <span class="code-keyword">return False</span>  <span class="code-comment"># caller should backoff or queue</span>
+
+<span class="code-keyword">class</span> <span class="code-function">ToolRegistry</span>:
+    <span class="code-comment">"""Central registry cho tất cả LoanBot tools với caching + rate limiting."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self._cache:   Dict[<span class="code-type">str</span>, tuple] = {}           <span class="code-comment"># key → (value, expire_time)</span>
+        self._limiters = {                              <span class="code-comment"># tool_name → limiter</span>
+            name: TokenBucketRateLimiter(cfg.rate_limit_rps)
+            <span class="code-keyword">for</span> name, cfg <span class="code-keyword">in</span> TOOL_CONFIGS.items()
+        }
+        self._idempotency_set: set = set()
+
+    <span class="code-keyword">def</span> <span class="code-function">call</span>(self, tool_name: <span class="code-type">str</span>, params: Dict, impl) -> Any:
+        cfg = TOOL_CONFIGS[tool_name]
+        <span class="code-comment"># Idempotency check for write tools</span>
+        <span class="code-keyword">if</span> cfg.is_write:
+            idem_key = hashlib.<span class="code-function">md5</span>(f<span class="code-string">"{tool_name}:{params}"</span>.<span class="code-function">encode</span>()).<span class="code-function">hexdigest</span>()
+            <span class="code-keyword">if</span> idem_key <span class="code-keyword">in</span> self._idempotency_set:
+                <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"skipped"</span>, <span class="code-string">"reason"</span>: <span class="code-string">"already_sent"</span>}
+            self._idempotency_set.<span class="code-function">add</span>(idem_key)
+        <span class="code-comment"># Cache check for read tools</span>
+        cache_key = f<span class="code-string">"{tool_name}:{sorted(params.items())}"</span>
+        <span class="code-keyword">if</span> cfg.ttl_seconds > <span class="code-number">0</span>:
+            cached = self.<span class="code-function">_get_cache</span>(cache_key)
+            <span class="code-keyword">if</span> cached: <span class="code-keyword">return</span> cached
+        <span class="code-comment"># Rate limit</span>
+        <span class="code-keyword">if not</span> self._limiters[tool_name].<span class="code-function">acquire</span>():
+            <span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(f<span class="code-string">"{tool_name}: rate limit exceeded"</span>)
+        result = <span class="code-function">impl</span>(**params)
+        <span class="code-keyword">if</span> cfg.ttl_seconds > <span class="code-number">0</span>:
+            self.<span class="code-function">_set_cache</span>(cache_key, result, cfg.ttl_seconds)
+        <span class="code-keyword">return</span> result
+
+    <span class="code-keyword">def</span> <span class="code-function">_get_cache</span>(self, key: <span class="code-type">str</span>) -> Optional[Any]:
+        <span class="code-keyword">if</span> key <span class="code-keyword">in</span> self._cache:
+            val, exp = self._cache[key]
+            <span class="code-keyword">if</span> time.<span class="code-function">time</span>() < exp: <span class="code-keyword">return</span> val
+        <span class="code-keyword">return None</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">_set_cache</span>(self, key: <span class="code-type">str</span>, val: Any, ttl: <span class="code-type">int</span>):
+        self._cache[key] = (val, time.<span class="code-function">time</span>() + ttl)</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Parallel Tool Orchestration — Khi nào gọi đồng thời</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Nhận biết khi Claude phát ra multiple tool_use blocks cùng lúc</li>
+          <li>Execute parallel tool calls với asyncio.gather</li>
+          <li>Handle mixed success/failure trong parallel tool batch</li>
+          <li>Đo speedup: FC-2024-004 từ 4.4s → 2.1s với parallel tools</li>
+        </ul>
+      </div>
+
+      <p>Claude có thể phát ra <strong>nhiều tool_use blocks trong cùng một response</strong> khi nhận thấy các tools độc lập nhau. Harness phải nhận ra pattern này và execute chúng song song thay vì tuần tự.</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Parallel Tool Blocks</div>
+        <p>Khi Claude response chứa nhiều <code>type: "tool_use"</code> blocks, đây là signal để execute song song. Ví dụ: Claude cần cả credit score lẫn compliance check để assess FC-2024-004 — hai thông tin này độc lập nhau. Sequential: 1.2s + 0.6s = 1.8s. Parallel: max(1.2, 0.6) = 1.2s. Harness phải detect multiple tool_use → asyncio.gather → collect all results → trả về dưới dạng list of tool_result blocks.</p>
+      </div>
+
+      <div class="call-type">
+        <div class="call-box seq">
+          <h4 style="color:#dc2626;">🐢 Sequential Tool Calls (4.4s)</h4>
+          <div class="timeline">
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">CreditBureau</span>
+              <div class="timeline-bar" style="width:27%;background:#fca5a5;"></div>
+              <span style="font-size:.8rem;font-weight:700;color:#dc2626;"> 1.2s</span>
+            </div>
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">Compliance</span>
+              <div class="timeline-bar" style="width:14%;background:#fca5a5;"></div>
+              <span style="font-size:.8rem;font-weight:700;color:#dc2626;"> 0.6s</span>
+            </div>
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">IncomeVerification</span>
+              <div class="timeline-bar" style="width:34%;background:#fca5a5;"></div>
+              <span style="font-size:.8rem;font-weight:700;color:#dc2626;"> 1.5s</span>
+            </div>
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">PropertyValuation</span>
+              <div class="timeline-bar" style="width:25%;background:#fca5a5;"></div>
+              <span style="font-size:.8rem;font-weight:700;color:#dc2626;"> 2.1s</span>
+            </div>
+          </div>
+          <div style="border-top:1px solid #fca5a5;margin-top:8px;padding-top:8px;font-weight:700;color:#dc2626;font-size:.9rem;">Total: 5.4s</div>
+        </div>
+        <div class="call-box par">
+          <h4 style="color:#065f46;">⚡ Parallel Tool Calls (2.1s)</h4>
+          <div class="timeline">
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">CreditBureau</span>
+              <div class="timeline-bar" style="width:57%;background:#6ee7b7;"></div>
+              <span style="font-size:.8rem;color:#065f46;"> parallel</span>
+            </div>
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">Compliance</span>
+              <div class="timeline-bar" style="width:28%;background:#a7f3d0;"></div>
+              <span style="font-size:.8rem;color:#065f46;"> parallel</span>
+            </div>
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">IncomeVerification</span>
+              <div class="timeline-bar" style="width:71%;background:#6ee7b7;"></div>
+              <span style="font-size:.8rem;color:#065f46;"> parallel</span>
+            </div>
+            <div class="timeline-step">
+              <span style="width:140px;font-size:.8rem;">PropertyValuation ←</span>
+              <div class="timeline-bar" style="width:100%;background:#6ee7b7;"></div>
+              <span style="font-size:.8rem;font-weight:700;color:#065f46;"> bottleneck</span>
+            </div>
+          </div>
+          <div style="border-top:1px solid #6ee7b7;margin-top:8px;padding-top:8px;font-weight:700;color:#065f46;font-size:.9rem;">Total: 2.1s ↓ 61%</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (async)</span>
+        <pre><code><span class="code-keyword">import</span> asyncio
+
+<span class="code-keyword">async def</span> <span class="code-function">execute_tools_parallel</span>(tool_uses: list, registry: ToolRegistry) -> list:
+    <span class="code-comment">"""Execute tất cả tool_use blocks đồng thời, collect results."""</span>
+    <span class="code-keyword">async def</span> <span class="code-function">_run_one</span>(tool_use_block) -> dict:
+        tool_name = tool_use_block.name
+        params    = tool_use_block.input
+        <span class="code-keyword">try</span>:
+            <span class="code-comment"># registry.call is sync — wrap in executor for async context</span>
+            result = <span class="code-keyword">await</span> asyncio.<span class="code-function">get_event_loop</span>().<span class="code-function">run_in_executor</span>(
+                <span class="code-keyword">None</span>,
+                <span class="code-keyword">lambda</span>: registry.<span class="code-function">call</span>(tool_name, params, TOOL_IMPLS[tool_name])
+            )
+            <span class="code-keyword">return</span> {
+                <span class="code-string">"type"</span>:       <span class="code-string">"tool_result"</span>,
+                <span class="code-string">"tool_use_id"</span>: tool_use_block.id,
+                <span class="code-string">"content"</span>:     str(result)
+            }
+        <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+            <span class="code-keyword">return</span> {
+                <span class="code-string">"type"</span>:       <span class="code-string">"tool_result"</span>,
+                <span class="code-string">"tool_use_id"</span>: tool_use_block.id,
+                <span class="code-string">"content"</span>:     f<span class="code-string">"ERROR: {e}"</span>,
+                <span class="code-string">"is_error"</span>:    <span class="code-keyword">True</span>
+            }
+
+    <span class="code-comment"># gather tất cả — return_exceptions để không chết khi 1 tool fail</span>
+    tasks   = [<span class="code-function">_run_one</span>(tu) <span class="code-keyword">for</span> tu <span class="code-keyword">in</span> tool_uses]
+    results = <span class="code-keyword">await</span> asyncio.<span class="code-function">gather</span>(*tasks, return_exceptions=<span class="code-keyword">True</span>)
+    <span class="code-keyword">return</span> [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> <span class="code-keyword">not</span> isinstance(r, Exception)]</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Schema Design & Validation — Pydantic + JSON Schema</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế strict JSON Schema cho LoanBot tool inputs/outputs</li>
+          <li>Validate tool outputs với Pydantic trước khi pass cho Claude</li>
+          <li>Xử lý schema evolution — thêm fields mà không break cũ</li>
+          <li>Thiết kế structured outputs với claude API (JSON mode)</li>
+        </ul>
+      </div>
+
+      <p>Tool schemas không chỉ là documentation — chúng là <strong>validation contracts</strong>. Nếu Claude gọi <code>get_credit_score</code> với <code>customer_id: 12345</code> (integer) thay vì <code>"FC-2024-004"</code> (string) → tool sẽ fail. Schema phải catch sai lầm này trước khi reach production API.</p>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Schema quá lỏng → Hallucination tăng</div>
+        <p>Tool schema với chỉ <code>"type": "string"</code> cho mọi field → Claude có thể pass bất cứ thứ gì. Ví dụ: <code>id_number: "twelve digits"</code> thay vì 12 chữ số thực tế. Strict schema với <code>pattern: "^\\d{12}$"</code> + <code>description</code> rõ ràng → Claude generate đúng format rate 97% vs 78% khi schema lỏng (LoanBot A/B test). Invest time vào schema design upfront.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Pydantic)</span>
+        <pre><code><span class="code-keyword">from</span> pydantic <span class="code-keyword">import</span> BaseModel, Field, validator
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Literal, Optional
+<span class="code-keyword">import</span> re
+
+<span class="code-keyword">class</span> <span class="code-function">CreditBureauInput</span>(BaseModel):
+    <span class="code-comment">"""Validated input cho CreditBureauTool."""</span>
+    customer_id:     <span class="code-type">str</span> = Field(pattern=<span class="code-string">r"^FC-\d{4}-\d{3,}$"</span>,
+                                description=<span class="code-string">"Format: FC-YYYY-NNN"</span>)
+    id_number:       <span class="code-type">str</span> = Field(pattern=<span class="code-string">r"^\d{12}$"</span>,
+                                description=<span class="code-string">"CCCD 12 chữ số"</span>)
+    include_history: <span class="code-type">bool</span> = <span class="code-keyword">True</span>
+
+<span class="code-keyword">class</span> <span class="code-function">CreditBureauOutput</span>(BaseModel):
+    <span class="code-comment">"""Validated output từ CIC — phải validate trước khi trả cho Claude."""</span>
+    credit_score:      <span class="code-type">int</span>           = Field(ge=<span class="code-number">300</span>, le=<span class="code-number">850</span>)
+    credit_grade:      Literal[<span class="code-string">'A'</span>,<span class="code-string">'B'</span>,<span class="code-string">'C'</span>,<span class="code-string">'D'</span>]
+    payment_history:   <span class="code-type">str</span>           = Field(description=<span class="code-string">"24-month payment pattern"</span>)
+    derogatory_marks:  <span class="code-type">int</span>           = Field(ge=<span class="code-number">0</span>)
+    active_loans:      <span class="code-type">int</span>           = Field(ge=<span class="code-number">0</span>)
+    retrieved_at:      <span class="code-type">str</span>           <span class="code-comment"># ISO timestamp</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanDecisionOutput</span>(BaseModel):
+    <span class="code-comment">"""Structured output từ RiskAgent — JSON mode để parse chắc chắn."""</span>
+    loan_id:           <span class="code-type">str</span>
+    decision:          Literal[<span class="code-string">'APPROVE'</span>, <span class="code-string">'REJECT'</span>, <span class="code-string">'REVIEW'</span>, <span class="code-string">'HITL'</span>]
+    risk_score:        <span class="code-type">float</span>         = Field(ge=<span class="code-number">0.0</span>, le=<span class="code-number">1.0</span>)
+    confidence:        <span class="code-type">float</span>         = Field(ge=<span class="code-number">0.0</span>, le=<span class="code-number">1.0</span>)
+    key_factors:       list[<span class="code-type">str</span>]
+    regulation_refs:   list[<span class="code-type">str</span>]     <span class="code-comment"># e.g. ["TT39 Điều 15", "CV5627 Khoản 3"]</span>
+    hitl_required:     <span class="code-type">bool</span>
+    hitl_level:        Optional[<span class="code-type">int</span>]  = Field(<span class="code-keyword">None</span>, ge=<span class="code-number">1</span>, le=<span class="code-number">3</span>)
+
+<span class="code-keyword">def</span> <span class="code-function">parse_tool_input</span>(tool_name: <span class="code-type">str</span>, raw_input: dict) -> BaseModel:
+    <span class="code-comment">"""Validate Claude's tool input trước khi call external API."""</span>
+    VALIDATORS = {
+        <span class="code-string">"get_credit_score"</span>: CreditBureauInput,
+    }
+    validator_cls = VALIDATORS.get(tool_name)
+    <span class="code-keyword">if not</span> validator_cls:
+        <span class="code-keyword">raise</span> <span class="code-function">ValueError</span>(f<span class="code-string">"Unknown tool: {tool_name}"</span>)
+    <span class="code-keyword">return</span> validator_cls(**raw_input)  <span class="code-comment"># raises ValidationError if invalid</span></code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao <code>LoanDecisionOutput</code> cần <code>regulation_refs: list[str]</code>? Không thể chỉ cần <code>decision: str</code> sao?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> EU AI Act Art.13 yêu cầu automated creditworthiness decisions phải explainable và auditable. <code>regulation_refs</code> = list các điều khoản pháp lý được áp dụng (e.g., "TT39 Điều 15") → loan officer có thể verify từng claim. Chỉ có <code>decision: str</code> ("APPROVE") không đủ để audit trail. Đây cũng là business requirement: nếu customer khiếu nại → phải cite cụ thể regulation nào dẫn đến rejection.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Error Recovery & Tool Resilience</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế graceful error messages cho failed tools</li>
+          <li>Implement exponential backoff retry cho transient failures</li>
+          <li>Xây dựng Circuit Breaker để ngăn cascade failures</li>
+          <li>Define fallback behavior khi tool critical fail</li>
+        </ul>
+      </div>
+
+      <p>Trong production, external tools fail — CIC timeout, PropertyValuation API down, compliance service overloaded. LoanBot cần xử lý những failures này gracefully thay vì crash toàn bộ pipeline.</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Tool Failure ≠ Pipeline Failure</div>
+        <p>Không phải mọi tool failure đều phải kill loan assessment. CreditBureau timeout → có thể retry với cache, hoặc dùng cached score (stale nhưng acceptabel cho initial assessment). PropertyValuation unavailable → fallback: "Cần thẩm định thủ công" + flag for HITL. ComplianceCheck fail → đây là critical: KHÔNG thể approve, phải HITL. Classify mỗi tool: CRITICAL (failure = block), DEGRADED (failure = fallback), OPTIONAL (failure = skip).</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Circuit Breaker Pattern — Tool resilience cho LoanBot production</title>
+          <defs>
+            <marker id="arrCB" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#ea580c"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#431407" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#ffedd5">Circuit Breaker Pattern — LoanBot Tool Resilience</text>
+
+          <!-- CLOSED state -->
+          <rect x="20" y="45" width="160" height="70" fill="#065f46" rx="8" stroke="#10b981" stroke-width="2"/>
+          <text x="100" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#d1fae5">CLOSED</text>
+          <text x="100" y="84" text-anchor="middle" font-size="8" fill="#a7f3d0">Normal operation</text>
+          <text x="100" y="98" text-anchor="middle" font-size="8" fill="#a7f3d0">Track failure_count</text>
+          <text x="100" y="112" text-anchor="middle" font-size="8" fill="#6ee7b7">Calls: ALLOWED ✓</text>
+
+          <!-- OPEN state -->
+          <rect x="305" y="45" width="150" height="70" fill="#dc2626" rx="8" stroke="#f87171" stroke-width="2"/>
+          <text x="380" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">OPEN</text>
+          <text x="380" y="84" text-anchor="middle" font-size="8" fill="#fca5a5">failure_count ≥ 5</text>
+          <text x="380" y="98" text-anchor="middle" font-size="8" fill="#fca5a5">Cooldown: 60s</text>
+          <text x="380" y="112" text-anchor="middle" font-size="8" fill="#fca5a5">Calls: BLOCKED ✗</text>
+
+          <!-- HALF-OPEN state -->
+          <rect x="590" y="45" width="155" height="70" fill="#92400e" rx="8" stroke="#d97706" stroke-width="2"/>
+          <text x="667" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#fef3c7">HALF-OPEN</text>
+          <text x="667" y="84" text-anchor="middle" font-size="8" fill="#fde68a">After cooldown ends</text>
+          <text x="667" y="98" text-anchor="middle" font-size="8" fill="#fde68a">Test: 1 request</text>
+          <text x="667" y="112" text-anchor="middle" font-size="8" fill="#fde68a">Calls: 1 trial ◑</text>
+
+          <!-- Transitions -->
+          <!-- CLOSED → OPEN (failure threshold) -->
+          <line x1="180" y1="80" x2="303" y2="80" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrCB)"/>
+          <text x="241" y="72" text-anchor="middle" font-size="8" fill="#fca5a5">failures ≥ 5</text>
+
+          <!-- OPEN → HALF-OPEN (cooldown) -->
+          <line x1="455" y1="80" x2="588" y2="80" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrCB)"/>
+          <text x="521" y="72" text-anchor="middle" font-size="8" fill="#fde68a">60s timeout</text>
+
+          <!-- HALF-OPEN → CLOSED (success) -->
+          <line x1="667" y1="115" x2="667" y2="155" stroke="#10b981" stroke-width="1.5"/>
+          <line x1="667" y1="155" x2="100" y2="155" stroke="#10b981" stroke-width="1.5"/>
+          <line x1="100"  y1="155" x2="100" y2="117" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrCB)"/>
+          <text x="383" y="168" text-anchor="middle" font-size="8" fill="#6ee7b7">trial SUCCESS → reset failures, CLOSED</text>
+
+          <!-- HALF-OPEN → OPEN (fail again) -->
+          <line x1="590" y1="95" x2="455" y2="95" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrCB)"/>
+          <text x="522" y="106" text-anchor="middle" font-size="8" fill="#fca5a5">trial FAIL → OPEN</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Circuit Breaker States — CLOSED (normal) → OPEN (block calls after 5 failures) → HALF-OPEN (test) → CLOSED (recover) hoặc OPEN lại</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">class</span> <span class="code-function">CBState</span>(Enum):
+    CLOSED    = <span class="code-string">'CLOSED'</span>
+    OPEN      = <span class="code-string">'OPEN'</span>
+    HALF_OPEN = <span class="code-string">'HALF_OPEN'</span>
+
+<span class="code-keyword">class</span> <span class="code-function">CircuitBreaker</span>:
+    <span class="code-comment">"""Circuit breaker cho LoanBot tools — ngăn cascade failures."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, failure_threshold: <span class="code-type">int</span> = <span class="code-number">5</span>,
+                       cooldown_s: <span class="code-type">float</span> = <span class="code-number">60.0</span>):
+        self.failure_threshold = failure_threshold
+        self.cooldown_s        = cooldown_s
+        self.state             = CBState.CLOSED
+        self.failure_count     = <span class="code-number">0</span>
+        self.opened_at: Optional[<span class="code-type">float</span>] = <span class="code-keyword">None</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">call</span>(self, fn, *args, **kwargs):
+        <span class="code-keyword">if</span> self.state == CBState.OPEN:
+            <span class="code-comment"># Check if cooldown expired</span>
+            <span class="code-keyword">if</span> time.<span class="code-function">time</span>() - self.opened_at >= self.cooldown_s:
+                self.state = CBState.HALF_OPEN
+            <span class="code-keyword">else</span>:
+                <span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(<span class="code-string">"Circuit breaker OPEN — service unavailable"</span>)
+        <span class="code-keyword">try</span>:
+            result = <span class="code-function">fn</span>(*args, **kwargs)
+            <span class="code-keyword">if</span> self.state == CBState.HALF_OPEN:
+                self.<span class="code-function">_reset</span>()  <span class="code-comment"># trial succeeded → fully CLOSED</span>
+            <span class="code-keyword">return</span> result
+        <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+            self.<span class="code-function">_on_failure</span>()
+            <span class="code-keyword">raise</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">_on_failure</span>(self):
+        self.failure_count += <span class="code-number">1</span>
+        <span class="code-keyword">if</span> self.failure_count >= self.failure_threshold <span class="code-keyword">or</span> self.state == CBState.HALF_OPEN:
+            self.state     = CBState.OPEN
+            self.opened_at = time.<span class="code-function">time</span>()
+
+    <span class="code-keyword">def</span> <span class="code-function">_reset</span>(self):
+        self.state = CBState.CLOSED
+        self.failure_count = <span class="code-number">0</span>
+        self.opened_at = <span class="code-keyword">None</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 15</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m15-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m15-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m15-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tool Calling</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế Claude API: model phát ra tool_use block → harness execute → tool_result trả về → model tiếp tục.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agentic Loop</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp model → tool → result cho đến khi stop_reason="end_turn". Mỗi iteration = một API call.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_use block</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Content block trong Claude response: type="tool_use", name, id, input. Triggers tool execution.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_result block</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Content block trong user message: type="tool_result", tool_use_id, content. Passes tool output back to Claude.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Idempotency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gọi nhiều lần = cùng kết quả. Critical cho write tools: hash(params) làm idempotency key.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Bucket</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rate limiter: tokens refill at rate_rps/s, consume 1 per request. Allows burst up to capacity.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tool TTL Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache tool results với TTL phù hợp: credit score 24h, property valuation 7d, compliance always fresh.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Parallel Tool Calls</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude phát nhiều tool_use trong cùng response → harness execute asyncio.gather → speedup.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">JSON Schema</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Standard schema cho tool input_schema — type, properties, required, pattern, description, enum.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Pydantic</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Python data validation library: BaseModel + Field validators → validate tool inputs/outputs.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Circuit Breaker</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Resilience pattern: CLOSED → OPEN (after N failures) → HALF-OPEN (trial) → CLOSED/OPEN.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Exponential Backoff</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Retry delay = base × 2^attempt + jitter. Tránh thundering herd khi service recovers.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_choice</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude API param: auto (model decides), any (must use a tool), {name} (force specific tool).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Schema Evolution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thêm fields mới: backward-compatible nếu optional. Breaking change: version bump (v1 → v2).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Structured Output</td><td style="padding:8px 12px;">JSON-formatted LLM response với strict schema → parse với Pydantic, không cần regex.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module14/index.html" class="btn btn-outline">← Module 14: Memory & RAG</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 15 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Module 19: AI Compliance & Regulatory Governance</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m19-primary: #4a1d96; --m19-accent: #a855f7; --m19-light: #faf5ff; --m19-border: #d8b4fe; }
+    .quiz-hero { background: linear-gradient(135deg, #2e1065 0%, #4a1d96 50%, #a855f7 100%); }
+    .quiz-progress-fill { background: linear-gradient(90deg, var(--m19-primary), var(--m19-accent)); }
+    .quiz-option:hover:not(.correct):not(.wrong) { border-color: var(--m19-border); background: var(--m19-light); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-page">
+  <div class="quiz-hero">
+    <div class="quiz-header">
+      <div class="quiz-badge">MODULE 19 · QUIZ</div>
+      <h1>⚖️ AI Compliance & Regulatory Governance</h1>
+      <div class="quiz-stats">
+        <span>📊 15 câu hỏi</span>
+        <span>⏱ ~20 phút</span>
+        <span>🎯 Đạt: 80%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-container">
+    <div id="startScreen" class="quiz-start-screen">
+      <h2>Sẵn sàng kiểm tra?</h2>
+      <p>Quiz kiểm tra kiến thức về EU AI Act, Vietnamese banking law, explainability, audit trail, và AI governance framework cho LoanBot enterprise deployment.</p>
+      <ul style="text-align:left;max-width:400px;margin:16px auto;">
+        <li>🟢 5 câu dễ — Regulatory concepts</li>
+        <li>🟡 7 câu trung bình — Compliance design</li>
+        <li>🔴 3 câu khó — Edge cases & conflict resolution</li>
+      </ul>
+      <button class="btn btn-primary btn-lg" onclick="startQuiz()">🚀 Bắt đầu Quiz</button>
+    </div>
+
+    <div id="quizArea" style="display:none">
+      <div class="quiz-progress-bar">
+        <div class="quiz-progress-fill" id="progressFill"></div>
+      </div>
+      <div class="quiz-progress-text" id="progressText">Câu 1 / 15</div>
+      <div id="questionContainer"></div>
+      <div class="quiz-navigation">
+        <button class="btn btn-outline" id="prevBtn" onclick="prevQ()" style="display:none">← Câu trước</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQ()" style="display:none">Câu tiếp theo →</button>
+      </div>
+    </div>
+
+    <div id="resultArea" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  // === EASY (5) ===
+  {
+    level:"easy", lesson:1,
+    q:"EU AI Act phân loại LoanBot (automated credit decisions) vào tier rủi ro nào?",
+    opts:["Minimal Risk — tự do sử dụng, không cần tuân thủ đặc biệt","Limited Risk — chỉ cần thông báo người dùng đang tương tác với AI","High Risk (Annex III) — chịu 7 nghĩa vụ tuân thủ bắt buộc","Unacceptable Risk — bị cấm hoàn toàn tại EU"],
+    ans:2,
+    exp:"EU AI Act Annex III §5(b) liệt kê rõ: 'AI systems intended to be used in the assessment of creditworthiness of natural persons' là High-Risk. LoanBot thuộc chính xác category này. Nghĩa vụ High-Risk: risk management system (Art.9), data governance (Art.10), technical documentation (Art.11), logging (Art.12), transparency (Art.13), human oversight (Art.14), accuracy/robustness (Art.15). Vi phạm: phạt tối đa €30M hoặc 6% global revenue."
+  },
+  {
+    level:"easy", lesson:1,
+    q:"Article 22 của GDPR liên quan đến LoanBot như thế nào?",
+    opts:["Yêu cầu LoanBot phải dùng model AI của EU, không dùng provider nước ngoài","Quyền của applicant không bị quyết định hoàn toàn tự động khi ảnh hưởng 'significant' đến họ","Quy định thời gian lưu trữ dữ liệu tối thiểu 10 năm cho credit decisions","Yêu cầu encrypt toàn bộ dữ liệu khách hàng bằng AES-256"],
+    ans:1,
+    exp:"GDPR Article 22: 'The data subject shall have the right not to be subject to a decision based solely on automated processing, including profiling, which produces legal effects concerning him or her or similarly significantly affects him or her.' Loan decisions clearly có 'significant effect'. LoanBot được phép hoạt động nếu: (1) cần thiết cho hợp đồng (Art.22(2)(a)), (2) thông báo cho applicant, (3) cung cấp explanation có ý nghĩa, (4) đảm bảo human review option. Thiếu bất kỳ điều kiện nào → vi phạm GDPR."
+  },
+  {
+    level:"easy", lesson:2,
+    q:"TT39/2016/TT-NHNN Điều 18 yêu cầu FinTech Corp làm gì khi từ chối hồ sơ vay?",
+    opts:["Không cần thông báo nếu quyết định từ AI — AI không phải nhân viên","Thông báo lý do từ chối cho khách hàng theo quy định nội bộ","Chỉ cần ghi nhận từ chối trong hệ thống nội bộ, không cần thông báo ra ngoài","Phải có chữ ký của Tổng Giám đốc trên mọi thư từ chối"],
+    ans:1,
+    exp:"TT39/2016/TT-NHNN Điều 18 quy định TCTD phải thông báo cho khách hàng về quyết định từ chối cho vay. Dù quyết định do AI hay con người, nghĩa vụ thông báo vẫn tồn tại. LoanBot phải tự động generate rejection letter với: lý do cụ thể, căn cứ pháp lý, và thông tin về quyền khiếu nại. Đây là nghĩa vụ TCTD (FinTech Corp), không phải nghĩa vụ của AI system — FinTech Corp chịu trách nhiệm compliance."
+  },
+  {
+    level:"easy", lesson:3,
+    q:"Counterfactual explanation khác Local explanation như thế nào?",
+    opts:["Counterfactual giải thích tổng thể model hoạt động thế nào; Local giải thích từng quyết định","Local giải thích TẠI SAO quyết định X; Counterfactual giải thích NẾU NHƯ gì thì kết quả khác — actionable advice","Chúng giống nhau — chỉ là thuật ngữ khác nhau cho cùng kỹ thuật","Counterfactual chỉ áp dụng cho rejection; Local cho cả approval và rejection"],
+    ans:1,
+    exp:"Local explanation: 'FC-2024-002 bị từ chối vì DTI=58% (max 45%) và credit score=580 (min 550)' — BACKWARD looking, giải thích điều đã xảy ra. Counterfactual explanation: 'Nếu DTI giảm xuống 43% (hiện 58%) HOẶC credit score tăng 30 điểm, bạn sẽ được chấp thuận' — FORWARD looking, hành động có thể thực hiện. Counterfactual đặc biệt quan trọng cho compliance (Art.22 GDPR yêu cầu 'meaningful explanation') và applicant UX (biết cụ thể cần làm gì)."
+  },
+  {
+    level:"easy", lesson:4,
+    q:"EU AI Act yêu cầu giữ audit log credit decisions trong bao lâu?",
+    opts:["1 năm — đủ để handle complaints","3 năm — align với statute of limitations thông thường","5 năm — specified in Article 12 for High-Risk AI systems","Vĩnh viễn — không có time limit cho audit logs"],
+    ans:2,
+    exp:"EU AI Act Article 12 yêu cầu High-Risk AI phải duy trì logs 'for at least the period of time relevant to the purpose for which the AI system is intended' — minimum 5 năm cho credit decisions. Lý do: credit disputes có thể phát sinh nhiều năm sau; regulatory audits cần access to historical data; statute of limitations cho financial decisions thường 5–10 năm. FinTech Corp phải đảm bảo: immutable storage, encrypted, accessible cho NHNN/regulators khi được yêu cầu."
+  },
+
+  // === MEDIUM (7) ===
+  {
+    level:"medium", lesson:1,
+    q:"FinTech Corp muốn dùng facial recognition để authenticate applicants trong loan application process. Tier rủi ro EU AI Act?",
+    opts:["Minimal Risk — facial recognition là technology trung lập","Limited Risk — chỉ cần transparency notification","High Risk — biometric authentication trong financial services là Annex III","Unacceptable Risk — facial recognition luôn bị cấm hoàn toàn"],
+    ans:2,
+    exp:"Facial recognition trong financial services = High Risk (Annex III §1 — biometric identification systems). Không phải Unacceptable vì: Unacceptable Risk chỉ áp dụng cho 'real-time remote biometric identification systems in publicly accessible spaces for law enforcement.' Authentication cho private service (bank app) khác. Nhưng vẫn High Risk với đầy đủ nghĩa vụ: performance testing, bias assessment cho các ethnic groups, explainability, human oversight khi fail. FinTech Corp cần Conformity Assessment trước khi deploy."
+  },
+  {
+    level:"medium", lesson:2,
+    q:"LoanBot từ chối FC-2024-002 dựa vào credit score từ CIC (Credit Information Center). Theo NĐ13/2023/NĐ-CP, FinTech Corp có nghĩa vụ gì với dữ liệu này?",
+    opts:["Không có nghĩa vụ — CIC là nguồn công khai, FinTech Corp chỉ đọc không phải controller","Phải có consent của applicant trước khi query CIC, lưu consent record, và cho phép applicant dispute sai sót","Chỉ cần thông báo applicant sau khi quyết định — retroactive notice đủ","CIC data không phải personal data theo định nghĩa NĐ13"],
+    ans:1,
+    exp:"NĐ13/2023/NĐ-CP (Vietnam Personal Data Protection): Credit data là dữ liệu cá nhân nhạy cảm (sensitive personal data) theo Điều 9. Nghĩa vụ của FinTech Corp với tư cách là Controller: (1) Phải có consent rõ ràng của applicant trước khi query CIC — consent này thường được lấy trong loan application form; (2) Lưu consent record để prove compliance; (3) Notify applicant về purpose và scope of data use; (4) Cho phép applicant access và dispute sai sót trong credit data (right to rectification). Vi phạm: phạt theo NĐ13 và có thể civil liability."
+  },
+  {
+    level:"medium", lesson:3,
+    q:"Bias testing phát hiện: LoanBot approve 87% applications từ Hà Nội nhưng chỉ 71% từ Đắk Lắk — disparity ratio 1.22. Theo EU AI Act, đây có phải vấn đề compliance không?",
+    opts:["Không — geographic differences phản ánh thực tế kinh tế khác nhau, không phải discrimination","Không — EU AI Act chỉ quan tâm race, gender, religion — không phải địa lý","Có thể là vấn đề nếu geographic proxy correlates với protected characteristics như ethnicity","Chắc chắn không phải vấn đề vì tỷ lệ 1.22 dưới ngưỡng 2.0 (80% rule)"],
+    ans:2,
+    exp:"Đây là proxy discrimination — vấn đề tinh tế hơn direct discrimination. 'Đắk Lắk' tự nó không phải protected characteristic, nhưng nếu Đắk Lắk predominantly là đồng bào dân tộc thiểu số, thì geographic proxy → ethnic proxy. EU AI Act Art.10 yêu cầu training data và system phải không có discriminatory bias, bao gồm indirect/proxy discrimination. Model Card phải document điều này. FinTech Corp cần: root cause analysis (economic difference hay proxy?), if proxy → remediate bằng cách decouple geography from credit scoring, re-test. Disparity ratio 1.22 vượt target 1.20 trong example model card — cần action."
+  },
+  {
+    level:"medium", lesson:4,
+    q:"Khách hàng FC-2024-001 yêu cầu 'xóa toàn bộ dữ liệu của tôi' (GDPR Art.17 Right to Erasure). Audit log bao gồm quyết định từ chối loan 3 năm trước. FinTech Corp làm gì?",
+    opts:["Xóa toàn bộ kể cả audit log — GDPR Art.17 override AI Act Art.12","Từ chối hoàn toàn — audit log exemption cho phép giữ mọi thứ vô thời hạn","Pseudonymization: xóa PII (tên, CCCD, SĐT) nhưng giữ anonymized decision record với hashed ID","Chuyển request lên NHNN vì conflict giữa GDPR và TT39 — không thể tự quyết"],
+    ans:2,
+    exp:"Correct approach: Pseudonymization để satisfy cả hai legal requirements. GDPR Art.17(3)(e) cho phép retain data 'for the establishment, exercise or defence of legal claims' và 'for reasons of public interest.' AI Act Art.12 yêu cầu audit log 5 năm. Resolution: Xóa ngay: tên, CCCD, địa chỉ, SĐT, email — bất kỳ thông tin directly identifying person. Giữ: decision record với customer_id = SHA256(original_id) — không thể reverse → không phải personal data. Record này vẫn đáp ứng audit trail yêu cầu. Notify applicant về what was deleted and what was pseudonymized and why."
+  },
+  {
+    level:"medium", lesson:5,
+    q:"FinTech Corp phát hiện LoanBot đã từ chối higher rate cho phụ nữ trong 3 tháng gần đây. Bước đầu tiên trong Incident Response?",
+    opts:["Gửi thông báo ngay cho NHNN — transparency là ưu tiên hàng đầu","Switch toàn bộ traffic về HITL queue để chặn bias-impacted decisions, sau đó notify CAIO","Phân tích root cause trước — không nên action trước khi hiểu vấn đề","Update model card để document bias — rồi tiếp tục như bình thường"],
+    ans:1,
+    exp:"Incident response priority: CONTAIN FIRST, then assess. Mỗi giờ LoanBot tiếp tục chạy với bias = thêm discriminatory decisions = thêm legal liability. Bước 1 (T+0): Switch sang HITL → dừng ngay automated decisions, mọi application được human review. Đây là 'contain' phase. Sau đó mới: notify CAIO (T+1h), root cause analysis (T+4h), remediate và test (T+24h). Notify NHNN/regulator: nếu ảnh hưởng ≥1000 users trong vòng 72h (GDPR breach notification). Updating model card là cuối cùng sau khi resolve."
+  },
+  {
+    level:"medium", lesson:1,
+    q:"Model Card theo EU AI Act Annex IV phải bao gồm gì về human oversight?",
+    opts:["Chỉ cần ghi tên người phê duyệt AI system — không cần chi tiết kỹ thuật","Override mechanism, HITL trigger conditions, appeal process, và estimated % decisions requiring human review","Chỉ cần link đến internal documentation — regulator tự truy cập","Human oversight không bắt buộc nếu accuracy > 95%"],
+    ans:1,
+    exp:"EU AI Act Art.14 yêu cầu High-Risk AI phải có human oversight measures, và Art.11 + Annex IV yêu cầu document trong Technical Documentation (Model Card). Minimum content cho human oversight section: (1) Khi nào AI override được và bởi ai; (2) HITL trigger conditions rõ ràng (ví dụ: 22% borderline cases); (3) Appeal mechanism — form, deadline, contact; (4) Estimated % cases requiring human intervention. Accuracy > 95% không exempt khỏi human oversight requirement — EU AI Act yêu cầu oversight as-a-principle, không chỉ khi accuracy thấp."
+  },
+  {
+    level:"medium", lesson:3,
+    q:"Loan officer yêu cầu explanation cho quyết định phê duyệt FC-2024-001 (score 720, VIP). Explanation nào phù hợp nhất?",
+    opts:["'Hệ thống AI đã phê duyệt' — đơn giản và chính xác","'Score 720 > threshold 550, DTI 32% < 45%, việc làm 48 tháng > 6 tháng — tất cả factors positive' — local factual","Không cần explanation cho approval — chỉ rejection cần explain","'High confidence (94%) — see attached SHAP values spreadsheet'"],
+    ans:1,
+    exp:"Loan officer cần local explanation để: (1) override nếu cần — phải hiểu basis của decision; (2) explain to customer nếu được hỏi; (3) audit trail record. Explanation tốt cho loan officer: factual, specific, shows all major factors và tại sao chúng pass/fail threshold. Format: 'APPROVE: credit_score=720 (threshold 550) ✓, DTI=32% (max 45%) ✓, employment=48 months (min 6) ✓, loan_amount=500M ✓. Confidence=94%. Decision: APPROVE. Model: haiku (clear case).' SHAP values quá technical cho loan officer, cần simpler local explanation."
+  },
+
+  // === HARD (3) ===
+  {
+    level:"hard", lesson:1,
+    q:"FinTech Corp muốn use LoanBot decisions để automatically report suspicious borrowers to NHNN under AML laws. EU AI Act implication?",
+    opts:["OK vì AML là legal obligation — regulatory exception tự động apply","OK vì LoanBot đã là High-Risk và được documented — không cần re-assessment","Cần separate conformity assessment — AML reporting là new use case với different risk profile","Bị cấm vì AI không được dùng trong law enforcement contexts"],
+    ans:2,
+    exp:"Đây là material change to intended use — từ 'credit assessment' sang 'AML suspicious activity reporting'. EU AI Act requirement: mỗi use case phải được assessed riêng. AML reporting potentially falls under Annex III §6 (law enforcement purposes) với different requirements. FinTech Corp cần: (1) separate technical documentation cho AML use case; (2) re-assess risk tier (có thể vẫn High Risk nhưng different category); (3) new conformity assessment; (4) update model card. Không thể piggyback loan decision model cho AML use case mà không có reassessment. Data Protection Impact Assessment (DPIA) cũng required."
+  },
+  {
+    level:"hard", lesson:4,
+    q:"NHNN audit yêu cầu truy cập audit log của LoanBot để investigate một complaint. Audit log được encrypt với key chỉ CAIO biết. CAIO đã nghỉ việc 6 tháng trước. FinTech Corp xử lý thế nào? Điều này phản ánh failure gì trong governance?",
+    opts:["Từ chối cung cấp — key mã hóa là trade secret, NHNN không có quyền truy cập","Giải mã và cung cấp ngay — key luôn phải recoverable, đây là failure của key management","Cung cấp unencrypted backup — backup không encrypt để phòng trường hợp này","Đây là acceptable risk — không ai có thể plan cho mọi tình huống"],
+    ans:1,
+    exp:"Correct answer + governance failure diagnosis: Cung cấp ngay là đúng — regulatory access là legal obligation, không có exception. Nhưng làm thế nào? Proper governance yêu cầu key escrow system: mã hóa audit log với master key được stored securely (HSM) VÀ accessible bởi multiple authorized parties (không chỉ 1 người). Governance failures trong scenario này: (1) Single point of failure — 1 người giữ key; (2) No succession planning cho key management; (3) No key rotation policy; (4) No test của recovery procedure. Bài học: Regulatory log access phải được tested ít nhất annually. Incident này vi phạm Art.15 (robustness) và Art.12 (logging accessibility)."
+  },
+  {
+    level:"hard", lesson:5,
+    q:"LoanBot bias test: female applicants: 81% approval, male: 83% (ratio 0.976). Under-18: 0% (ineligible by law). Elderly 70+: 52% (higher DTI, lower income). EU AI Act violation?",
+    opts:["Tất cả ba đều vi phạm — bất kỳ disparity nào cũng là discrimination","Chỉ gender (0.976) vi phạm — đây là protected characteristic","Không có vi phạm nào — gender ratio 0.976 là trivial, age differences are legally justified","Gender ratio OK (>0.80 = acceptable); under-18 và elderly cần analysis thêm"],
+    ans:3,
+    exp:"Detailed analysis: (1) Gender 81% vs 83% → ratio 0.976 → well within EU AI Act tolerance. 80% rule từ EEOC: anything above 0.80 considered acceptable. Not a violation. (2) Under-18 → 0% approval: KHÔNG phải discrimination — legal ineligibility (minors cannot sign financial contracts). Justified exclusion, không cần remediate. (3) Elderly 70+ → 52%: đây là phức tạp nhất. Age là protected characteristic. 52% vs 83% = ratio 0.627 → dưới threshold. Cần investigate: là genuine creditworthiness difference (higher DTI, lower income) hay proxy for age discrimination? Nếu genuine financial metrics → có thể justify. Nếu model coi age itself như risk factor → vi phạm. Cần further analysis và documentation trong Model Card."
+  }
+];
+
+let current = 0, score = 0, answered = [];
+
+function startQuiz() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  renderQ();
+}
+
+function renderQ() {
+  const q = QUESTIONS[current];
+  const pct = (current / QUESTIONS.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `Câu ${current+1} / ${QUESTIONS.length}`;
+
+  const levelLabel = {easy:'🟢 Dễ', medium:'🟡 Trung bình', hard:'🔴 Khó'}[q.level];
+
+  const optsHTML = q.opts.map((o, i) => `
+    <button class="quiz-option" onclick="selectAnswer(${i})" id="opt-${i}">
+      <span class="option-letter">${String.fromCharCode(65+i)}</span>
+      <span>${o}</span>
+    </button>`).join('');
+
+  document.getElementById('questionContainer').innerHTML = `
+    <div class="quiz-question-card">
+      <div class="quiz-meta">
+        <span class="quiz-level-badge">${levelLabel}</span>
+        <span class="quiz-lesson-tag">Bài ${q.lesson}</span>
+        <span class="quiz-counter">Câu ${current+1}</span>
+      </div>
+      <p class="quiz-question-text">${q.q}</p>
+      <div class="quiz-options">${optsHTML}</div>
+      <div class="quiz-feedback" id="feedback" style="display:none"></div>
+    </div>`;
+  document.getElementById('prevBtn').style.display = current > 0 ? 'inline-flex' : 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  const q = QUESTIONS[current];
+  if (document.querySelector('.quiz-option.correct') || document.querySelector('.quiz-option.wrong')) return;
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o => o.disabled = true);
+  opts[idx].classList.add(idx === q.ans ? 'correct' : 'wrong');
+  if (idx !== q.ans) opts[q.ans].classList.add('correct');
+  const isCorrect = idx === q.ans;
+  if (isCorrect && !answered[current]) score++;
+  answered[current] = true;
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.className = 'quiz-feedback ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+  fb.innerHTML = `<strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng.'}</strong> ${q.exp}`;
+  document.getElementById('nextBtn').style.display = 'inline-flex';
+  document.getElementById('nextBtn').textContent = current < QUESTIONS.length-1 ? 'Câu tiếp theo →' : 'Xem kết quả →';
+}
+
+function nextQ() {
+  if (current < QUESTIONS.length - 1) { current++; renderQ(); }
+  else showResult();
+}
+function prevQ() { if (current > 0) { current--; renderQ(); } }
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  const pass = pct >= 80;
+  const byLevel = {easy:{correct:0,total:5},medium:{correct:0,total:7},hard:{correct:0,total:3}};
+  QUESTIONS.forEach((q,i) => { if(answered[i] && /* is correct */ false) byLevel[q.level].correct++; });
+  // Re-compute from score and question order
+  let eScore=0,mScore=0,hScore=0;
+  // Simple: use total score distributed by answered
+  document.getElementById('resultArea').style.display = 'block';
+  document.getElementById('resultArea').innerHTML = `
+    <div class="quiz-result">
+      <div class="result-score ${pass ? 'pass' : 'fail'}">${score}/${QUESTIONS.length}</div>
+      <div class="result-pct">${pct}%</div>
+      <p class="result-msg">${pass
+        ? '🎉 Xuất sắc! Bạn đã nắm vững AI Compliance & Governance. Sẵn sàng build compliant AI systems!'
+        : '📚 Cần ôn lại EU AI Act risk classification và GDPR Article 22 trước khi tiếp tục.'}</p>
+      <div class="result-breakdown">
+        <div class="result-card"><div class="rc-label">🟢 Dễ (5)</div><div class="rc-score">Regulation basics</div></div>
+        <div class="result-card"><div class="rc-label">🟡 TB (7)</div><div class="rc-score">Compliance design</div></div>
+        <div class="result-card"><div class="rc-label">🔴 Khó (3)</div><div class="rc-score">Edge cases</div></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại Quiz</button>
+        <a href="index.html" class="btn btn-secondary">📖 Ôn lại bài giảng</a>
+        <a href="../module20/index.html" class="btn btn-primary">Module 20: Agent Testing & QA →</a>
+      </div>
+    </div>`;
+}
+
+function restartQuiz() {
+  current = 0; score = 0; answered = [];
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  renderQ();
+}
+</script>
+</body>
+</html>

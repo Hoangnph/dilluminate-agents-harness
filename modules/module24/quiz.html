@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 24 — Agent Knowledge & Epistemics</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m24-primary:#4c1d95; --m24-accent:#a78bfa; --m24-light:#f5f3ff; --m24-border:#c4b5fd; }
+    .quiz-hero { background: linear-gradient(135deg, #2e1065, #4c1d95, #a78bfa); padding: var(--space-12) var(--space-6); text-align:center; }
+    .module-tag { display:inline-block; background:rgba(167,139,250,.2); color:#c4b5fd; padding:4px 12px; border-radius:99px; font-size:.8rem; font-weight:600; letter-spacing:.08em; margin-bottom:var(--space-3); }
+    .quiz-hero h1 { color:#f5f3ff; font-size:2rem; margin-bottom:var(--space-3); }
+    .quiz-hero p  { color:#c4b5fd; margin-bottom:var(--space-4); }
+    .quiz-stats   { display:flex; justify-content:center; gap:var(--space-6); flex-wrap:wrap; }
+    .quiz-stats span { background:rgba(255,255,255,.1); color:#e9d5ff; padding:4px 14px; border-radius:99px; font-size:.85rem; }
+    .quiz-container { max-width:800px; margin:0 auto; padding:var(--space-8) var(--space-4); }
+    .quiz-progress { margin-bottom:var(--space-6); }
+    .quiz-progress-text { font-size:.9rem; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .quiz-progress-bar  { height:6px; background:var(--border); border-radius:99px; overflow:hidden; }
+    .quiz-progress-fill { height:100%; background:linear-gradient(90deg,#4c1d95,#a78bfa); border-radius:99px; transition:width .4s ease; }
+    .quiz-question { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:var(--space-6); margin-bottom:var(--space-4); }
+    .quiz-question h3 { font-size:1rem; font-weight:600; color:var(--text-primary); margin-bottom:var(--space-4); line-height:1.6; }
+    .quiz-options  { display:flex; flex-direction:column; gap:var(--space-2); }
+    .quiz-option   { padding:var(--space-3) var(--space-4); border:1px solid var(--border); border-radius:var(--radius-lg); cursor:pointer; transition:all .2s; font-size:.9rem; background:var(--bg); }
+    .quiz-option:hover  { border-color:var(--m24-accent); background:var(--m24-light); }
+    .quiz-option.correct{ border-color:#16a34a; background:#f0fdf4; color:#15803d; font-weight:600; }
+    .quiz-option.wrong  { border-color:#dc2626; background:#fef2f2; color:#dc2626; }
+    .quiz-explanation   { margin-top:var(--space-4); padding:var(--space-4); background:var(--m24-light); border-left:3px solid var(--m24-accent); border-radius:var(--radius-md); font-size:.875rem; line-height:1.6; display:none; }
+    .quiz-nav { display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-4); }
+    .quiz-result { text-align:center; padding:var(--space-8); }
+    .quiz-result .score-circle { width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,#4c1d95,#a78bfa); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto var(--space-6); }
+    .quiz-result .score-circle .score-num { font-size:2rem; font-weight:700; color:#fff; }
+    .quiz-result .score-circle .score-den { font-size:.875rem; color:#e9d5ff; }
+    .quiz-result h2 { margin-bottom:var(--space-3); }
+    .quiz-result p  { color:var(--text-muted); margin-bottom:var(--space-6); }
+    .result-actions { display:flex; gap:var(--space-3); justify-content:center; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 24 · QUIZ</span>
+    <h1>📝 Agent Knowledge & Epistemics</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="score-circle"><span class="score-num" id="scoreNum">0</span><span class="score-den">/ 15</span></div>
+    <h2 id="scoreTitle"></h2>
+    <p id="scoreMsg"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">← Xem lại bài giảng</a>
+      <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại quiz</button>
+      <a href="../module25/index.html" class="btn btn-primary">Module 25 →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // --- EASY (5) ---
+  {
+    q: "Theo Johari Window, loại knowledge nào nguy hiểm nhất cho LoanBot vì nó không biết mình không biết?",
+    options: ["Known Known", "Known Unknown", "Unknown Known", "Unknown Unknown"],
+    answer: 3,
+    explanation: "Unknown Unknown là nguy hiểm nhất vì LoanBot không có cơ chế để detect và phòng tránh — nó không biết rằng mình không biết. Known Unknown (biết mình không biết) thực ra an toàn hơn vì LoanBot có thể flag query và redirect. Unknown Known (bias implicit) cũng nguy hiểm nhưng có thể phát hiện qua testing. Unknown Unknown = \"black swan\" — chỉ phát hiện sau khi damage đã xảy ra."
+  },
+  {
+    q: "LoanBot cite 'TT39/2016 Điều 65' trong một quyết định từ chối khoản vay. Đây là loại hallucination nào?",
+    options: ["Factual hallucination", "Citation hallucination", "Numeric hallucination", "Temporal hallucination"],
+    answer: 1,
+    explanation: "Đây là citation hallucination — LoanBot cite một điều khoản (Điều 65) không tồn tại trong TT39/2016 (chỉ có 27 điều). Factual hallucination = claim sai về facts (VD: 'TT39 ban hành năm 2014'). Numeric hallucination = tạo ra con số sai (VD: 'lãi suất max 2.5%/tháng'). Temporal hallucination không phải là phân loại chuẩn trong bài học này."
+  },
+  {
+    q: "Aleatoric uncertainty khác epistemic uncertainty ở điểm nào quan trọng nhất?",
+    options: [
+      "Aleatoric có thể reduce bằng thu thập thêm data; epistemic thì không",
+      "Epistemic có thể reduce bằng thu thập thêm data hoặc query external source; aleatoric thì không",
+      "Aleatoric xuất hiện trong LLM; epistemic xuất hiện trong dữ liệu",
+      "Epistemic uncertainty chỉ xảy ra khi model bị overfitting"
+    ],
+    answer: 1,
+    explanation: "Epistemic uncertainty (do thiếu knowledge) có thể reduce — query external source, update RAG knowledge base, hay fine-tune với data mới. Aleatoric uncertainty (do data noise vốn có) KHÔNG reduce được — income biến động mùa vụ là inherently unpredictable dù có bao nhiêu data. Đây là distinction căn bản để biết khi nào nên escalate vs chấp nhận uncertainty."
+  },
+  {
+    q: "RAG giải quyết vấn đề gì của LoanBot tốt hơn fine-tuning?",
+    options: [
+      "Tăng tốc độ inference từ 500ms xuống 50ms",
+      "Giảm hallucination và cập nhật knowledge nhanh khi regulation thay đổi",
+      "Giảm chi phí training từ $2,000 xuống $200",
+      "Tăng accuracy trên borderline cases từ 73% lên 89%"
+    ],
+    answer: 1,
+    explanation: "RAG giải quyết 2 vấn đề chính: (1) Hallucination — model chỉ cite retrieved context thay vì fabricate; (2) Knowledge freshness — update RAG knowledge base trong giờ thay vì fine-tune mất tuần. Fine-tuning tốt hơn cho domain adaptation và output format, nhưng kém hơn RAG về knowledge freshness. Số liệu accuracy 73%→89% là của CoT (Module 23), không phải RAG."
+  },
+  {
+    q: "Temporal hedge được dùng khi nào?",
+    options: [
+      "Khi LoanBot gặp adversarial prompt injection",
+      "Khi LoanBot cite thông tin có thể đã lỗi thời (lãi suất, regulation mới)",
+      "Khi LoanBot không có đủ data để train",
+      "Khi confidence score dưới ngưỡng 0.5"
+    ],
+    answer: 1,
+    explanation: "Temporal hedge là mechanism tự động add caveat '⚠️ Thông tin này dựa trên knowledge cutoff của model' khi LoanBot cite time-sensitive information — đặc biệt lãi suất, thông tư/nghị định mới, hoặc policy thay đổi. Mục tiêu: user aware rằng thông tin có thể stale và nên verify từ nguồn chính thức trước khi act. Không liên quan đến confidence score hay prompt injection."
+  },
+
+  // --- MEDIUM (7) ---
+  {
+    q: "Self-consistency sampling: LoanBot trả lời 3 lần: APPROVE, APPROVE, REJECT. Agreement = 2/3. Calibrated confidence = 2/3 × 0.6 + 0.87 × 0.4 = ?",
+    options: ["0.748", "0.822", "0.690", "0.744"],
+    answer: 0,
+    explanation: "Công thức: calibrated_conf = agreement_rate × 0.6 + mean_conf × 0.4. Agreement rate = 2/3 ≈ 0.667. Mean confidence = 0.87. → 0.667 × 0.6 + 0.87 × 0.4 = 0.400 + 0.348 = 0.748. Kết quả: 0.748 < 0.75 threshold → should_escalate = True (dù majority là APPROVE). Đây là ví dụ quan trọng: majority vote không đủ — calibrated confidence phải vượt threshold mới deliver."
+  },
+  {
+    q: "Faithfulness score 0.95 nhưng relevance score 0.30 trong RAG pipeline của LoanBot. Điều này có nghĩa là gì?",
+    options: [
+      "LoanBot trả lời rất tốt — faithfulness cao là đủ",
+      "LoanBot trung thành với retrieved context nhưng context đó không liên quan đến query",
+      "LoanBot đã hallucinate 5% nội dung từ prior knowledge",
+      "RAG retriever đang hoạt động bình thường"
+    ],
+    answer: 1,
+    explanation: "Faithfulness 0.95 = generated text rất trung thành với retrieved context (chỉ 5% ngoài context). Nhưng relevance 0.30 = retrieved context không liên quan đến query. Kết hợp: LoanBot faithful nói những gì nó retrieved, nhưng retrieved sai context → câu trả lời trung thành nhưng sai chủ đề. Đây là failure mode của retriever, không phải generator. Fix: cải thiện embedding model, query rewriting, hoặc hybrid BM25+vector search."
+  },
+  {
+    q: "LoanBot được hỏi 'Lãi suất cơ bản NHNN hiện tại là bao nhiêu?' Knowledge boundary classifier xác định đây là KNOWN_UNKNOWN. Response strategy đúng là gì?",
+    options: [
+      "answer_directly — vì LoanBot đã trained với dữ liệu NHNN",
+      "answer_with_caveat_and_suggest_verification",
+      "decline_and_redirect — redirect sang sbv.gov.vn",
+      "escalate_to_human — vì câu hỏi quá phức tạp"
+    ],
+    answer: 2,
+    explanation: "KNOWN_UNKNOWN với response_strategy = 'decline_and_redirect'. Lãi suất cơ bản là time-sensitive, thay đổi thường xuyên — trong OUT_OF_DOMAIN_SIGNALS. LoanBot biết mình không có thông tin đáng tin cậy về lãi suất real-time → decline và redirect sang sbv.gov.vn/rate hoặc phòng pháp chế. KHÔNG answer_directly (nguy cơ hallucinate con số cũ). KHÔNG answer_with_caveat (vẫn có thể đưa con số sai với caveat mà user có thể bỏ qua)."
+  },
+  {
+    q: "TT39/2016 trong VALID_REGULATIONS có articles range(1, 28). Verify_citations được gọi với ref 'TT39/2016 Điều 27'. Kết quả?",
+    options: [
+      "Invalid — Điều 27 out of range vì range(1,28) chỉ đến 27 exclusive",
+      "Valid — Điều 27 nằm trong range(1,28)",
+      "Error — không parse được article number",
+      "Unknown — TT39/2016 không có trong VALID_REGULATIONS"
+    ],
+    answer: 1,
+    explanation: "Python range(1, 28) = [1, 2, 3, ..., 27] — 27 IS included. range(1, 28) có stop=28 nên không bao gồm 28, nhưng 27 vẫn có. Vậy 'Điều 27' in range(1,28) = True → Valid. Nếu ref là 'TT39/2016 Điều 28' → article_num=28, 28 not in range(1,28) → Invalid với message 'Article 28 out of range for TT39/2016 (max: 27)'."
+  },
+  {
+    q: "Knowledge freshness check chạy ngày 2024-11-01. FinTech Internal Policy có last_updated=2024-03-01, staleness_threshold_days=45. Days since update = 245 ngày. Severity?",
+    options: ["OK", "MEDIUM", "HIGH", "CRITICAL"],
+    answer: 2,
+    explanation: "is_stale = 245 > 45 = True. Severity: HIGH nếu days_since_update > staleness_threshold_days × 2. 245 > 45 × 2 = 90 → True → Severity = HIGH. MEDIUM khi is_stale=True nhưng days_since_update ≤ threshold×2 (45–90 ngày). Với 245 ngày (~8 tháng), FinTech Internal Policy cực kỳ stale — cần update ngay. Đây là red flag: policy thay đổi hàng tháng mà chưa update gần 1 năm."
+  },
+  {
+    q: "Expected Calibration Error (ECE) của LoanBot = 0.12 khi model nói '90% confident'. Điều này có nghĩa là gì?",
+    options: [
+      "LoanBot đúng 90% khi nói 90% confident — perfectly calibrated",
+      "Khi LoanBot nói '90% confident', thực tế chỉ đúng khoảng 78% (90% - 12%)",
+      "LoanBot đúng 102% trong các cases nó nói 90% confident",
+      "ECE 0.12 là acceptable — dưới ngưỡng 0.20"
+    ],
+    answer: 1,
+    explanation: "ECE = |stated_confidence - actual_accuracy|. ECE = 0.12 → khi LoanBot nói '90% confident', thực tế chỉ đúng ~78% (90% - 12% = 78%). Model overconfident. Để fix: Platt scaling hoặc temperature scaling để calibrate probabilities. ECE 0.12 là problematic cho high-stakes loan decisions — ideal ECE < 0.05. Không phải 'acceptable' — với loan amounts hàng tỷ VNĐ, overconfidence by 12% là dangerous."
+  },
+  {
+    q: "LoanBot vừa fine-tuned tháng 3/2024 với TT39/2016. Tháng 8/2024, NHNN ban hành Thông tư 12/2024 sửa DTI max từ 0.45 → 0.40 cho khoản vay >500M. LoanBot tiếp tục dùng DTI max 0.45. Đây là loại vấn đề nào?",
+    options: [
+      "Aleatoric uncertainty — DTI limit là biến số ngẫu nhiên",
+      "Factual hallucination — LoanBot fabricate con số 0.45",
+      "Knowledge drift — thực tế đã thay đổi nhưng LoanBot knowledge không update",
+      "Epistemic uncertainty — LoanBot không biết DTI limit là gì"
+    ],
+    answer: 2,
+    explanation: "Đây là knowledge drift — LoanBot được training với quy định DTI max 0.45 (đúng vào thời điểm training), nhưng thực tế đã thay đổi sang 0.40 sau khi Thông tư 12/2024 có hiệu lực. Model knowledge không sai tại thời điểm training, nhưng đã lỗi thời. Fix: RAG update với TT12/2024 (nhanh, không cần retrain). Không phải hallucination (model không fabricate — 0.45 từng là đúng). Không phải aleatoric (DTI limit là deterministic rule, không phải random variable)."
+  },
+
+  // --- HARD (3) ---
+  {
+    q: "Analyst phát hiện: với query về 'lãi suất thả nổi vs cố định', LoanBot sampling 5 lần: RECOMMEND_FIXED(conf 0.72), RECOMMEND_FIXED(conf 0.69), RECOMMEND_VARIABLE(conf 0.81), RECOMMEND_FIXED(conf 0.75), RECOMMEND_VARIABLE(conf 0.88). Calibrated confidence = agreement_rate×0.6 + mean_conf×0.4. Should escalate hay không, và tại sao?",
+    options: [
+      "KHÔNG escalate — majority là RECOMMEND_FIXED (3/5 = 60% agreement)",
+      "PHẢI escalate — calibrated conf = 0.60×0.6 + 0.77×0.4 = 0.668 < 0.75 threshold",
+      "KHÔNG escalate — mean confidence 0.77 vượt threshold 0.75",
+      "PHẢI escalate — chỉ vì disagreement rate > 0% là đủ để escalate"
+    ],
+    answer: 1,
+    explanation: "Tính toán: agreement_rate = 3/5 = 0.60. Mean conf = (0.72+0.69+0.81+0.75+0.88)/5 = 3.85/5 = 0.770. Calibrated conf = 0.60×0.6 + 0.770×0.4 = 0.360 + 0.308 = 0.668. 0.668 < 0.75 → should_escalate = True. Cả hai conditions đều trigger: agreement_rate 0.60 < 0.67, VÀ calibrated_conf 0.668 < 0.75. Đây là correct escalation: 2/5 cases recommend variable — đủ uncertainty để không tự mình deliver recommendation cho financial advice."
+  },
+  {
+    q: "LoanBot dùng RAG với regulation KB. Query: 'Điều kiện để áp dụng lãi suất ưu đãi cho khách hàng VIP?' Retriever trả về 3 chunks từ TT39 về lãi suất cơ bản (relevance 0.45). LoanBot generate: 'Theo TT39/2016 Điều 9, khách hàng VIP với credit score trên 750 được áp dụng lãi suất giảm 0.5%/năm.' Faithfulness checker: 0 trong 3 chunks đề cập đến VIP program hay 0.5% discount. Vấn đề gì đã xảy ra và fix ra sao?",
+    options: [
+      "Retriever hoạt động đúng; LoanBot bị hallucination từ prior knowledge — fix: add grounding constraint 'only cite retrieved'",
+      "Faithfulness checker bị lỗi — LoanBot đang grounded đúng với TT39 Điều 9",
+      "Query quá phức tạp — cần decompose thành sub-queries trước khi retrieve",
+      "TT39 không có điều khoản về lãi suất ưu đãi — nên update regulation KB"
+    ],
+    answer: 0,
+    explanation: "Đây là RAG failure mode quan trọng: retriever returns low-relevance chunks (0.45 < 0.80 threshold), nhưng LoanBot vẫn generate bằng cách dùng prior knowledge để fill gaps — fabricate 'VIP program' và '0.5% discount' không có trong retrieved context. Faithfulness = 0/3 chunks → critical fail. Fix: (1) Grounding constraint: system prompt 'ONLY use information explicitly present in the provided context. If context doesn't contain the answer, say so.' (2) Relevance gate: nếu top-k relevance < 0.60 → return 'Không tìm thấy thông tin liên quan trong knowledge base — vui lòng liên hệ phòng pháp chế.' (3) KHÔNG tự retrieve thêm từ prior knowledge."
+  },
+  {
+    q: "FinTech Corp triển khai Epistemic Guard cho LoanBot. Một analyst phàn nàn: 'Tôi hỏi về TT39/2016 Điều 9 — LoanBot biết rõ điều này — nhưng nó vẫn add temporal hedge và đề nghị verify. Điều này làm chậm workflow của tôi 30%.' Bạn sẽ tune Epistemic Guard như thế nào?",
+    options: [
+      "Tắt hoàn toàn temporal hedge để không làm phiền analyst",
+      "Differentiate: stable regulation refs (TT39 Điều 9 không thay đổi 8 năm) → no hedge; time-sensitive refs (lãi suất, policy threshold) → hedge + redirect",
+      "Giảm ngưỡng staleness_threshold_days xuống 7 ngày để hedge ít hơn",
+      "Chỉ hedge khi analyst request, không hedge by default"
+    ],
+    answer: 1,
+    explanation: "Đây là overthinking equivalent của epistemics: guard quá conservative gây friction cho legitimate use cases. Giải pháp đúng là differentiation: (1) Stable structural content (TT39 Điều 9 — regulation structure không thay đổi, chỉ thêm amendment) → HIGH confidence, no hedge needed; (2) Time-sensitive content (lãi suất, DTI threshold, policy percentages) → hedge + temporal caveat; (3) Recent regulations (ban hành <12 tháng) → always hedge. Tắt hoàn toàn (A) là nguy hiểm — remove protection khi cần. Giảm ngưỡng (C) không solve vấn đề — vẫn hedge stable content. Opt-in (D) không work — analysts sẽ không enable khi cần nhất."
+  }
+];
+
+let current = 0, score = 0, answered = [];
+
+function renderQuestion(i) {
+  const q = questions[i];
+  document.getElementById('currentQ').textContent = i + 1;
+  document.getElementById('progressFill').style.width = ((i + 1) / 15 * 100) + '%';
+  const html = `
+    <div class="quiz-question">
+      <h3>${i + 1}. ${q.q}</h3>
+      <div class="quiz-options">
+        ${q.options.map((opt, j) => `<div class="quiz-option" onclick="selectOption(${j})">${String.fromCharCode(65+j)}. ${opt}</div>`).join('')}
+      </div>
+      <div class="quiz-explanation" id="exp">${q.explanation}</div>
+    </div>
+    <div class="quiz-nav">
+      <span style="color:var(--text-muted);font-size:.875rem">Câu ${i+1} / 15</span>
+      ${i < 14
+        ? `<button class="btn btn-primary" id="nextBtn" style="display:none" onclick="nextQ()">Câu tiếp theo →</button>`
+        : `<button class="btn btn-primary" id="nextBtn" style="display:none" onclick="showResult()">Xem kết quả 🎯</button>`}
+    </div>`;
+  document.getElementById('quizArea').innerHTML = html;
+}
+
+function selectOption(j) {
+  if (answered[current]) return;
+  answered[current] = j;
+  const opts = document.querySelectorAll('.quiz-option');
+  const correct = questions[current].answer;
+  opts.forEach((o, k) => {
+    if (k === correct) o.classList.add('correct');
+    else if (k === j && j !== correct) o.classList.add('wrong');
+    o.style.pointerEvents = 'none';
+  });
+  if (j === correct) score++;
+  document.getElementById('exp').style.display = 'block';
+  document.getElementById('nextBtn').style.display = 'inline-flex';
+}
+
+function nextQ() { current++; renderQuestion(current); }
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const res = document.getElementById('resultArea');
+  res.style.display = 'block';
+  document.getElementById('scoreNum').textContent = score;
+  const pct = score / 15;
+  let title, msg;
+  if (pct >= 0.93) { title = '🏆 Xuất sắc! Epistemic Master!'; msg = 'Bạn nắm vững toàn bộ kiến thức về knowledge boundaries, hallucination detection, và uncertainty quantification. LoanBot sẽ biết khi nào nên nói "Tôi không biết."'; }
+  else if (pct >= 0.73) { title = '✅ Tốt lắm! Gần đạt mastery'; msg = 'Bạn hiểu được các khái niệm cốt lõi. Ôn lại các câu sai để hiểu sâu hơn về calibrated confidence và RAG faithfulness.'; }
+  else if (pct >= 0.53) { title = '📚 Cần ôn tập thêm'; msg = 'Hãy đọc lại Bài 2 (Hallucination Detection) và Bài 3 (Uncertainty Quantification) để nắm vững các metrics và thresholds.'; }
+  else { title = '💪 Hãy bắt đầu lại từ đầu'; msg = 'Đọc kỹ lại Module 24, đặc biệt là Johari Window và RAG pipeline, trước khi làm lại quiz.'; }
+  document.getElementById('scoreTitle').textContent = title;
+  document.getElementById('scoreMsg').textContent = msg;
+}
+
+function restartQuiz() {
+  current = 0; score = 0; answered = [];
+  document.getElementById('quizArea').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+  renderQuestion(0);
+}
+
+renderQuestion(0);
+</script>
+</body>
+</html>

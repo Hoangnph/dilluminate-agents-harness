@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 18 — LLM Gateway & Enterprise Infrastructure</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m18-primary: #831843;
+      --m18-accent:  #ec4899;
+      --m18-light:   #fdf2f8;
+      --m18-border:  #f9a8d4;
+    }
+    .lesson-header { background: linear-gradient(135deg, #500724 0%, #831843 50%, #ec4899 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fce7f3; }
+    .lesson-header p { color: #f9a8d4; }
+    .sidebar-nav a.active { background: var(--m18-light); border-left: 3px solid var(--m18-accent); color: var(--m18-primary); }
+    .sidebar-nav a:hover { color: var(--m18-primary); }
+
+    .gateway-arch {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);
+      margin: var(--space-4) 0;
+    }
+    .arch-box {
+      padding: var(--space-4); border-radius: var(--radius-lg); text-align: center;
+      border: 1px solid;
+    }
+    .arch-box h4 { font-size: .85rem; font-weight: 700; margin-bottom: var(--space-2); }
+    .arch-box p  { font-size: .78rem; margin: 0; }
+
+    .routing-rule {
+      display: flex; align-items: flex-start; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg);
+      background: var(--m18-light); border: 1px solid var(--m18-border);
+      margin-bottom: var(--space-2);
+    }
+    .routing-rule .rule-cond { font-family: var(--font-mono); font-size: .8rem; color: var(--m18-primary); font-weight: 700; min-width: 120px; }
+    .routing-rule .rule-arrow { color: var(--m18-accent); font-weight: 700; }
+    .routing-rule .rule-action { font-size: .875rem; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m18-light);color:var(--m18-primary);border-color:var(--m18-border);">MODULE 18</div>
+    <div class="sidebar-title">LLM Gateway & Infrastructure</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Gateway Architecture</a>
+      <a href="#lesson2">L2. Load Balancing & Quota</a>
+      <a href="#lesson3">L3. Failover & Reliability</a>
+      <a href="#lesson4">L4. Request Queue & Priority</a>
+      <a href="#lesson5">L5. SLA & Cost Dashboard</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m18-accent);">📝 Quiz Module 18</a>
+      <a href="lab.ipynb" download style="color:var(--m18-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module17/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 17: Multi-Modal</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 18 · Tuần 49–51</span>
+      <h1>🌐 LLM Gateway & Enterprise Infrastructure</h1>
+      <p>LoanBot xử lý 50,000 hồ sơ/tháng — tương đương ~1.7 hồ sơ/phút, peak 8×/phút vào giờ cao điểm. Một cuộc gọi Claude API timeout có thể block cả dây chuyền. Module này xây dựng infrastructure để LoanBot chạy 24/7 với 99.9% uptime.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🌐 Enterprise scale</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: LLM Gateway Architecture — Tại Sao Cần Một Lớp Trung Gian?</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu LLM Gateway là gì và tại sao cần thiết ở quy mô enterprise</li>
+          <li>Phân biệt Direct API access vs Gateway pattern — trade-offs</li>
+          <li>Biết 6 chức năng cốt lõi của một production-grade LLM Gateway</li>
+          <li>Thiết kế gateway architecture cho LoanBot v3.4</li>
+        </ul>
+      </div>
+
+      <p>LoanBot v1.0 gọi Claude API trực tiếp từ application code — đơn giản nhưng fragile. Mỗi khi Anthropic có maintenance, mỗi khi API key hết quota, mỗi khi cần đổi model — toàn bộ hệ thống phải sửa code. <strong>LLM Gateway</strong> là lớp trung gian giải quyết tất cả vấn đề này mà không thay đổi application logic.</p>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Gateway như Tổng Đài Điện Thoại</div>
+        <p>Tưởng tượng LoanBot là một văn phòng với 100 nhân viên đều cần gọi điện ra ngoài. Nếu mỗi người tự gọi trực tiếp: không có kiểm soát chi phí, không biết ai đang gọi gì, một người bị block tất cả bị ảnh hưởng. <strong>Gateway</strong> là tổng đài: mọi cuộc gọi đi qua, tổng đài kiểm soát quota, route đến đường truyền tốt nhất, log mọi cuộc gọi, và switch sang nhà mạng backup khi cần.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg">
+          <title>LLM Gateway Architecture — So sánh Direct vs Gateway pattern cho LoanBot</title>
+          <defs>
+            <marker id="arrGW" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#ec4899"/>
+            </marker>
+            <marker id="arrGWred" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626"/>
+            </marker>
+          </defs>
+          <rect width="760" height="230" fill="#500724" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fce7f3">LLM Gateway Pattern — LoanBot v3.4 Infrastructure</text>
+
+          <!-- LEFT: Without Gateway -->
+          <text x="170" y="45" text-anchor="middle" font-size="10" font-weight="700" fill="#fca5a5">❌ Không có Gateway (fragile)</text>
+          <rect x="20" y="55" width="80" height="30" fill="#7f1d1d" rx="6"/>
+          <text x="60" y="75" text-anchor="middle" font-size="8" fill="#fca5a5">LoanBot App</text>
+          <line x1="100" y1="70" x2="130" y2="70" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrGWred)"/>
+          <rect x="132" y="55" width="80" height="30" fill="#7f1d1d" rx="6" stroke="#dc2626"/>
+          <text x="172" y="75" text-anchor="middle" font-size="8" fill="#fca5a5">Claude API</text>
+          <text x="170" y="105" text-anchor="middle" font-size="7.5" fill="#fca5a5">• Timeout → app crash</text>
+          <text x="170" y="116" text-anchor="middle" font-size="7.5" fill="#fca5a5">• No retry logic</text>
+          <text x="170" y="127" text-anchor="middle" font-size="7.5" fill="#fca5a5">• No cost visibility</text>
+          <text x="170" y="138" text-anchor="middle" font-size="7.5" fill="#fca5a5">• Hard-coded model</text>
+
+          <!-- Divider -->
+          <line x1="340" y1="40" x2="340" y2="220" stroke="#831843" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- RIGHT: With Gateway -->
+          <text x="545" y="45" text-anchor="middle" font-size="10" font-weight="700" fill="#86efac">✅ Với LLM Gateway (resilient)</text>
+
+          <!-- LoanBot apps -->
+          <rect x="360" y="60" width="70" height="25" fill="#500724" rx="5" stroke="#f9a8d4"/>
+          <text x="395" y="77" text-anchor="middle" font-size="8" fill="#fce7f3">LoanBot</text>
+
+          <rect x="360" y="92" width="70" height="25" fill="#500724" rx="5" stroke="#f9a8d4"/>
+          <text x="395" y="109" text-anchor="middle" font-size="8" fill="#fce7f3">DocBot</text>
+
+          <rect x="360" y="124" width="70" height="25" fill="#500724" rx="5" stroke="#f9a8d4"/>
+          <text x="395" y="141" text-anchor="middle" font-size="8" fill="#fce7f3">RiskBot</text>
+
+          <!-- Arrows to gateway -->
+          <line x1="430" y1="72" x2="460" y2="100" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrGW)"/>
+          <line x1="430" y1="105" x2="462" y2="105" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrGW)"/>
+          <line x1="430" y1="136" x2="460" y2="110" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrGW)"/>
+
+          <!-- Gateway box -->
+          <rect x="462" y="72" width="90" height="68" fill="#831843" rx="8" stroke="#ec4899" stroke-width="1.5"/>
+          <text x="507" y="90" text-anchor="middle" font-size="9" font-weight="700" fill="#fce7f3">LLM Gateway</text>
+          <text x="507" y="103" text-anchor="middle" font-size="7" fill="#f9a8d4">• Auth &amp; quota</text>
+          <text x="507" y="114" text-anchor="middle" font-size="7" fill="#f9a8d4">• Load balance</text>
+          <text x="507" y="125" text-anchor="middle" font-size="7" fill="#f9a8d4">• Retry &amp; cache</text>
+          <text x="507" y="136" text-anchor="middle" font-size="7" fill="#f9a8d4">• Logging/metrics</text>
+
+          <!-- Arrows to backends -->
+          <line x1="552" y1="95" x2="580" y2="80" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrGW)"/>
+          <line x1="552" y1="106" x2="582" y2="106" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrGW)"/>
+          <line x1="552" y1="117" x2="580" y2="130" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrGW)"/>
+
+          <!-- Backend APIs -->
+          <rect x="582" y="65" width="80" height="25" fill="#065f46" rx="5" stroke="#6ee7b7"/>
+          <text x="622" y="82" text-anchor="middle" font-size="8" fill="#d1fae5">Claude Primary</text>
+          <rect x="582" y="95" width="80" height="25" fill="#1e3a8a" rx="5" stroke="#93c5fd"/>
+          <text x="622" y="112" text-anchor="middle" font-size="8" fill="#dbeafe">Claude Backup</text>
+          <rect x="582" y="125" width="80" height="25" fill="#312e81" rx="5" stroke="#a5b4fc"/>
+          <text x="622" y="142" text-anchor="middle" font-size="8" fill="#e0e7ff">Cache Layer</text>
+
+          <!-- Features -->
+          <rect x="360" y="160" width="302" height="50" fill="#500724" rx="6"/>
+          <text x="511" y="177" text-anchor="middle" font-size="8" font-weight="700" fill="#fce7f3">6 Gateway Features</text>
+          <text x="375" y="192" font-size="7" fill="#f9a8d4">① Auth &amp; API Key mgmt</text>
+          <text x="375" y="202" font-size="7" fill="#f9a8d4">② Rate limiting &amp; quota</text>
+          <text x="500" y="192" font-size="7" fill="#f9a8d4">③ Load balancing</text>
+          <text x="500" y="202" font-size="7" fill="#f9a8d4">④ Failover &amp; retry</text>
+          <text x="615" y="192" font-size="7" fill="#f9a8d4">⑤ Caching</text>
+          <text x="615" y="202" font-size="7" fill="#f9a8d4">⑥ Observability</text>
+        </svg>
+        <div class="diagram-title">Hình 1: LLM Gateway Architecture — Direct API (fragile) vs Gateway pattern (resilient). 6 features của production gateway cho LoanBot v3.4</div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Công thức cốt lõi</div>
+        <div class="formula-text">Reliability = Gateway + Redundancy + Observability</div>
+        <div class="formula-desc">Không có Gateway → single point of failure. Gateway + Redundancy → 99.9% uptime. + Observability → biết ngay khi xảy ra vấn đề.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (LLM Gateway — core class)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional
+<span class="code-keyword">import</span> time, hashlib, json, anthropic
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">GatewayConfig</span>:
+    primary_keys:   List[<span class="code-type">str</span>]        <span class="code-comment"># Pool of API keys — round-robin</span>
+    backup_keys:    List[<span class="code-type">str</span>]        <span class="code-comment"># Failover keys from secondary account</span>
+    cache_ttl_s:    <span class="code-type">int</span> = <span class="code-number">3600</span>       <span class="code-comment"># 1h cache for identical requests</span>
+    max_retries:    <span class="code-type">int</span> = <span class="code-number">3</span>
+    timeout_s:      <span class="code-type">float</span> = <span class="code-number">30.0</span>
+    rate_limit_rpm: <span class="code-type">int</span> = <span class="code-number">60</span>          <span class="code-comment"># requests per minute per key</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LLMGateway</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, config: GatewayConfig):
+        self.config      = config
+        self._key_idx    = <span class="code-number">0</span>           <span class="code-comment"># round-robin pointer</span>
+        self._cache      = {}           <span class="code-comment"># request hash → response</span>
+        self._metrics    = {<span class="code-string">"requests"</span>: <span class="code-number">0</span>, <span class="code-string">"cache_hits"</span>: <span class="code-number">0</span>, <span class="code-string">"failures"</span>: <span class="code-number">0</span>}
+
+    <span class="code-keyword">def</span> <span class="code-function">_next_key</span>(self, pool: List[<span class="code-type">str</span>]) -> <span class="code-type">str</span>:
+        <span class="code-comment"># Round-robin across key pool</span>
+        key = pool[self._key_idx % <span class="code-function">len</span>(pool)]
+        self._key_idx += <span class="code-number">1</span>
+        <span class="code-keyword">return</span> key
+
+    <span class="code-keyword">def</span> <span class="code-function">_cache_key</span>(self, model: <span class="code-type">str</span>, messages: list, system: <span class="code-type">str</span>) -> <span class="code-type">str</span>:
+        payload = json.<span class="code-function">dumps</span>({<span class="code-string">"model"</span>: model, <span class="code-string">"messages"</span>: messages, <span class="code-string">"system"</span>: system}, sort_keys=<span class="code-keyword">True</span>)
+        <span class="code-keyword">return</span> hashlib.<span class="code-function">md5</span>(payload.<span class="code-function">encode</span>()).<span class="code-function">hexdigest</span>()
+
+    <span class="code-keyword">def</span> <span class="code-function">complete</span>(self, model: <span class="code-type">str</span>, messages: list, system: <span class="code-type">str</span> = <span class="code-string">""</span>, **kwargs) -> dict:
+        <span class="code-comment">"""Main entry point — handles cache, load balance, retry, failover."""</span>
+        self._metrics[<span class="code-string">"requests"</span>] += <span class="code-number">1</span>
+
+        <span class="code-comment"># 1. Check cache first</span>
+        ck = self.<span class="code-function">_cache_key</span>(model, messages, system)
+        <span class="code-keyword">if</span> ck <span class="code-keyword">in</span> self._cache:
+            entry = self._cache[ck]
+            <span class="code-keyword">if</span> time.<span class="code-function">time</span>() - entry[<span class="code-string">"ts"</span>] < self.config.cache_ttl_s:
+                self._metrics[<span class="code-string">"cache_hits"</span>] += <span class="code-number">1</span>
+                <span class="code-keyword">return</span> entry[<span class="code-string">"response"</span>]
+
+        <span class="code-comment"># 2. Try primary keys first, then backup</span>
+        all_pools = [(self.config.primary_keys, <span class="code-string">"primary"</span>),
+                     (self.config.backup_keys,  <span class="code-string">"backup"</span>)]
+        <span class="code-keyword">for</span> pool, pool_name <span class="code-keyword">in</span> all_pools:
+            <span class="code-keyword">if not</span> pool: <span class="code-keyword">continue</span>
+            <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> <span class="code-function">range</span>(self.config.max_retries):
+                <span class="code-keyword">try</span>:
+                    api_key  = self.<span class="code-function">_next_key</span>(pool)
+                    client   = anthropic.<span class="code-function">Anthropic</span>(api_key=api_key)
+                    response = client.messages.<span class="code-function">create</span>(
+                        model=model, messages=messages, system=system,
+                        max_tokens=kwargs.<span class="code-function">get</span>(<span class="code-string">"max_tokens"</span>, <span class="code-number">2048</span>)
+                    )
+                    result = response.content[<span class="code-number">0</span>].text
+                    self._cache[ck] = {<span class="code-string">"ts"</span>: time.<span class="code-function">time</span>(), <span class="code-string">"response"</span>: result}
+                    <span class="code-keyword">return</span> result
+                <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+                    <span class="code-keyword">if</span> attempt == self.config.max_retries - <span class="code-number">1</span>:
+                        <span class="code-keyword">continue</span>  <span class="code-comment"># try next pool</span>
+                    time.<span class="code-function">sleep</span>(<span class="code-number">2</span> ** attempt)  <span class="code-comment"># exponential backoff</span>
+
+        self._metrics[<span class="code-string">"failures"</span>] += <span class="code-number">1</span>
+        <span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(<span class="code-string">"All API keys and pools exhausted"</span>)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot gọi API với cùng một system prompt cho mọi hồ sơ. Cache TTL = 1 giờ. Nếu 2 hồ sơ khác nhau gọi với cùng messages + system prompt (test scenario), kết quả thứ 2 có được cache không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Có — cache key = MD5(model + messages + system). Nếu 2 requests có cùng 3 parameters này, cache key giống nhau → hit cache. Trong thực tế LoanBot, mỗi hồ sơ có customer data khác nhau trong messages → cache key khác nhau → không hit. Cache chỉ hữu ích cho: (1) retry cùng một request sau lỗi, (2) duplicate submission phát hiện, (3) status checks gọi lại nhiều lần.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Load Balancing & Quota Management</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement round-robin load balancing across multiple API keys</li>
+          <li>Quản lý per-team và per-customer quota để prevent abuse</li>
+          <li>Hiểu Anthropic rate limits và cách calculate capacity cho 50K hồ sơ/tháng</li>
+          <li>Build priority queue: VIP customers được xử lý trước trong peak hours</li>
+        </ul>
+      </div>
+
+      <p>FinTech Corp có 50,000 hồ sơ/tháng ≈ 1,667/ngày ≈ 70/giờ bình quân. Nhưng peak load (8–10 sáng, cuối tuần) có thể đạt 400–500/giờ. Anthropic rate limit mặc định: 4,000 RPM (requests per minute) = 240,000/giờ — đủ cho một key. Nhưng nếu một key bị block vì lỗi payment? Cần <strong>key pool</strong> và quota management.</p>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Rate Limit ≠ Không Cần Quản Lý</div>
+        <p>Anthropic rate limit là ceiling của provider, không phải ceiling của business. FinTech Corp có thể cần giới hạn: (1) Department A không được dùng quá 20% total quota; (2) Khách hàng priority 3 không được queue cùng priority 1; (3) Test/dev environment không ăn production quota. Quota management là business logic, cần implement riêng trong gateway.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Quota Manager)</span>
+        <pre><code><span class="code-keyword">from</span> collections <span class="code-keyword">import</span> defaultdict, deque
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">class</span> <span class="code-function">QuotaManager</span>:
+    <span class="code-comment">"""Sliding window quota per team/customer."""</span>
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, limits: dict):
+        <span class="code-comment"># limits = {"loan_dept": 1000, "risk_dept": 500} req/hour</span>
+        self.limits   = limits
+        self.windows  = defaultdict(<span class="code-keyword">lambda</span>: deque())  <span class="code-comment"># key → timestamps</span>
+        self.window_s = <span class="code-number">3600</span>   <span class="code-comment"># 1-hour sliding window</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">can_request</span>(self, team_id: <span class="code-type">str</span>) -> bool:
+        <span class="code-comment"># Clean expired timestamps outside sliding window</span>
+        now    = time.<span class="code-function">time</span>()
+        window = self.windows[team_id]
+        <span class="code-keyword">while</span> window <span class="code-keyword">and</span> now - window[<span class="code-number">0</span>] > self.window_s:
+            window.<span class="code-function">popleft</span>()
+        limit = self.limits.<span class="code-function">get</span>(team_id, <span class="code-number">100</span>)  <span class="code-comment"># default 100/hour</span>
+        <span class="code-keyword">return</span> <span class="code-function">len</span>(window) < limit
+
+    <span class="code-keyword">def</span> <span class="code-function">record_request</span>(self, team_id: <span class="code-type">str</span>):
+        self.windows[team_id].<span class="code-function">append</span>(time.<span class="code-function">time</span>())
+
+    <span class="code-keyword">def</span> <span class="code-function">usage_pct</span>(self, team_id: <span class="code-type">str</span>) -> float:
+        window = self.windows[team_id]
+        limit  = self.limits.<span class="code-function">get</span>(team_id, <span class="code-number">100</span>)
+        <span class="code-keyword">return</span> <span class="code-function">len</span>(window) / limit * <span class="code-number">100</span>
+
+<span class="code-comment"># FinTech Corp quota config</span>
+QUOTA_CONFIG = {
+    <span class="code-string">"loan_dept"</span>:  <span class="code-number">30_000</span>,  <span class="code-comment"># 30K/tháng (primary business)</span>
+    <span class="code-string">"risk_dept"</span>:  <span class="code-number">10_000</span>,
+    <span class="code-string">"test_env"</span>:   <span class="code-number">500</span>,     <span class="code-comment"># dev/test không ăn production quota</span>
+    <span class="code-string">"priority_vip"</span>: <span class="code-number">5_000</span>,  <span class="code-comment"># VIP fast lane</span>
+}</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Failover & High Availability</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement multi-level failover: key rotation → backup account → degraded mode</li>
+          <li>Hiểu health check pattern: phát hiện API key bị block sớm</li>
+          <li>Design graceful degradation: LoanBot hoạt động partial khi API down</li>
+          <li>Tính SLA: 99.9% uptime = tối đa 8.76 giờ downtime/năm</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Failover Decision Tree — LoanBot gateway failover logic khi API key gặp sự cố</title>
+          <defs>
+            <marker id="arrFO" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#ec4899"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#500724" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fce7f3">LoanBot Failover Decision Tree</text>
+
+          <!-- Request -->
+          <rect x="320" y="35" width="120" height="30" fill="#831843" rx="8" stroke="#f9a8d4"/>
+          <text x="380" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#fce7f3">API Request</text>
+
+          <line x1="380" y1="65" x2="380" y2="85" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arrFO)"/>
+
+          <!-- Level 1 -->
+          <rect x="290" y="87" width="180" height="28" fill="#065f46" rx="6"/>
+          <text x="380" y="105" text-anchor="middle" font-size="9" fill="#d1fae5">L1: Try primary key pool (round-robin)</text>
+
+          <line x1="380" y1="115" x2="380" y2="130" stroke="#ec4899" stroke-width="1.5"/>
+          <text x="412" y="126" font-size="8" fill="#fca5a5">FAIL →</text>
+
+          <!-- Level 2 -->
+          <rect x="290" y="132" width="180" height="28" fill="#1e3a8a" rx="6"/>
+          <text x="380" y="150" text-anchor="middle" font-size="9" fill="#dbeafe">L2: Retry with backup key account</text>
+
+          <line x1="380" y1="160" x2="380" y2="175" stroke="#ec4899" stroke-width="1.5"/>
+          <text x="412" y="171" font-size="8" fill="#fca5a5">FAIL →</text>
+
+          <!-- Level 3 -->
+          <rect x="290" y="177" width="180" height="20" fill="#7c2d12" rx="6"/>
+          <text x="380" y="191" text-anchor="middle" font-size="9" fill="#fed7aa">L3: Degraded mode (queue + alert)</text>
+
+          <!-- SUCCESS paths -->
+          <line x1="470" y1="101" x2="570" y2="101" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrFO)"/>
+          <text x="520" y="97" text-anchor="middle" font-size="8" fill="#86efac">SUCCESS</text>
+          <rect x="572" y="88" width="100" height="28" fill="#065f46" rx="6"/>
+          <text x="622" y="106" text-anchor="middle" font-size="9" fill="#d1fae5">Return response ✓</text>
+
+          <line x1="470" y1="146" x2="570" y2="146" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrFO)"/>
+          <text x="520" y="142" text-anchor="middle" font-size="8" fill="#86efac">SUCCESS</text>
+          <rect x="572" y="133" width="100" height="28" fill="#065f46" rx="6"/>
+          <text x="622" y="148" text-anchor="middle" font-size="8" fill="#d1fae5">Return + flag</text>
+          <text x="622" y="158" text-anchor="middle" font-size="8" fill="#d1fae5">primary issue</text>
+
+          <!-- Health check note -->
+          <rect x="10" y="88" width="260" height="90" fill="#1e293b" rx="8"/>
+          <text x="140" y="107" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Health Check — Proactive Detection</text>
+          <text x="20" y="122" font-size="8" fill="#94a3b8">• Mỗi 60 giây: test call với dummy prompt</text>
+          <text x="20" y="135" font-size="8" fill="#94a3b8">• Latency &gt; 10s → mark key "degraded"</text>
+          <text x="20" y="148" font-size="8" fill="#94a3b8">• Error rate &gt; 5% → mark key "unhealthy"</text>
+          <text x="20" y="161" font-size="8" fill="#94a3b8">• Skip unhealthy keys trong pool</text>
+          <text x="20" y="174" font-size="8" fill="#94a3b8">• Recovery: re-check sau 5 phút cooldown</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Failover Decision Tree — 3-level failover cho LoanBot. L1: primary pool → L2: backup account → L3: degraded mode (queue + alert)</div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Graceful Degradation</div>
+        <p>Khi tất cả API keys fail, LoanBot không crash — nó chuyển sang <strong>degraded mode</strong>: (1) Queue requests vào Redis với TTL 2 giờ; (2) Gửi alert ngay cho ops team; (3) Trả về response "đang xử lý, kết quả trong 2 giờ" cho applicant; (4) Khi API phục hồi, drain queue theo priority. SLA vẫn được đảm bảo (kết quả trong 2 giờ thay vì 90 giây) — khách hàng được thông báo proactively.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Request Queue & Priority Routing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement priority queue: P1 (VIP/urgent) xử lý trước P3 (batch/standard)</li>
+          <li>Intelligent model routing: haiku cho simple, sonnet cho complex requests</li>
+          <li>Hiểu backpressure: cách xử lý khi queue đầy</li>
+          <li>Monitor queue depth và wait time để đảm bảo SLA</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FC-2024-001 vs FC-2024-002 trong Peak Hours</div>
+        <p><strong>9:00 sáng thứ Hai:</strong> 450 hồ sơ đang chờ xử lý. Gateway queue có 3 priority levels:</p>
+        <ul style="margin-top:8px;">
+          <li><strong>P1 (VIP + Urgent):</strong> FC-2024-001 — loan 800M VNĐ, khách hàng platinum → queue P1, wait &lt;30s</li>
+          <li><strong>P2 (Standard):</strong> FC-2024-002 — loan 300M, standard customer → wait ~5 phút</li>
+          <li><strong>P3 (Batch/Reprocessing):</strong> 200 hồ sơ bị lỗi cần reprocess → wait lên đến 30 phút</li>
+        </ul>
+        <p>Kết quả: VIP không bao giờ bị block bởi batch workload. P3 chạy "ngầm" khi bandwidth còn trống.</p>
+      </div>
+
+      <div class="routing-rule">
+        <span class="rule-cond">credit_score ≥ 700</span>
+        <span class="rule-arrow">→</span>
+        <span class="rule-action">claude-haiku-4-5 (fast, cheap, accuracy đủ cho clear approval)</span>
+      </div>
+      <div class="routing-rule">
+        <span class="rule-cond">risk_score 0.35–0.65</span>
+        <span class="rule-arrow">→</span>
+        <span class="rule-action">claude-sonnet-4-6 (borderline cần reasoning sâu hơn)</span>
+      </div>
+      <div class="routing-rule">
+        <span class="rule-cond">loan_amount ≥ 2B VNĐ</span>
+        <span class="rule-arrow">→</span>
+        <span class="rule-action">claude-sonnet-4-6 + extended thinking (high stakes)</span>
+      </div>
+      <div class="routing-rule">
+        <span class="rule-cond">blacklisted = True</span>
+        <span class="rule-arrow">→</span>
+        <span class="rule-action">claude-haiku-4-5 (instant reject — không cần reasoning)</span>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao dùng haiku cho blacklisted cases thay vì reject ngay mà không gọi API?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Trong nhiều jurisdictions (bao gồm EU AI Act), automated decisions phải có <em>explainability</em> — kể cả khi reject là hiển nhiên. Gọi haiku để generate explanation + regulation_refs (TT39, EU AI Act Art.22) giúp đảm bảo compliance và audit trail. Chi phí: $0.0003/call với haiku — negligible. Giải pháp thay thế là template-based rejection explanation, nhưng kém linh hoạt hơn với edge cases.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: SLA Dashboard & Cost Attribution</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Define và measure SLA cho LoanBot: P99 latency, availability, error rate</li>
+          <li>Implement cost attribution: charge mỗi department theo actual usage</li>
+          <li>Build real-time dashboard: queue depth, API health, cost by team</li>
+          <li>Set up alerts: PagerDuty/Slack khi SLA breach được dự báo</li>
+        </ul>
+      </div>
+
+      <p>Gateway không chỉ route requests — nó là nguồn dữ liệu duy nhất để trả lời: "LoanBot tốn bao nhiêu tiền?", "Department nào dùng nhiều nhất?", "Tháng này SLA đạt không?". Mỗi request qua gateway được tagged với metadata: team, priority, model, cost, latency.</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Gateway là Billing System</div>
+        <p>FinTech Corp có 5 departments dùng LoanBot. IT Central trả toàn bộ API bill cho Anthropic. Nhưng ai chịu cost-allocation? Gateway log mỗi request với department tag → tháng sau: loan_dept = 68%, risk_dept = 21%, compliance = 8%, IT_test = 3%. Finance có số liệu để charge-back. Không có gateway logging → IT absorbs toàn bộ cost và không có incentive để optimize.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (SLA Metrics + Cost Attribution)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> collections <span class="code-keyword">import</span> defaultdict
+<span class="code-keyword">import</span> time
+
+<span class="code-comment"># Cost per 1M tokens (2025 pricing)</span>
+MODEL_COSTS = {
+    <span class="code-string">"claude-haiku-4-5"</span>:  {<span class="code-string">"input"</span>: <span class="code-number">0.25</span>, <span class="code-string">"output"</span>: <span class="code-number">1.25</span>},   <span class="code-comment"># $/1M tokens</span>
+    <span class="code-string">"claude-sonnet-4-6"</span>: {<span class="code-string">"input"</span>: <span class="code-number">3.00</span>, <span class="code-string">"output"</span>: <span class="code-number">15.00</span>},
+}
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">RequestLog</span>:
+    request_id:  <span class="code-type">str</span>
+    team_id:     <span class="code-type">str</span>
+    model:       <span class="code-type">str</span>
+    priority:    <span class="code-type">int</span>
+    latency_ms:  <span class="code-type">int</span>
+    input_tokens:  <span class="code-type">int</span>
+    output_tokens: <span class="code-type">int</span>
+    success:     <span class="code-type">bool</span>
+    timestamp:   <span class="code-type">float</span> = field(default_factory=time.time)
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">cost_usd</span>(self) -> float:
+        c = MODEL_COSTS.<span class="code-function">get</span>(self.model, {<span class="code-string">"input"</span>: <span class="code-number">0</span>, <span class="code-string">"output"</span>: <span class="code-number">0</span>})
+        <span class="code-keyword">return</span> (self.input_tokens * c[<span class="code-string">"input"</span>] + self.output_tokens * c[<span class="code-string">"output"</span>]) / <span class="code-number">1_000_000</span>
+
+<span class="code-keyword">class</span> <span class="code-function">SLAMonitor</span>:
+    SLA_P99_MS = <span class="code-number">5_000</span>    <span class="code-comment"># P99 latency target: 5 seconds</span>
+    SLA_ERROR  = <span class="code-number">0.001</span>    <span class="code-comment"># &lt;0.1% error rate</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.logs: list = []
+        self.cost_by_team = defaultdict(<span class="code-type">float</span>)
+
+    <span class="code-keyword">def</span> <span class="code-function">record</span>(self, log: RequestLog):
+        self.logs.<span class="code-function">append</span>(log)
+        self.cost_by_team[log.team_id] += log.cost_usd
+
+    <span class="code-keyword">def</span> <span class="code-function">report</span>(self) -> dict:
+        <span class="code-keyword">if not</span> self.logs: <span class="code-keyword">return</span> {}
+        latencies = <span class="code-function">sorted</span>([l.latency_ms <span class="code-keyword">for</span> l <span class="code-keyword">in</span> self.logs])
+        p99_idx   = <span class="code-function">int</span>(<span class="code-function">len</span>(latencies) * <span class="code-number">0.99</span>)
+        errors    = <span class="code-function">sum</span>(<span class="code-number">1</span> <span class="code-keyword">for</span> l <span class="code-keyword">in</span> self.logs <span class="code-keyword">if not</span> l.success)
+        <span class="code-keyword">return</span> {
+            <span class="code-string">"total_requests"</span>:    <span class="code-function">len</span>(self.logs),
+            <span class="code-string">"p99_latency_ms"</span>:    latencies[p99_idx],
+            <span class="code-string">"p99_sla_ok"</span>:        latencies[p99_idx] <= self.SLA_P99_MS,
+            <span class="code-string">"error_rate"</span>:        errors / <span class="code-function">len</span>(self.logs),
+            <span class="code-string">"error_sla_ok"</span>:      errors / <span class="code-function">len</span>(self.logs) <= self.SLA_ERROR,
+            <span class="code-string">"total_cost_usd"</span>:    <span class="code-function">sum</span>(l.cost_usd <span class="code-keyword">for</span> l <span class="code-keyword">in</span> self.logs),
+            <span class="code-string">"cost_by_team"</span>:      <span class="code-function">dict</span>(self.cost_by_team),
+        }</code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Alerting & PagerDuty Integration
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Khi P99 latency vượt 80% SLA threshold (4,000ms) — alert trước khi breach thực sự xảy ra. Gateway check mỗi 30 giây:</p>
+          <div class="code-block">
+            <span class="code-label">Python (Proactive Alert)</span>
+            <pre><code><span class="code-keyword">def</span> <span class="code-function">check_sla_forecast</span>(monitor: SLAMonitor, alert_fn):
+    report = monitor.<span class="code-function">report</span>()
+    <span class="code-keyword">if</span> report.<span class="code-function">get</span>(<span class="code-string">"p99_latency_ms"</span>, <span class="code-number">0</span>) > <span class="code-number">4000</span>:   <span class="code-comment"># 80% of 5s SLA</span>
+        alert_fn(<span class="code-string">f"⚠️ SLA WARNING: P99={report['p99_latency_ms']}ms approaching 5s limit"</span>)
+    <span class="code-keyword">if</span> report.<span class="code-function">get</span>(<span class="code-string">"error_rate"</span>, <span class="code-number">0</span>) > <span class="code-number">0.0005</span>:  <span class="code-comment"># 50% of 0.1% target</span>
+        alert_fn(<span class="code-string">f"🚨 ERROR RATE: {report['error_rate']:.4%} — investigate immediately"</span>)</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 18</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m18-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m18-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m18-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM Gateway</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lớp trung gian giữa application và LLM providers — xử lý auth, routing, retry, caching, logging.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Round-Robin</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Load balancing: phân phối requests đều nhau theo vòng qua các API keys trong pool.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Key Pool</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập hợp nhiều API keys của cùng hoặc khác nhau tài khoản — tăng throughput và resilience.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Failover</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động chuyển sang backend dự phòng khi primary fail. L1→L2→L3 (primary→backup→degraded).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Graceful Degradation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hệ thống tiếp tục hoạt động (dù kém hơn) thay vì crash khi có partial failure.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Quota Management</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kiểm soát lượng API calls cho từng team/department — ngăn abuse và đảm bảo fairness.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sliding Window</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rate limiting: đếm requests trong cửa sổ N giây vừa qua thay vì fixed interval (chính xác hơn).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Priority Queue</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hàng đợi với ưu tiên: P1 (VIP) được xử lý trước P2 (standard) và P3 (batch).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Backpressure</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế từ chối hoặc làm chậm requests mới khi hệ thống đã quá tải — tránh cascade failure.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Intelligent Routing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chọn model tự động dựa trên request complexity: haiku cho clear cases, sonnet cho borderline.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLA (Service Level Agreement)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cam kết chất lượng dịch vụ: P99 latency ≤ 5s, availability ≥ 99.9%, error rate &lt;0.1%.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">P99 Latency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">99th percentile latency — 99% requests hoàn thành trong thời gian này. Tốt hơn P50 cho SLA.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost Attribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Phân bổ chi phí API về đúng team/department đã tạo ra request — basis cho charge-back.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Health Check</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Proactive monitoring: test API key định kỳ để phát hiện degraded/unhealthy keys sớm.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Cache Hit Rate</td><td style="padding:8px 12px;">% requests được serve từ cache thay vì gọi API thật. Cao → tiết kiệm cost. LoanBot target: 15–25%.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module17/index.html" class="btn btn-outline">← Module 17: Multi-Modal</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 18 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

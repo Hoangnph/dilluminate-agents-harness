@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 1: Nền Tảng — AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .lesson-section { scroll-margin-top: calc(var(--topbar-height) + 12px); }
+    .lesson-divider {
+      border: none; border-top: 2px dashed var(--border);
+      margin: var(--space-12) 0;
+    }
+    .inline-formula {
+      display: inline-block;
+      background: var(--primary-dark);
+      color: var(--accent);
+      font-size: 1.1rem; font-weight: 800;
+      padding: 4px 14px; border-radius: var(--radius);
+    }
+    .timeline-row {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4); margin: var(--space-6) 0;
+    }
+    .timeline-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: var(--space-5);
+      text-align: center; position: relative;
+    }
+    .timeline-card.active { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(15,76,129,.15); }
+    .timeline-year { font-size: .75rem; font-weight: 700; color: var(--text-muted); margin-bottom: var(--space-2); }
+    .timeline-title { font-weight: 700; color: var(--primary-dark); margin-bottom: var(--space-2); font-size: 1rem; }
+    .timeline-desc { font-size: .8rem; color: var(--text-muted); }
+    .tool-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5);
+      margin-bottom: var(--space-3); display: flex; gap: var(--space-4); align-items: flex-start;
+    }
+    .tool-icon {
+      width: 44px; height: 44px; border-radius: var(--radius);
+      background: var(--info-light); display: flex; align-items: center;
+      justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+    }
+    .tool-name { font-weight: 700; color: var(--primary-dark); font-size: .95rem; margin-bottom: 2px; }
+    .tool-desc { font-size: .875rem; color: var(--text-muted); }
+    .gen-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: var(--space-4); margin: var(--space-6) 0;
+    }
+    .gen-card {
+      border-radius: var(--radius-lg); padding: var(--space-5);
+      border: 1px solid var(--border);
+    }
+    .gen-card.g1 { background: #f8fafc; }
+    .gen-card.g2 { background: var(--info-light); border-color: #bae6fd; }
+    .gen-card.g3 { background: linear-gradient(135deg,#eff6ff,#f5f3ff); border-color: #c4b5fd; }
+    .gen-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:var(--space-2); color:var(--text-muted); }
+    .gen-card h4 { margin-bottom:var(--space-2); }
+    .gen-card ul { padding-left:var(--space-4); margin:0; }
+    .gen-card li { font-size:.85rem; color:var(--text-muted); margin-bottom:2px; }
+    .sidebar-module-title {
+      font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+      color:var(--primary); padding:var(--space-4) var(--space-6) var(--space-2);
+      border-bottom:1px solid var(--border); margin-bottom:var(--space-2);
+    }
+  </style>
+</head>
+<body data-module="m1">
+
+<!-- Scroll progress -->
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<!-- TOP NAV -->
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="../../index.html">Trang chủ</a>
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Notebook</a>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:#eff6ff;color:#0f4c81;border-color:#bfdbfe;">MODULE 1</div>
+    <div class="sidebar-title">Nền Tảng Agent AI</div>
+
+    <div class="module-progress" style="margin:12px 16px;padding:12px 14px;">
+      <div class="progress-header">
+        <span>Tiến độ</span>
+        <span class="progress-label">0 / 4 bài</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Bài Giảng</div>
+      <a href="#lesson1" class="sidebar-item active" data-lesson="m1-l1">
+        <div class="item-icon">🧠</div>
+        <span>Bài 1: LLM là gì?</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson2" class="sidebar-item" data-lesson="m1-l2">
+        <div class="item-icon">🤖</div>
+        <span>Bài 2: Paradigm Agentic AI</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson3" class="sidebar-item" data-lesson="m1-l3">
+        <div class="item-icon">⚙️</div>
+        <span>Bài 3: Agent = Model + Harness</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson4" class="sidebar-item" data-lesson="m1-l4">
+        <div class="item-icon">🔧</div>
+        <span>Bài 4: Tool Use &amp; MCP</span>
+        <div class="status-dot"></div>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Tài Nguyên</div>
+      <a href="quiz.html" class="sidebar-item">
+        <div class="item-icon">📝</div><span>Quiz ôn tập (15 câu)</span>
+      </a>
+      <a href="lab.ipynb" download class="sidebar-item">
+        <div class="item-icon">🔬</div><span>Jupyter Notebook Lab</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Module Khác</div>
+      <a href="../../index.html#modules" class="sidebar-item">
+        <div class="item-icon">📚</div><span>Xem tất cả module</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+  <div class="content-inner">
+
+    <!-- MODULE HEADER -->
+    <div class="lesson-header">
+      <div class="breadcrumb">
+        <a href="../../index.html" style="color:rgba(255,255,255,.65)">Trang chủ</a>
+        <span>›</span> Module 1
+      </div>
+      <h1>Module 1: Nền Tảng</h1>
+      <p style="color:rgba(255,255,255,.8);margin-bottom:var(--space-5);max-width:650px;">
+        Hiểu LLM, Agentic AI, và khái niệm cốt lõi <strong style="color:var(--accent)">Agent = Model + Harness</strong>
+        — nền tảng của mọi thứ sẽ học trong chương trình này.
+      </p>
+      <div class="lesson-meta">
+        <span class="meta-badge">⏱ ~4 giờ đọc</span>
+        <span class="meta-badge">📖 4 bài giảng</span>
+        <span class="meta-badge">🎯 Mức: Cơ bản</span>
+        <span class="meta-badge">🏢 Ví dụ: FinTech Corp</span>
+      </div>
+    </div>
+
+    <!-- LEARNING MAP -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-6);">
+      <h4 style="color:var(--primary-dark);margin-bottom:var(--space-4);display:flex;align-items:center;gap:var(--space-2);">🗺️ Bản Đồ Học Tập Module 1</h4>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:130px;">
+          <div style="background:var(--primary);color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-weight:700;font-size:.875rem;">🧠 Bài 1<br><span style="font-weight:400;font-size:.8rem;">LLM là gì?</span></div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">Nền tảng</div>
+        </div>
+        <div style="color:var(--accent);font-size:1.5rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:130px;">
+          <div style="background:#7c3aed;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-weight:700;font-size:.875rem;">🤖 Bài 2<br><span style="font-weight:400;font-size:.8rem;">Agentic AI</span></div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">Paradigm mới</div>
+        </div>
+        <div style="color:var(--accent);font-size:1.5rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:140px;">
+          <div style="background:#0891b2;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-weight:700;font-size:.875rem;">⚙️ Bài 3<br><span style="font-weight:400;font-size:.8rem;">Model + Harness</span></div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">Phương trình cốt lõi</div>
+        </div>
+        <div style="color:var(--accent);font-size:1.5rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:130px;">
+          <div style="background:#059669;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-weight:700;font-size:.875rem;">🔧 Bài 4<br><span style="font-weight:400;font-size:.8rem;">Tool Use &amp; MCP</span></div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">Cánh tay thực thi</div>
+        </div>
+        <div style="color:var(--accent);font-size:1.5rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:130px;">
+          <div style="background:var(--accent-dark);color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-weight:700;font-size:.875rem;">🔬 Lab<br><span style="font-weight:400;font-size:.8rem;">LoanBot v0.1</span></div>
+          <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">Thực hành</div>
+        </div>
+      </div>
+      <p style="text-align:center;font-size:.8rem;color:var(--text-muted);margin:var(--space-3) 0 0;">💡 Mỗi bài học xây dựng trên nền tảng của bài trước. Đọc theo thứ tự để có hiểu biết tốt nhất.</p>
+    </div>
+
+    <!-- OBJECTIVES -->
+    <div class="objectives-box">
+      <h4>🎯 Sau Module 1, bạn sẽ có thể:</h4>
+      <ul>
+        <li>Giải thích LLM là gì và tại sao nó vừa mạnh mẽ vừa có giới hạn</li>
+        <li>Phân biệt rõ ràng Chatbot ↔ Agent ↔ Multi-Agent System</li>
+        <li>Áp dụng phương trình <strong>Agent = Model + Harness</strong> vào bài toán thực tế</li>
+        <li>Định nghĩa tools và mô tả cách function calling hoạt động</li>
+        <li>Giải thích tại sao MCP protocol quan trọng cho enterprise deployment</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- BÀI 1: LLM LÀ GÌ?                          -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="lesson1" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">1</div>
+        <h2>LLM là gì? — Nền Tảng Của LoanBot</h2>
+      </div>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Giải thích được LLM là gì và hoạt động theo cơ chế nào</li>
+          <li>Hiểu Context Window và tại sao nó quan trọng với LoanBot</li>
+          <li>Phân biệt được AI có thể làm gì và không thể làm gì trong thực tế doanh nghiệp</li>
+        </ul>
+      </div>
+
+      <!-- 1.0: Tình huống FinTech Corp -->
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống thực tế: FinTech Corp</div>
+        <p><strong>FinTech Corp</strong> là công ty tài chính tiêu dùng lớn tại Việt Nam với 2 triệu khách hàng. Mỗi tháng họ nhận <strong>50,000 hồ sơ vay vốn</strong> — từ vay mua xe, vay mua nhà, đến vay kinh doanh.</p>
+        <p>Hiện tại: <strong>200 nhân viên thẩm định</strong> làm việc 8 tiếng/ngày, xử lý mỗi hồ sơ mất <strong>3–5 ngày làm việc</strong>. Chi phí: <strong>350,000 VNĐ/hồ sơ</strong>. Tỷ lệ lỗi thẩm định: <strong>4.2%</strong>.</p>
+        <p>Giám đốc công nghệ đặt ra mục tiêu: Xây dựng <strong>LoanBot</strong> — AI agent có thể xử lý hồ sơ tiêu chuẩn trong <strong>5 phút</strong>, chi phí <strong>dưới 5,000 VNĐ/hồ sơ</strong>, tỷ lệ lỗi <strong>dưới 1%</strong>.</p>
+        <p style="margin:0"><em>Xuyên suốt chương trình này, chúng ta sẽ cùng xây dựng LoanBot từ A đến Z.</em></p>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">1.1 LLM là gì?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Nhân viên siêu đọc</div>
+        <p>Tưởng tượng bạn thuê một nhân viên có khả năng phi thường: họ đã đọc <strong>500 tỷ trang tài liệu</strong> trong 3 năm — sách giáo khoa, báo cáo tài chính, văn bản pháp lý, hồ sơ tín dụng, hội thoại hàng ngày từ khắp nơi trên thế giới.</p>
+        <p>Nhân viên này không chỉ nhớ được mọi thứ — họ <em>hiểu các mẫu ngôn ngữ</em>, có thể <em>suy luận</em> từ các tình huống tương tự, và <em>tổng hợp thông tin</em> từ nhiều nguồn khác nhau để đưa ra câu trả lời mạch lạc.</p>
+        <p style="margin:0">Đó chính là <strong>LLM (Large Language Model)</strong> — hay mô hình ngôn ngữ lớn.</p>
+      </div>
+
+      <!-- SVG: LLM Training Process -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 1.1 — Quá trình tạo ra một LLM (đơn giản hóa)</title>
+          <defs>
+            <marker id="arr1" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+  <rect width="760" height="200" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Box 1: Data -->
+          <rect x="20" y="40" width="180" height="120" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="110" y="72" text-anchor="middle" font-size="28">📚</text>
+          <text x="110" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a5f">Kho Dữ Liệu</text>
+          <text x="110" y="116" text-anchor="middle" font-size="11" fill="#64748b">500 tỷ trang văn bản</text>
+          <text x="110" y="132" text-anchor="middle" font-size="11" fill="#64748b">Sách · Báo · Hội thoại</text>
+          <text x="110" y="148" text-anchor="middle" font-size="11" fill="#64748b">Tài liệu chuyên ngành</text>
+          <!-- Arrow 1 -->
+          <line x1="202" y1="100" x2="278" y2="100" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr1)"/>
+          <!-- Box 2: Training -->
+          <rect x="280" y="40" width="200" height="120" rx="12" fill="#fdf4ff" stroke="#c4b5fd" stroke-width="1.5"/>
+          <text x="380" y="72" text-anchor="middle" font-size="28">⚙️</text>
+          <text x="380" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#4c1d95">Quá Trình Huấn Luyện</text>
+          <text x="380" y="116" text-anchor="middle" font-size="11" fill="#64748b">Học nhận dạng mẫu</text>
+          <text x="380" y="132" text-anchor="middle" font-size="11" fill="#64748b">Tối ưu hóa dự đoán</text>
+          <text x="380" y="148" text-anchor="middle" font-size="11" fill="#64748b">Hàng nghìn GPU · Nhiều tuần</text>
+          <!-- Arrow 2 -->
+          <line x1="482" y1="100" x2="558" y2="100" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr1)"/>
+          <!-- Box 3: LLM -->
+          <rect x="560" y="40" width="180" height="120" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="650" y="72" text-anchor="middle" font-size="28">🧠</text>
+          <text x="650" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#14532d">LLM Model</text>
+          <text x="650" y="116" text-anchor="middle" font-size="11" fill="#64748b">Hiểu ngôn ngữ tự nhiên</text>
+          <text x="650" y="132" text-anchor="middle" font-size="11" fill="#64748b">Suy luận · Tổng hợp</text>
+          <text x="650" y="148" text-anchor="middle" font-size="11" fill="#64748b">Hàng tỷ tham số</text>
+        </svg>
+        <div class="diagram-title">Hình 1.1 — Quá trình tạo ra một LLM (đơn giản hóa)</div>
+      </div>
+
+      <p>Về mặt kỹ thuật, LLM hoạt động bằng cách <strong>dự đoán token tiếp theo</strong> — tức là từ (hoặc phần của từ) nào có xác suất cao nhất xuất hiện sau chuỗi token đầu vào. Nghe đơn giản, nhưng khi được thực hiện ở quy mô đủ lớn với đủ dữ liệu, khả năng này tạo ra hành vi suy luận phức tạp đáng kinh ngạc.</p>
+
+      <h3 style="margin-top:var(--space-6)">1.2 Context Window — Bộ Nhớ Ngắn Hạn</h3>
+
+      <p>Mỗi LLM có một <strong>context window</strong> — giới hạn lượng văn bản nó có thể "nhìn thấy" cùng một lúc. Đây giống như bộ nhớ làm việc (working memory) của con người.</p>
+
+      <!-- SVG: Context Window -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 170" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 1.2 — Context Window: tất cả những gì LLM "thấy" khi sinh output</title>
+          <defs>
+            <marker id="arr2" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0ea5e9"/>
+            </marker>
+          </defs>
+  <rect width="700" height="170" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Context Window Box -->
+          <rect x="20" y="20" width="440" height="130" rx="12" fill="#f0f9ff" stroke="#38bdf8" stroke-width="2"/>
+          <text x="36" y="45" font-size="11" fill="#0369a1" font-weight="700">CONTEXT WINDOW (128,000 tokens ≈ 100,000 từ)</text>
+          <!-- System prompt area -->
+          <rect x="32" y="55" width="120" height="82" rx="6" fill="#dbeafe" stroke="#93c5fd"/>
+          <text x="92" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#1e40af">System Prompt</text>
+          <text x="92" y="90" text-anchor="middle" font-size="9" fill="#3730a3">Hướng dẫn</text>
+          <text x="92" y="103" text-anchor="middle" font-size="9" fill="#3730a3">cho LoanBot</text>
+          <!-- History area -->
+          <rect x="162" y="55" width="160" height="82" rx="6" fill="#ede9fe" stroke="#c4b5fd"/>
+          <text x="242" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#5b21b6">Lịch sử hội thoại</text>
+          <text x="242" y="90" text-anchor="middle" font-size="9" fill="#6d28d9">Câu hỏi/trả lời</text>
+          <text x="242" y="103" text-anchor="middle" font-size="9" fill="#6d28d9">trước đó</text>
+          <text x="242" y="116" text-anchor="middle" font-size="9" fill="#6d28d9">Kết quả tool calls</text>
+          <!-- Current input -->
+          <rect x="332" y="55" width="116" height="82" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="390" y="74" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">Input hiện tại</text>
+          <text x="390" y="90" text-anchor="middle" font-size="9" fill="#166534">"Khách hàng</text>
+          <text x="390" y="103" text-anchor="middle" font-size="9" fill="#166534">Nguyễn Văn A</text>
+          <text x="390" y="116" text-anchor="middle" font-size="9" fill="#166534">vay 200 triệu…"</text>
+          <!-- Arrow -->
+          <line x1="462" y1="85" x2="530" y2="85" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arr2)"/>
+          <!-- Output -->
+          <rect x="532" y="40" width="148" height="90" rx="12" fill="#0f4c81" stroke="#1a6abf" stroke-width="1.5"/>
+          <text x="606" y="66" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.7)">Output</text>
+          <text x="606" y="84" text-anchor="middle" font-size="10" fill="#fde68a">"Tôi sẽ kiểm tra</text>
+          <text x="606" y="98" text-anchor="middle" font-size="10" fill="#fde68a">điểm tín dụng</text>
+          <text x="606" y="112" text-anchor="middle" font-size="10" fill="#fde68a">của ông A…"</text>
+        </svg>
+        <div class="diagram-title">Hình 1.2 — Context Window: tất cả những gì LLM "thấy" khi sinh output</div>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Giới hạn quan trọng cần nhớ</div>
+        <p>Mỗi lần LLM xử lý một yêu cầu, nó <strong>không có bộ nhớ từ phiên trước</strong> — nó chỉ "nhớ" những gì nằm trong context window hiện tại. Nếu bạn bắt đầu một hội thoại mới, LoanBot sẽ không nhớ khách hàng mà nó đã xử lý 5 phút trước.</p>
+        <p style="margin:0">Đây là lý do tại sao <strong>harness</strong> cần có hệ thống <em>memory management</em> riêng — chúng ta sẽ học chi tiết ở Module 2.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">1.3 Khả Năng và Giới Hạn</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>✅ LLM giỏi</th>
+            <th>❌ LLM kém / nguy hiểm</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Hiểu ngôn ngữ tự nhiên phức tạp</td><td>Tính toán số học chính xác (2.9 × 3.7 = ?)</td></tr>
+          <tr><td>Suy luận từng bước (step-by-step)</td><td>Truy cập thông tin thực tế, real-time</td></tr>
+          <tr><td>Tổng hợp thông tin từ nhiều nguồn</td><td>Nhớ thông tin qua các phiên làm việc</td></tr>
+          <tr><td>Viết và chỉnh sửa văn bản chuyên nghiệp</td><td>Thực hiện hành động vật lý (gửi email, lưu DB)</td></tr>
+          <tr><td>Phân loại và trích xuất thông tin</td><td><strong>Hallucination</strong> — bịa đặt thuyết phục</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Hallucination — Rủi ro lớn nhất của LLM</div>
+        <p><strong>Hallucination</strong> là khi LLM tạo ra thông tin <em>nghe có vẻ đúng nhưng hoàn toàn bịa đặt</em>. Ví dụ: nếu hỏi LoanBot về điểm tín dụng của khách hàng Nguyễn Văn A mà không cung cấp dữ liệu thực, nó có thể đưa ra một con số hoàn toàn sai lệch với độ tự tin cao.</p>
+        <p style="margin:0">Trong ngữ cảnh tài chính, điều này cực kỳ nguy hiểm. Đây là lý do <strong>tools</strong> và <strong>harness verification</strong> là bắt buộc.</p>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Tại sao LLM đơn thuần chưa đủ cho LoanBot?</div>
+        <p>LLM có thể hiểu câu "Khách hàng Nguyễn Văn A muốn vay 200 triệu mua xe, thu nhập khai báo 25 triệu/tháng". Nhưng để thẩm định hồ sơ này, LoanBot cần:</p>
+        <ul style="margin-bottom:0">
+          <li>📊 <strong>Truy vấn database</strong> điểm tín dụng thực tế của ông A tại CIC</li>
+          <li>💰 <strong>Xác minh thu nhập</strong> qua hệ thống BHXH hoặc ngân hàng</li>
+          <li>🔍 <strong>Kiểm tra danh sách nợ xấu</strong> tại NHNN</li>
+          <li>📐 <strong>Tính toán DTI</strong> (Debt-to-Income Ratio) chính xác</li>
+          <li>📄 <strong>Lưu kết quả</strong> vào hệ thống quản lý hồ sơ của FinTech Corp</li>
+        </ul>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 1</h4>
+        <ul>
+          <li>LLM là mô hình ngôn ngữ được huấn luyện trên dữ liệu văn bản khổng lồ, giỏi hiểu và suy luận ngôn ngữ</li>
+          <li>Context window là giới hạn "bộ nhớ tức thời" — LLM không nhớ gì ngoài window hiện tại</li>
+          <li>Hallucination là rủi ro cốt lõi: LLM có thể bịa đặt thông tin một cách thuyết phục</li>
+          <li>LLM đơn thuần không thể hành động, không truy cập dữ liệu thực, không tính toán chính xác → cần <strong>Harness</strong></li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- BÀI 2: PARADIGM AGENTIC AI                  -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="lesson2" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">2</div>
+        <h2>Paradigm Agentic AI — Từ Chatbot đến Agent</h2>
+      </div>
+
+      <h3>2.1 Ba Thế Hệ AI Tương Tác Doanh Nghiệp</h3>
+
+      <div class="gen-grid">
+        <div class="gen-card g1">
+          <div class="gen-label">Thế hệ 1 · 2000–2020</div>
+          <h4>🗂️ Chatbot Cây Quyết Định</h4>
+          <ul>
+            <li>Rule-based: nếu X → trả lời Y</li>
+            <li>Không hiểu ngôn ngữ tự nhiên</li>
+            <li>Cứng nhắc, dễ hỏng</li>
+            <li>Ví dụ: IVRS ngân hàng</li>
+          </ul>
+        </div>
+        <div class="gen-card g2">
+          <div class="gen-label">Thế hệ 2 · 2020–2024</div>
+          <h4>💬 LLM Chatbot</h4>
+          <ul>
+            <li>Hiểu ngôn ngữ tự nhiên</li>
+            <li>Trả lời linh hoạt, thông minh</li>
+            <li>Chỉ <em>trả lời</em>, không <em>hành động</em></li>
+            <li>Ví dụ: ChatGPT, Gemini</li>
+          </ul>
+        </div>
+        <div class="gen-card g3">
+          <div class="gen-label">Thế hệ 3 · 2024–nay</div>
+          <h4>🤖 AI Agent (Agentic AI)</h4>
+          <ul>
+            <li>Hiểu ngôn ngữ + <em>hành động</em></li>
+            <li>Tự lên kế hoạch đa bước</li>
+            <li>Gọi tools, truy vấn hệ thống</li>
+            <li>Ví dụ: LoanBot, Claude Code</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Nhân viên tư vấn vs Nhân viên xử lý</div>
+        <p><strong>Chatbot LLM</strong> giống nhân viên tư vấn qua điện thoại: họ hiểu câu hỏi của bạn, giải thích rõ ràng, nhưng cuối cùng nói <em>"Anh vui lòng đến chi nhánh để làm hồ sơ."</em></p>
+        <p><strong>AI Agent</strong> giống nhân viên xử lý hồ sơ tại quầy: họ nghe yêu cầu, <em>tự động</em> tra cứu hệ thống, điền form, gửi email, và trả kết quả — không cần bạn làm thêm bất kỳ thao tác nào.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">2.2 Agentic Loop — Vòng Lặp Hoạt Động Của Agent</h3>
+
+      <p>Điểm khác biệt cốt lõi của AI Agent là khả năng thực hiện <strong>vòng lặp Perceive → Think → Act → Observe</strong> liên tục cho đến khi hoàn thành mục tiêu.</p>
+
+      <!-- SVG: Agentic Loop -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 310" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 2.1 — Agentic Loop của LoanBot khi xử lý hồ sơ vay</title>
+          <defs>
+            <marker id="arr3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0f4c81"/>
+            </marker>
+          </defs>
+  <rect width="700" height="310" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Central circle: LoanBot -->
+          <circle cx="350" cy="155" r="52" fill="#0f4c81" stroke="#1a6abf" stroke-width="2"/>
+          <text x="350" y="149" text-anchor="middle" font-size="22">🤖</text>
+          <text x="350" y="168" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">LoanBot</text>
+
+          <!-- Step 1: Perceive (top) -->
+          <rect x="260" y="12" width="180" height="62" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="350" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">1. NHẬN THÔNG TIN</text>
+          <text x="350" y="52" text-anchor="middle" font-size="10" fill="#3730a3">"Hồ sơ ông Nguyễn Văn A</text>
+          <text x="350" y="65" text-anchor="middle" font-size="10" fill="#3730a3">vay 200 triệu, 48 tháng"</text>
+          <line x1="350" y1="74" x2="350" y2="103" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+          <!-- Step 2: Think (right) -->
+          <rect x="548" y="100" width="140" height="80" rx="10" fill="#fdf4ff" stroke="#c4b5fd" stroke-width="1.5"/>
+          <text x="618" y="123" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6">2. LÊN KẾ HOẠCH</text>
+          <text x="618" y="140" text-anchor="middle" font-size="10" fill="#6d28d9">Xác định các bước:</text>
+          <text x="618" y="155" text-anchor="middle" font-size="10" fill="#6d28d9">1.Credit 2.Income</text>
+          <text x="618" y="168" text-anchor="middle" font-size="10" fill="#6d28d9">3.Blacklist 4.DTI</text>
+          <line x1="402" y1="136" x2="546" y2="140" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+          <!-- Step 3: Act (bottom) -->
+          <rect x="260" y="232" width="180" height="65" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="350" y="253" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">3. THỰC HIỆN HÀNH ĐỘNG</text>
+          <text x="350" y="270" text-anchor="middle" font-size="10" fill="#166534">Gọi tool: check_credit(</text>
+          <text x="350" y="283" text-anchor="middle" font-size="10" fill="#166534">customer_id="A123")</text>
+          <line x1="350" y1="207" x2="350" y2="230" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+          <!-- Step 4: Observe (left) -->
+          <rect x="12" y="100" width="155" height="80" rx="10" fill="#fef3c7" stroke="#fde68a" stroke-width="1.5"/>
+          <text x="89" y="123" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">4. QUAN SÁT</text>
+          <text x="89" y="140" text-anchor="middle" font-size="10" fill="#b45309">Kết quả: score=720</text>
+          <text x="89" y="155" text-anchor="middle" font-size="10" fill="#b45309">Đủ điều kiện. Tiếp</text>
+          <text x="89" y="168" text-anchor="middle" font-size="10" fill="#b45309">theo: verify_income</text>
+          <line x1="167" y1="140" x2="298" y2="148" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr3)"/>
+          <line x1="264" y1="265" x2="115" y2="182" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr3)"/>
+
+          <!-- Decision: Done? -->
+          <rect x="548" y="230" width="140" height="65" rx="10" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="618" y="253" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">5. QUYẾT ĐỊNH</text>
+          <text x="618" y="270" text-anchor="middle" font-size="10" fill="#b91c1c">Đủ thông tin? → Báo cáo</text>
+          <text x="618" y="283" text-anchor="middle" font-size="10" fill="#b91c1c">Thiếu? → Lặp lại bước 2</text>
+          <line x1="440" y1="265" x2="546" y2="265" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr3)"/>
+        </svg>
+        <div class="diagram-title">Hình 2.1 — Agentic Loop của LoanBot khi xử lý hồ sơ vay</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot nhận hồ sơ của ông Trần Văn B, kiểm tra CIC, phát hiện điểm tín dụng chỉ 380 (dưới ngưỡng). Theo Agentic Loop, LoanBot sẽ làm gì tiếp theo?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> LoanBot sẽ ở bước <em>Act</em> (gọi tool từ chối) → <em>Observe</em> (nhận kết quả từ chối) → <em>Think</em> (kết luận: không cần kiểm tra thêm) → kết thúc loop với kết quả "Từ chối — điểm tín dụng không đủ điều kiện". Không cần lặp lại bước tiếp theo vì điều kiện dừng đã đạt.
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">2.3 Phân Loại: Single Agent vs Multi-Agent</h3>
+
+      <table class="comparison-table">
+        <thead>
+          <tr><th>Loại</th><th>Mô tả</th><th>Dùng khi nào</th><th>Ví dụ LoanBot</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Single Agent</strong></td>
+            <td>Một agent xử lý toàn bộ task</td>
+            <td>Task có thể hoàn thành tuần tự, không quá phức tạp</td>
+            <td>LoanBot v1 tự kiểm tra từng bước một</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Agent</strong></td>
+            <td>Nhiều agent chuyên biệt cộng tác</td>
+            <td>Task lớn cần song song hóa hoặc chuyên môn hóa</td>
+            <td>LoanBot Supervisor + CreditAgent + IncomeAgent + RiskAgent (Module 6)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 LoanBot trong chương trình này</div>
+        <p>Module 1–5 chúng ta xây dựng <strong>LoanBot v1 (Single Agent)</strong> — đủ để xử lý hồ sơ tiêu chuẩn. Module 6 chúng ta mở rộng thành <strong>LoanBot v2 (Multi-Agent System)</strong> — xử lý song song cho throughput cao hơn và các ca phức tạp hơn.</p>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 2</h4>
+        <ul>
+          <li>AI Agent là thế hệ thứ 3: hiểu ngôn ngữ <em>và</em> có khả năng hành động chủ động</li>
+          <li>Agentic Loop (Perceive → Think → Act → Observe) là vòng lặp cốt lõi của mọi agent</li>
+          <li>Agent không chỉ trả lời — nó lập kế hoạch, gọi tools, và quan sát kết quả để quyết định bước tiếp theo</li>
+          <li>Single Agent đủ cho Module 1–5; Multi-Agent giải quyết bài toán phức tạp hơn ở Module 6</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- BÀI 3: AGENT = MODEL + HARNESS              -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="lesson3" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">3</div>
+        <h2>Agent = Model + Harness — Phương Trình Cốt Lõi</h2>
+      </div>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Nắm được phương trình cốt lõi: Agent = Model + Harness</li>
+          <li>Hiểu Model là "bộ não" và Harness là "hệ thống vận hành" bên ngoài</li>
+          <li>Biết tại sao 80% giá trị của LoanBot nằm ở Harness, không phải Model</li>
+        </ul>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Phương trình cốt lõi của chương trình</div>
+        <div class="formula-text">Agent = Model + Harness</div>
+        <div class="formula-desc">Model là bộ não thuần túy — Harness là toàn bộ hệ thống vận hành cho phép bộ não đó hành động</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">3.1 Model: Bộ Não Thuần Túy</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Phẫu thuật viên giỏi nhất thế giới</div>
+        <p>Hãy tưởng tượng bạn có vị phẫu thuật viên giỏi nhất thế giới. Ông ta biết mọi kỹ thuật y khoa, đọc thuộc lòng mọi sách y khoa, và có khả năng phân tích ca bệnh vượt trội.</p>
+        <p><strong>Nhưng nếu đặt ông ta vào giữa sa mạc</strong> — không bệnh viện, không dao mổ, không phòng mổ, không y tá, không hệ thống theo dõi bệnh nhân — ông ta <em>gần như vô dụng</em>.</p>
+        <p style="margin:0">Model LLM cũng vậy. Nó là <strong>stateless token predictor</strong> — một bộ não thuần túy không có tay chân, không bộ nhớ dài hạn, không khả năng hành động thực tế. <strong>Harness</strong> là bệnh viện, trang thiết bị, và hệ thống vận hành cho phép bộ não đó thực sự làm việc.</p>
+      </div>
+
+      <!-- SVG: Agent = Model + Harness -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.1 — Agent = Model (Bộ não) + Harness (Môi trường vận hành)</title>
+  <rect width="720" height="260" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Model box -->
+          <rect x="20" y="30" width="260" height="200" rx="14" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+          <text x="150" y="62" text-anchor="middle" font-size="14" font-weight="800" fill="#1e40af">MODEL (Bộ não)</text>
+          <text x="150" y="82" text-anchor="middle" font-size="11" fill="#64748b">Stateless Token Predictor</text>
+          <line x1="40" y1="92" x2="262" y2="92" stroke="#dbeafe" stroke-width="1"/>
+          <text x="40" y="112" font-size="28">🧠</text>
+          <text x="80" y="114" font-size="11" fill="#3730a3">Suy luận phức tạp</text>
+          <text x="40" y="135" font-size="22">💬</text>
+          <text x="75" y="137" font-size="11" fill="#3730a3">Hiểu ngôn ngữ tự nhiên</text>
+          <text x="40" y="158" font-size="22">🔍</text>
+          <text x="75" y="160" font-size="11" fill="#3730a3">Tổng hợp thông tin</text>
+          <text x="40" y="181" font-size="22">✍️</text>
+          <text x="75" y="183" font-size="11" fill="#3730a3">Sinh văn bản, code</text>
+          <rect x="40" y="200" width="220" height="22" rx="6" fill="#fee2e2"/>
+          <text x="150" y="215" text-anchor="middle" font-size="10" fill="#991b1b">⚠️ Không nhớ, không hành động</text>
+
+          <!-- Plus sign -->
+          <text x="302" y="148" text-anchor="middle" font-size="36" font-weight="700" fill="#94a3b8">+</text>
+
+          <!-- Harness box -->
+          <rect x="340" y="30" width="360" height="200" rx="14" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
+          <text x="520" y="62" text-anchor="middle" font-size="14" font-weight="800" fill="#14532d">HARNESS (Môi trường)</text>
+          <text x="520" y="82" text-anchor="middle" font-size="11" fill="#64748b">Runtime Software Infrastructure</text>
+          <line x1="360" y1="92" x2="682" y2="92" stroke="#dcfce7" stroke-width="1"/>
+          <!-- Layers -->
+          <rect x="358" y="100" width="152" height="26" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="434" y="117" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">🔧 Tool Orchestration</text>
+          <rect x="518" y="100" width="155" height="26" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="595" y="117" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">✅ Verification Loops</text>
+
+          <rect x="358" y="133" width="152" height="26" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="434" y="150" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">🧩 Context &amp; Memory</text>
+          <rect x="518" y="133" width="155" height="26" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="595" y="150" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">🛡️ Guardrails</text>
+
+          <rect x="358" y="166" width="315" height="26" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="520" y="183" text-anchor="middle" font-size="10" font-weight="600" fill="#166534">👁️ Observability &amp; Audit Logging</text>
+
+          <rect x="358" y="200" width="315" height="22" rx="6" fill="#bbf7d0"/>
+          <text x="520" y="215" text-anchor="middle" font-size="10" fill="#14532d">✅ Bộ nhớ · Hành động · Kiểm soát · Báo cáo</text>
+
+          <!-- Equals -->
+          <text x="342" y="148" text-anchor="middle" font-size="30" font-weight="700" fill="#0f4c81">=</text>
+        </svg>
+        <div class="diagram-title">Hình 3.1 — Agent = Model (Bộ não) + Harness (Môi trường vận hành)</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">3.2 Tại Sao Harness Quan Trọng Hơn Bạn Nghĩ?</h3>
+
+      <div class="stats-row">
+        <div class="stat-card danger">
+          <div class="stat-number">65%</div>
+          <div class="stat-label">thất bại AI trong enterprise đến từ <strong>lỗi harness</strong></div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-number">35%</div>
+          <div class="stat-label">thất bại đến từ lỗi model/thiết kế</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">37%</div>
+          <div class="stat-label">khoảng cách hiệu suất từ lab đến production</div>
+        </div>
+      </div>
+
+      <!-- SVG: Failure breakdown -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.2 — Phần lớn thất bại AI không đến từ model</title>
+  <rect width="700" height="180" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Title -->
+          <text x="350" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#1e293b">Nguyên nhân thất bại của Enterprise AI Projects</text>
+          <!-- Bar: Harness -->
+          <text x="15" y="62" font-size="11" fill="#64748b">Harness Defects</text>
+          <rect x="15" y="68" width="455" height="28" rx="6" fill="#dc2626"/>
+          <text x="478" y="87" font-size="13" font-weight="800" fill="#dc2626">65%</text>
+          <text x="20" y="88" font-size="10" fill="#fff" font-weight="600">Context Drift · Schema Misalignment · State Degradation</text>
+          <!-- Bar: Model -->
+          <text x="15" y="115" font-size="11" fill="#64748b">Model / Design Issues</text>
+          <rect x="15" y="121" width="245" height="28" rx="6" fill="#f59e0b"/>
+          <text x="268" y="140" font-size="13" font-weight="800" fill="#f59e0b">35%</text>
+          <text x="20" y="141" font-size="10" fill="#fff" font-weight="600">Reasoning · Prompt Design · Domain Mismatch</text>
+          <!-- Source -->
+          <text x="15" y="172" font-size="9" fill="#94a3b8">Nguồn: Atlan (2026), Sherlocks.ai (2026), tổng hợp từ 100+ enterprise deployments</text>
+        </svg>
+        <div class="diagram-title">Hình 3.2 — Phần lớn thất bại AI không đến từ model</div>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔮 Insight then chốt</div>
+        <p>Đây là lý do tại sao chương trình này <strong>tập trung vào harness engineering</strong>, không chỉ model engineering. Rất nhiều khóa học dạy cách chọn LLM tốt hơn, nhưng rất ít dạy cách xây dựng harness đúng cách.</p>
+        <p style="margin:0">Với LoanBot: dù bạn dùng model tốt đến đâu, nếu harness không có <em>verification loops</em>, hệ thống có thể đồng ý cho vay dựa trên điểm tín dụng do LLM bịa ra.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">3.3 Ba Kỷ Nguyên Kỹ Thuật AI (2022–2026)</h3>
+
+      <div class="timeline-row">
+        <div class="timeline-card">
+          <div class="timeline-year">2022–2023</div>
+          <div class="timeline-title">🎯 Prompt Engineering</div>
+          <div class="timeline-desc">Viết prompt tốt hơn để LLM trả lời đúng hơn. Trọng tâm: tối ưu hóa đầu vào.</div>
+        </div>
+        <div class="timeline-card">
+          <div class="timeline-year">2024–2025</div>
+          <div class="timeline-title">📦 Context Engineering</div>
+          <div class="timeline-desc">Quản lý thông tin đưa vào context window — RAG, memory, structured prompting.</div>
+        </div>
+        <div class="timeline-card active">
+          <div class="timeline-year">2025–2026 ← Chúng ta đang ở đây</div>
+          <div class="timeline-title">🏗️ Harness Engineering</div>
+          <div class="timeline-desc">Xây dựng toàn bộ môi trường vận hành cho agent — tools, memory, guardrails, observability.</div>
+        </div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Harness của LoanBot trông như thế nào?</div>
+        <p>Chúng ta sẽ xây dựng chi tiết từng tầng trong Module 2. Preview nhanh:</p>
+        <ul style="margin:0">
+          <li>🔧 <strong>Tool Orchestration:</strong> Quản lý 5 tools (credit, income, blacklist, DTI, report)</li>
+          <li>✅ <strong>Verification Loops:</strong> Kiểm tra kết quả mỗi tool trước khi tiếp tục</li>
+          <li>🧩 <strong>Context &amp; Memory:</strong> Lưu thông tin hồ sơ suốt quá trình xử lý</li>
+          <li>🛡️ <strong>Guardrails:</strong> Không cho phép quyết định khoản vay &gt;500tr mà không có human review</li>
+          <li>👁️ <strong>Observability:</strong> Ghi log mọi bước để audit và debug</li>
+        </ul>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 3</h4>
+        <ul>
+          <li>Phương trình bất biến: <span class="inline-formula">Agent = Model + Harness</span></li>
+          <li>Model = stateless token predictor; không có bộ nhớ dài hạn, không thể hành động</li>
+          <li>65% thất bại enterprise AI đến từ harness defects — không phải model</li>
+          <li>Harness Engineering là kỷ nguyên hiện tại (2025–2026) của kỹ thuật AI</li>
+          <li>5 tầng harness bắt buộc: Tool Orchestration · Verification · Memory · Guardrails · Observability</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- BÀI 4: TOOL USE & MCP PROTOCOL             -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section id="lesson4" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">4</div>
+        <h2>Tool Use &amp; MCP Protocol — Cánh Tay Của Agent</h2>
+      </div>
+
+      <h3>4.1 Tools là gì?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Phần mềm nội bộ của nhân viên</div>
+        <p>Khi nhân viên thẩm định của FinTech Corp ngồi vào bàn làm việc, họ có sẵn nhiều phần mềm: hệ thống CIC tra điểm tín dụng, phần mềm xác minh thu nhập BHXH, cổng NHNN kiểm tra nợ xấu, Excel tính DTI, và phần mềm tạo báo cáo PDF.</p>
+        <p style="margin:0"><strong>Tools</strong> của AI agent là tương đương với những phần mềm này — các hàm (functions) mà agent có thể gọi để tương tác với thế giới thực ngoài context window của nó.</p>
+      </div>
+
+      <p><strong>Định nghĩa chính xác:</strong> Tool là một function được định nghĩa trước mà LLM có thể <em>quyết định gọi</em> khi cần, với các tham số đầu vào cụ thể và kết quả trả về có cấu trúc.</p>
+
+      <h3 style="margin-top:var(--space-6)">4.2 LoanBot's 5 Tools</h3>
+
+      <div class="tool-card">
+        <div class="tool-icon" style="background:#dbeafe;">📊</div>
+        <div>
+          <div class="tool-name">check_credit_score</div>
+          <div class="tool-desc">Truy vấn điểm tín dụng (credit score) từ hệ thống CIC. <br>Input: <code>customer_id</code> · Output: <code>score (0–850), risk_level, payment_history</code></div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon" style="background:#dcfce7;">💰</div>
+        <div>
+          <div class="tool-name">verify_income</div>
+          <div class="tool-desc">Xác minh thu nhập thực tế qua BHXH và ngân hàng. <br>Input: <code>customer_id, declared_income</code> · Output: <code>verified_income, income_sources, confidence</code></div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon" style="background:#fee2e2;">🔍</div>
+        <div>
+          <div class="tool-name">check_blacklist</div>
+          <div class="tool-desc">Kiểm tra danh sách nợ xấu tại NHNN và nội bộ FinTech Corp. <br>Input: <code>customer_id, national_id</code> · Output: <code>is_blacklisted, reason, severity</code></div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon" style="background:#fef3c7;">📐</div>
+        <div>
+          <div class="tool-name">calculate_dti</div>
+          <div class="tool-desc">Tính Debt-to-Income Ratio — tỷ lệ nợ trên thu nhập. <br>Input: <code>income, existing_debt, requested_loan, term_months</code> · Output: <code>dti_ratio, monthly_payment, affordability_score</code></div>
+        </div>
+      </div>
+      <div class="tool-card">
+        <div class="tool-icon" style="background:#f5f3ff;">📄</div>
+        <div>
+          <div class="tool-name">generate_report</div>
+          <div class="tool-desc">Tạo báo cáo thẩm định PDF và lưu vào hệ thống CRM. <br>Input: <code>customer_id, loan_request, findings, decision, justification</code> · Output: <code>report_id, report_url, status</code></div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">4.3 Cơ Chế Function Calling</h3>
+
+      <p>Khi LoanBot cần kiểm tra điểm tín dụng, quá trình diễn ra như sau:</p>
+
+      <div class="code-block">
+        <span class="code-label">TOOL DEFINITION</span>
+<span class="code-comment"># LoanBot được cung cấp định nghĩa này trong system prompt</span>
+{
+  <span class="code-string">"name"</span>: <span class="code-string">"check_credit_score"</span>,
+  <span class="code-string">"description"</span>: <span class="code-string">"Truy vấn điểm tín dụng khách hàng từ CIC. Gọi khi cần xác minh creditworthiness trước khi phê duyệt khoản vay."</span>,
+  <span class="code-string">"parameters"</span>: {
+    <span class="code-string">"customer_id"</span>: { <span class="code-string">"type"</span>: <span class="code-string">"string"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Mã khách hàng nội bộ"</span> },
+    <span class="code-string">"include_history"</span>: { <span class="code-string">"type"</span>: <span class="code-string">"boolean"</span>, <span class="code-string">"default"</span>: <span class="code-keyword">true</span> }
+  },
+  <span class="code-string">"required"</span>: [<span class="code-string">"customer_id"</span>]
+}
+      </div>
+
+      <!-- SVG: Tool Call Flow -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 140" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 4.1 — Luồng function calling: LoanBot gọi tool và nhận kết quả thực từ CIC</title>
+          <defs>
+            <marker id="arr4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0f4c81"/>
+            </marker>
+            <marker id="arr4r" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#16a34a"/>
+            </marker>
+          </defs>
+  <rect width="700" height="140" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- LoanBot Agent -->
+          <rect x="10" y="30" width="130" height="80" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="75" y="58" text-anchor="middle" font-size="22">🤖</text>
+          <text x="75" y="77" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">LoanBot</text>
+          <text x="75" y="93" text-anchor="middle" font-size="9" fill="#64748b">"Cần check credit</text>
+          <text x="75" y="105" text-anchor="middle" font-size="9" fill="#64748b">score ông A"</text>
+
+          <!-- Arrow: call -->
+          <line x1="142" y1="65" x2="215" y2="65" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <text x="178" y="57" text-anchor="middle" font-size="9" fill="#0f4c81" font-weight="600">Gọi tool</text>
+
+          <!-- Tool Call -->
+          <rect x="217" y="30" width="200" height="80" rx="10" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="317" y="55" text-anchor="middle" font-size="10" fill="#93c5fd" font-family="monospace">check_credit_score(</text>
+          <text x="317" y="70" text-anchor="middle" font-size="10" fill="#86efac" font-family="monospace">  customer_id="A123",</text>
+          <text x="317" y="85" text-anchor="middle" font-size="10" fill="#86efac" font-family="monospace">  include_history=true</text>
+          <text x="317" y="100" text-anchor="middle" font-size="10" fill="#93c5fd" font-family="monospace">)</text>
+
+          <!-- Arrow: execute -->
+          <line x1="419" y1="65" x2="489" y2="65" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arr4)"/>
+          <text x="454" y="57" text-anchor="middle" font-size="9" fill="#0f4c81" font-weight="600">Thực thi</text>
+
+          <!-- CIC System -->
+          <rect x="491" y="30" width="100" height="80" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="541" y="58" text-anchor="middle" font-size="20">🏦</text>
+          <text x="541" y="77" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">CIC System</text>
+          <text x="541" y="92" text-anchor="middle" font-size="9" fill="#64748b">Database</text>
+          <text x="541" y="105" text-anchor="middle" font-size="9" fill="#64748b">tín dụng thực</text>
+
+          <!-- Arrow: return (below, green) -->
+          <path d="M 541,112 Q 541,128 317,128 Q 142,128 75,112" stroke="#16a34a" stroke-width="1.5" fill="none" marker-end="url(#arr4r)"/>
+          <text x="317" y="125" text-anchor="middle" font-size="9" fill="#16a34a" font-weight="600">Trả kết quả: {score:720, risk:"low", …}</text>
+
+          <!-- Harness label -->
+          <rect x="592" y="15" width="100" height="20" rx="4" fill="#fef3c7" stroke="#fde68a"/>
+          <text x="642" y="28" text-anchor="middle" font-size="9" fill="#92400e" font-weight="700">HARNESS kiểm soát</text>
+        </svg>
+        <div class="diagram-title">Hình 4.1 — Luồng function calling: LoanBot gọi tool và nhận kết quả thực từ CIC</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">4.4 MCP Protocol — USB Chuẩn Cho AI Tools</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Cổng USB</div>
+        <p>Trước khi có chuẩn USB, mỗi thiết bị ngoại vi (chuột, bàn phím, ổ cứng) có một loại đầu nối riêng. Laptop phải có hàng chục loại cổng khác nhau. Rất rối.</p>
+        <p><strong>MCP (Model Context Protocol)</strong> do Anthropic phát triển (cuối 2024) là <em>USB chuẩn cho AI tools</em>. Mọi agent có thể kết nối với mọi tool thông qua một giao thức duy nhất — không cần code tích hợp riêng cho từng cặp.</p>
+      </div>
+
+      <!-- SVG: MCP Architecture -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 4.2 — MCP Protocol: LoanBot kết nối với mọi server thông qua một giao thức chuẩn</title>
+  <rect width="700" height="220" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- LoanBot (MCP Host) -->
+          <rect x="20" y="80" width="150" height="70" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="2"/>
+          <text x="95" y="107" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">🤖 LoanBot</text>
+          <text x="95" y="123" text-anchor="middle" font-size="9" fill="#64748b">(MCP Host)</text>
+          <text x="95" y="138" text-anchor="middle" font-size="9" fill="#64748b">Gửi requests</text>
+
+          <!-- MCP Protocol Channel -->
+          <rect x="200" y="20" width="150" height="170" rx="10" fill="#0f4c81" stroke="#1a6abf" stroke-width="2"/>
+          <text x="275" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">MCP Protocol</text>
+          <text x="275" y="63" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.7)">"USB chuẩn"</text>
+          <line x1="215" y1="72" x2="335" y2="72" stroke="rgba(255,255,255,.2)" stroke-width="1"/>
+          <text x="275" y="92" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">• Tool Discovery</text>
+          <text x="275" y="108" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">• Schema Validation</text>
+          <text x="275" y="124" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">• Request Routing</text>
+          <text x="275" y="140" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">• Response Format</text>
+          <text x="275" y="156" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">• Error Handling</text>
+          <text x="275" y="172" text-anchor="middle" font-size="9" fill="rgba(255,255,255,.8)">• Auth &amp; Permissions</text>
+
+          <!-- Arrows to servers -->
+          <line x1="170" y1="115" x2="198" y2="115" stroke="#f5a623" stroke-width="2"/>
+          <line x1="352" y1="75" x2="395" y2="55" stroke="#f5a623" stroke-width="2"/>
+          <line x1="352" y1="115" x2="395" y2="115" stroke="#f5a623" stroke-width="2"/>
+          <line x1="352" y1="155" x2="395" y2="175" stroke="#f5a623" stroke-width="2"/>
+
+          <!-- MCP Servers -->
+          <rect x="397" y="25" width="135" height="54" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="464" y="46" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">🏦 CIC Server</text>
+          <text x="464" y="62" text-anchor="middle" font-size="9" fill="#64748b">credit · blacklist tools</text>
+
+          <rect x="397" y="88" width="135" height="54" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="464" y="109" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">📊 Income Server</text>
+          <text x="464" y="125" text-anchor="middle" font-size="9" fill="#64748b">verify_income · BHXH</text>
+
+          <rect x="397" y="151" width="135" height="54" rx="8" fill="#fef3c7" stroke="#fde68a" stroke-width="1.5"/>
+          <text x="464" y="172" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">📐 Calc Server</text>
+          <text x="464" y="188" text-anchor="middle" font-size="9" fill="#64748b">calculate_dti · reports</text>
+
+          <!-- Without MCP label -->
+          <text x="560" y="25" font-size="9" fill="#94a3b8" font-style="italic">Không cần custom</text>
+          <text x="560" y="37" font-size="9" fill="#94a3b8" font-style="italic">integration code!</text>
+        </svg>
+        <div class="diagram-title">Hình 4.2 — MCP Protocol: LoanBot kết nối với mọi server thông qua một giao thức chuẩn</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-8)">4.5 Tool Safety — An Toàn Khi Gọi Tools</h3>
+
+      <p>Không phải mọi tool call đều an toàn như nhau. LoanBot cần phân loại và kiểm soát:</p>
+
+      <table class="comparison-table">
+        <thead><tr><th>Mức độ rủi ro</th><th>Ví dụ LoanBot</th><th>Kiểm soát</th></tr></thead>
+        <tbody>
+          <tr><td>🟢 <strong>Read-only</strong></td><td>check_credit_score, check_blacklist</td><td>Tự động, không cần approve</td></tr>
+          <tr><td>🟡 <strong>Write (tác động nhỏ)</strong></td><td>generate_report (lưu PDF)</td><td>Validate dữ liệu trước khi lưu</td></tr>
+          <tr><td>🔴 <strong>Critical action</strong></td><td>approve_loan (khoản vay &gt;500 triệu)</td><td>Bắt buộc human review trước</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 Preview: Tool Permission Model</div>
+        <p>Module 2 sẽ thiết kế chi tiết <strong>Permission Resolver</strong> — một trong 15 component của harness — để quản lý quyền gọi tool theo từng loại hành động, vai trò người dùng, và giá trị giao dịch. Đây là nền tảng của Guardrails layer.</p>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 4</h4>
+        <ul>
+          <li>Tools là functions mà agent gọi để hành động thực tế — truy vấn DB, gửi mail, lưu dữ liệu</li>
+          <li>Function calling: LLM đọc tool definition → quyết định khi nào gọi → gửi parameters → nhận kết quả</li>
+          <li>MCP Protocol là chuẩn kết nối "USB" cho AI tools — đơn giản hóa integration enterprise</li>
+          <li>Tool safety: phân loại read-only / write / critical → kiểm soát tương ứng</li>
+          <li>LoanBot có 5 tools: check_credit_score, verify_income, check_blacklist, calculate_dti, generate_report</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- THUẬT NGỮ QUAN TRỌNG                        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section style="margin:var(--space-10) 0 0;">
+      <div class="section-heading">
+        <div class="section-number" style="background:var(--text-muted);">📖</div>
+        <h2>Thuật Ngữ Quan Trọng Module 1</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--space-3);">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">LLM (Large Language Model)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Mô hình ngôn ngữ lớn — AI được huấn luyện trên hàng tỷ trang văn bản, có khả năng hiểu và sinh ngôn ngữ tự nhiên. Ví dụ: Claude, GPT-4, Gemini.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Hallucination</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Khi LLM tạo ra thông tin sai lệch nhưng nghe có vẻ đúng và tự tin. Nguy hiểm trong ngữ cảnh tài chính, y tế, pháp lý.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Context Window</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Giới hạn lượng văn bản LLM có thể "nhìn thấy" cùng lúc (~100,000 từ với Claude). Giống bộ nhớ làm việc ngắn hạn.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">AI Agent / Agentic AI</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Hệ thống AI có thể tự lập kế hoạch và thực hiện chuỗi hành động (gọi tools) để hoàn thành mục tiêu phức tạp, không chỉ trả lời câu hỏi.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Harness</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Runtime Software Infrastructure bao quanh Model — gồm tool orchestration, memory, guardrails, observability. Không có harness, model chỉ là bộ não cô lập.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Agentic Loop</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Vòng lặp hoạt động của Agent: Perceive (nhận input) → Think (lập kế hoạch) → Act (gọi tool) → Observe (xem kết quả) → lặp lại.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Tool / Function Calling</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Hàm có thể được Agent gọi để tương tác với hệ thống bên ngoài (database, API, v.v.). LoanBot có 5 tools: credit, income, blacklist, DTI, report.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">MCP (Model Context Protocol)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Chuẩn kết nối "USB" cho AI tools do Anthropic phát triển (2024). Cho phép agent kết nối với nhiều tool server qua một giao thức thống nhất.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">DTI (Debt-to-Income Ratio)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Tỷ lệ nợ trên thu nhập — chỉ số tài chính quan trọng: tổng nợ phải trả hàng tháng / thu nhập tháng × 100. FinTech Corp chấp nhận DTI ≤ 43%.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Stateless</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">LLM không lưu trạng thái giữa các lần gọi. Mỗi request là độc lập. Harness phải cung cấp memory management để agent "nhớ" thông tin.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Harness Defects</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Lỗi trong infrastructure của harness (không phải model): Context Drift, Schema Misalignment, State Degradation. Gây ra 65% thất bại enterprise AI.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Human-in-the-Loop (HITL)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Điểm trong workflow nơi Agent dừng và chờ con người phê duyệt trước khi tiếp tục. Bắt buộc cho các hành động quan trọng không thể đảo ngược.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE SUMMARY -->
+    <div style="background:linear-gradient(135deg,#f0f9ff,#eff6ff);border:1px solid #bae6fd;border-radius:var(--radius-xl);padding:var(--space-8);margin:var(--space-10) 0;">
+      <h3 style="color:var(--primary-dark);margin-bottom:var(--space-5);">🎓 Tổng Kết Module 1</h3>
+      <p>Bạn đã nắm vững 4 khái niệm nền tảng:</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:var(--space-4);margin-top:var(--space-4);">
+        <div style="background:#fff;border-radius:var(--radius-lg);padding:var(--space-4);border:1px solid var(--border);">
+          <div style="font-size:1.5rem;margin-bottom:6px;">🧠</div>
+          <strong>LLM</strong><br><span style="font-size:.85rem;color:var(--text-muted)">Bộ não suy luận, giới hạn bởi hallucination và context window</span>
+        </div>
+        <div style="background:#fff;border-radius:var(--radius-lg);padding:var(--space-4);border:1px solid var(--border);">
+          <div style="font-size:1.5rem;margin-bottom:6px;">🤖</div>
+          <strong>Agentic AI</strong><br><span style="font-size:.85rem;color:var(--text-muted)">Vòng lặp Perceive→Think→Act→Observe, không chỉ trả lời</span>
+        </div>
+        <div style="background:#fff;border-radius:var(--radius-lg);padding:var(--space-4);border:1px solid var(--border);">
+          <div style="font-size:1.5rem;margin-bottom:6px;">⚙️</div>
+          <strong>Agent = Model + Harness</strong><br><span style="font-size:.85rem;color:var(--text-muted)">65% thất bại đến từ harness, không phải model</span>
+        </div>
+        <div style="background:#fff;border-radius:var(--radius-lg);padding:var(--space-4);border:1px solid var(--border);">
+          <div style="font-size:1.5rem;margin-bottom:6px;">🔧</div>
+          <strong>Tool Use &amp; MCP</strong><br><span style="font-size:.85rem;color:var(--text-muted)">5 tools của LoanBot, MCP protocol, tool safety</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="lesson-nav">
+      <a href="../../index.html" class="nav-btn">← Trang chủ</a>
+      <div style="display:flex;gap:12px;">
+        <a href="quiz.html" class="nav-btn">📝 Quiz Module 1</a>
+        <a href="lab.ipynb" download class="nav-btn">🔬 Tải Notebook</a>
+        <a href="../module2/index.html" class="nav-btn primary">Module 2: Kiến Trúc Harness →</a>
+      </div>
+    </div>
+
+  </div>
+  </main>
+
+</div><!-- /layout -->
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

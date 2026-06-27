@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Module 14: Agent Memory Systems & RAG</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m14-primary: #701a75; --m14-accent: #d946ef; --m14-light: #fdf4ff; --m14-border: #e879f9; }
+    .quiz-header { background: linear-gradient(135deg, #2e0836, #701a75, #d946ef); }
+    .quiz-header h1, .quiz-header p { color: #fae8ff; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-page">
+  <div class="quiz-header">
+    <span class="module-tag">MODULE 14 · QUIZ</span>
+    <h1>🧠 Memory Systems & RAG Quiz</h1>
+    <p>15 câu hỏi — Bao phủ 4 memory tiers, RAG pipeline, chunking, quality gate, semantic caching</p>
+  </div>
+
+  <div class="quiz-container">
+    <div class="quiz-progress">
+      <div class="progress-text">Câu <span id="currentQ">1</span> / 15</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:6.67%"></div></div>
+    </div>
+
+    <div id="quizContent"></div>
+
+    <div class="quiz-nav">
+      <button id="prevBtn" class="btn btn-outline" onclick="prevQuestion()" disabled>← Trước</button>
+      <button id="nextBtn" class="btn btn-primary" onclick="nextQuestion()" disabled>Tiếp theo →</button>
+    </div>
+
+    <div id="quizResult" class="quiz-result" style="display:none;"></div>
+  </div>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+<script>
+const questions = [
+  {
+    q: "LoanBot cần nhớ rằng FC-2024-004 đã bị từ chối 3 lần trong 6 tháng. Đây là loại memory nào và được lưu ở đâu?",
+    opts: ["Sensory Memory — trong context window", "Short-term Memory — trong Redis TTL=8h", "Long-term Memory — trong vector store hoặc PostgreSQL, persistent vĩnh viễn", "Procedural Memory — trong system prompt"],
+    correct: 2,
+    explanation: "Long-term Memory là persistent knowledge tồn tại qua nhiều sessions và thời gian dài. Lịch sử từ chối 6 tháng trước phải được lưu trong vector store (Qdrant) hoặc relational DB (PostgreSQL) — không thể lưu trong context window (mất sau inference) hay Redis với TTL ngắn. Khi FC-2024-004 nộp hồ sơ mới, RAG system retrieve historical decisions và inject vào context của RiskAgent."
+  },
+  {
+    q: "Context window của claude-haiku-4-5-20251001 là 200K tokens. Tại sao LoanBot không thể nhét toàn bộ 50.000 customer profiles vào context?",
+    opts: ["Không đủ tokens: 50.000 profiles × 500 tokens = 25M tokens — vượt 200K limit 125×", "Anthropic không cho phép nhiều hơn 1000 customers trong context", "Context window chỉ dùng cho code, không cho customer data", "50.000 profiles fit vừa nhưng quá đắt ($300/call)"],
+    correct: 0,
+    explanation: "25 triệu tokens vs 200K context limit — không thể fit. Đây chính là lý do cần Long-term Memory + RAG: thay vì load tất cả, chỉ retrieve những gì relevant cho hồ sơ hiện tại. Ví dụ: FC-2024-004 nộp hồ sơ → RAG retrieve 3 historical decisions của chính khách hàng này (~1.500 tokens) + 5 regulation chunks (~2.400 tokens) = 3.900 tokens — hoàn toàn trong budget."
+  },
+  {
+    q: "4 bước của RAG pipeline là gì? Bước nào là offline và bước nào là online?",
+    opts: ["Train → Test → Deploy → Monitor (tất cả offline)", "Index → Retrieve → Augment → Generate. Index là offline; Retrieve/Augment/Generate là online per request", "Embed → Store → Query → Rank (tất cả online)", "Chunk → Clean → Filter → Format (tất cả offline)"],
+    correct: 1,
+    explanation: "Index (Offline): Chunk documents → Embed → Store trong vector store. Làm một lần hoặc periodic khi knowledge base update. Retrieve (Online): Embed query → vector similarity search → top-K chunks. Augment (Online): Ghép retrieved chunks vào system prompt. Generate (Online): LLM generate response dựa trên augmented context. RAG latency = retrieve + generate, không phải index (offline)."
+  },
+  {
+    q: "LoanBot dùng Semantic Chunking cho văn bản quy định NHNN. Tại sao không dùng Fixed-Size Chunking (512 tokens)?",
+    opts: ["Semantic chunking nhanh hơn 2×", "Fixed-size chunking có thể cắt giữa một điều khoản pháp lý, phá vỡ ngữ nghĩa. Semantic chunking giữ nguyên boundaries (Điều 1, Điều 2) → retrieval chính xác hơn", "Fixed-size chunking không support tiếng Việt", "Semantic chunking rẻ hơn fixed-size"],
+    correct: 1,
+    explanation: "Điều khoản pháp lý có cấu trúc rõ ràng (Điều, khoản, điểm). Nếu cắt ở 512 token boundary, có thể cắt giữa: 'Điều 15: Tỷ lệ thế chấp tối thiểu là [CẮT] 120% giá trị khoản vay...' → chunk 1 không có thông tin, chunk 2 mất context. Semantic chunking tôn trọng article/paragraph boundaries → mỗi chunk = một điều khoản hoàn chỉnh → khi retrieve về, RiskAgent đọc được đầy đủ quy định."
+  },
+  {
+    q: "Trong LoanBot, chunk metadata bao gồm: circular_number, effective_date, applies_to_loan_type. Tại sao metadata này quan trọng?",
+    opts: ["Để làm đẹp UI", "Metadata cho phép filtered retrieval: chỉ lấy quy định có effective_date ≤ ngày hôm nay và applies_to_loan_type = 'collateral' thay vì search toàn bộ 15.000 vectors", "Metadata chỉ dùng cho logging", "Metadata tăng embedding quality"],
+    correct: 1,
+    explanation: "Vector search tìm semantic similarity, nhưng không thể filter theo thời gian hay loại quy định nếu không có metadata. Với metadata filtering: query = 'collateral requirements' + filter: {effective_date: {lte: today}, applies_to_loan_type: 'real_estate'} → chỉ search trong subset relevant vectors, không search toàn bộ knowledge base. Tăng precision, giảm noise. Qdrant hỗ trợ metadata filters natively."
+  },
+  {
+    q: "Reranking trong RAG pipeline làm gì? LoanBot retrieve top-20 rồi rerank → giữ top-5. Tại sao không retrieve top-5 thẳng?",
+    opts: ["Reranking tăng recall — initial retrieval nhanh nhưng kém chính xác; cross-encoder reranker chậm hơn nhưng chính xác hơn. Retrieve 20 đảm bảo recall, rerank 5 đảm bảo precision.", "Reranking là bắt buộc bởi NHNN", "Reranking giảm vector database cost", "Top-5 không đủ context cho LoanBot"],
+    correct: 0,
+    explanation: "Bi-encoder (embedding similarity) nhanh nhưng less precise. Cross-encoder reranker (reads full query + chunk pair) chậm hơn nhưng significantly better precision. Strategy: retrieve top-20 với bi-encoder (fast recall), rerank với cross-encoder (accurate precision), giữ top-5 để avoid context pollution. Faithfulness score tăng từ 0.74 (top-10, no reranking) lên 0.91 (top-20 → rerank → top-5) trong LoanBot benchmarks."
+  },
+  {
+    q: "Hybrid Search kết hợp dense và sparse retrieval. Với query 'Điều 15 Thông tư 39/2016/TT-NHNN về tỷ lệ thế chấp', loại search nào quan trọng hơn và tại sao?",
+    opts: ["Dense (vector) quan trọng hơn vì semantic understanding", "Sparse (BM25/TF-IDF) quan trọng hơn cho query này vì có exact keywords ('Điều 15', 'Thông tư 39/2016') — BM25 giỏi exact match hơn vector search", "Cả hai bằng nhau — luôn dùng 50/50", "Không cần hybrid — chỉ cần vector search"],
+    correct: 1,
+    explanation: "Query này chứa exact identifiers ('Điều 15', 'TT 39/2016/TT-NHNN') — sparse retrieval giỏi hơn dense cho exact keyword matching. Dense search có thể trả về 'điều khoản về thế chấp' (semantically similar) nhưng không phải Điều 15 cụ thể. Hybrid với α=0.3 (30% dense, 70% sparse) phù hợp cho query có exact identifiers. Ngược lại, 'quy định về thế chấp bất động sản' → α=0.7 (70% dense) vì semantic query."
+  },
+  {
+    q: "TokenBudget của LoanBot phân bổ: system=8K, RAG=12K, history=20K, data=4K, output=4K = 48K. Context window 200K. Tại sao không dùng hết 200K cho history?",
+    opts: ["200K history quá đắt", "'Lost in the Middle' problem: LLM ignore information ở giữa context quá dài. Ngoài ra, cần reserve cho RAG chunks (12K). Dùng hết cho history → không còn chỗ cho retrieved regulations", "History limit bị giới hạn bởi Anthropic API", "History dài hơn 20K tokens gây timeout"],
+    correct: 1,
+    explanation: "Hai vấn đề: (1) 'Lost in the Middle' — research (Liu et al., 2023) cho thấy LLM xử lý tốt đầu và cuối context, nhưng ignore middle. Long history = RAG chunks nằm ở giữa → ignored. (2) Token budget cho RAG: nếu history chiếm hết, không còn chỗ cho retrieved regulation chunks (12K essential for compliance). TokenBudget partition đảm bảo mỗi thành phần có đủ budget mà total ≤ 200K."
+  },
+  {
+    q: "ConversationMemory._compress() được trigger khi nào? Nó làm gì với conversation history?",
+    opts: ["Trigger sau mỗi message; xóa toàn bộ history", "Trigger khi token estimate vượt 80% history_budget (16K/20K). Summarize messages cũ (trừ 5 gần nhất) bằng claude-haiku, giữ summary + 5 recent messages", "Trigger khi session end; compress vào database", "Trigger mỗi 1 giờ; không làm gì"],
+    correct: 1,
+    explanation: "_compress() trigger khi self._token_est > budget.history_budget * 0.8 (= 16K). Action: (1) Lấy messages[:-5] (tất cả trừ 5 gần nhất) → gọi claude-haiku summarize thành ≤3 câu. (2) Lưu summary vào self.summary. (3) Giữ lại messages[-5:]. (4) Recalculate token estimate. build_context() prepend summary dưới dạng user/assistant pair → model thấy được conversation history nhưng compressed. Pattern này giữ important context mà không overflow budget."
+  },
+  {
+    q: "Faithfulness metric trong RAGAS là gì? Tại sao LoanBot đặt threshold Faithfulness ≥ 0.85?",
+    opts: ["Faithfulness đo độ dài của answer. 0.85 là thẩm mỹ", "Faithfulness = proportion of claims in answer that are supported by retrieved context (0=fully hallucinated, 1=fully grounded). ≥0.85 vì EU AI Act Art.13 yêu cầu explainability — LoanBot phải cite cụ thể quy định, không được hallucinate", "Faithfulness đo tốc độ response. 0.85 = 85ms", "Faithfulness đo accuracy so với golden answers"],
+    correct: 1,
+    explanation: "Faithfulness = (# supported claims / # total claims). Ví dụ: answer có 10 claims → 9 supported by retrieved context, 1 hallucinated → faithfulness = 0.9. LoanBot ngưỡng 0.85 vì: (1) EU AI Act Art.13: automated decisions affecting creditworthiness must be transparent/explainable — hallucinated claims không thể explain. (2) Regulatory: nếu LoanBot cite sai quy định → legal liability. (3) Audit trail: loan officer review cần verify claims against actual regulation text."
+  },
+  {
+    q: "Semantic Cache trong LoanBot dùng cosine similarity ≥ 0.95 để determine cache hit. Tại sao 0.95 thay vì 0.80?",
+    opts: ["0.95 tùy ý, không có lý do kỹ thuật", "0.95 đảm bảo semantically near-identical queries nhận cùng response. Ngưỡng 0.80 quá thấp: 'hồ sơ vay 300M thế chấp nhà' và 'hồ sơ vay 500M thế chấp xe' có cosine ~0.82 → nội dung khác nhau, không thể serve cùng response", "0.95 là minimum của Qdrant", "0.80 không tính toán được với embeddings"],
+    correct: 1,
+    explanation: "Loan applications có nhiều variations subtle: số tiền, loại tài sản thế chấp, credit score — tất cả thay đổi risk assessment. Ngưỡng 0.80 quá loose, có thể cache response cho 300M/nhà và serve cho 500M/xe → wrong response. Ngưỡng 0.95 chỉ match near-identical queries (ví dụ: cùng applicant submit đúng hồ sơ nhiều lần, hoặc template queries từ loan officers). Cache miss rate cao hơn nhưng đảm bảo correctness — trong loan underwriting, correctness > cache efficiency."
+  },
+  {
+    q: "RAG Quality Gate FAIL: Faithfulness = 0.72. Tại sao không retry (generate lại) mà thay vào đó trigger HITL?",
+    opts: ["Retry thường xuyên hơn 3 lần", "Faithfulness thấp = model hallucinate dù đã có retrieved context → vấn đề có thể ở retrieved context quality hoặc knowledge gap. Retry tốn cost mà không đảm bảo fix. HITL đúng hơn: loan officer human review và provide correct assessment với proper citations", "HITL rẻ hơn retry", "Retry không được phép trong regulatory environment"],
+    correct: 1,
+    explanation: "Faithfulness 0.72 means 28% claims không được grounded trong retrieved context. Nguyên nhân: (1) Knowledge gap — regulation không có trong vector store, (2) Chunking issue — relevant text bị cắt giữa chunks, (3) Retrieval miss — đúng regulation nhưng không được retrieve. Retry cùng query → thường generate cùng hallucinations. Đúng hơn: HITL flag cho loan officer, record failure reason, update knowledge base nếu cần. Compliance-critical system không nên retry hallucinations."
+  },
+  {
+    q: "LoanBot dùng Hierarchical Chunking cho regulation documents. 'Parent + child' nghĩa là gì và lợi ích là gì?",
+    opts: ["Parent = toàn bộ document; child = word tokens", "Parent = section (2K tokens), child = sub-section/clause (512 tokens). Retrieve child (precise), nhưng augment với parent context (broader context). Tránh thiếu context khi chunk nhỏ, tránh noise khi chunk quá lớn", "Parent = database row; child = column", "Parent chunk không bao giờ được retrieve"],
+    correct: 1,
+    explanation: "Challenge: small chunks = precise retrieval nhưng thiếu context; large chunks = full context nhưng retrieve nhiều noise. Hierarchical giải quyết: child chunk (512 tokens = một clause cụ thể) được retrieve vì matching query. Nhưng khi augment context, thay vì chỉ dùng child chunk, LoanBot fetch parent chunk (toàn bộ section 2K tokens) → RiskAgent đọc được full regulatory context xung quanh clause. Qdrant parent-child linking cho phép fetch parent by parent_id."
+  },
+  {
+    q: "FC-2024-001 (Nguyễn Văn A, score 720) nộp hồ sơ. RAG cần retrieve gì để augment context cho RiskAgent?",
+    opts: ["Toàn bộ 500 văn bản quy định và 30.000 lịch sử", "3 historical decisions của A (nếu có), top-5 regulation chunks về 'loan ≤300M, collateral, score 720+'. Không cần retrieve regulations về borderline/fraud vì không applicable", "Chỉ retrieve quy định về credit score", "Không cần RAG — score 720 tự động approve"],
+    correct: 1,
+    explanation: "Smart retrieval = retrieve chỉ những gì relevant. FC-2024-001: score 720 (good), amount 200M (standard), clean history → query context: 'standard loan approval, score 720+, real estate collateral, 200M VNĐ'. RAG retrieve: (1) Customer A's past decisions (personalization), (2) Regulation chunks về collateral requirements cho loan < 500M, (3) Standard approval criteria cho score > 700. KHÔNG retrieve: regulations về borderline score (560-680), fraud regulations (fraud prob 0.05 = LOW). Filtered retrieval = less noise, higher faithfulness."
+  },
+  {
+    q: "LoanBot RAG target: Faithfulness ≥ 0.85, latency P95 ≤ 800ms, cache hit rate ≥ 40%. Làm sao đạt đồng thời cả 3 mục tiêu?",
+    opts: ["Không thể — 3 mục tiêu mâu thuẫn nhau", "Semantic cache (hit rate 40%) giảm retrieval calls; rerank top-20→5 đảm bảo faithfulness; vector search trên indexed Qdrant đủ nhanh (<200ms) → P95 800ms = retrieval 200ms + rerank 100ms + generation 500ms", "Dùng GPU server để giảm latency", "Giảm faithfulness threshold xuống 0.60 để dễ đạt P95"],
+    correct: 1,
+    explanation: "End-to-end latency budget P95=800ms: Vector search (Qdrant ANN) ≈ 50ms, embedding query ≈ 80ms, reranking top-20→5 ≈ 100ms, LLM generation ≈ 500ms. Total ≈ 730ms → dưới 800ms. Cache: 40% cache hit rate → 40% requests skip retrieval (50+80+100ms = 230ms saved) → average latency lower. Faithfulness: rerank top-20→5 (not top-10) + quality gate reject low-quality → ensures 0.85. Không mâu thuẫn khi optimize đúng stack."
+  }
+];
+
+let current = 0;
+let selected = new Array(15).fill(null);
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('currentQ').textContent = current + 1;
+  document.getElementById('progressFill').style.width = ((current + 1) / 15 * 100) + '%';
+
+  const answered = selected[current] !== null;
+  let html = `<div class="question-card">
+    <div class="question-number">Câu ${current + 1} / 15</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options">`;
+
+  q.opts.forEach((opt, i) => {
+    let cls = 'option-btn';
+    if (answered) {
+      if (i === q.correct) cls += ' correct';
+      else if (i === selected[current] && i !== q.correct) cls += ' incorrect';
+      else cls += ' disabled';
+    } else if (selected[current] === i) cls += ' selected';
+    html += `<button class="${cls}" onclick="selectOption(${i})" ${answered && i !== q.correct && i !== selected[current] ? 'disabled' : ''}>${opt}</button>`;
+  });
+
+  html += `</div>`;
+  if (answered) {
+    const isCorrect = selected[current] === q.correct;
+    html += `<div class="feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}">
+      <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng'}</strong>
+      <p>${q.explanation}</p>
+    </div>`;
+  }
+  html += `</div>`;
+  document.getElementById('quizContent').innerHTML = html;
+
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = !answered;
+  if (current === 14 && answered) {
+    document.getElementById('nextBtn').textContent = '🏆 Xem kết quả';
+    document.getElementById('nextBtn').onclick = showResult;
+  } else {
+    document.getElementById('nextBtn').textContent = 'Tiếp theo →';
+    document.getElementById('nextBtn').onclick = nextQuestion;
+  }
+}
+
+function selectOption(i) {
+  if (selected[current] !== null) return;
+  selected[current] = i;
+  renderQuestion();
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  if (current < 14) { current++; renderQuestion(); }
+}
+
+function prevQuestion() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+function showResult() {
+  const score = selected.filter((s, i) => s === questions[i].correct).length;
+  const pct = Math.round(score / 15 * 100);
+  let badge = pct >= 90 ? '🏆 Xuất sắc' : pct >= 75 ? '✅ Tốt' : pct >= 60 ? '📖 Cần ôn thêm' : '🔄 Học lại';
+  document.getElementById('quizContent').style.display = 'none';
+  document.querySelector('.quiz-nav').style.display = 'none';
+  const r = document.getElementById('quizResult');
+  r.style.display = 'block';
+  r.innerHTML = `<div class="result-card">
+    <div class="result-score">${score}/15</div>
+    <div class="result-pct">${pct}% — ${badge}</div>
+    <p>Bạn đã hoàn thành Module 14: Memory Systems & RAG Architecture!</p>
+    <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="index.html" class="btn btn-outline">📖 Ôn lại bài giảng</a>
+      <a href="lab.ipynb" download class="btn btn-primary">🔬 Làm Lab Notebook</a>
+      <a href="../module15/index.html" class="btn btn-primary">Module 15 →</a>
+      <a href="../../index.html" class="btn btn-outline">🏠 Trang chủ</a>
+    </div>
+  </div>`;
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 16 — Prompt Engineering & Advanced Prompting Patterns</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m16-primary: #365314;
+      --m16-accent:  #84cc16;
+      --m16-light:   #f7fee7;
+      --m16-border:  #bef264;
+    }
+    .lesson-header { background: linear-gradient(135deg, #1a2e05 0%, #365314 50%, #84cc16 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #ecfccb; }
+    .lesson-header p { color: #bef264; }
+    .sidebar-nav a.active { background: var(--m16-light); border-left: 3px solid var(--m16-accent); color: var(--m16-primary); }
+    .sidebar-nav a:hover { color: var(--m16-primary); }
+
+    .prompt-layer {
+      display: flex; flex-direction: column; gap: var(--space-2); margin: var(--space-4) 0;
+    }
+    .prompt-layer-row {
+      display: flex; align-items: stretch; gap: 0; border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .layer-label {
+      min-width: 140px; padding: var(--space-3); font-size: .8rem; font-weight: 700;
+      display: flex; align-items: center;
+    }
+    .layer-content {
+      flex: 1; padding: var(--space-3) var(--space-4); font-size: .8rem; line-height: 1.6;
+    }
+
+    .cot-step {
+      display: flex; gap: var(--space-3); margin-bottom: var(--space-3); align-items: flex-start;
+    }
+    .cot-num {
+      min-width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: .8rem; flex-shrink: 0; margin-top: 2px;
+      background: var(--m16-accent); color: var(--m16-primary);
+    }
+    .cot-body { flex: 1; }
+    .cot-body strong { font-size: .875rem; color: var(--m16-primary); }
+    .cot-body p { font-size: .8rem; color: var(--text-muted); margin: 4px 0 0; }
+    .cot-result {
+      margin-top: 4px; padding: 6px 10px; background: var(--m16-light);
+      border-left: 3px solid var(--m16-accent); border-radius: 4px;
+      font-size: .78rem; font-style: italic; color: var(--m16-primary);
+    }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m16-light);color:var(--m16-primary);border-color:var(--m16-border);">MODULE 16</div>
+    <div class="sidebar-title">Prompt Engineering</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. System Prompt Architecture</a>
+      <a href="#lesson2">L2. Chain-of-Thought Reasoning</a>
+      <a href="#lesson3">L3. Few-Shot & In-Context Learning</a>
+      <a href="#lesson4">L4. Structured Output Engineering</a>
+      <a href="#lesson5">L5. Meta-Prompting & Optimization</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m16-accent);">📝 Quiz Module 16</a>
+      <a href="lab.ipynb" download style="color:var(--m16-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module15/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 15: Tool Use</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 16 · Tuần 43–45</span>
+      <h1>✍️ Prompt Engineering & Advanced Prompting Patterns</h1>
+      <p>LoanBot chỉ tốt bằng prompt của nó. Một system prompt tệ khiến model đưa ra quyết định sai dù có đủ tools và data. Module này dạy cách craft prompts đạt chuẩn enterprise: precise, consistent, auditable, và regulatory-compliant.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>✍️ Prompt-first design</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: System Prompt Architecture — Giải phẫu một Enterprise Prompt</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu 5 layers của enterprise system prompt: Role / Context / Tools / Constraints / Format</li>
+          <li>Phân biệt khi nào nội dung thuộc system prompt vs user message</li>
+          <li>Viết LoanBot system prompt đạt chuẩn regulatory compliance</li>
+          <li>Đo tác động của prompt quality: từ 63% → 94% decision consistency</li>
+        </ul>
+      </div>
+
+      <p>Prompt engineering là kỹ năng quan trọng nhất trong AI agent development — quan trọng hơn cả chọn model. Một nghiên cứu nội bộ của FinTech Corp cho thấy: thay đổi system prompt từ 50 words vague → 400 words structured đã tăng LoanBot decision consistency từ <strong>63% → 94%</strong> trên cùng model (claude-haiku-4-5).</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Prompt = Software, không phải Text</div>
+        <p>System prompt là <strong>code logic</strong> của agent — không phải description. Mỗi câu trong prompt là một business rule, một constraint, hoặc một behavioral specification. Khi business logic thay đổi (regulations, products, risk thresholds), prompt phải được update và version-controlled như code, không phải "thay nhanh rồi forget".</p>
+      </div>
+
+      <h3>1.1 Cấu trúc 5-Layer của LoanBot Enterprise System Prompt</h3>
+
+      <div class="prompt-layer">
+        <div class="prompt-layer-row">
+          <div class="layer-label" style="background:#1a2e05;color:#bef264;">① ROLE</div>
+          <div class="layer-content" style="background:var(--m16-light);border:1px solid var(--m16-border);">
+            <strong>Xác định model là ai, vai trò gì, và authority level</strong><br>
+            <em>Bad:</em> "You are a helpful assistant."<br>
+            <em>Good:</em> "Bạn là LoanBot v3.2 — chuyên gia thẩm định tín dụng của FinTech Corp. Bạn có authority phê duyệt khoản vay ≤500M VNĐ, recommend cho Level 1 HITL ≤2B, và escalate Level 2 HITL &gt;2B. Bạn không có quyền thay đổi interest rates hoặc loan terms."
+          </div>
+        </div>
+        <div class="prompt-layer-row">
+          <div class="layer-label" style="background:#365314;color:#d9f99d;">② CONTEXT</div>
+          <div class="layer-content" style="background:#f0fdf4;border:1px solid #86efac;">
+            <strong>Business context, regulatory environment, và data sources available</strong><br>
+            "FinTech Corp xử lý 50,000 hồ sơ/tháng. Khung pháp lý: TT39/2016 (thẩm định tín dụng), QĐ493/2005 (phân loại nợ), Luật Tổ chức Tín dụng 2010. Data sources: CIC score (primary), income verification, property valuation. Lịch sử: 87,000 hồ sơ approved, default rate 2.3%."
+          </div>
+        </div>
+        <div class="prompt-layer-row">
+          <div class="layer-label" style="background:#854d0e;color:#fef3c7;">③ TOOLS</div>
+          <div class="layer-content" style="background:#fffbeb;border:1px solid #fcd34d;">
+            <strong>Mô tả khi nào và tại sao dùng từng tool</strong><br>
+            "Luôn gọi get_credit_score và check_compliance trước khi assess. Gọi verify_income nếu declared income &gt;20M VNĐ/tháng. Gọi get_property_valuation chỉ khi có collateral address. Không gọi send_notification trước khi có final decision."
+          </div>
+        </div>
+        <div class="prompt-layer-row">
+          <div class="layer-label" style="background:#7f1d1d;color:#fee2e2;">④ CONSTRAINTS</div>
+          <div class="layer-content" style="background:#fef2f2;border:1px solid #fca5a5;">
+            <strong>Hard rules không được vi phạm — safety, compliance, business rules</strong><br>
+            "KHÔNG approve: blacklisted customers, credit_score &lt;450, DTI &gt;65%, amount &gt;10× monthly_income. LUÔN cite regulation basis. KHÔNG tiết lộ credit score raw number cho customer. KHÔNG approve khi compliance check fail. Nếu uncertain → HITL, không đoán."
+          </div>
+        </div>
+        <div class="prompt-layer-row">
+          <div class="layer-label" style="background:#1e1b4b;color:#e0e7ff;">⑤ FORMAT</div>
+          <div class="layer-content" style="background:#eef2ff;border:1px solid #a5b4fc;">
+            <strong>Output structure, language, tone, và JSON schema</strong><br>
+            "Trả về JSON theo schema LoanDecisionOutput. Tiếng Việt cho explanations. Cite ít nhất 1 regulation cho mỗi key_factor. Tóm tắt 1 câu tiếng Việt cho loan officer ở đầu. Nếu HITL: giải thích cụ thể cần thêm thông tin gì."
+          </div>
+        </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg">
+          <title>System Prompt Layer Impact — trước và sau structured prompt, LoanBot decision consistency</title>
+          <defs>
+            <marker id="arrP16" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#84cc16"/>
+            </marker>
+          </defs>
+          <rect width="760" height="180" fill="#1a2e05" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#ecfccb">System Prompt Quality Impact — LoanBot A/B Test (500 hồ sơ)</text>
+
+          <!-- Before -->
+          <rect x="15" y="40" width="340" height="125" fill="#431407" rx="8" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="185" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#fca5a5">❌ Vague Prompt (50 words)</text>
+          <text x="185" y="77" text-anchor="middle" font-size="8" fill="#fca5a5">"You are a helpful loan assistant..."</text>
+
+          <text x="30" y="98" font-size="9" fill="#e2e8f0">Decision Consistency:   63%</text>
+          <rect x="200" y="88" width="63" height="12" fill="#dc2626" rx="3"/>
+          <text x="269" y="98" font-size="9" fill="#fca5a5">↓ 37% variance</text>
+
+          <text x="30" y="116" font-size="9" fill="#e2e8f0">Regulation Citations:    18%</text>
+          <rect x="200" y="106" width="18" height="12" fill="#dc2626" rx="3"/>
+
+          <text x="30" y="134" font-size="9" fill="#e2e8f0">False APPROVE rate:     9.2%</text>
+          <rect x="200" y="124" width="92" height="12" fill="#dc2626" rx="3"/>
+
+          <text x="30" y="152" font-size="9" fill="#e2e8f0">HITL escalation (correct): 51%</text>
+          <rect x="200" y="142" width="51" height="12" fill="#dc2626" rx="3"/>
+
+          <!-- After -->
+          <rect x="405" y="40" width="340" height="125" fill="#1a2e05" rx="8" stroke="#84cc16" stroke-width="1.5"/>
+          <text x="575" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#bef264">✅ Structured Prompt (400 words)</text>
+          <text x="575" y="77" text-anchor="middle" font-size="8" fill="#bef264">"Role + Context + Tools + Constraints + Format"</text>
+
+          <text x="420" y="98" font-size="9" fill="#e2e8f0">Decision Consistency:   94%</text>
+          <rect x="590" y="88" width="94" height="12" fill="#84cc16" rx="3"/>
+
+          <text x="420" y="116" font-size="9" fill="#e2e8f0">Regulation Citations:    97%</text>
+          <rect x="590" y="106" width="97" height="12" fill="#84cc16" rx="3"/>
+
+          <text x="420" y="134" font-size="9" fill="#e2e8f0">False APPROVE rate:     1.1%</text>
+          <rect x="590" y="124" width="11" height="12" fill="#4ade80" rx="3"/>
+
+          <text x="420" y="152" font-size="9" fill="#e2e8f0">HITL escalation (correct): 89%</text>
+          <rect x="590" y="142" width="89" height="12" fill="#84cc16" rx="3"/>
+
+          <!-- Arrow between -->
+          <line x1="358" y1="103" x2="402" y2="103" stroke="#84cc16" stroke-width="2" marker-end="url(#arrP16)"/>
+          <text x="380" y="97" text-anchor="middle" font-size="8" fill="#84cc16">upgrade</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Tác động của Structured System Prompt — 500 hồ sơ A/B test: consistency 63%→94%, false approvals 9.2%→1.1%</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (System Prompt)</span>
+        <pre><code>LOANBOT_SYSTEM_PROMPT = <span class="code-string">"""
+## VAI TRÒ (Role)
+Bạn là LoanBot v3.2 — chuyên gia thẩm định tín dụng của FinTech Corp.
+Authority: phê duyệt ≤500M VNĐ | escalate L1 HITL ≤2B | escalate L2 HITL >2B.
+
+## BỐI CẢNH (Context)
+FinTech Corp: 50,000 hồ sơ/tháng, default rate 2.3%.
+Khung pháp lý áp dụng:
+- TT39/2016/TT-NHNN: điều kiện cấp tín dụng
+- QĐ493/2005/QĐ-NHNN: phân loại nợ và trích lập dự phòng
+- Luật TCTD 2010, sửa đổi 2024: giới hạn tín dụng
+
+## QUY TRÌNH SỬ DỤNG TOOLS (Tools)
+1. LUÔN gọi get_credit_score + check_compliance song song trước khi assess.
+2. Gọi verify_income nếu declared_income > 0 VNĐ/tháng.
+3. Gọi get_property_valuation CHỈ KHI có collateral_address.
+4. KHÔNG gọi send_notification trước khi có final decision.
+
+## RÀNG BUỘC CỨNG (Constraints — không được vi phạm)
+- KHÔNG approve: blacklist=true, credit_score<450, DTI>65%, amount>10×monthly_income
+- LUÔN cite ít nhất 1 regulation cho mỗi key_factor
+- KHÔNG reveal raw credit score cho customer
+- Nếu compliance FAIL → REJECT hoặc HITL, không bao giờ APPROVE
+- Uncertainty → HITL (không đoán mò)
+
+## ĐỊNH DẠNG OUTPUT (Format)
+Trả về JSON hợp lệ theo schema LoanDecisionOutput.
+Tiếng Việt cho tất cả explanation fields.
+Tóm tắt 1 câu cho loan officer ở field "summary_vi".
+"""</span>
+
+<span class="code-comment"># Gọi Claude với structured system prompt</span>
+response = client.messages.<span class="code-function">create</span>(
+    model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+    max_tokens=<span class="code-number">4096</span>,
+    system=LOANBOT_SYSTEM_PROMPT,   <span class="code-comment"># ← enterprise structured prompt</span>
+    tools=LOAN_TOOLS,
+    messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: loan_application_json}]
+)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao constraint "KHÔNG reveal raw credit score cho customer" phải nằm trong system prompt, không phải trong code post-processing?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> System prompt constraint ảnh hưởng đến <em>cách model reasoning</em> — nếu model biết không được reveal score, nó sẽ không mention score trong explanations, không cite score trong citations, và không suggest customer "check your score" khi reject. Code post-processing chỉ có thể filter final output — nhưng score có thể đã leak vào intermediate reasoning hay tool call logs. Defense-in-depth: prompt constraint + post-processing filter.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Chain-of-Thought Reasoning — Dạy Model "Suy Nghĩ Từng Bước"</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt Zero-shot CoT, Few-shot CoT, và Structured CoT</li>
+          <li>Viết reasoning chain cho LoanBot risk assessment: từ data → evidence → decision</li>
+          <li>Sử dụng extended thinking (claude-sonnet-4-6) cho complex borderline cases</li>
+          <li>Tránh pitfalls: post-hoc rationalization và sycophantic reasoning</li>
+        </ul>
+      </div>
+
+      <p><strong>Chain-of-Thought (CoT)</strong> là kỹ thuật yêu cầu model giải thích từng bước reasoning trước khi đưa ra kết luận. Với LoanBot, CoT quan trọng vì: (1) tăng accuracy cho borderline cases (score 580–650), (2) cung cấp audit trail cho regulators, và (3) giúp loan officers hiểu và verify quyết định.</p>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: CoT như bác sĩ đọc kết quả xét nghiệm</div>
+        <p>Bác sĩ không nhìn vào cholesterol 240 và ngay lập tức nói "bạn bệnh tim" — họ đọc từng chỉ số, kết hợp với triệu chứng, so sánh với baseline, rồi mới kết luận. LoanBot phải làm tương tự: đọc credit score 645 + income 31M + DTI 28% + compliance CLEAR + property value 4.2B → reason through từng factor → kết luận REVIEW với explanation đủ để loan officer audit.</p>
+      </div>
+
+      <h3>2.1 Structured CoT cho LoanBot — Ví dụ FC-2024-004</h3>
+
+      <div class="cot-step">
+        <div class="cot-num">1</div>
+        <div class="cot-body">
+          <strong>Kiểm tra Hard Rules (Gate Pass/Fail)</strong>
+          <p>Trước tiên loại bỏ các trường hợp vi phạm hard constraints — không cần assess thêm.</p>
+          <div class="cot-result">"FC-2024-004: blacklist=false, aml_clear=true → PASS compliance gate. credit_score=645 ≥ 450 minimum → PASS. amount=350M ≤ 10×31M=310M... WAIT — 350M > 310M! Flag: amount_to_income ratio HIGH."</div>
+        </div>
+      </div>
+      <div class="cot-step">
+        <div class="cot-num">2</div>
+        <div class="cot-body">
+          <strong>Phân tích từng Risk Factor với Evidence</strong>
+          <p>Đánh giá mỗi factor với dữ liệu cụ thể và regulation reference.</p>
+          <div class="cot-result">"Credit (TT39 Điều 15): score 645 = 'B' grade → moderate risk. Positive: 1 derogatory mark only, 22/24 on-time payments (91.7%). Negative: 2 late in year 2. Net: moderate-positive. Income (QĐ493): verified 31M/tháng vs declared 32M (96.9% match, &lt;5% discrepancy → verified). DTI: 350M × (8.5%/12) / 31M = 9.5% → LOW risk. Collateral (TT39 Điều 20): property value 4.2B, LTV=350M/4.2B=8.3% → EXCELLENT."</div>
+        </div>
+      </div>
+      <div class="cot-step">
+        <div class="cot-num">3</div>
+        <div class="cot-body">
+          <strong>Tổng hợp & Weigh Conflicting Evidence</strong>
+          <p>Balancing positive và negative factors trước khi quyết định.</p>
+          <div class="cot-result">"Strong positives: LTV 8.3% (excellent), DTI 9.5% (low), income verified. Concern: amount 350M vs income-based limit 310M (13% over). TT39 Điều 12 cho phép collateral override income-limit nếu LTV &lt;60%. LTV=8.3% &lt;&lt; 60% → collateral override applicable. Net assessment: APPROVE với note về income-limit override."</div>
+        </div>
+      </div>
+      <div class="cot-step">
+        <div class="cot-num">4</div>
+        <div class="cot-body">
+          <strong>Quyết định + Citations + Confidence</strong>
+          <p>Final decision với evidence-based confidence score.</p>
+          <div class="cot-result">"Decision: APPROVE. Risk score: 0.26 (low). Confidence: 0.82. Key factors: [LTV 8.3% → TT39 Đ20, DTI 9.5% → QĐ493, Income verified → TT39 Đ15]. Caveats: monitor payment first 6 months (1 prior late payment pattern). HITL: không cần."</div>
+        </div>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Extended Thinking với claude-sonnet-4-6
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Claude sonnet-4-6 hỗ trợ <strong>extended thinking</strong> — model được cấp thêm "thinking budget" (tokens) để deliberate trước khi respond. Với borderline cases (score 580–650), extended thinking tăng accuracy 12% so với standard prompting.</p>
+          <div class="code-block">
+            <span class="code-label">Python (Extended Thinking)</span>
+            <pre><code><span class="code-comment"># Extended thinking cho borderline cases</span>
+response = client.messages.<span class="code-function">create</span>(
+    model=<span class="code-string">"claude-sonnet-4-6"</span>,   <span class="code-comment"># upgraded model cho complex cases</span>
+    max_tokens=<span class="code-number">16_000</span>,
+    thinking={
+        <span class="code-string">"type"</span>:         <span class="code-string">"enabled"</span>,
+        <span class="code-string">"budget_tokens"</span>: <span class="code-number">10_000</span>  <span class="code-comment"># extra tokens to think</span>
+    },
+    system=LOANBOT_SYSTEM_PROMPT,
+    messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: borderline_case}]
+)
+<span class="code-comment"># Response contains thinking blocks + answer blocks</span>
+thinking_text = [b.thinking <span class="code-keyword">for</span> b <span class="code-keyword">in</span> response.content <span class="code-keyword">if</span> b.type == <span class="code-string">'thinking'</span>]
+answer         = [b.text    <span class="code-keyword">for</span> b <span class="code-keyword">in</span> response.content <span class="code-keyword">if</span> b.type == <span class="code-string">'text'</span>][<span class="code-number">0</span>]</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Few-Shot Learning — Dạy Model Bằng Ví Dụ</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế few-shot exemplars chất lượng cao cho LoanBot</li>
+          <li>Chọn exemplars đại diện cho các case types: APPROVE, REJECT, REVIEW, HITL</li>
+          <li>Đặt exemplars đúng chỗ trong message history (không phải system prompt)</li>
+          <li>Đo tác động: few-shot cải thiện format consistency 42% với borderline cases</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Few-Shot vs Fine-tuning</div>
+        <p><strong>Few-shot prompting</strong> = cung cấp 2–5 ví dụ trong context window để guide model behavior — zero training cost, instant update. <strong>Fine-tuning</strong> = train lại model với hàng nghìn examples — tốn kém, chậm, rigid. Với LoanBot: dùng few-shot cho format consistency và edge cases; chỉ fine-tune khi cần behavior rất specific mà prompt không đạt (thường cần &gt;1,000 labeled examples). FinTech Corp: few-shot first, fine-tune nếu accuracy &lt;85% sau 3 tháng.</p>
+      </div>
+
+      <h3>3.1 Thiết kế LoanBot Few-Shot Exemplars</h3>
+
+      <div class="code-block">
+        <span class="code-label">Python (Few-Shot Message Format)</span>
+        <pre><code><span class="code-comment"># Few-shot exemplars: đặt trong message history (không phải system prompt)</span>
+FEW_SHOT_EXAMPLES = [
+    <span class="code-comment"># Example 1: APPROVE case (clear positive)</span>
+    {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""Thẩm định: FC-2024-001, amount=500M, credit_score=720,
+income=45M, compliance=CLEAR, property_ltv=5.9%"""</span>},
+    {<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""{
+  "loan_id": "FC-2024-001",
+  "summary_vi": "Khách hàng tốt: tín dụng xuất sắc, tài sản đảm bảo cao.",
+  "decision": "APPROVE",
+  "risk_score": 0.14,
+  "confidence": 0.95,
+  "key_factors": ["credit_score_720_grade_A", "ltv_5.9pct_excellent", "dti_low"],
+  "regulation_refs": ["TT39/2016 Điều 15", "QĐ493 Nhóm 1"],
+  "hitl_required": false
+}"""</span>},
+
+    <span class="code-comment"># Example 2: REJECT case (blacklisted)</span>
+    {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""Thẩm định: FC-2024-003, amount=100M, credit_score=400,
+income=8M, compliance=BLACKLISTED"""</span>},
+    {<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""{
+  "loan_id": "FC-2024-003",
+  "summary_vi": "Từ chối: khách hàng trong danh sách cấm, vi phạm AML.",
+  "decision": "REJECT",
+  "risk_score": 0.97,
+  "confidence": 0.99,
+  "key_factors": ["blacklisted_aml_violation", "credit_score_400_below_minimum"],
+  "regulation_refs": ["TT39/2016 Điều 7 Khoản 3", "Nghị định 87 AML"],
+  "hitl_required": false
+}"""</span>},
+
+    <span class="code-comment"># Example 3: HITL case (conflicting signals)</span>
+    {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""Thẩm định: FC-2024-099, amount=800M, credit_score=590,
+income=25M_unverified, compliance=CLEAR, property_ltv=45%"""</span>},
+    {<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: <span class="code-string">"""{
+  "loan_id": "FC-2024-099",
+  "summary_vi": "Cần xem xét thủ công: thu nhập chưa xác minh, LTV biên.",
+  "decision": "HITL",
+  "risk_score": 0.58,
+  "confidence": 0.61,
+  "key_factors": ["income_unverified", "ltv_45pct_elevated", "amount_exceeds_income_limit"],
+  "regulation_refs": ["TT39/2016 Điều 12", "TT39/2016 Điều 15"],
+  "hitl_required": true,
+  "hitl_level": 1,
+  "hitl_reason": "Cần xác minh thu nhập qua employer và kiểm tra định giá BĐS độc lập"
+}"""</span>},
+]
+
+<span class="code-comment"># Prepend exemplars rồi append actual case</span>
+<span class="code-keyword">def</span> <span class="code-function">build_messages_with_fewshot</span>(loan_application: <span class="code-type">str</span>) -> list:
+    messages = [] + FEW_SHOT_EXAMPLES   <span class="code-comment"># copy examples</span>
+    messages.<span class="code-function">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: loan_application})
+    <span class="code-keyword">return</span> messages</code></pre>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Sycophantic Few-Shot</div>
+        <p>Nếu tất cả exemplars đều là APPROVE → model sẽ bias về APPROVE cho cases mới. FinTech Corp quy tắc: ít nhất 1 REJECT + 1 HITL trong mỗi few-shot set. Cũng tránh exemplars quá "perfect" — chúng không representative cho borderline cases mà model thực sự cần guidance nhất.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Structured Output Engineering — JSON Mode & Schema Design</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế output schema đạt chuẩn machine-parseable cho LoanDecisionOutput</li>
+          <li>Prompt model để generate valid JSON consistently (không hallucinate schema)</li>
+          <li>Handle schema violations gracefully: retry với correction prompt</li>
+          <li>Design versioned schemas: v1 → v2 migration without breaking callers</li>
+        </ul>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Structured Output Formula</div>
+        <div class="formula-text">Schema = Documentation + Validation + Contract</div>
+        <div class="formula-desc">Schema không chỉ là format — nó là business contract giữa LoanBot và downstream systems (core banking, CRM, compliance logging)</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Structured Output Prompt)</span>
+        <pre><code><span class="code-comment"># Yêu cầu Claude generate JSON với schema-first approach</span>
+STRUCTURED_OUTPUT_INSTRUCTION = <span class="code-string">"""
+## OUTPUT FORMAT (BẮT BUỘC)
+
+Trả về JSON hợp lệ theo schema sau. KHÔNG thêm text ngoài JSON block.
+KHÔNG sử dụng markdown code blocks. CHỈ raw JSON.
+
+Schema:
+{
+  "loan_id":         string,   // "FC-YYYY-NNN"
+  "summary_vi":      string,   // 1 câu tiếng Việt cho loan officer
+  "decision":        "APPROVE" | "REJECT" | "REVIEW" | "HITL",
+  "risk_score":      float,    // 0.0 (safe) → 1.0 (risky)
+  "confidence":      float,    // 0.0 → 1.0
+  "key_factors":     [string], // list strings, mỗi item = 1 factor
+  "regulation_refs": [string], // ["TT39/2016 Điều X", ...]
+  "hitl_required":   boolean,
+  "hitl_level":      1|2|3|null,
+  "hitl_reason":     string|null
+}
+
+Ví dụ response hợp lệ:
+{"loan_id": "FC-2024-004", "summary_vi": "...", "decision": "APPROVE", ...}
+"""</span>
+
+<span class="code-keyword">import</span> json
+
+<span class="code-keyword">def</span> <span class="code-function">parse_structured_output</span>(response_text: <span class="code-type">str</span>) -> dict:
+    <span class="code-comment">"""Parse và validate JSON output từ LoanBot."""</span>
+    <span class="code-keyword">try</span>:
+        <span class="code-comment"># Strip markdown nếu model vẫn thêm</span>
+        cleaned = response_text.<span class="code-function">strip</span>()
+        <span class="code-keyword">if</span> cleaned.<span class="code-function">startswith</span>(<span class="code-string">'```'</span>):
+            cleaned = cleaned.<span class="code-function">split</span>(<span class="code-string">'\n'</span>, <span class="code-number">1</span>)[<span class="code-number">1</span>].<span class="code-function">rsplit</span>(<span class="code-string">'```'</span>, <span class="code-number">1</span>)[<span class="code-number">0</span>]
+        data = json.<span class="code-function">loads</span>(cleaned)
+        <span class="code-keyword">return</span> data
+    <span class="code-keyword">except</span> json.JSONDecodeError <span class="code-keyword">as</span> e:
+        <span class="code-keyword">raise</span> <span class="code-function">ValueError</span>(f<span class="code-string">"Invalid JSON from model: {e}\nRaw: {response_text[:200]}"</span>)
+
+<span class="code-keyword">def</span> <span class="code-function">validate_loan_decision</span>(data: dict) -> dict:
+    <span class="code-comment">"""Validate business rules sau JSON parse."""</span>
+    required = [<span class="code-string">'loan_id'</span>, <span class="code-string">'decision'</span>, <span class="code-string">'risk_score'</span>, <span class="code-string">'confidence'</span>,
+                <span class="code-string">'key_factors'</span>, <span class="code-string">'regulation_refs'</span>, <span class="code-string">'hitl_required'</span>]
+    <span class="code-keyword">for</span> field <span class="code-keyword">in</span> required:
+        <span class="code-keyword">if</span> field <span class="code-keyword">not in</span> data:
+            <span class="code-keyword">raise</span> <span class="code-function">ValueError</span>(f<span class="code-string">"Missing field: {field}"</span>)
+    <span class="code-keyword">if</span> data[<span class="code-string">'decision'</span>] <span class="code-keyword">not in</span> (<span class="code-string">'APPROVE'</span>,<span class="code-string">'REJECT'</span>,<span class="code-string">'REVIEW'</span>,<span class="code-string">'HITL'</span>):
+        <span class="code-keyword">raise</span> <span class="code-function">ValueError</span>(f<span class="code-string">"Invalid decision: {data['decision']}"</span>)
+    <span class="code-keyword">if not</span> data[<span class="code-string">'regulation_refs'</span>]:
+        <span class="code-keyword">raise</span> <span class="code-function">ValueError</span>(<span class="code-string">"regulation_refs cannot be empty (EU AI Act compliance)"</span>)
+    <span class="code-keyword">return</span> data</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Khi parse_structured_output raise ValueError (model trả về invalid JSON), LoanBot nên làm gì? Retry tự động hay escalate HITL ngay?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Retry 1 lần với <em>correction prompt</em>: "Your previous response was not valid JSON. Here's what you returned: [raw]. Please return ONLY valid JSON per the schema." Nếu 2nd attempt vẫn fail → escalate HITL với reason="output_parse_failure". Đừng retry quá 2 lần — nếu model consistently failing on format, có thể prompt có vấn đề, cần investigate chứ không phải loop retry.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Meta-Prompting & Prompt Optimization</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement self-critique loop: model reviews its own output trước khi return</li>
+          <li>Dùng Constitutional AI principles để enforce LoanBot ethical constraints</li>
+          <li>Compress prompts mà không mất accuracy: từ 800 tokens → 420 tokens</li>
+          <li>A/B test prompts với LLM-as-Judge để chọn prompt tốt hơn systematically</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Meta-Prompting</div>
+        <p><strong>Meta-prompting</strong> = dùng LLM để generate, critique, hoặc improve prompts. Thay vì manually tweak từng câu, FinTech Corp dùng một "prompt critic" agent để review LoanBot's outputs và identify khi nào reasoning yếu. Sau 2 tuần, prompt critic đã gợi ý 3 cải tiến quan trọng: (1) thêm DTI threshold cụ thể, (2) require minimum 2 regulation citations, (3) phân biệt rõ REVIEW vs HITL triggers.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg">
+          <title>Prompt Optimization Loop — Self-critique và A/B testing workflow</title>
+          <defs>
+            <marker id="arrMeta" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#84cc16"/>
+            </marker>
+          </defs>
+          <rect width="760" height="180" fill="#1a2e05" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#ecfccb">Prompt Optimization Loop — LoanBot Continuous Improvement</text>
+
+          <!-- Step 1: Draft -->
+          <rect x="20" y="40" width="110" height="50" fill="#1e293b" rx="8"/>
+          <text x="75" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">① Draft</text>
+          <text x="75" y="76" text-anchor="middle" font-size="8" fill="#94a3b8">Initial system</text>
+          <text x="75" y="88" text-anchor="middle" font-size="8" fill="#94a3b8">prompt v1.0</text>
+
+          <line x1="130" y1="65" x2="173" y2="65" stroke="#84cc16" stroke-width="1.5" marker-end="url(#arrMeta)"/>
+
+          <!-- Step 2: Evaluate -->
+          <rect x="175" y="40" width="120" height="50" fill="#365314" rx="8"/>
+          <text x="235" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#d9f99d">② Evaluate</text>
+          <text x="235" y="76" text-anchor="middle" font-size="8" fill="#bef264">Run 50 test cases</text>
+          <text x="235" y="88" text-anchor="middle" font-size="8" fill="#bef264">LLM-as-Judge scores</text>
+
+          <line x1="295" y1="65" x2="338" y2="65" stroke="#84cc16" stroke-width="1.5" marker-end="url(#arrMeta)"/>
+
+          <!-- Step 3: Critique -->
+          <rect x="340" y="40" width="120" height="50" fill="#431407" rx="8" stroke="#d97706" stroke-width="1.5"/>
+          <text x="400" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#fcd34d">③ Self-Critique</text>
+          <text x="400" y="76" text-anchor="middle" font-size="8" fill="#fde68a">Critic LLM reviews</text>
+          <text x="400" y="88" text-anchor="middle" font-size="8" fill="#fde68a">weak reasoning cases</text>
+
+          <line x1="460" y1="65" x2="503" y2="65" stroke="#84cc16" stroke-width="1.5" marker-end="url(#arrMeta)"/>
+
+          <!-- Step 4: Improve -->
+          <rect x="505" y="40" width="115" height="50" fill="#1e293b" rx="8"/>
+          <text x="562" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">④ Improve</text>
+          <text x="562" y="76" text-anchor="middle" font-size="8" fill="#94a3b8">Prompt engineer</text>
+          <text x="562" y="88" text-anchor="middle" font-size="8" fill="#94a3b8">updates based on</text>
+
+          <line x1="620" y1="65" x2="663" y2="65" stroke="#84cc16" stroke-width="1.5" marker-end="url(#arrMeta)"/>
+
+          <!-- Step 5: A/B Test -->
+          <rect x="665" y="40" width="80" height="50" fill="#312e81" rx="8"/>
+          <text x="705" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#e0e7ff">⑤ A/B</text>
+          <text x="705" y="76" text-anchor="middle" font-size="8" fill="#a5b4fc">Test new vs</text>
+          <text x="705" y="88" text-anchor="middle" font-size="8" fill="#a5b4fc">old prompt</text>
+
+          <!-- Feedback loop -->
+          <line x1="705" y1="90" x2="705" y2="130" stroke="#84cc16" stroke-width="1.5"/>
+          <line x1="705" y1="130" x2="75"  y2="130" stroke="#84cc16" stroke-width="1.5"/>
+          <line x1="75"  y1="130" x2="75"  y2="92"  stroke="#84cc16" stroke-width="1.5" marker-end="url(#arrMeta)"/>
+
+          <text x="390" y="148" text-anchor="middle" font-size="8" fill="#bef264">⑥ If new prompt wins → promote to v1.1. Repeat bi-weekly. FinTech Corp: prompt v1.0→v1.4 in 3 months, accuracy +18%</text>
+          <text x="390" y="160" text-anchor="middle" font-size="8" fill="#84cc16">Lock winning prompt in version control · Tag with test scores · Never edit production prompt without A/B test</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Prompt Optimization Loop — Draft → Evaluate → Self-Critique → Improve → A/B Test → Promote. LoanBot prompt v1.0→v1.4: accuracy +18% trong 3 tháng</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Self-Critique Loop)</span>
+        <pre><code><span class="code-comment"># Self-critique: model reviews its own assessment trước khi finalize</span>
+SELF_CRITIQUE_PROMPT = <span class="code-string">"""
+Bạn vừa tạo ra assessment sau cho loan FC-{loan_id}:
+
+{draft_assessment}
+
+Hãy tự review assessment này theo 5 criteria:
+1. COMPLETENESS: Có đủ regulation citations cho mỗi key_factor không?
+2. CONSISTENCY: decision có consistent với risk_score không? (APPROVE với risk>0.6 → inconsistent)
+3. CONSTRAINTS: Có vi phạm bất kỳ hard constraint nào không?
+4. REASONING: reasoning có clear và traceable không?
+5. FORMAT: JSON có valid và đủ fields không?
+
+Nếu phát hiện vấn đề → sửa và trả về JSON đã được cải thiện.
+Nếu không có vấn đề → trả về JSON nguyên vẹn với field "_reviewed": true.
+"""</span>
+
+<span class="code-keyword">def</span> <span class="code-function">run_with_self_critique</span>(loan_data: <span class="code-type">str</span>, client) -> dict:
+    <span class="code-comment"># Step 1: Initial assessment</span>
+    draft_response = client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="code-number">2000</span>,
+        system=LOANBOT_SYSTEM_PROMPT,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: loan_data}]
+    )
+    draft_json = draft_response.content[<span class="code-number">0</span>].text
+
+    <span class="code-comment"># Step 2: Self-critique (only for borderline cases to save cost)</span>
+    draft_parsed = json.<span class="code-function">loads</span>(draft_json)
+    needs_critique = <span class="code-number">0.35</span> <= draft_parsed.get(<span class="code-string">'risk_score'</span>, <span class="code-number">0</span>) <= <span class="code-number">0.65</span>
+
+    <span class="code-keyword">if</span> needs_critique:
+        critique_response = client.messages.<span class="code-function">create</span>(
+            model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+            max_tokens=<span class="code-number">2000</span>,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+                       <span class="code-string">"content"</span>: SELF_CRITIQUE_PROMPT.<span class="code-function">format</span>(
+                           loan_id=draft_parsed[<span class="code-string">'loan_id'</span>],
+                           draft_assessment=draft_json
+                       )}]
+        )
+        <span class="code-keyword">return</span> json.<span class="code-function">loads</span>(critique_response.content[<span class="code-number">0</span>].text)
+
+    <span class="code-keyword">return</span> draft_parsed  <span class="code-comment"># no critique needed for clear cases</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 16</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m16-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m16-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m16-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">System Prompt</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Instruction block set ở đầu conversation, define model's role, context, constraints. Persistent across all turns.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Architecture</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cấu trúc 5 layers: Role / Context / Tools / Constraints / Format — mỗi layer có mục đích riêng.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chain-of-Thought (CoT)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Yêu cầu model lý luận từng bước trước khi kết luận. Tăng accuracy, tạo audit trail.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Zero-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Let's think step by step" — trigger CoT không cần examples. Đơn giản nhất.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cung cấp 2–5 examples có reasoning chain → model học pattern và apply cho cases mới.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extended Thinking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude feature: extra token budget để deliberate trước khi respond. Dùng cho complex borderline cases.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-Shot Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Học từ 2–5 examples trong context window. Zero training cost, instant update, low overhead.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">In-Context Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model learns from examples in the current context without weight updates. Foundation of few-shot.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Structured Output</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">JSON-formatted model response với strict schema — machine-parseable, validation-friendly.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sycophancy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model tendency to agree with user or tell them what they want to hear — dangerous for loan decisions.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Constitutional AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic technique: model critiques its own responses against a "constitution" of principles.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Meta-Prompting</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Using LLM to generate/critique/improve prompts. Prompt engineer + LLM critic collaboration.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Compression</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Reducing token count while preserving accuracy. LLM Lingua, abstract summarization, key-phrase extraction.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">A/B Prompt Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Running two prompt versions on same test set, using LLM-as-Judge to pick winner systematically.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Prompt Version Control</td><td style="padding:8px 12px;">Tracking prompt changes with git-like versioning. Tag with test scores, never edit production without A/B.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module15/index.html" class="btn btn-outline">← Module 15: Tool Use</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 16 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

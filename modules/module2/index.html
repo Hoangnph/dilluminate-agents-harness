@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 2: Kiến Trúc Harness — AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .lesson-section { scroll-margin-top: calc(var(--topbar-height) + 12px); }
+    .lesson-divider { border:none; border-top:2px dashed var(--border); margin:var(--space-12) 0; }
+
+    /* 5-Layer stack styles */
+    .layer-stack { display:flex; flex-direction:column; gap:var(--space-2); margin:var(--space-6) 0; }
+    .layer-item {
+      display:flex; align-items:center; gap:var(--space-4);
+      border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5);
+      border:1px solid; transition:var(--transition); cursor:default;
+    }
+    .layer-item:hover { transform:translateX(4px); box-shadow:var(--shadow); }
+    .layer-num {
+      width:32px; height:32px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:800; font-size:.85rem; flex-shrink:0; color:#fff;
+    }
+    .layer-info { flex:1; }
+    .layer-name { font-weight:700; font-size:.95rem; }
+    .layer-desc { font-size:.8rem; margin-top:2px; }
+    .layer-tag  { font-size:.72rem; font-weight:700; padding:2px 8px; border-radius:var(--radius-full); }
+
+    .l1 { background:#eff6ff; border-color:#93c5fd; }
+    .l1 .layer-num { background:#1e40af; }
+    .l1 .layer-name,.l1 .layer-tag { color:#1e40af; }
+    .l1 .layer-desc { color:#3730a3; }
+    .l1 .layer-tag { background:#dbeafe; }
+
+    .l2 { background:#f5f3ff; border-color:#c4b5fd; }
+    .l2 .layer-num { background:#5b21b6; }
+    .l2 .layer-name,.l2 .layer-tag { color:#5b21b6; }
+    .l2 .layer-desc { color:#6d28d9; }
+    .l2 .layer-tag { background:#ede9fe; }
+
+    .l3 { background:#ecfdf5; border-color:#6ee7b7; }
+    .l3 .layer-num { background:#065f46; }
+    .l3 .layer-name,.l3 .layer-tag { color:#065f46; }
+    .l3 .layer-desc { color:#047857; }
+    .l3 .layer-tag { background:#d1fae5; }
+
+    .l4 { background:#fef9c3; border-color:#fde047; }
+    .l4 .layer-num { background:#854d0e; }
+    .l4 .layer-name,.l4 .layer-tag { color:#854d0e; }
+    .l4 .layer-desc { color:#92400e; }
+    .l4 .layer-tag { background:#fef08a; }
+
+    .l5 { background:#fff7ed; border-color:#fdba74; }
+    .l5 .layer-num { background:#9a3412; }
+    .l5 .layer-name,.l5 .layer-tag { color:#9a3412; }
+    .l5 .layer-desc { color:#c2410c; }
+    .l5 .layer-tag { background:#fed7aa; }
+
+    /* Component grid */
+    .component-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+      gap:var(--space-3); margin:var(--space-5) 0;
+    }
+    .component-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); padding:var(--space-4);
+      border-top:3px solid;
+    }
+    .component-card h5 { font-size:.85rem; margin-bottom:4px; }
+    .component-card p  { font-size:.78rem; color:var(--text-muted); margin:0; }
+
+    /* Retry flow */
+    .retry-flow {
+      background:#1a1f2e; border-radius:var(--radius-xl);
+      padding:var(--space-6); margin:var(--space-6) 0;
+      display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;
+    }
+    .retry-box {
+      border:1px solid; border-radius:var(--radius-lg);
+      padding:var(--space-2) var(--space-3); text-align:center; font-size:.8rem;
+    }
+    .retry-arrow { color:#64748b; font-size:1.2rem; }
+
+    /* Memory types */
+    .memory-types {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:var(--space-4); margin:var(--space-6) 0;
+    }
+    .mem-card {
+      border-radius:var(--radius-xl); padding:var(--space-5);
+      border:1px solid; text-align:center;
+    }
+    .mem-icon { font-size:2rem; margin-bottom:var(--space-2); display:block; }
+    .mem-card h4 { font-size:.95rem; margin-bottom:var(--space-2); }
+    .mem-card p  { font-size:.8rem; margin:0; }
+
+    .sidebar-module-title {
+      font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+      color:var(--primary); padding:var(--space-4) var(--space-6) var(--space-2);
+      border-bottom:1px solid var(--border); margin-bottom:var(--space-2);
+    }
+  </style>
+</head>
+<body data-module="m2">
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="../module1/index.html">← Module 1</a>
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Notebook</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:#eff6ff;color:#0f4c81;border-color:#bfdbfe;">MODULE 2</div>
+    <div class="sidebar-title">Harness Architecture</div>
+
+    <div class="module-progress" style="margin:12px 16px;padding:12px 14px;">
+      <div class="progress-header">
+        <span>Tiến độ</span>
+        <span class="progress-label">0 / 5 bài</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Bài Giảng</div>
+      <a href="#lesson1" class="sidebar-item active" data-lesson="m2-l1">
+        <div class="item-icon">🏗️</div><span>Bài 1: Tổng Quan 5 Tầng</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson2" class="sidebar-item" data-lesson="m2-l2">
+        <div class="item-icon">🔧</div><span>Bài 2: Tool Orchestration</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson3" class="sidebar-item" data-lesson="m2-l3">
+        <div class="item-icon">🧩</div><span>Bài 3: Context &amp; Memory</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson4" class="sidebar-item" data-lesson="m2-l4">
+        <div class="item-icon">🛡️</div><span>Bài 4: Guardrails &amp; Safety</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson5" class="sidebar-item" data-lesson="m2-l5">
+        <div class="item-icon">👁️</div><span>Bài 5: Observability</span>
+        <div class="status-dot"></div>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Tài Nguyên</div>
+      <a href="quiz.html" class="sidebar-item">
+        <div class="item-icon">📝</div><span>Quiz ôn tập (15 câu)</span>
+      </a>
+      <a href="lab.ipynb" download class="sidebar-item">
+        <div class="item-icon">🔬</div><span>Lab: HarnessV2 LoanBot</span>
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Điều Hướng</div>
+      <a href="../module1/index.html" class="sidebar-item">
+        <div class="item-icon">◀</div><span>Module 1: Nền Tảng</span>
+      </a>
+      <a href="../module3/index.html" class="sidebar-item">
+        <div class="item-icon">▶</div><span>Module 3: Đánh Giá</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+  <div class="content-inner">
+
+    <!-- HEADER -->
+    <div class="lesson-header" style="background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 60%,#a855f7 100%);">
+      <div class="breadcrumb">
+        <a href="../../index.html" style="color:rgba(255,255,255,.65)">Trang chủ</a>
+        <span>›</span> Module 2
+      </div>
+      <h1>Module 2: Kiến Trúc Harness</h1>
+      <p style="color:rgba(255,255,255,.8);margin-bottom:var(--space-5);max-width:650px;">
+        Xây dựng <strong style="color:#e9d5ff">5-layer production harness</strong> đầy đủ cho LoanBot —
+        từ tool orchestration, memory, guardrails đến observability.
+      </p>
+      <div class="lesson-meta">
+        <span class="meta-badge">⏱ ~5 giờ đọc</span>
+        <span class="meta-badge">📖 5 bài giảng</span>
+        <span class="meta-badge">🎯 Mức: Trung bình</span>
+        <span class="meta-badge">🏢 LoanBot v0.2</span>
+      </div>
+    </div>
+
+    <!-- LEARNING MAP -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-6);">
+      <h4 style="color:var(--primary-dark);margin-bottom:var(--space-4);">🗺️ Bản Đồ Học Tập Module 2</h4>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:120px;">
+          <div style="background:#4c1d95;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-3);font-weight:700;font-size:.8rem;">🏗️ Bài 1<br><span style="font-weight:400;font-size:.75rem;">Tổng Quan 5 Tầng</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:120px;">
+          <div style="background:#1e40af;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-3);font-weight:700;font-size:.8rem;">🔧 Bài 2<br><span style="font-weight:400;font-size:.75rem;">Tool Orchestration</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:120px;">
+          <div style="background:#065f46;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-3);font-weight:700;font-size:.8rem;">🧩 Bài 3<br><span style="font-weight:400;font-size:.75rem;">Context &amp; Memory</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:120px;">
+          <div style="background:#854d0e;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-3);font-weight:700;font-size:.8rem;">🛡️ Bài 4<br><span style="font-weight:400;font-size:.75rem;">Guardrails</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:120px;">
+          <div style="background:#9a3412;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-3);font-weight:700;font-size:.8rem;">👁️ Bài 5<br><span style="font-weight:400;font-size:.75rem;">Observability</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 4px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:110px;">
+          <div style="background:var(--accent-dark);color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-3);font-weight:700;font-size:.8rem;">🔬 Lab<br><span style="font-weight:400;font-size:.75rem;">HarnessV2</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBJECTIVES -->
+    <div class="objectives-box">
+      <h4>🎯 Sau Module 2, bạn sẽ có thể:</h4>
+      <ul>
+        <li>Thiết kế và giải thích kiến trúc 5 tầng của production harness</li>
+        <li>Implement Tool Orchestration với retry logic và circuit breaker</li>
+        <li>Xây dựng Context & Memory management tránh Context Drift</li>
+        <li>Thiết kế Guardrails bao gồm HITL gateway cho LoanBot</li>
+        <li>Implement Observability với structured audit logging và tracing</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 1: TỔNG QUAN KIẾN TRÚC 5 TẦNG                  -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson1" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">1</div>
+        <h2>Tổng Quan Kiến Trúc 5 Tầng &amp; 15 Component</h2>
+      </div>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Đọc được sơ đồ kiến trúc 5 tầng của Production Harness</li>
+          <li>Biết tên và nhiệm vụ của cả 15 components trong harness</li>
+          <li>Giải thích được tại sao LoanBot v0.1 không thể dùng trong production</li>
+        </ul>
+      </div>
+
+      <h3>1.1 Từ Minimal đến Production Harness</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Từ xe đạp đến xe hơi</div>
+        <p>Harness Module 1 (dispatch_tool + agent loop) giống như xe đạp: đủ để đi từ A đến B trong điều kiện lý tưởng. Nhưng để vận chuyển hàng hóa ở quy mô doanh nghiệp — cần xe tải với hệ thống lái, phanh ABS, GPS, camera lùi, bảo hiểm va chạm.</p>
+        <p style="margin:0"><strong>Production harness</strong> là xe hơi đầy đủ trang bị: tool orchestration (động cơ mạnh), verification (phanh ABS), memory (GPS + bản đồ), guardrails (túi khí), observability (hộp đen máy bay).</p>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Vấn đề với LoanBot v0.1</div>
+        <p>Sau khi demo, CTO đặt câu hỏi: <em>"Nếu hệ thống CIC bị timeout, LoanBot sẽ làm gì?"</em> — Câu trả lời: crash. <em>"Nếu nhân viên kiểm tra ngày mai thì biết tại sao LoanBot từ chối hồ sơ không?"</em> — Không có log. <em>"Nếu LoanBot tự phê duyệt khoản vay 2 tỷ đồng thì ai chịu trách nhiệm?"</em> — Không có guardrails.</p>
+        <p style="margin:0">LoanBot v0.2 cần giải quyết TẤT CẢ những vấn đề này — đó là lý do cần 5-layer harness.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">1.2 Kiến Trúc 5 Tầng</h3>
+
+      <!-- SVG: 5-Layer Stack -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 1.1 — Kiến trúc 5 tầng production harness (Model ở dưới cùng làm nền)</title>
+  <rect width="720" height="320" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Model (foundation) -->
+          <rect x="20" y="270" width="680" height="40" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="360" y="295" text-anchor="middle" font-size="12" font-weight="700" fill="#94a3b8">🧠 MODEL (Claude / GPT-4 / Gemini) — Stateless Token Predictor</text>
+
+          <!-- Layer 1: Tool Orchestration -->
+          <rect x="20" y="220" width="680" height="44" rx="8" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="42" y="241" font-size="11" font-weight="700" fill="#1e40af">LAYER 1: Tool Orchestration</text>
+          <text x="42" y="257" font-size="10" fill="#3730a3">Tool Registry · Dispatcher · Retry Orchestrator · Budget Tracker · Error Handler · Fallback Router</text>
+          <text x="680" y="248" text-anchor="end" font-size="10" font-weight="700" fill="#1e40af">6 components</text>
+
+          <!-- Layer 2: Verification -->
+          <rect x="20" y="170" width="680" height="44" rx="8" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1.5"/>
+          <text x="42" y="191" font-size="11" font-weight="700" fill="#5b21b6">LAYER 2: Verification Loops</text>
+          <text x="42" y="207" font-size="10" fill="#6d28d9">Schema Validator · Business Rule Checker · Output Sanitizer · Confidence Scorer</text>
+          <text x="680" y="198" text-anchor="end" font-size="10" font-weight="700" fill="#5b21b6">4 components</text>
+
+          <!-- Layer 3: Context & Memory -->
+          <rect x="20" y="120" width="680" height="44" rx="8" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="42" y="141" font-size="11" font-weight="700" fill="#065f46">LAYER 3: Context &amp; Memory</text>
+          <text x="42" y="157" font-size="10" fill="#047857">Instruction Manager · Context Builder · Memory Manager · State Persistence · Session Controller</text>
+          <text x="680" y="148" text-anchor="end" font-size="10" font-weight="700" fill="#065f46">5 components</text>
+
+          <!-- Layer 4: Guardrails -->
+          <rect x="20" y="70" width="680" height="44" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+          <text x="42" y="91" font-size="11" font-weight="700" fill="#854d0e">LAYER 4: Guardrails &amp; Safety</text>
+          <text x="42" y="107" font-size="10" fill="#92400e">Permission Resolver · Input Validator · HITL Gateway · Budget Guardrail · Output Filter</text>
+          <text x="680" y="98" text-anchor="end" font-size="10" font-weight="700" fill="#854d0e">5 components</text>
+
+          <!-- Layer 5: Observability (top) -->
+          <rect x="20" y="20" width="680" height="44" rx="8" fill="#fed7aa" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="42" y="41" font-size="11" font-weight="700" fill="#9a3412">LAYER 5: Observability &amp; Audit</text>
+          <text x="42" y="57" font-size="10" fill="#c2410c">Audit Logger · Trace Manager · Metrics Collector · Alert Engine · Cost Monitor</text>
+          <text x="680" y="48" text-anchor="end" font-size="10" font-weight="700" fill="#9a3412">5 components</text>
+
+          <!-- Left bracket -->
+          <line x1="8" y1="20" x2="8" y2="310" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <text x="4" y="170" text-anchor="middle" font-size="9" fill="#94a3b8" transform="rotate(-90,4,170)">HARNESS (5 tầng · 25 components)</text>
+        </svg>
+        <div class="diagram-title">Hình 1.1 — Kiến trúc 5 tầng production harness (Model ở dưới cùng làm nền)</div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 Nguyên tắc phân tầng</div>
+        <p>Tầng cao hơn bao bọc tầng thấp hơn. Mọi request từ Model đi <strong>lên qua</strong> các tầng (Tool → Verify → Memory → Guardrail → Observe). Mọi response đi <strong>xuống</strong> theo chiều ngược lại. Đây giống kiến trúc OSI trong mạng máy tính — mỗi tầng xử lý một khía cạnh cụ thể và không quan tâm đến tầng khác.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">1.3 15 Component Model — Bản Đồ Chi Tiết</h3>
+
+      <div class="component-grid">
+        <!-- Layer 1: blue -->
+        <div class="component-card" style="border-top-color:#1e40af">
+          <h5 style="color:#1e40af">🗂️ Tool Registry</h5>
+          <p>Đăng ký & khám phá tools, lưu schema + metadata + permissions</p>
+        </div>
+        <div class="component-card" style="border-top-color:#1e40af">
+          <h5 style="color:#1e40af">⚡ Tool Dispatcher</h5>
+          <p>Nhận tool call từ LLM, route đến function đúng, trả kết quả</p>
+        </div>
+        <div class="component-card" style="border-top-color:#1e40af">
+          <h5 style="color:#1e40af">🔄 Retry Orchestrator</h5>
+          <p>Tự động retry khi tool fail với exponential backoff</p>
+        </div>
+        <div class="component-card" style="border-top-color:#1e40af">
+          <h5 style="color:#1e40af">💰 Budget Tracker</h5>
+          <p>Theo dõi số tool calls, token dùng, chi phí per session</p>
+        </div>
+        <div class="component-card" style="border-top-color:#1e40af">
+          <h5 style="color:#1e40af">⚠️ Error Handler</h5>
+          <p>Xử lý lỗi tool call, phân loại recoverable vs fatal errors</p>
+        </div>
+        <div class="component-card" style="border-top-color:#1e40af">
+          <h5 style="color:#1e40af">🔀 Fallback Router</h5>
+          <p>Chuyển sang tool backup khi tool chính không available</p>
+        </div>
+
+        <!-- Layer 3: green (Memory) -->
+        <div class="component-card" style="border-top-color:#065f46">
+          <h5 style="color:#065f46">📋 Instruction Manager</h5>
+          <p>Quản lý system prompt, cập nhật theo context runtime</p>
+        </div>
+        <div class="component-card" style="border-top-color:#065f46">
+          <h5 style="color:#065f46">🏗️ Context Builder</h5>
+          <p>Xây context window từ memory + history + current input</p>
+        </div>
+        <div class="component-card" style="border-top-color:#065f46">
+          <h5 style="color:#065f46">🧠 Memory Manager</h5>
+          <p>Đọc/ghi working memory, trigger compaction khi gần giới hạn</p>
+        </div>
+        <div class="component-card" style="border-top-color:#065f46">
+          <h5 style="color:#065f46">💾 State Persistence</h5>
+          <p>Serialize/deserialize session state để resume sau gián đoạn</p>
+        </div>
+        <div class="component-card" style="border-top-color:#065f46">
+          <h5 style="color:#065f46">🔗 Session Controller</h5>
+          <p>Quản lý lifecycle: create, resume, expire, terminate session</p>
+        </div>
+
+        <!-- Layer 4: yellow -->
+        <div class="component-card" style="border-top-color:#854d0e">
+          <h5 style="color:#854d0e">🔐 Permission Resolver</h5>
+          <p>Kiểm tra quyền gọi tool theo role, action, value thresholds</p>
+        </div>
+        <div class="component-card" style="border-top-color:#854d0e">
+          <h5 style="color:#854d0e">✔️ Input Validator</h5>
+          <p>Validate parameters trước khi dispatch, ngăn injection attacks</p>
+        </div>
+        <div class="component-card" style="border-top-color:#854d0e">
+          <h5 style="color:#854d0e">👤 HITL Gateway</h5>
+          <p>Dừng agent, chờ human approval cho critical actions</p>
+        </div>
+        <div class="component-card" style="border-top-color:#854d0e">
+          <h5 style="color:#854d0e">💸 Budget Guardrail</h5>
+          <p>Dừng agent khi vượt ngưỡng chi phí hoặc iteration limit</p>
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 1</h4>
+        <ul>
+          <li>Production harness = 5 tầng bảo vệ bao quanh Model</li>
+          <li>Mỗi tầng giải quyết một loại rủi ro cụ thể (reliability, correctness, memory, safety, visibility)</li>
+          <li>25 component tổng cộng; mỗi component có một trách nhiệm duy nhất (Single Responsibility)</li>
+          <li>LoanBot v0.1 chỉ có Tool Dispatcher — v0.2 cần đầy đủ 5 tầng</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 2: TOOL ORCHESTRATION LAYER                    -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson2" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">2</div>
+        <h2>Tầng 1: Tool Orchestration — Gọi Tools Đáng Tin Cậy</h2>
+      </div>
+
+      <h3>2.1 Tool Registry — Thư Viện Công Cụ</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Kho dụng cụ của thợ cơ khí</div>
+        <p>Thay vì mỗi nhân viên tự mang dụng cụ, một kho trung tâm <em>đăng ký</em> mọi dụng cụ: tên, mô tả, ai được dùng, và tình trạng (sẵn sàng/bảo trì). Khi cần, họ "đặt mượn" từ kho.</p>
+        <p style="margin:0"><strong>Tool Registry</strong> là kho trung tâm đó — nơi mọi tool được đăng ký với schema, permissions, và health status. Agent không gọi tool trực tiếp — nó hỏi Registry xem tool nào đang available.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+<span class="code-comment"># Tool Registry cho LoanBot v0.2</span>
+<span class="code-keyword">class</span> <span class="code-type">ToolRegistry</span>:
+    <span class="code-keyword">def</span> <span class="code-function">register</span>(self, name: <span class="code-type">str</span>, fn, schema: <span class="code-type">dict</span>,
+                 permission: <span class="code-type">str</span> = <span class="code-string">"auto"</span>, max_retries: <span class="code-type">int</span> = <span class="code-number">3</span>):
+        <span class="code-string">"""Đăng ký tool vào registry với metadata đầy đủ."""</span>
+        self._tools[name] = {
+            <span class="code-string">"fn"</span>: fn,
+            <span class="code-string">"schema"</span>: schema,
+            <span class="code-string">"permission"</span>: permission,  <span class="code-comment"># "auto" | "require_hitl" | "blocked"</span>
+            <span class="code-string">"max_retries"</span>: max_retries,
+            <span class="code-string">"call_count"</span>: <span class="code-number">0</span>,
+            <span class="code-string">"error_count"</span>: <span class="code-number">0</span>,
+            <span class="code-string">"available"</span>: <span class="code-keyword">True</span>
+        }
+
+    <span class="code-keyword">def</span> <span class="code-function">get_schemas</span>(self) -> <span class="code-type">list</span>:
+        <span class="code-string">"""Trả về danh sách schema cho LLM (chỉ tools available)."""</span>
+        <span class="code-keyword">return</span> [t[<span class="code-string">"schema"</span>] <span class="code-keyword">for</span> t <span class="code-keyword">in</span> self._tools.values() <span class="code-keyword">if</span> t[<span class="code-string">"available"</span>]]
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">2.2 Retry Orchestrator — Kiên Nhẫn Như Robot</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Nhân viên gọi điện cho đối tác</div>
+        <p>Khi nhân viên gọi cho CIC mà bận máy, họ không bỏ cuộc ngay — họ đợi 1 phút rồi gọi lại. Nếu vẫn bận, đợi 2 phút. Nếu sau 3 lần vẫn không được, họ ghi nhận và báo cáo quản lý.</p>
+        <p style="margin:0">Đây chính xác là <strong>Exponential Backoff with Jitter</strong> — chiến lược retry chuẩn trong distributed systems.</p>
+      </div>
+
+      <!-- SVG: Retry Flow -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 2.1 — Retry Orchestrator với exponential backoff: tự động thử lại trước khi báo lỗi</title>
+          <defs>
+            <marker id="am" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#64748b"/>
+            </marker>
+            <marker id="amg" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#16a34a"/>
+            </marker>
+            <marker id="amr" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#dc2626"/>
+            </marker>
+          </defs>
+  <rect width="720" height="150" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Start -->
+          <rect x="10" y="55" width="80" height="40" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="50" y="78" text-anchor="middle" font-size="10" font-weight="700" fill="#1e40af">Gọi Tool</text>
+          <line x1="92" y1="75" x2="118" y2="75" stroke="#64748b" stroke-width="1.5" marker-end="url(#am)"/>
+
+          <!-- Attempt 1 -->
+          <rect x="120" y="55" width="100" height="40" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="170" y="73" text-anchor="middle" font-size="10" fill="#93c5fd">Lần 1</text>
+          <text x="170" y="87" text-anchor="middle" font-size="9" fill="#64748b">Timeout 500ms</text>
+          <!-- Fail arrow down -->
+          <line x1="170" y1="97" x2="170" y2="118" stroke="#dc2626" stroke-width="1.5" marker-end="url(#amr)"/>
+          <text x="180" y="112" font-size="8" fill="#dc2626">Fail</text>
+          <line x1="170" y1="118" x2="170" y2="130" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <line x1="170" y1="130" x2="280" y2="130" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="225" y="142" text-anchor="middle" font-size="8" fill="#dc2626">wait 1s (+ jitter)</text>
+          <line x1="280" y1="130" x2="280" y2="97" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#amr)"/>
+
+          <!-- Attempt 2 -->
+          <rect x="232" y="55" width="100" height="40" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="282" y="73" text-anchor="middle" font-size="10" fill="#93c5fd">Lần 2</text>
+          <text x="282" y="87" text-anchor="middle" font-size="9" fill="#64748b">Timeout 1000ms</text>
+          <line x1="282" y1="97" x2="282" y2="118" stroke="#dc2626" stroke-width="1.5" marker-end="url(#amr)"/>
+          <text x="292" y="112" font-size="8" fill="#dc2626">Fail</text>
+          <line x1="282" y1="118" x2="282" y2="130" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <line x1="282" y1="130" x2="390" y2="130" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="336" y="142" text-anchor="middle" font-size="8" fill="#dc2626">wait 2s (+ jitter)</text>
+          <line x1="390" y1="130" x2="390" y2="97" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#amr)"/>
+
+          <!-- Attempt 3 -->
+          <rect x="342" y="55" width="100" height="40" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="392" y="73" text-anchor="middle" font-size="10" fill="#93c5fd">Lần 3</text>
+          <text x="392" y="87" text-anchor="middle" font-size="9" fill="#64748b">Timeout 2000ms</text>
+          <!-- Success -->
+          <line x1="444" y1="75" x2="468" y2="75" stroke="#16a34a" stroke-width="1.5" marker-end="url(#amg)"/>
+          <rect x="470" y="55" width="100" height="40" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text x="520" y="78" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">✅ Thành công!</text>
+          <!-- Or failure path -->
+          <text x="392" y="52" text-anchor="middle" font-size="8" fill="#16a34a">Hoặc</text>
+          <line x1="444" y1="65" x2="580" y2="45" stroke="#dc2626" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#amr)"/>
+          <rect x="582" y="28" width="118" height="36" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="641" y="43" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">❌ Max retries</text>
+          <text x="641" y="56" text-anchor="middle" font-size="9" fill="#b91c1c">→ Error Handler</text>
+        </svg>
+        <div class="diagram-title">Hình 2.1 — Retry Orchestrator với exponential backoff: tự động thử lại trước khi báo lỗi</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+<span class="code-keyword">import</span> time, random
+
+<span class="code-keyword">def</span> <span class="code-function">retry_call</span>(fn, kwargs: <span class="code-type">dict</span>, max_retries: <span class="code-type">int</span> = <span class="code-number">3</span>,
+               base_delay: <span class="code-type">float</span> = <span class="code-number">1.0</span>) -> <span class="code-type">dict</span>:
+    <span class="code-string">"""Exponential backoff + jitter retry."""</span>
+    <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> <span class="code-function">range</span>(max_retries):
+        <span class="code-keyword">try</span>:
+            <span class="code-keyword">return</span> fn(**kwargs)
+        <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+            <span class="code-keyword">if</span> attempt == max_retries - <span class="code-number">1</span>:
+                <span class="code-keyword">raise</span>  <span class="code-comment"># Hết lần retry → Error Handler</span>
+            wait = base_delay * (<span class="code-number">2</span> ** attempt) + random.uniform(<span class="code-number">0</span>, <span class="code-number">0.5</span>)
+            time.sleep(wait)  <span class="code-comment"># Đợi 1s, 2s, 4s... + jitter ngẫu nhiên</span>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">2.3 Circuit Breaker — Bộ Ngắt Tự Động</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Cầu dao điện</div>
+        <p>Nếu hệ thống CIC liên tục lỗi, không nên cứ gọi mãi — điều đó vừa lãng phí thời gian vừa làm nặng thêm server đang quá tải. Giống như cầu dao điện tự ngắt khi quá tải, <strong>Circuit Breaker</strong> tự "mở" sau một số lỗi nhất định, và chỉ "đóng" lại sau một thời gian cho phép recovery.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Vòng đời Circuit Breaker</div>
+        <div class="formula-text">CLOSED → OPEN → HALF-OPEN → CLOSED</div>
+        <div class="formula-desc">Sau N lỗi: mở mạch (OPEN) · Sau timeout: thử lại (HALF-OPEN) · Nếu thành công: đóng mạch (CLOSED)</div>
+      </div>
+
+      <div class="stats-row" style="margin:var(--space-5) 0;">
+        <div class="stat-card">
+          <div class="stat-number" style="font-size:1.3rem;color:var(--success)">CLOSED</div>
+          <div class="stat-label">Hoạt động bình thường — gọi tool thoải mái</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" style="font-size:1.3rem;color:var(--warning)">HALF-OPEN</div>
+          <div class="stat-label">Thử nghiệm — gửi 1 request test sau timeout</div>
+        </div>
+        <div class="stat-card danger">
+          <div class="stat-number" style="font-size:1.3rem;">OPEN</div>
+          <div class="stat-label">Ngắt — fail fast, không gọi tool, chờ recovery</div>
+        </div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Tool Orchestration của LoanBot v0.2</div>
+        <p>Với 5 tools của LoanBot, cấu hình Tool Orchestration:</p>
+        <ul style="margin:0">
+          <li><code>check_credit_score</code>: max_retries=3, circuit breaker threshold=5 errors/minute</li>
+          <li><code>verify_income</code>: max_retries=3, timeout=10s (hệ thống BHXH chậm hơn)</li>
+          <li><code>check_blacklist</code>: max_retries=2 (critical — cần nhanh)</li>
+          <li><code>calculate_dti</code>: max_retries=1 (local calculation, ít fail)</li>
+          <li><code>generate_report</code>: max_retries=3, với idempotency key (tránh tạo 2 báo cáo)</li>
+        </ul>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tool <code>check_credit_score</code> của LoanBot đã thất bại 5 lần liên tiếp. Circuit Breaker chuyển sang OPEN. Điều gì xảy ra với request hồ sơ thứ 6?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Khi Circuit Breaker ở trạng thái OPEN, nó <em>fail fast</em> ngay lập tức — không gọi tool nữa, trả về lỗi ngay. Điều này giúp tránh làm nặng thêm hệ thống CIC đang quá tải. LoanBot sẽ phản hồi: "Không thể kiểm tra điểm tín dụng tạm thời, vui lòng thử lại sau 60 giây." Sau timeout recovery, Circuit Breaker tự chuyển sang HALF-OPEN và thử 1 request test.
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 2</h4>
+        <ul>
+          <li>Tool Registry là kho trung tâm — agent không gọi tool trực tiếp, luôn qua Registry</li>
+          <li>Retry Orchestrator: exponential backoff (1s → 2s → 4s) + jitter ngẫu nhiên để tránh thundering herd</li>
+          <li>Circuit Breaker: CLOSED → OPEN (sau N errors) → HALF-OPEN (test recovery) → CLOSED</li>
+          <li>Mỗi tool có cấu hình retry và timeout riêng phù hợp với đặc điểm của hệ thống backend đó</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 3: CONTEXT & MEMORY                            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson3" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">3</div>
+        <h2>Tầng 3: Context &amp; Memory — Bộ Nhớ Bền Vững</h2>
+      </div>
+
+      <h3>3.1 Vấn Đề: Context Drift</h3>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Context Drift — Kẻ thù thầm lặng</div>
+        <p>Nghiên cứu từ MemU (2026) đo được: <strong>mỗi bước trong multi-step workflow, LLM mất ~2% khả năng truy cập context ban đầu</strong>. Sau 5 bước: chỉ còn &lt;60% context gốc. Sau 10 bước: &lt;40%.</p>
+        <p style="margin:0">Với LoanBot xử lý 4 tool calls + nhiều lượt reasoning: tổng ~8-10 bước. Không có Memory Management, LoanBot có thể "quên" thông tin đầu hồ sơ khi đến bước generate_report!</p>
+      </div>
+
+      <!-- SVG: Context Drift -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.1 — Context Drift: retention suy giảm theo từng bước nếu không có Memory Management</title>
+          <rect width="700" height="160" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Bars showing degradation -->
+          <text x="350" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Context Retention qua các bước xử lý</text>
+
+          <!-- Step labels and bars -->
+          <g transform="translate(30,30)">
+            <!-- Step 0: 100% -->
+            <rect x="0" y="0" width="86" height="100" fill="#10b981" rx="4"/>
+            <text x="43" y="95" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">100%</text>
+            <text x="43" y="118" text-anchor="middle" font-size="9" fill="#64748b">Bước 0</text>
+            <text x="43" y="128" text-anchor="middle" font-size="8" fill="#64748b">Nhận hồ sơ</text>
+
+            <rect x="96" y="8" width="86" height="92" fill="#22c55e" rx="4"/>
+            <text x="139" y="95" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">~92%</text>
+            <text x="139" y="118" text-anchor="middle" font-size="9" fill="#64748b">Bước 1</text>
+            <text x="139" y="128" text-anchor="middle" font-size="8" fill="#64748b">check_credit</text>
+
+            <rect x="192" y="18" width="86" height="82" fill="#84cc16" rx="4"/>
+            <text x="235" y="95" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">~82%</text>
+            <text x="235" y="118" text-anchor="middle" font-size="9" fill="#64748b">Bước 2</text>
+            <text x="235" y="128" text-anchor="middle" font-size="8" fill="#64748b">verify_income</text>
+
+            <rect x="288" y="28" width="86" height="72" fill="#eab308" rx="4"/>
+            <text x="331" y="95" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">~72%</text>
+            <text x="331" y="118" text-anchor="middle" font-size="9" fill="#64748b">Bước 3</text>
+            <text x="331" y="128" text-anchor="middle" font-size="8" fill="#64748b">check_blacklist</text>
+
+            <rect x="384" y="38" width="86" height="62" fill="#f97316" rx="4"/>
+            <text x="427" y="95" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">~62%</text>
+            <text x="427" y="118" text-anchor="middle" font-size="9" fill="#64748b">Bước 4</text>
+            <text x="427" y="128" text-anchor="middle" font-size="8" fill="#64748b">calculate_dti</text>
+
+            <rect x="480" y="50" width="86" height="50" fill="#ef4444" rx="4"/>
+            <text x="523" y="95" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">~50%</text>
+            <text x="523" y="118" text-anchor="middle" font-size="9" fill="#64748b">Bước 5+</text>
+            <text x="523" y="128" text-anchor="middle" font-size="8" fill="#64748b">generate_report</text>
+
+            <!-- Warning annotation -->
+            <text x="550" y="20" font-size="9" fill="#dc2626" font-weight="700">⚠️ Nguy hiểm!</text>
+            <text x="550" y="32" font-size="8" fill="#dc2626">Có thể quên</text>
+            <text x="550" y="43" font-size="8" fill="#dc2626">số tiền vay!</text>
+          </g>
+        </svg>
+        <div class="diagram-title">Hình 3.1 — Context Drift: retention suy giảm theo từng bước nếu không có Memory Management</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">3.2 Ba Loại Bộ Nhớ</h3>
+
+      <div class="memory-types">
+        <div class="mem-card" style="background:#eff6ff;border-color:#93c5fd;">
+          <span class="mem-icon">⚡</span>
+          <h4 style="color:#1e40af">Working Memory</h4>
+          <p style="color:#3730a3">Thông tin đang xử lý hiện tại. Lưu trong context window. Bị mất khi session kết thúc.</p>
+          <p style="margin-top:8px;font-size:.75rem;color:#6d28d9"><strong>LoanBot:</strong> Kết quả tool calls trong session hiện tại, trạng thái reasoning</p>
+        </div>
+        <div class="mem-card" style="background:#f0fdf4;border-color:#86efac;">
+          <span class="mem-icon">📚</span>
+          <h4 style="color:#14532d">Long-term Memory</h4>
+          <p style="color:#166534">Kiến thức được persist vào storage. Không bị mất qua sessions. Được truy xuất khi cần.</p>
+          <p style="margin-top:8px;font-size:.75rem;color:#14532d"><strong>LoanBot:</strong> Lịch sử khách hàng, chính sách tín dụng, template quyết định</p>
+        </div>
+        <div class="mem-card" style="background:#fdf4ff;border-color:#e9d5ff;">
+          <span class="mem-icon">🗂️</span>
+          <h4 style="color:#6b21a8">Episodic Memory</h4>
+          <p style="color:#7e22ce">Lưu toàn bộ session transcript. Dùng để audit và học từ quá khứ.</p>
+          <p style="margin-top:8px;font-size:.75rem;color:#6b21a8"><strong>LoanBot:</strong> Toàn bộ quá trình thẩm định cho audit và compliance</p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">3.3 Memory Compaction — Nén Thông Tin</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Ghi chú cuộc họp</div>
+        <p>Trong một cuộc họp dài 3 tiếng, bạn không ghi nhớ từng từ — bạn ghi <em>các điểm quan trọng</em>. Khi phòng họp gần đầy (context window gần hết), Memory Manager "nén" lịch sử thành summary ngắn gọn, giữ lại thông tin quan trọng, bỏ chi tiết dư thừa.</p>
+      </div>
+
+      <!-- SVG: Memory Compaction -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 170" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.2 — Memory Compaction: nén lịch sử thành summary để giải phóng context window</title>
+          <defs>
+            <marker id="amc" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#0f4c81"/>
+            </marker>
+          </defs>
+  <rect width="700" height="170" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Context window - almost full -->
+          <rect x="20" y="30" width="230" height="120" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="135" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#64748b">Context Window (90% đầy)</text>
+          <!-- Filled blocks -->
+          <rect x="30" y="58" width="210" height="18" rx="4" fill="#dbeafe"/>
+          <text x="135" y="71" text-anchor="middle" font-size="9" fill="#1e40af">System prompt (5,000 tokens)</text>
+          <rect x="30" y="80" width="210" height="18" rx="4" fill="#ede9fe"/>
+          <text x="135" y="93" text-anchor="middle" font-size="9" fill="#5b21b6">Tool results - lần 1,2,3 (8,000 tokens)</text>
+          <rect x="30" y="102" width="210" height="18" rx="4" fill="#fef9c3"/>
+          <text x="135" y="115" text-anchor="middle" font-size="9" fill="#854d0e">Reasoning history (6,000 tokens)</text>
+          <rect x="30" y="124" width="160" height="18" rx="4" fill="#fee2e2"/>
+          <text x="110" y="137" text-anchor="middle" font-size="9" fill="#991b1b">Input hiện tại (3,000)</text>
+          <rect x="194" y="124" width="46" height="18" rx="4" fill="#f1f5f9" stroke="#cbd5e1" stroke-dasharray="3 2"/>
+          <text x="217" y="137" text-anchor="middle" font-size="8" fill="#94a3b8">Còn lại</text>
+
+          <!-- Arrow -->
+          <text x="270" y="95" text-anchor="middle" font-size="22" fill="#0f4c81">⚡</text>
+          <text x="270" y="110" text-anchor="middle" font-size="9" font-weight="700" fill="#0f4c81">Compaction</text>
+          <text x="270" y="123" text-anchor="middle" font-size="8" fill="#64748b">Memory Manager</text>
+          <text x="270" y="135" text-anchor="middle" font-size="8" fill="#64748b">tạo summary</text>
+
+          <!-- After compaction -->
+          <rect x="310" y="30" width="230" height="120" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="425" y="50" text-anchor="middle" font-size="11" font-weight="700" fill="#14532d">Context Window (40% đầy)</text>
+          <rect x="320" y="58" width="210" height="18" rx="4" fill="#dbeafe"/>
+          <text x="425" y="71" text-anchor="middle" font-size="9" fill="#1e40af">System prompt (giữ nguyên)</text>
+          <rect x="320" y="80" width="210" height="34" rx="4" fill="#bbf7d0"/>
+          <text x="425" y="98" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">📋 Summary: "Ông A, vay 200tr,</text>
+          <text x="425" y="110" text-anchor="middle" font-size="9" fill="#14532d">score=720, income=28.5tr, không BL"</text>
+          <rect x="320" y="118" width="160" height="18" rx="4" fill="#fee2e2"/>
+          <text x="400" y="131" text-anchor="middle" font-size="9" fill="#991b1b">Input hiện tại (giữ nguyên)</text>
+
+          <!-- Gain label -->
+          <rect x="554" y="45" width="130" height="90" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="619" y="67" text-anchor="middle" font-size="11" font-weight="700" fill="#065f46">Giải phóng</text>
+          <text x="619" y="83" text-anchor="middle" font-size="22" font-weight="800" fill="#059669">50%</text>
+          <text x="619" y="100" text-anchor="middle" font-size="9" fill="#047857">context window</text>
+          <text x="619" y="114" text-anchor="middle" font-size="9" fill="#047857">cho các bước tiếp</text>
+          <text x="619" y="128" text-anchor="middle" font-size="9" fill="#047857">theo của workflow</text>
+        </svg>
+        <div class="diagram-title">Hình 3.2 — Memory Compaction: nén lịch sử thành summary để giải phóng context window</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python — Memory Manager</span>
+<span class="code-keyword">class</span> <span class="code-type">MemoryManager</span>:
+    COMPACTION_THRESHOLD = <span class="code-number">0.75</span>  <span class="code-comment"># Compaction khi context &gt; 75% đầy</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">should_compact</span>(self, messages: <span class="code-type">list</span>, max_tokens: <span class="code-type">int</span>) -> <span class="code-type">bool</span>:
+        estimated_tokens = <span class="code-function">sum</span>(<span class="code-function">len</span>(<span class="code-function">str</span>(m)) // <span class="code-number">4</span> <span class="code-keyword">for</span> m <span class="code-keyword">in</span> messages)
+        <span class="code-keyword">return</span> estimated_tokens / max_tokens > self.COMPACTION_THRESHOLD
+
+    <span class="code-keyword">def</span> <span class="code-function">compact</span>(self, messages: <span class="code-type">list</span>, client) -> <span class="code-type">list</span>:
+        <span class="code-string">"""Tóm tắt lịch sử cũ, giữ lại system prompt và input gần nhất."""</span>
+        system_msg   = messages[<span class="code-number">0</span>]  <span class="code-comment"># Giữ nguyên system prompt</span>
+        recent_msgs  = messages[-<span class="code-number">4</span>:]  <span class="code-comment"># Giữ 4 messages gần nhất</span>
+        history_msgs = messages[<span class="code-number">1</span>:-<span class="code-number">4</span>]  <span class="code-comment"># Phần cần nén</span>
+
+        summary = client.messages.create(  <span class="code-comment"># Gọi LLM để tóm tắt</span>
+            model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+            max_tokens=<span class="code-number">500</span>,
+            messages=[{<span class="code-string">"role"</span>:<span class="code-string">"user"</span>, <span class="code-string">"content"</span>:
+                <span class="code-string">f"Tóm tắt ngắn gọn (dưới 200 từ) các bước đã thực hiện:\n{history_msgs}"</span>}]
+        ).content[<span class="code-number">0</span>].text
+
+        <span class="code-keyword">return</span> [system_msg,
+                {<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: <span class="code-string">f"[SUMMARY] {summary}"</span>},
+                *recent_msgs]
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 3</h4>
+        <ul>
+          <li>Context Drift: mất ~2%/bước → sau 10 bước chỉ còn 40% thông tin gốc nếu không quản lý</li>
+          <li>Ba loại memory: Working (context), Long-term (storage), Episodic (audit trail)</li>
+          <li>Compaction trigger: khi context window đạt 75% — tóm tắt lịch sử, giữ lại điểm quan trọng</li>
+          <li>State Persistence: serialize session state → LoanBot có thể resume nếu bị gián đoạn giữa chừng</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 4: GUARDRAILS & SAFETY                         -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson4" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">4</div>
+        <h2>Tầng 4: Guardrails &amp; Safety — Hệ Thống Kiểm Soát</h2>
+      </div>
+
+      <h3>4.1 Permission Resolver — Ai Được Làm Gì?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Hệ thống phân quyền ngân hàng</div>
+        <p>Tại FinTech Corp, một giao dịch viên có thể duyệt khoản vay đến 50 triệu, trưởng phòng đến 200 triệu, giám đốc đến 500 triệu, và HĐQT cho vay hơn. Đây là <strong>Role-Based Access Control (RBAC)</strong>.</p>
+        <p style="margin:0">Permission Resolver implement logic tương tự: mỗi action có một <em>permission tier</em>, và harness kiểm tra trước khi cho phép thực thi.</p>
+      </div>
+
+      <table class="comparison-table">
+        <thead><tr><th>Permission Level</th><th>LoanBot Actions</th><th>Kiểm soát</th></tr></thead>
+        <tbody>
+          <tr><td>🟢 <strong>AUTO</strong></td><td>check_credit_score, check_blacklist, calculate_dti</td><td>Tự động, không cần duyệt</td></tr>
+          <tr><td>🟡 <strong>VALIDATE</strong></td><td>verify_income, generate_report</td><td>Validate dữ liệu đầu vào trước</td></tr>
+          <tr><td>🔴 <strong>REQUIRE_HITL</strong></td><td>approve_loan &gt;500 triệu, reject khi score biên</td><td>Dừng, chờ human approval</td></tr>
+          <tr><td>⛔ <strong>BLOCKED</strong></td><td>delete_record, modify_credit_score</td><td>Từ chối hoàn toàn, log incident</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:var(--space-6)">4.2 HITL Gateway — Cổng Kiểm Soát Con Người</h3>
+
+      <!-- SVG: HITL Flow -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 4.1 — HITL Gateway: LoanBot dừng tự động khi cần human approval cho khoản vay lớn</title>
+          <defs>
+            <marker id="agh" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#0f4c81"/>
+            </marker>
+            <marker id="agr" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#dc2626"/>
+            </marker>
+            <marker id="agg" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#16a34a"/>
+            </marker>
+          </defs>
+  <rect width="700" height="200" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- LoanBot -->
+          <rect x="10" y="75" width="110" height="50" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="65" y="97" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">🤖 LoanBot</text>
+          <text x="65" y="112" text-anchor="middle" font-size="9" fill="#64748b">Muốn phê duyệt</text>
+          <text x="65" y="123" text-anchor="middle" font-size="9" fill="#64748b">vay 800 triệu</text>
+
+          <line x1="122" y1="100" x2="155" y2="100" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#agh)"/>
+
+          <!-- Permission Check -->
+          <rect x="157" y="65" width="130" height="70" rx="10" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="222" y="88" text-anchor="middle" font-size="10" fill="#e2e8f0" font-weight="700">Permission Check</text>
+          <text x="222" y="103" text-anchor="middle" font-size="9" fill="#94a3b8">800tr &gt; 500tr?</text>
+          <text x="222" y="116" text-anchor="middle" font-size="9" fill="#f59e0b">→ REQUIRE_HITL</text>
+          <text x="222" y="127" text-anchor="middle" font-size="9" fill="#f59e0b">✓ Trigger HITL</text>
+
+          <line x1="289" y1="100" x2="322" y2="100" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#agh)"/>
+
+          <!-- HITL Gateway -->
+          <rect x="324" y="65" width="140" height="70" rx="10" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+          <text x="394" y="88" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">👤 HITL Gateway</text>
+          <text x="394" y="103" text-anchor="middle" font-size="9" fill="#92400e">Gửi notification</text>
+          <text x="394" y="116" text-anchor="middle" font-size="9" fill="#92400e">cho Trưởng phòng</text>
+          <text x="394" y="127" text-anchor="middle" font-size="9" fill="#92400e">⏱ Timeout: 2 giờ</text>
+
+          <!-- Approve path -->
+          <line x1="466" y1="88" x2="530" y2="55" stroke="#16a34a" stroke-width="1.5" marker-end="url(#agg)"/>
+          <rect x="532" y="30" width="120" height="50" rx="10" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text x="592" y="52" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">✅ APPROVED</text>
+          <text x="592" y="66" text-anchor="middle" font-size="9" fill="#14532d">LoanBot tiếp tục</text>
+          <text x="492" y="46" font-size="8" fill="#16a34a">Approved</text>
+
+          <!-- Reject path -->
+          <line x1="466" y1="112" x2="530" y2="145" stroke="#dc2626" stroke-width="1.5" marker-end="url(#agr)"/>
+          <rect x="532" y="120" width="120" height="50" rx="10" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="592" y="142" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">❌ REJECTED</text>
+          <text x="592" y="156" text-anchor="middle" font-size="9" fill="#991b1b">LoanBot dừng,</text>
+          <text x="592" y="168" text-anchor="middle" font-size="9" fill="#991b1b">ghi nhận lý do</text>
+          <text x="492" y="158" font-size="8" fill="#dc2626">Rejected / Timeout</text>
+        </svg>
+        <div class="diagram-title">Hình 4.1 — HITL Gateway: LoanBot dừng tự động khi cần human approval cho khoản vay lớn</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">4.3 Input Validation — Bức Tường Ngăn Lỗi</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Bộ phận nhận hồ sơ</div>
+        <p>Trước khi hồ sơ đến tay nhân viên thẩm định, bộ phận nhận hồ sơ đã kiểm tra: đủ giấy tờ chưa? Chữ ký đúng chỗ chưa? Mẫu đơn đúng loại chưa? Điều này tránh mất thời gian xử lý hồ sơ không hợp lệ.</p>
+        <p style="margin:0"><strong>Input Validator</strong> làm điều tương tự cho tool calls: kiểm tra kiểu dữ liệu, phạm vi giá trị, bắt buộc tham số, và ngăn injection attacks — trước khi thực thi bất kỳ tool nào.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python — Input Validator</span>
+<span class="code-keyword">def</span> <span class="code-function">validate_tool_input</span>(tool_name: <span class="code-type">str</span>, inputs: <span class="code-type">dict</span>) -> <span class="code-type">tuple</span>[<span class="code-type">bool</span>, <span class="code-type">str</span>]:
+    <span class="code-string">"""Validate inputs trước khi dispatch. Returns (is_valid, error_message)."""</span>
+    rules = {
+        <span class="code-string">"check_credit_score"</span>: {
+            <span class="code-string">"customer_id"</span>: <span class="code-keyword">lambda</span> v: v.startswith(<span class="code-string">"FC-"</span>)
+        },
+        <span class="code-string">"calculate_dti"</span>: {
+            <span class="code-string">"monthly_income"</span>:   <span class="code-keyword">lambda</span> v: <span class="code-number">1</span> &lt;= v &lt;= <span class="code-number">500</span>,   <span class="code-comment"># triệu VNĐ</span>
+            <span class="code-string">"requested_loan"</span>:   <span class="code-keyword">lambda</span> v: <span class="code-number">10</span> &lt;= v &lt;= <span class="code-number">5000</span>,  <span class="code-comment"># triệu VNĐ</span>
+            <span class="code-string">"term_months"</span>:      <span class="code-keyword">lambda</span> v: v <span class="code-keyword">in</span> [<span class="code-number">12</span>, <span class="code-number">24</span>, <span class="code-number">36</span>, <span class="code-number">48</span>, <span class="code-number">60</span>, <span class="code-number">84</span>, <span class="code-number">120</span>],
+        },
+        <span class="code-string">"generate_report"</span>: {
+            <span class="code-string">"decision"</span>: <span class="code-keyword">lambda</span> v: v <span class="code-keyword">in</span> [<span class="code-string">"APPROVED"</span>, <span class="code-string">"REJECTED"</span>, <span class="code-string">"NEEDS_HUMAN_REVIEW"</span>]
+        }
+    }
+    <span class="code-keyword">for</span> field, check <span class="code-keyword">in</span> rules.get(tool_name, {}).items():
+        <span class="code-keyword">if</span> field <span class="code-keyword">in</span> inputs <span class="code-keyword">and not</span> <span class="code-function">check</span>(inputs[field]):
+            <span class="code-keyword">return</span> <span class="code-keyword">False</span>, <span class="code-string">f"Giá trị không hợp lệ: {field}={inputs[field]}"</span>
+    <span class="code-keyword">return</span> <span class="code-keyword">True</span>, <span class="code-string">""</span>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 4</h4>
+        <ul>
+          <li>Permission Resolver: 4 tiers — AUTO, VALIDATE, REQUIRE_HITL, BLOCKED — cho mỗi action</li>
+          <li>HITL Gateway: agent tự dừng và chờ approval khi gặp action có rủi ro cao (>500tr, quyết định biên)</li>
+          <li>Input Validator: validate trước khi thực thi — kiểu dữ liệu, phạm vi, enum values</li>
+          <li>Budget Guardrail: giới hạn max_iterations và max_cost_per_session để tránh vòng lặp vô hạn tốn tiền</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 5: OBSERVABILITY                               -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson5" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">5</div>
+        <h2>Tầng 5: Observability — Nhìn Thấy Mọi Thứ</h2>
+      </div>
+
+      <h3>5.1 Tại Sao Observability Là Bắt Buộc?</h3>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Thực tế từ enterprise deployments</div>
+        <p><em>"Khách hàng phàn nàn LoanBot từ chối hồ sơ sai. Nhưng chúng tôi không thể biết tại sao — không có log!"</em> — Một tình huống thực tế từ enterprise. Không có observability, bạn không thể debug, audit, hoặc prove compliance.</p>
+        <p style="margin:0">Với FinTech Corp, EU AI Act (Module 5) <strong>bắt buộc</strong> lưu audit trail cho mọi quyết định tín dụng. Nếu không có observability từ đầu, retrofit sẽ cực kỳ tốn kém.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">5.2 Ba Trụ Cột Observability</h3>
+
+      <!-- SVG: Observability Pillars -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 5.1 — Ba trụ cột Observability: Logs (gì đã xảy ra) + Traces (mất bao lâu) + Metrics (xu hướng)</title>
+  <rect width="700" height="200" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Pillar 1: Logs -->
+          <rect x="20" y="30" width="200" height="150" rx="12" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="120" y="58" text-anchor="middle" font-size="22">📋</text>
+          <text x="120" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#9a3412">Structured Logs</text>
+          <text x="120" y="98" text-anchor="middle" font-size="10" fill="#c2410c">Ghi lại từng sự kiện:</text>
+          <text x="120" y="113" text-anchor="middle" font-size="10" fill="#c2410c">• Tool calls + results</text>
+          <text x="120" y="127" text-anchor="middle" font-size="10" fill="#c2410c">• LLM decisions</text>
+          <text x="120" y="141" text-anchor="middle" font-size="10" fill="#c2410c">• Errors + warnings</text>
+          <text x="120" y="162" text-anchor="middle" font-size="9" fill="#9a3412" font-weight="700">Format: JSON (queryable)</text>
+
+          <!-- Pillar 2: Traces -->
+          <rect x="250" y="30" width="200" height="150" rx="12" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="350" y="58" text-anchor="middle" font-size="22">🔍</text>
+          <text x="350" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#065f46">Distributed Traces</text>
+          <text x="350" y="98" text-anchor="middle" font-size="10" fill="#047857">Theo dõi request E2E:</text>
+          <text x="350" y="113" text-anchor="middle" font-size="10" fill="#047857">• Trace ID duy nhất</text>
+          <text x="350" y="127" text-anchor="middle" font-size="10" fill="#047857">• Span: thời gian mỗi bước</text>
+          <text x="350" y="141" text-anchor="middle" font-size="10" fill="#047857">• Parent/child span tree</text>
+          <text x="350" y="162" text-anchor="middle" font-size="9" fill="#065f46" font-weight="700">Dùng để: performance debug</text>
+
+          <!-- Pillar 3: Metrics -->
+          <rect x="480" y="30" width="200" height="150" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="580" y="58" text-anchor="middle" font-size="22">📊</text>
+          <text x="580" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#1e40af">Metrics</text>
+          <text x="580" y="98" text-anchor="middle" font-size="10" fill="#3730a3">Đo lường số liệu:</text>
+          <text x="580" y="113" text-anchor="middle" font-size="10" fill="#3730a3">• Latency per tool</text>
+          <text x="580" y="127" text-anchor="middle" font-size="10" fill="#3730a3">• Approval rate, error rate</text>
+          <text x="580" y="141" text-anchor="middle" font-size="10" fill="#3730a3">• Cost per session</text>
+          <text x="580" y="162" text-anchor="middle" font-size="9" fill="#1e40af" font-weight="700">Dùng để: alerting, SLA</text>
+        </svg>
+        <div class="diagram-title">Hình 5.1 — Ba trụ cột Observability: Logs (gì đã xảy ra) + Traces (mất bao lâu) + Metrics (xu hướng)</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">5.3 Structured Audit Log — Định Dạng Chuẩn</h3>
+
+      <div class="code-block">
+        <span class="code-label">JSON — Audit Log Event</span>
+{
+  <span class="code-string">"event_id"</span>: <span class="code-string">"evt-20260626-143052-001"</span>,
+  <span class="code-string">"trace_id"</span>: <span class="code-string">"trace-FC-2024-001-sess42"</span>,
+  <span class="code-string">"timestamp"</span>: <span class="code-string">"2026-06-26T14:30:52.341Z"</span>,
+  <span class="code-string">"event_type"</span>: <span class="code-string">"tool_call"</span>,
+  <span class="code-string">"agent_id"</span>: <span class="code-string">"loanbot-v0.2"</span>,
+  <span class="code-string">"session_id"</span>: <span class="code-string">"sess-FC-2024-001-42"</span>,
+  <span class="code-string">"tool_name"</span>: <span class="code-string">"check_credit_score"</span>,
+  <span class="code-string">"input"</span>: { <span class="code-string">"customer_id"</span>: <span class="code-string">"FC-2024-001"</span>, <span class="code-string">"include_history"</span>: <span class="code-keyword">true</span> },
+  <span class="code-string">"output"</span>: { <span class="code-string">"score"</span>: <span class="code-number">720</span>, <span class="code-string">"risk_level"</span>: <span class="code-string">"thấp"</span> },
+  <span class="code-string">"latency_ms"</span>: <span class="code-number">245</span>,
+  <span class="code-string">"status"</span>: <span class="code-string">"success"</span>,
+  <span class="code-string">"permission_level"</span>: <span class="code-string">"auto"</span>,
+  <span class="code-string">"retry_count"</span>: <span class="code-number">0</span>
+}
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: LoanBot Observability Requirements</div>
+        <p>Theo yêu cầu của Compliance và EU AI Act (tiên lượng cho Module 5), mỗi quyết định LoanBot phải có:</p>
+        <ul style="margin:0">
+          <li>📋 <strong>Audit log</strong> đầy đủ: mọi tool call, kết quả, thời gian, người dùng</li>
+          <li>🔍 <strong>Trace</strong>: trace_id để ghép nối toàn bộ hành trình của một hồ sơ</li>
+          <li>📊 <strong>Metrics</strong>: approval_rate, avg_processing_time, cost_per_application</li>
+          <li>🚨 <strong>Alert</strong>: khi approval_rate &lt;80% hoặc latency &gt;5 phút → notify Compliance team</li>
+          <li>🗄️ <strong>Retention</strong>: giữ logs ≥7 năm (theo quy định tài chính Việt Nam)</li>
+        </ul>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 5</h4>
+        <ul>
+          <li>Ba trụ cột: Logs (gì đã xảy ra), Traces (mất bao lâu, ở đâu), Metrics (xu hướng, alert)</li>
+          <li>Structured logging (JSON) là bắt buộc — plain text log không thể query hay phân tích tự động</li>
+          <li>trace_id duy nhất per request để ghép nối toàn bộ hành trình end-to-end</li>
+          <li>Compliance yêu cầu retention ≥7 năm với FinTech — xây observability ngay từ đầu, không phải retrofit</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GLOSSARY -->
+    <section style="margin:var(--space-10) 0 0;">
+      <div class="section-heading">
+        <div class="section-number" style="background:var(--text-muted);">📖</div>
+        <h2>Thuật Ngữ Quan Trọng Module 2</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-3);">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Tool Registry</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Kho trung tâm đăng ký tất cả tools với schema, metadata, và trạng thái. Agent luôn qua Registry để biết tool nào available.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Exponential Backoff</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Chiến lược retry: tăng thời gian chờ theo cấp số nhân (1s, 2s, 4s...) để tránh làm nặng thêm server đang quá tải.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Circuit Breaker</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Pattern ngắt kết nối tool sau N lỗi liên tiếp. Ba trạng thái: CLOSED (bình thường), OPEN (ngắt), HALF-OPEN (test recovery).</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Memory Compaction</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Kỹ thuật nén lịch sử hội thoại thành summary ngắn khi context window gần đầy (~75%), giải phóng không gian cho các bước tiếp.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">HITL (Human-in-the-Loop)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Điểm trong workflow nơi agent tự dừng, gửi notification cho con người, và chờ approval trước khi tiếp tục hành động rủi ro cao.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Trace ID</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Mã định danh duy nhất cho một request end-to-end. Dùng để ghép nối tất cả logs và spans của một hồ sơ vay từ đầu đến cuối.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">RBAC (Role-Based Access Control)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Hệ thống phân quyền dựa trên vai trò: giao dịch viên, trưởng phòng, giám đốc có quyền khác nhau với từng loại action.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">State Persistence</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Serialize và lưu toàn bộ trạng thái agent (working memory, tool results, reasoning) vào storage để có thể resume nếu bị gián đoạn.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE SUMMARY -->
+    <div style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1px solid #c4b5fd;border-radius:var(--radius-xl);padding:var(--space-8);margin:var(--space-10) 0;">
+      <h3 style="color:#4c1d95;margin-bottom:var(--space-5);">🎓 Tổng Kết Module 2</h3>
+      <p style="margin-bottom:var(--space-4);">LoanBot v0.2 giờ đây có đầy đủ 5 tầng:</p>
+      <div class="layer-stack">
+        <div class="layer-item l1">
+          <div class="layer-num">1</div>
+          <div class="layer-info">
+            <div class="layer-name">Tool Orchestration</div>
+            <div class="layer-desc">Registry + Retry (3 lần, exp. backoff) + Circuit Breaker + Budget Tracker</div>
+          </div>
+          <span class="layer-tag">6 components</span>
+        </div>
+        <div class="layer-item l2">
+          <div class="layer-num">2</div>
+          <div class="layer-info">
+            <div class="layer-name">Verification Loops</div>
+            <div class="layer-desc">Validate output mỗi tool: credit score 300-850, DTI ≤ 43%, decision enum</div>
+          </div>
+          <span class="layer-tag">4 components</span>
+        </div>
+        <div class="layer-item l3">
+          <div class="layer-num">3</div>
+          <div class="layer-info">
+            <div class="layer-name">Context &amp; Memory</div>
+            <div class="layer-desc">Working memory + Compaction (75% threshold) + State Persistence + Session Control</div>
+          </div>
+          <span class="layer-tag">5 components</span>
+        </div>
+        <div class="layer-item l4">
+          <div class="layer-num">4</div>
+          <div class="layer-info">
+            <div class="layer-name">Guardrails &amp; Safety</div>
+            <div class="layer-desc">Permission tiers + Input Validation + HITL Gateway (&gt;500tr) + Budget Guardrail</div>
+          </div>
+          <span class="layer-tag">5 components</span>
+        </div>
+        <div class="layer-item l5">
+          <div class="layer-num">5</div>
+          <div class="layer-info">
+            <div class="layer-name">Observability &amp; Audit</div>
+            <div class="layer-desc">Structured JSON logs + Trace ID + Metrics (latency, cost, approval rate) + Alerts</div>
+          </div>
+          <span class="layer-tag">5 components</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="lesson-nav">
+      <a href="../module1/index.html" class="nav-btn">← Module 1: Nền Tảng</a>
+      <div style="display:flex;gap:12px;">
+        <a href="quiz.html" class="nav-btn">📝 Quiz Module 2</a>
+        <a href="lab.ipynb" download class="nav-btn">🔬 Notebook</a>
+        <a href="../module3/index.html" class="nav-btn primary">Module 3: Đánh Giá →</a>
+      </div>
+    </div>
+
+  </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

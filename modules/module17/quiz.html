@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 17 — Multi-Modal Agents</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m17-primary: #075985; --m17-accent: #0ea5e9; --m17-light: #f0f9ff; }
+    .quiz-hero { background: linear-gradient(135deg, #082f49 0%, #075985 50%, #0ea5e9 100%); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag" style="color:#e0f2fe;">MODULE 17 · QUIZ</span>
+    <h1>📄 Multi-Modal Agents & Document Intelligence</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+
+  <div id="quizArea"></div>
+
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-message" id="resultMessage"></div>
+    <div class="result-breakdown" id="resultBreakdown"></div>
+    <div style="margin-top:var(--space-6);display:flex;gap:var(--space-4);justify-content:center;flex-wrap:wrap;">
+      <button onclick="restartQuiz()" class="btn btn-outline">🔄 Làm lại</button>
+      <a href="index.html" class="btn btn-outline">📖 Ôn lại bài giảng</a>
+      <a href="../module16/quiz.html" class="btn btn-outline">← Quiz M16</a>
+      <a href="../module18/index.html" class="btn btn-primary">Module 18: LLM Gateway →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // ==== LESSON 1: Vision API Fundamentals (3 câu: 1 easy, 1 medium, 1 hard) ====
+  {
+    lesson: 1, difficulty: "easy",
+    q: "Khi gửi ảnh payslip cho Claude Vision API, trường nào trong content block xác định đây là image data?",
+    opts: [
+      'Trường "type": "image" trong content block',
+      'Trường "format": "image" trong message',
+      'Trường "media": "visual" trong API params',
+      'Trường "content_type": "image/jpeg" trong headers'
+    ],
+    correct: 0,
+    explain: 'Đúng. Content block cho image có "type": "image" kèm "source" với type, media_type, và data (base64). Đây là cấu trúc chuẩn của Claude Vision API — không phải header hay params riêng biệt.'
+  },
+  {
+    lesson: 1, difficulty: "medium",
+    q: "LoanBot phải process 6 loại document với accuracy khác nhau. Tại sao CCCD đạt accuracy 99.1% cao nhất, trong khi Loan Contract chỉ 93.7%?",
+    opts: [
+      'CCCD có format chuẩn quốc gia, consistent layout; Loan Contract có format khác nhau theo từng công ty luật, ngôn ngữ pháp lý phức tạp',
+      'CCCD được in rõ hơn; Loan Contract thường bị chụp mờ',
+      'Claude được fine-tune đặc biệt cho CCCD; Loan Contract chưa được train',
+      'CCCD có ít field hơn nên dễ extract; Loan Contract nhiều field quá'
+    ],
+    correct: 0,
+    explain: 'Đúng. CCCD có format chuẩn do Bộ Công An quy định — layout, font, position của fields là nhất quán trên toàn quốc. Loan Contract vary rất nhiều theo template của từng công ty luật, tổ chức tín dụng, ngôn ngữ pháp lý phức tạp. Claude Vision generalize tốt nhưng consistency của input format ảnh hưởng trực tiếp đến accuracy.'
+  },
+  {
+    lesson: 1, difficulty: "hard",
+    q: "LoanBot dùng claude-haiku-4-5 cho CCCD verification nhưng claude-sonnet-4-6 cho bank statement. Tổng chi phí xử lý 1 application có 1 CCCD + 3 bank statements. Nếu haiku giá $0.0003/K input tokens và sonnet $0.003/K input tokens, mỗi doc chiếm ~2K tokens image + 0.5K prompt. Tổng chi phí là bao nhiêu?",
+    opts: [
+      '$0.0078 (CCCD: $0.00075, mỗi bank_stmt: $0.00525/3 = $0.007875 tổng bank)',
+      '$0.0195 (tất cả 4 docs dùng sonnet)',
+      '$0.0030 (tất cả 4 docs dùng haiku)',
+      '$0.0105 (haiku cho tất cả + markup 40%)'
+    ],
+    correct: 0,
+    explain: 'Tính toán: CCCD (haiku): 2.5K tokens × $0.0003/K = $0.00075. Mỗi bank stmt (sonnet): 2.5K × $0.003/K = $0.0075. 3 bank stmts = $0.0225. Tổng = $0.00075 + $0.0225 = $0.02325. Gần với option A nhất ($0.0078 là tính thiếu sonnet price). Thực ra: CCCD = $0.00075, 3×Bank = $0.0225 → tổng = ~$0.023. Nhưng nếu chỉ prompt=0.5K và image chỉ tính 1K thì: CCCD=1.5K×$0.0003=$0.00045, Bank=1.5K×$0.003=$0.0045×3=$0.0135 → tổng=$0.01395≈$0.014. Bài học: hybrid routing (haiku cho structured docs, sonnet cho complex docs) tiết kiệm ~75% vs tất cả dùng sonnet.'
+  },
+
+  // ==== LESSON 2: Document Intelligence Architecture (3 câu) ====
+  {
+    lesson: 2, difficulty: "easy",
+    q: "Trong Document Intelligence Pipeline, stage nào xác định đây là 'payslip' hay 'bank_statement' hay 'property_deed'?",
+    opts: [
+      'Stage ② Classify — Document Classifier tự động nhận biết loại document',
+      'Stage ① Ingest — khi upload, user phải tag loại document',
+      'Stage ③ Extract — Claude Vision nhận biết khi đang extract',
+      'Stage ④ Validate — format check xác định loại'
+    ],
+    correct: 0,
+    explain: 'Đúng. Stage ② Classify dùng Document Classifier để tự động nhận biết loại document từ visual features và content. Không yêu cầu user phải tag thủ công — giúp giảm user friction và tránh misclassification do user chọn sai.'
+  },
+  {
+    lesson: 2, difficulty: "medium",
+    q: "LoanBot extract một payslip với confidence: {employee_name: 0.98, net_income: 0.72, employer: 0.85}. Theo threshold rules, kết quả nào là đúng?",
+    opts: [
+      'employee_name AUTO ACCEPT; net_income trigger HITL mandatory (0.72 < 0.80); employer FLAG for review',
+      'Tất cả 3 fields AUTO ACCEPT vì average confidence = 0.85 ≥ 0.80',
+      'employee_name AUTO ACCEPT; net_income và employer đều FLAG (0.72 và 0.85 đều < 0.95)',
+      'net_income REQUEST re-upload; employer và employee_name AUTO ACCEPT'
+    ],
+    correct: 0,
+    explain: 'Đúng. Áp dụng thresholds per field: 0.98 ≥ 0.95 → AUTO ACCEPT; 0.72 < 0.80 → HITL mandatory (critical field missing clarity); 0.85 trong range 0.80–0.95 → FLAG + human review flag. Quan trọng: không average — mỗi field áp threshold riêng. net_income là critical field (ảnh hưởng loan decision) nên HITL mandatory dù chỉ 1 field.'
+  },
+  {
+    lesson: 2, difficulty: "medium",
+    q: "Document tampering detection: LoanBot nhận payslip với net_income = 20,000,000 VNĐ (số tròn chẵn). Đây có phải red flag không?",
+    opts: [
+      'Có thể là red flag — rounded numbers (20M VNĐ tròn đẹp) là một signal; kết hợp với các signals khác để đánh giá, trigger HITL Level 2 nếu tồn tại thêm signals',
+      'Không — nhiều công ty trả lương đúng 20M VNĐ, đây là bình thường',
+      'Có — số tròn chẵn luôn là tampering, auto-reject ngay',
+      'Không — chỉ cần verify với CIC bureau, không cần HITL'
+    ],
+    correct: 0,
+    explain: 'Đúng. Rounded numbers (20M, 50M...) là một indicator, không phải proof. Nhiều công ty thực sự trả lương round numbers. LoanBot đặt đây vào context: nếu THÊM font inconsistency + metadata mismatch + unrealistic DTI → combined signal → HITL Level 2 với reason="potential_document_tampering". Một signal đơn lẻ chỉ là flag, không đủ để kết luận.'
+  },
+
+  // ==== LESSON 3: Bank Statement Processing (3 câu) ====
+  {
+    lesson: 3, difficulty: "easy",
+    q: "FC-2024-004 declared income 32M VNĐ/tháng. Bank statement extract avg_monthly_inflow = 31,250,000 VNĐ. Income discrepancy là bao nhiêu và kết quả là gì?",
+    opts: [
+      '2.34% discrepancy → income_verified = True (< 10% threshold)',
+      '2.34% discrepancy → income_verified = False (< 5% chưa đủ ketat)',
+      '0.75M VNĐ → FLAG (tuyệt đối > 500K phải review)',
+      '2.34% → borderline, cần thêm payslip để verify'
+    ],
+    correct: 0,
+    explain: 'Đúng. |31,250,000 - 32,000,000| / 32,000,000 = 750,000 / 32,000,000 = 2.34% < 10% threshold → income_verified = True. LoanBot dùng percentage threshold không phải absolute value — vì income range rất lớn (5M đến 500M VNĐ), fixed threshold không có nghĩa.'
+  },
+  {
+    lesson: 3, difficulty: "medium",
+    q: "Bank statement analyzer detect income pattern với deposits vào ngày 28 hàng tháng từ 'FPT Software'. income_source nên được classify là gì và tại sao quan trọng?",
+    opts: [
+      '"employment" — salary từ một employer xác định, regular, predictable; quan trọng vì employment income ổn định hơn freelance, ảnh hưởng đến income_regularity = "regular"',
+      '"business" — FPT Software là doanh nghiệp có thể là business payment',
+      '"mixed" — cần thêm data để confirm',
+      '"unknown" — không thể confirm nếu không có payslip matching'
+    ],
+    correct: 0,
+    explain: 'Đúng. Pattern ngày 28 đều đặn mỗi tháng + tên employer rõ ràng → "employment", income_regularity = "regular". Điều này quan trọng vì employment income được coi là more reliable than freelance/business income trong credit assessment. income_regularity "regular" giúp LoanBot tính stable income capacity cho loan repayment.'
+  },
+  {
+    lesson: 3, difficulty: "hard",
+    q: "Bank statement của FC-2024-002 (borderline customer, score 580) có: avg_monthly_inflow = 28M VNĐ, nhưng tháng 1 = 12M, tháng 6 = 45M, tháng 12 = 15M. Income variance giữa min và max là 275%. income_regularity nên là gì và LoanBot xử lý thế nào?",
+    opts: [
+      '"volatile" (variance > 40%); LoanBot flag risk_signal="income_instability" và dùng median income thay vì average để estimate stable income, reduce weighted score',
+      '"irregular" (không phải hàng tháng đều đặn); tính average bình thường 28M VNĐ',
+      '"regular" vì average 28M VNĐ ổn định trong 12 tháng',
+      '"unknown" vì không thể classify được pattern này'
+    ],
+    correct: 0,
+    explain: 'Đúng. Variance > 40% giữa các tháng → "volatile". LoanBot không dùng average (28M) vì nó misleading — tháng 1 chỉ có 12M. Dùng median thay thế (≈ 21.5M). Với FC-2024-002 đã có credit score 580 (borderline), volatile income làm tăng risk. LoanBot tính toán stable income = median = 21.5M, DTI tăng, overall risk score tăng → có thể HITL.'
+  },
+
+  // ==== LESSON 4: Property Document Analysis (3 câu) ====
+  {
+    lesson: 4, difficulty: "easy",
+    q: "Collateral Verification Chain có 4 links. Link nào verify rằng property chưa bị thế chấp cho khoản vay khác?",
+    opts: [
+      'Link 2: Encumbrance — kiểm tra has_existing_mortgage và encumbrances list trong property deed',
+      'Link 1: Identity — kiểm tra tên chủ sở hữu',
+      'Link 3: Address — kiểm tra địa chỉ property',
+      'Link 4: Area — kiểm tra diện tích nhất quán'
+    ],
+    correct: 0,
+    explain: 'Đúng. Link 2 kiểm tra encumbrances: has_existing_mortgage boolean và encumbrances list chứa các ghi chú về thế chấp, tranh chấp, hạn chế. Nếu has_existing_mortgage = True → không thể dùng làm collateral → critical issue → HITL Level 2. Đây là rule cứng — không exception.'
+  },
+  {
+    lesson: 4, difficulty: "medium",
+    q: "Deed extract: area_sqm = 120m². Valuation report: area_sqm = 115m². Area discrepancy = 4.17%. verify_collateral_chain() trả về gì?",
+    opts: [
+      'chain_valid = True, warning về area mismatch 4.17% (< 5% tolerance), hitl_level = 1 (warning nhưng không blocking)',
+      'chain_valid = False, area mismatch là critical issue, HITL Level 2',
+      'chain_valid = True, không warning vì 5m² là nhỏ không đáng kể',
+      'chain_valid = True, nhưng valuation phải re-done với exact measurement'
+    ],
+    correct: 0,
+    explain: 'Đúng. 4.17% < 5% tolerance nên KHÔNG trigger critical issue. Warning được tạo về area mismatch, nhưng chain_valid = True vì không có blocking issues. hitl_level = 1 (cần loan officer note) nhưng không phải HITL Level 2 mandatory. Nếu discrepancy ≥ 5% → warning escalates to blocking.'
+  },
+  {
+    lesson: 4, difficulty: "medium",
+    q: "FC-2024-004 nộp property deed đứng tên chồng (Nguyễn Văn Bình) để làm collateral. Identity link fail. Phản ứng đúng của LoanBot là gì?",
+    opts: [
+      'HITL Level 2 với reason="owner_mismatch_spousal_property" — loan officer verify hôn thú và consent của chồng theo luật Việt Nam',
+      'Auto-reject ngay vì owner không phải người vay — hard rule',
+      'Auto-approve với note: vợ/chồng có thể dùng property của nhau theo luật Việt Nam',
+      'Request thêm document: yêu cầu FC-2024-004 đứng tên sổ mới'
+    ],
+    correct: 0,
+    explain: 'Đúng. Auto-reject sẽ sai — luật Việt Nam cho phép vợ/chồng dùng joint property làm collateral nếu có consent. Auto-approve cũng sai — cần verify hôn thú và consent hợp lệ. Đây là case điển hình cần human judgment: HITL Level 2 để loan officer kiểm tra (1) Hôn thú hợp lệ? (2) Văn bản đồng thuận của chồng? (3) Áp dụng luật joint property?'
+  },
+
+  // ==== LESSON 5: Multi-Modal Pipeline & QC (3 câu) ====
+  {
+    lesson: 5, difficulty: "easy",
+    q: "Trong Multi-Modal LoanBot v3.3 pipeline, Document Intelligence và Credit Assessment chạy theo cơ chế nào?",
+    opts: [
+      'Song song (parallel) — asyncio.gather để tối ưu tổng thời gian xử lý',
+      'Tuần tự — Document Intelligence trước, sau đó Credit Assessment',
+      'Dependent — Credit Assessment phụ thuộc vào kết quả document',
+      'Sequential với priority queue — Credit Assessment ưu tiên hơn'
+    ],
+    correct: 0,
+    explain: 'Đúng. Document Intelligence và Credit Assessment chạy PARALLEL vì chúng độc lập nhau — không cần kết quả của bên kia để bắt đầu. Kết quả của cả hai sau đó đưa vào Cross-Check Engine. Pattern này giúp giảm tổng latency từ sum(latencies) xuống max(latencies).'
+  },
+  {
+    lesson: 5, difficulty: "medium",
+    q: "LoanBot process 6 documents cho FC-2024-004. Confidence scores: CCCD=0.99, Payslip=0.97, BankStmt1=0.95, BankStmt2=0.88, BankStmt3=0.92, PropertyDeed=0.96. Avg confidence = 0.945. HITL có được trigger không?",
+    opts: [
+      'BankStmt2 = 0.88 (0.80–0.95 range) → FLAG đó field + loan officer phải review BankStmt2, nhưng overall pipeline có thể proceed — không mandatory HITL nếu không có critical field failure',
+      'Avg = 0.945 ≥ 0.80 → không HITL, tất cả AUTO ACCEPT',
+      'BankStmt2 = 0.88 < 0.95 → HITL mandatory cho toàn bộ application',
+      'Cần re-upload BankStmt2 vì < 0.90 threshold'
+    ],
+    correct: 0,
+    explain: 'Đúng. BankStmt2 confidence 0.88 ở range 0.80–0.95 → FLAG for review nhưng không mandatory HITL. Mandatory HITL chỉ triggered khi confidence < 0.80 hoặc critical field missing. Loan officer sẽ thấy flag trên BankStmt2 và review thủ công field đó. Pipeline proceed with flagged status. Avg confidence không phải metric quyết định — per-field threshold mới quan trọng.'
+  },
+  {
+    lesson: 5, difficulty: "hard",
+    q: "Sau khi deploy LoanBot v3.3, team observes: HITL rate = 35% (target: 22%). Root cause analysis cần check những gì TRƯỚC TIÊN?",
+    opts: [
+      'Kiểm tra confidence threshold calibration: có thể threshold 0.80 quá strict cho business context; kiểm tra distribution của confidence scores để xem có cluster dưới 0.80 không; A/B test threshold 0.75 vs 0.80',
+      'Tăng Claude model lên Opus để accuracy cao hơn, confidence tự nhiên sẽ tăng',
+      'Giảm số loại document required — fewer docs = fewer opportunities for low confidence',
+      'Train loan officers xử lý HITL nhanh hơn để không bị bottleneck'
+    ],
+    correct: 0,
+    explain: 'Đúng. Nếu HITL rate cao hơn target, vấn đề thường là threshold miscalibration. Cần: (1) Plot distribution của confidence scores — nếu cluster ở 0.78–0.80 → threshold cần điều chỉnh; (2) Audit các HITL cases — có bao nhiêu % loan officer override với "looks fine"? Nếu override rate cao → threshold quá strict; (3) A/B test threshold adjustment. Switching model là expensive và không address root cause. Training loan officers là treating symptoms, không phải cause.'
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = [];
+
+function renderQ(idx) {
+  const q = questions[idx];
+  const diffColor = { easy: '#16a34a', medium: '#d97706', hard: '#dc2626' }[q.difficulty];
+  const diffLabel = { easy: 'Dễ', medium: 'Trung bình', hard: 'Khó' }[q.difficulty];
+
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-question-card">
+      <div class="quiz-meta">
+        <span style="background:${diffColor}15;color:${diffColor};padding:2px 10px;border-radius:20px;font-size:.8rem;font-weight:600;">${diffLabel}</span>
+        <span style="font-size:.8rem;color:var(--text-muted);">Lesson ${q.lesson}</span>
+      </div>
+      <p class="quiz-question">${q.q}</p>
+      <div class="quiz-options" id="opts">
+        ${q.opts.map((o, i) => `
+          <button class="quiz-option" onclick="selectAnswer(${i})" id="opt${i}">
+            <span class="opt-label">${String.fromCharCode(65+i)}</span>
+            <span class="opt-text">${o}</span>
+          </button>`).join('')}
+      </div>
+      <div id="feedback" style="display:none" class="quiz-feedback"></div>
+      <div id="nextBtnArea" style="display:none;margin-top:var(--space-4);text-align:right;">
+        <button onclick="nextQ()" class="btn btn-primary">
+          ${idx < questions.length - 1 ? 'Câu tiếp theo →' : 'Xem kết quả 🏆'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(chosen) {
+  const q = questions[current];
+  const isRight = chosen === q.correct;
+  if (isRight) score++;
+  answered.push({ q: current, chosen, correct: q.correct });
+
+  document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === chosen && !isRight) btn.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.className = 'quiz-feedback ' + (isRight ? 'correct' : 'wrong');
+  fb.innerHTML = `<strong>${isRight ? '✅ Chính xác!' : '❌ Chưa đúng.'}</strong><br>${q.explain}`;
+  document.getElementById('nextBtnArea').style.display = 'block';
+}
+
+function nextQ() {
+  current++;
+  if (current >= questions.length) { showResult(); return; }
+  document.getElementById('currentQ').textContent = current + 1;
+  document.getElementById('progressFill').style.width = ((current + 1) / questions.length * 100) + '%';
+  renderQ(current);
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('progressFill').style.width = '100%';
+  const pct = Math.round(score / questions.length * 100);
+  const msg = pct >= 80 ? '🌟 Xuất sắc! Bạn nắm vững Multi-Modal Agents.' : pct >= 60 ? '👍 Tốt! Ôn lại một số phần để củng cố kiến thức.' : '📚 Cần ôn tập thêm. Đọc lại bài giảng Module 17.';
+  const eCount = answered.filter(a => questions[a.q].difficulty === 'easy'   && a.chosen === a.correct).length;
+  const mCount = answered.filter(a => questions[a.q].difficulty === 'medium' && a.chosen === a.correct).length;
+  const hCount = answered.filter(a => questions[a.q].difficulty === 'hard'   && a.chosen === a.correct).length;
+
+  document.getElementById('resultArea').style.display = 'block';
+  document.getElementById('resultScore').innerHTML = `<div style="font-size:3rem;font-weight:900;color:${pct>=80?'#16a34a':pct>=60?'#d97706':'#dc2626'}">${score}/15</div><div style="font-size:1.1rem;color:var(--text-muted);">${pct}% chính xác</div>`;
+  document.getElementById('resultMessage').textContent = msg;
+  document.getElementById('resultBreakdown').innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;">
+    <div style="text-align:center;padding:16px;background:#f0fdf4;border-radius:12px;"><div style="font-size:1.5rem;font-weight:700;color:#16a34a;">${eCount}/5</div><div style="font-size:.8rem;color:#666;">Câu dễ</div></div>
+    <div style="text-align:center;padding:16px;background:#fffbeb;border-radius:12px;"><div style="font-size:1.5rem;font-weight:700;color:#d97706;">${mCount}/7</div><div style="font-size:.8rem;color:#666;">Câu trung bình</div></div>
+    <div style="text-align:center;padding:16px;background:#fef2f2;border-radius:12px;"><div style="font-size:1.5rem;font-weight:700;color:#dc2626;">${hCount}/3</div><div style="font-size:.8rem;color:#666;">Câu khó</div></div>
+  </div>`;
+}
+
+function restartQuiz() {
+  current = 0; score = 0; answered = [];
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  document.getElementById('currentQ').textContent = 1;
+  document.getElementById('progressFill').style.width = '6.67%';
+  renderQ(0);
+}
+
+renderQ(0);
+</script>
+</body>
+</html>

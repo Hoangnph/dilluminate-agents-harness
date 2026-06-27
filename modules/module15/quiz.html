@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 15 — Tool Use Mastery</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m15-primary: #7c2d12; --m15-accent: #ea580c; --m15-light: #fff7ed; --m15-border: #fdba74; }
+    .quiz-header { background: linear-gradient(135deg, #431407 0%, #7c2d12 60%, #ea580c 100%); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-page">
+  <div class="quiz-header">
+    <div class="quiz-header-content">
+      <span class="quiz-module-tag">MODULE 15</span>
+      <h1>📝 Quiz: Tool Use Mastery & Enterprise Integration</h1>
+      <p>15 câu hỏi · 45 phút · Phủ đều 5 lessons</p>
+    </div>
+  </div>
+
+  <div class="quiz-container">
+    <div class="quiz-progress-bar">
+      <div class="quiz-progress-fill" id="quizProgress" style="width:0%"></div>
+    </div>
+    <div class="quiz-progress-text"><span id="currentQ">0</span> / 15 câu</div>
+
+    <div id="quizContent">
+      <div class="quiz-start-screen">
+        <div class="quiz-start-icon">🔧</div>
+        <h2>Tool Use Mastery Quiz</h2>
+        <p>Kiểm tra kiến thức về Tool Calling API, enterprise tool design, parallel orchestration, schema validation, và error recovery patterns cho LoanBot.</p>
+        <div class="quiz-start-stats">
+          <span>🎯 15 câu hỏi</span>
+          <span>📊 5 dễ · 7 trung · 3 khó</span>
+          <span>⏱ ~45 phút</span>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="startQuiz()">Bắt đầu Quiz →</button>
+      </div>
+    </div>
+
+    <div id="quizNav" style="display:none;" class="quiz-navigation">
+      <button class="btn btn-outline" onclick="prevQuestion()">← Câu trước</button>
+      <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Câu tiếp →</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+<script>
+const QUESTIONS = [
+  {
+    lesson: 1,
+    difficulty: "easy",
+    q: "Trong Claude API, khi model muốn gọi một tool, response có stop_reason là gì?",
+    options: [
+      "\"tool_call\" — signal Claude đang gọi tool",
+      "\"tool_use\" — signal model dùng tool",
+      "\"function\" — signal model gọi function",
+      "\"pause\" — signal model đang chờ data"
+    ],
+    answer: 1,
+    explanation: "Đúng: stop_reason = \"tool_use\" khi Claude muốn execute một tool. Harness detect điều này, execute tool(s), trả tool_result, rồi loop lại. stop_reason = \"end_turn\" là khi Claude hoàn tất (không còn tool calls nữa). Các options còn lại (\"tool_call\", \"function\", \"pause\") không tồn tại trong Claude API — chỉ có \"tool_use\", \"end_turn\", \"max_tokens\", \"stop_sequence\"."
+  },
+  {
+    lesson: 1,
+    difficulty: "easy",
+    q: "Trong agentic loop của LoanBot, khi nào harness dừng loop và return kết quả cho user?",
+    options: [
+      "Sau 3 tool calls (credit, compliance, income)",
+      "Khi token count vượt 4096",
+      "Khi stop_reason = \"end_turn\"",
+      "Khi model trả về empty response"
+    ],
+    answer: 2,
+    explanation: "Đúng: Loop dừng khi stop_reason = \"end_turn\" — Claude đã hoàn tất reasoning, không cần thêm tool nào. Con số 3 tool calls không phải điều kiện dừng (có thể cần ít hơn hoặc nhiều hơn). 4096 tokens là max_tokens param, không phải exit condition. Empty response là lỗi, không phải điều kiện dừng hợp lệ."
+  },
+  {
+    lesson: 1,
+    difficulty: "medium",
+    q: "LoanBot cần thêm max_iterations=5 trong agentic loop. Lý do chính là gì?",
+    options: [
+      "Để tiết kiệm tiền API vì mỗi loop = 1 API call",
+      "Để ngăn infinite tool calling loop nếu model bị confused",
+      "Vì Claude chỉ hỗ trợ tối đa 5 tools trong 1 conversation",
+      "Để tránh exceed context window của 200K tokens"
+    ],
+    answer: 1,
+    explanation: "Đúng: max_iterations guard ngăn model bị stuck trong infinite tool loop — e.g., nếu tool luôn return error và model cứ retry mãi. Tiết kiệm tiền là side effect, không phải mục đích chính. Claude không giới hạn số tools per conversation. Context window là concern riêng, không trực tiếp liên quan đến loop guard."
+  },
+  {
+    lesson: 2,
+    difficulty: "easy",
+    q: "PropertyValuation API trả kết quả chậm (2.1s) và data thay đổi chậm (giá nhà ít biến động). TTL cache phù hợp nhất là bao lâu?",
+    options: [
+      "TTL = 0 (không cache, luôn fresh)",
+      "TTL = 24 giờ",
+      "TTL = 7 ngày",
+      "TTL = 30 ngày"
+    ],
+    answer: 2,
+    explanation: "Đúng: TTL = 7 ngày (604,800s) cho PropertyValuation vì: giá nhà ít thay đổi trong ngắn hạn, API chậm → cache giúp giảm latency, và LoanBot production cũng dùng config này. TTL=0 bỏ lợi thế cache. 24 giờ quá ngắn cho property data. 30 ngày quá dài — giá có thể biến động đáng kể trong thị trường bất động sản."
+  },
+  {
+    lesson: 2,
+    difficulty: "medium",
+    q: "NotificationTool cần idempotency. LoanBot implement bằng cách nào để đảm bảo FC-2024-004 không nhận 2 SMS?",
+    options: [
+      "Thêm delay 5 giây giữa các lần gọi để tránh duplicate",
+      "Hash(tool_name + params) → store trong Redis set, skip nếu đã tồn tại",
+      "Check database trước mỗi lần gửi SMS",
+      "Dùng UUID mới mỗi lần gửi để server phân biệt"
+    ],
+    answer: 1,
+    explanation: "Đúng: Idempotency key = MD5 hash của (tool_name + params). Nếu key đã trong set → skip silently, return {status: 'skipped'}. Delay 5s không đảm bảo idempotency — vẫn có thể gửi 2 lần. Database check là option nhưng chậm hơn Redis set. UUID mới mỗi lần sẽ NEVER cache hit — hoàn toàn ngược với mục đích idempotency."
+  },
+  {
+    lesson: 2,
+    difficulty: "medium",
+    q: "Token Bucket rate limiter có rate=5 req/s, capacity=10. Sau 2 giây idle, LoanBot gửi 8 requests cùng lúc. Bao nhiêu requests được allowed?",
+    options: [
+      "5 requests — chỉ rate_rps/s được phép",
+      "8 requests — đủ bucket capacity",
+      "10 requests — full capacity sau 2s refill",
+      "0 requests — phải queue không được burst"
+    ],
+    answer: 2,
+    explanation: "Đúng: Token Bucket refills at rate=5 tokens/s. Sau 2s idle: tokens = min(capacity, 0 + 2×5) = min(10, 10) = 10 tokens. Gửi 8 requests → consume 8 tokens → còn 2 → tất cả 8 đều allowed. Token bucket cho phép burst up to capacity — đây là lợi thế vs fixed window rate limiter. 5 req/s chỉ là refill rate, không phải burst limit."
+  },
+  {
+    lesson: 3,
+    difficulty: "easy",
+    q: "Claude response chứa 3 tool_use blocks cùng lúc: credit_bureau, compliance_check, income_verification. Harness nên làm gì?",
+    options: [
+      "Execute tuần tự để an toàn hơn",
+      "Execute credit_bureau trước vì quan trọng nhất",
+      "Execute cả 3 song song với asyncio.gather",
+      "Từ chối — Claude không được phát nhiều tool_use cùng lúc"
+    ],
+    answer: 2,
+    explanation: "Đúng: Multiple tool_use blocks trong cùng response = parallel execution signal từ Claude. Harness dùng asyncio.gather để execute tất cả cùng lúc. Kết quả: max(1.2, 0.6, 1.5) = 1.5s thay vì 1.2+0.6+1.5=3.3s (55% reduction). Execute tuần tự không sai về correctness nhưng lãng phí latency. Claude hoàn toàn có thể phát multiple tool_use blocks."
+  },
+  {
+    lesson: 3,
+    difficulty: "medium",
+    q: "Trong LoanBot với PropertyValuation (2.1s bottleneck), đánh giá FC-2024-004 cần: CreditBureau (1.2s), Compliance (0.6s), Income (1.5s), PropertyValuation (2.1s). Parallel execution mất bao lâu?",
+    options: [
+      "5.4s — tổng tất cả",
+      "3.3s — không tính PropertyValuation",
+      "2.1s — max của tất cả tool",
+      "1.5s — max của 3 tool nhanh nhất"
+    ],
+    answer: 2,
+    explanation: "Đúng: Parallel execution = max(1.2, 0.6, 1.5, 2.1) = 2.1s. Tất cả tools chạy đồng thời, kết quả ready khi tool chậm nhất (PropertyValuation) hoàn thành. Đây là lý do PropertyValuation là 'bottleneck' — nó quyết định tổng thời gian. 5.4s = sequential. 3.3s = bỏ PropertyValuation (sai). 1.5s = bỏ PropertyValuation và chỉ tính Income (sai)."
+  },
+  {
+    lesson: 3,
+    difficulty: "hard",
+    q: "asyncio.gather với return_exceptions=True trong parallel tool execution. Nếu CreditBureau raise TimeoutError, điều gì xảy ra với kết quả của Compliance và Income?",
+    options: [
+      "Tất cả 3 tools bị cancel — gather dừng khi 1 fail",
+      "Gather raise Exception ngay lập tức, không có kết quả nào",
+      "Compliance và Income vẫn complete, TimeoutError được return như một item trong list",
+      "Gather retry CreditBureau tự động sau 1s"
+    ],
+    answer: 2,
+    explanation: "Đúng: return_exceptions=True → exceptions KHÔNG propagate, được capture như regular return values. Kết quả sẽ là [TimeoutError(), compliance_result, income_result]. Harness sau đó check từng item: isinstance(r, Exception) → handle lỗi riêng cho CreditBureau. Compliance và Income không bị ảnh hưởng. Nếu return_exceptions=False (default), TimeoutError sẽ cancel các tasks khác và propagate."
+  },
+  {
+    lesson: 4,
+    difficulty: "easy",
+    q: "Tool schema cho id_number nên dùng constraint nào để Claude generate đúng CCCD 12 chữ số?",
+    options: [
+      "\"type\": \"integer\" — để đảm bảo chỉ số",
+      "\"type\": \"string\", \"minLength\": 12, \"maxLength\": 12",
+      "\"type\": \"string\", \"pattern\": \"^\\\\d{12}$\"",
+      "\"type\": \"string\", \"description\": \"12 digits CCCD\""
+    ],
+    answer: 2,
+    explanation: "Đúng: pattern regex \"^\\d{12}$\" vừa enforce length (12 ký tự) vừa enforce type (chỉ digits). integer không đúng vì CCCD có thể bắt đầu bằng 0 (0xx... → integer sẽ drop leading zero). minLength+maxLength cho phép letters. Chỉ description là documentation, không validation — Claude vẫn có thể pass 'twelve digits' làm string."
+  },
+  {
+    lesson: 4,
+    difficulty: "medium",
+    q: "LoanDecisionOutput có field regulation_refs: list[str]. Đây là requirement của luật nào và tại sao?",
+    options: [
+      "GDPR yêu cầu lưu trữ dữ liệu khách hàng an toàn",
+      "EU AI Act Art.13 yêu cầu automated creditworthiness decisions phải auditable",
+      "PCI DSS yêu cầu credit card data phải mã hóa",
+      "ISO 27001 yêu cầu security audit logs"
+    ],
+    answer: 1,
+    explanation: "Đúng: EU AI Act Art.13 — transparency requirements cho automated decision systems affecting individuals. Creditworthiness decisions (loan approvals/rejections) thuộc high-risk AI category → phải cite specific regulatory basis cho mỗi quyết định. regulation_refs = [\"TT39 Điều 15\", \"CV5627 Khoản 3\"] cho phép loan officer verify và customer appeal. GDPR về privacy, PCI DSS về card data, ISO 27001 về security — không trực tiếp yêu cầu regulation citations trong loan decisions."
+  },
+  {
+    lesson: 4,
+    difficulty: "hard",
+    q: "LoanBot tool schema ban đầu có credit_grade: str. Team muốn refactor thành Literal['A','B','C','D']. Đây có phải breaking change không?",
+    options: [
+      "Không — str và Literal đều là strings, backward compatible",
+      "Có — Literal restrict values, existing code passing 'E' grade sẽ fail Pydantic validation",
+      "Không — Pydantic Literal chỉ là documentation, không enforce at runtime",
+      "Có — nhưng chỉ fail với Python 3.8, trên 3.9 thì không sao"
+    ],
+    answer: 1,
+    explanation: "Đúng: Breaking change! Literal['A','B','C','D'] enforce at parse time — nếu CIC API trả về 'E' grade (bad credit) hoặc 'N/A', Pydantic raise ValidationError. Code cũ passing str sẽ fail. Giải pháp: (1) optional Union[Literal['A','B','C','D'], str] với deprecation warning, hoặc (2) version bump tool schema (v1 → v2) với migration path. Pydantic Literal rất much enforces at runtime — đây là mục đích chính của nó."
+  },
+  {
+    lesson: 5,
+    difficulty: "easy",
+    q: "ComplianceCheck tool fail (timeout) khi assess FC-2024-004. LoanBot nên làm gì theo phân loại CRITICAL tool?",
+    options: [
+      "Proceed với APPROVE vì compliance thường pass với borderline customers",
+      "Block assessment, escalate to HITL — không được approve khi CRITICAL tool fail",
+      "Retry 3 lần với exponential backoff rồi approve nếu vẫn fail",
+      "Skip compliance, các tools khác đủ để assess"
+    ],
+    answer: 1,
+    explanation: "Đúng: ComplianceCheck là CRITICAL tool — fail = block pipeline, escalate to HITL. AML/PEP check bắt buộc theo luật Việt Nam và quốc tế, không thể skip hay approve without it. Approving without compliance check exposes FinTech Corp đến regulatory risk (fine, license revocation). Retry với backoff là reasonable UX nhưng nếu vẫn fail sau retries → HITL, không phải approve. Skip là vi phạm regulatory requirement."
+  },
+  {
+    lesson: 5,
+    difficulty: "medium",
+    q: "Circuit Breaker cho CreditBureau API (failure_threshold=5, cooldown=60s). Sau 5 consecutive failures, state chuyển sang OPEN. Sau 60s, state tự động chuyển sang gì?",
+    options: [
+      "CLOSED — reset hoàn toàn sau cooldown",
+      "HALF-OPEN — cho phép 1 trial request",
+      "OPEN — vẫn OPEN cho đến khi manually reset",
+      "DISABLED — cần restart service"
+    ],
+    answer: 1,
+    explanation: "Đúng: Sau cooldown expires, Circuit Breaker chuyển sang HALF-OPEN (không phải CLOSED). HALF-OPEN = thả ra 1 trial request. Nếu trial succeed → reset CLOSED. Nếu trial fail → về OPEN lại (cooldown restart). Điều này ngăn thundering herd khi service recover — không flood CIC API ngay lập tức với tất cả queued requests. Manual reset là anti-pattern trong automated systems."
+  },
+  {
+    lesson: 5,
+    difficulty: "hard",
+    q: "LoanBot exponential backoff: base=1s, max_attempts=4, jitter=random(0, 0.5s). Attempt 3 (0-indexed) delay trung bình là bao nhiêu?",
+    options: [
+      "4s — 1 × 2^2",
+      "4.25s — 1 × 2^2 + 0.25s jitter mean",
+      "8.25s — 1 × 2^3 + 0.25s jitter mean",
+      "8s — 1 × 2^3"
+    ],
+    answer: 2,
+    explanation: "Đúng: attempt=3 (0-indexed) → delay = base × 2^attempt + jitter = 1 × 2^3 + E[jitter] = 8 + 0.25 = 8.25s. Jitter = random(0, 0.5) → mean = 0.25s. 4s = attempt 2 (1×2^2). Jitter là critical để desynchronize retries của multiple LoanBot instances — tránh thundering herd sau service recover. max_attempts=4 nghĩa là delays: ~1.25s, ~2.25s, ~4.25s, ~8.25s."
+  }
+];
+
+let currentQuestion = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let started = false;
+
+function startQuiz() {
+  started = true;
+  document.getElementById('quizNav').style.display = 'flex';
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  const q = QUESTIONS[idx];
+  const progress = ((idx + 1) / QUESTIONS.length) * 100;
+  document.getElementById('quizProgress').style.width = progress + '%';
+  document.getElementById('currentQ').textContent = idx + 1;
+
+  const diffColor = { easy: '#16a34a', medium: '#d97706', hard: '#dc2626' };
+  const diffLabel = { easy: 'Dễ', medium: 'Trung bình', hard: 'Khó' };
+
+  let optionsHTML = q.options.map((opt, i) => `
+    <div class="quiz-option ${answers[idx] !== null ? (i === q.answer ? 'correct' : (i === answers[idx] ? 'wrong' : 'disabled')) : ''}"
+         onclick="${answers[idx] === null ? `selectAnswer(${i})` : ''}">
+      <span class="option-letter">${'ABCD'[i]}</span>
+      <span>${opt}</span>
+      ${answers[idx] !== null && i === q.answer ? '<span class="option-check">✓</span>' : ''}
+      ${answers[idx] === i && i !== q.answer ? '<span class="option-x">✗</span>' : ''}
+    </div>
+  `).join('');
+
+  let feedbackHTML = '';
+  if (answers[idx] !== null) {
+    const isCorrect = answers[idx] === q.answer;
+    feedbackHTML = `
+      <div class="quiz-feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">
+        <div class="feedback-header">${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng'}</div>
+        <p>${q.explanation}</p>
+      </div>
+    `;
+  }
+
+  document.getElementById('quizContent').innerHTML = `
+    <div class="quiz-question-card">
+      <div class="quiz-meta">
+        <span class="quiz-lesson-badge">Lesson ${q.lesson}</span>
+        <span class="quiz-diff-badge" style="background:${diffColor[q.difficulty]}20;color:${diffColor[q.difficulty]};border:1px solid ${diffColor[q.difficulty]}40;">${diffLabel[q.difficulty]}</span>
+        <span class="quiz-num">Câu ${idx + 1} / ${QUESTIONS.length}</span>
+      </div>
+      <h3 class="quiz-question-text">${q.q}</h3>
+      <div class="quiz-options">${optionsHTML}</div>
+      ${feedbackHTML}
+    </div>
+  `;
+}
+
+function selectAnswer(optionIdx) {
+  if (answers[currentQuestion] !== null) return;
+  answers[currentQuestion] = optionIdx;
+  renderQuestion(currentQuestion);
+}
+
+function nextQuestion() {
+  if (currentQuestion < QUESTIONS.length - 1) {
+    currentQuestion++;
+    renderQuestion(currentQuestion);
+    document.getElementById('nextBtn').textContent = currentQuestion === QUESTIONS.length - 1 ? 'Xem kết quả →' : 'Câu tiếp →';
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    renderQuestion(currentQuestion);
+    document.getElementById('nextBtn').textContent = 'Câu tiếp →';
+  }
+}
+
+function showResults() {
+  const correct = answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const pct = Math.round((correct / QUESTIONS.length) * 100);
+  const grade = pct >= 90 ? 'A' : pct >= 80 ? 'B' : pct >= 70 ? 'C' : 'D';
+  const gradeColor = pct >= 80 ? '#16a34a' : pct >= 70 ? '#d97706' : '#dc2626';
+  document.getElementById('quizContent').innerHTML = `
+    <div class="quiz-results">
+      <div class="result-score" style="color:${gradeColor}">${correct} / ${QUESTIONS.length}</div>
+      <div class="result-grade" style="background:${gradeColor}20;border:2px solid ${gradeColor};color:${gradeColor};">Grade ${grade}</div>
+      <div class="result-pct">${pct}% chính xác</div>
+      <p class="result-message">${pct >= 85 ? '🎉 Xuất sắc! Bạn đã nắm vững Tool Use Mastery cho enterprise agents.' : pct >= 70 ? '👍 Tốt! Ôn lại Lesson 3-5 (Parallel Tools, Schema Design, Circuit Breaker).' : '📖 Cần ôn lại — đặc biệt phần Agentic Loop và Circuit Breaker pattern.'}</p>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="location.reload()">🔄 Làm lại</button>
+        <a href="index.html" class="btn btn-outline">📖 Ôn bài giảng</a>
+        <a href="../module16/index.html" class="btn btn-primary">Module 16 →</a>
+      </div>
+    </div>
+  `;
+  document.getElementById('quizNav').style.display = 'none';
+}
+</script>
+</body>
+</html>

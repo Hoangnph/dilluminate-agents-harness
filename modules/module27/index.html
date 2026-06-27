@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 27 — Agent Self-Improvement & Meta-Learning</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m27-primary: #78350f;
+      --m27-accent:  #fbbf24;
+      --m27-light:   #fffbeb;
+      --m27-border:  #fcd34d;
+    }
+    .lesson-header { background: linear-gradient(135deg, #451a03 0%, #78350f 55%, #fbbf24 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fffbeb; }
+    .lesson-header p { color: #fde68a; }
+    .sidebar-nav a.active { background: var(--m27-light); border-left: 3px solid var(--m27-accent); color: var(--m27-primary); }
+    .sidebar-nav a:hover { color: var(--m27-primary); }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+    .metric-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); margin: var(--space-4) 0; }
+    .metric-box { background: var(--m27-light); border: 1px solid var(--m27-border); border-radius: var(--radius-lg); padding: var(--space-3); text-align: center; }
+    .metric-val { font-size: 1.5rem; font-weight: 800; color: var(--m27-primary); }
+    .metric-lbl { font-size: .8rem; color: var(--text-muted); }
+    .metric-delta { font-size: .75rem; font-weight: 600; }
+    .delta-pos { color: #16a34a; }
+    .delta-neg { color: #dc2626; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m27-light);color:var(--m27-primary);border-color:var(--m27-border);">MODULE 27</div>
+    <div class="sidebar-title">Agent Self-Improvement & Meta-Learning</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Vòng Lặp Cải Thiện</a>
+      <a href="#lesson2">L2. Error Taxonomy</a>
+      <a href="#lesson3">L3. Threshold Optimization</a>
+      <a href="#lesson4">L4. Persona Rebalancing</a>
+      <a href="#lesson5">L5. A/B Testing Production</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m27-accent);">📝 Quiz Module 27</a>
+      <a href="lab.ipynb" download style="color:var(--m27-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module26/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 26: Debate</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 27 · Tuần 76–78</span>
+      <h1>🔄 Agent Self-Improvement & Meta-Learning</h1>
+      <p>Sau 90 ngày deployment, LoanBot v3.9 xử lý 150K hồ sơ. Ground truth data đã về: 5.200 hồ sơ có kết quả thực tế (default/repay trong 30 ngày). Error analysis cho thấy 18% Type I errors trên DTI 0.40–0.45. FinTech Corp implement <em>self-improvement loop</em>: phân tích lỗi → optimize thresholds → rebalance personas → A/B test → deploy v4.0.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🔄 Meta-Learning</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Vòng Lặp Cải Thiện — Self-Improvement Framework</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu Self-Improvement Loop: Deploy → Monitor → Analyze → Update → Re-deploy</li>
+          <li>Phân biệt improvement via prompt engineering vs retraining vs threshold tuning</li>
+          <li>Thiết kế Ground Truth Pipeline: thu thập outcome data từ loan repayment records</li>
+          <li>Biết khi nào nên trigger re-improvement cycle (drift detected, accuracy drop, regulation change)</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot v3.9 → v4.0 Improvement Cycle</div>
+        <p><strong>Ngày 0:</strong> Deploy LoanBot v3.9 với 3-agent debate panel. <strong>Ngày 30:</strong> Thu thập outcome data — 5.200 hồ sơ từ tháng trước đã có kết quả (default hoặc repaid on time). <strong>Ngày 32:</strong> Error analysis: 18% borderline approvals đã default trong 30 ngày (Type I errors). <strong>Ngày 35:</strong> Threshold optimization tìm DTI ceiling tối ưu 0.42 thay vì 0.45. <strong>Ngày 40:</strong> A/B test: 10% traffic dùng v4.0 thresholds. <strong>Ngày 55:</strong> Statistical significance đạt → rollout 100%. <strong>Ngày 60:</strong> LoanBot v4.0 live — Type I errors giảm từ 18% xuống 8.2%.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Self-Improvement Trigger Conditions</div>
+        <div class="formula-text">Trigger khi: Accuracy Drop &gt;3% OR Type I Error &gt;15% OR PSI &gt;0.25 OR Regulation Change</div>
+        <div class="formula-desc">PSI (Population Stability Index) đo drift của borrower population. PSI &lt;0.1 = stable; 0.1–0.25 = monitor; &gt;0.25 = retrain. Accuracy Drop &gt;3% so với baseline trong rolling 14-day window → auto-trigger improvement cycle.</div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>Self-Improvement Loop: 5 phases từ Deploy đến Re-deploy — vòng lặp liên tục</title>
+          <defs>
+            <marker id="arr27" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#fbbf24"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#451a03" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fffbeb">LoanBot Self-Improvement Loop — Từ v3.9 đến v4.0</text>
+
+          <!-- Phase boxes in a circle-like arrangement -->
+          <!-- Phase 1: Deploy -->
+          <rect x="20" y="40" width="120" height="70" fill="#78350f" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="80" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#fffbeb">① DEPLOY</text>
+          <text x="80" y="80" text-anchor="middle" font-size="8" fill="#fde68a">LoanBot v3.9</text>
+          <text x="80" y="93" text-anchor="middle" font-size="8" fill="#fde68a">150K requests</text>
+          <text x="80" y="106" text-anchor="middle" font-size="8" fill="#fde68a">production traffic</text>
+
+          <!-- Phase 2: Monitor -->
+          <rect x="170" y="40" width="120" height="70" fill="#78350f" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="230" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#fffbeb">② MONITOR</text>
+          <text x="230" y="80" text-anchor="middle" font-size="8" fill="#fde68a">Collect ground truth</text>
+          <text x="230" y="93" text-anchor="middle" font-size="8" fill="#fde68a">5.2K outcomes/mo</text>
+          <text x="230" y="106" text-anchor="middle" font-size="8" fill="#fde68a">PSI drift detection</text>
+
+          <!-- Phase 3: Analyze -->
+          <rect x="320" y="40" width="120" height="70" fill="#78350f" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="380" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#fffbeb">③ ANALYZE</text>
+          <text x="380" y="80" text-anchor="middle" font-size="8" fill="#fde68a">Error taxonomy</text>
+          <text x="380" y="93" text-anchor="middle" font-size="8" fill="#fde68a">Type I: 18% DTI zone</text>
+          <text x="380" y="106" text-anchor="middle" font-size="8" fill="#fde68a">Segment deep-dive</text>
+
+          <!-- Phase 4: Update -->
+          <rect x="470" y="40" width="120" height="70" fill="#78350f" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="530" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#fffbeb">④ UPDATE</text>
+          <text x="530" y="80" text-anchor="middle" font-size="8" fill="#fde68a">Threshold: DTI→0.42</text>
+          <text x="530" y="93" text-anchor="middle" font-size="8" fill="#fde68a">Persona rebalance</text>
+          <text x="530" y="106" text-anchor="middle" font-size="8" fill="#fde68a">Prompt engineering</text>
+
+          <!-- Phase 5: Test & Deploy -->
+          <rect x="620" y="40" width="120" height="70" fill="#166534" rx="8" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="680" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#f0fdf4">⑤ A/B TEST</text>
+          <text x="680" y="80" text-anchor="middle" font-size="8" fill="#86efac">10% → 50% → 100%</text>
+          <text x="680" y="93" text-anchor="middle" font-size="8" fill="#86efac">Statistical sig p&lt;0.05</text>
+          <text x="680" y="106" text-anchor="middle" font-size="8" fill="#86efac">v4.0 live!</text>
+
+          <!-- Arrows between phases -->
+          <line x1="140" y1="75" x2="170" y2="75" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27)"/>
+          <line x1="290" y1="75" x2="320" y2="75" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27)"/>
+          <line x1="440" y1="75" x2="470" y2="75" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27)"/>
+          <line x1="590" y1="75" x2="620" y2="75" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27)"/>
+
+          <!-- Loop back arrow -->
+          <path d="M680 110 Q680 155 380 165 Q80 155 80 110" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr27)"/>
+          <text x="380" y="180" text-anchor="middle" font-size="8" fill="#fde68a">Cycle tiếp theo: 30 ngày sau → trigger check lại</text>
+
+          <!-- Results box -->
+          <rect x="270" y="118" width="220" height="38" fill="#451a03" rx="6" stroke="#fbbf24" stroke-width="1"/>
+          <text x="380" y="133" text-anchor="middle" font-size="9" fill="#fde68a">v4.0 Results: Type I 18%→8.2% | Type II +3% | Net Profit +2.1M VNĐ/tháng</text>
+          <text x="380" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fbbf24">✅ Improvement cycle: 60 days total</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Self-Improvement Loop của LoanBot v3.9 → v4.0. 5 phases: Deploy → Monitor (ground truth) → Analyze (error taxonomy) → Update (thresholds + personas) → A/B Test (10%→100%). Cycle lặp lại mỗi 30 ngày.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Ground Truth Pipeline — Thu thập Outcome Data)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime, timedelta
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional
+<span class="code-keyword">import</span> json
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">LoanOutcome</span>:
+    application_id: <span class="code-type">str</span>
+    agent_decision: <span class="code-type">str</span>       <span class="code-comment"># APPROVE / REVIEW / REJECT</span>
+    agent_confidence: float
+    disbursed: <span class="code-type">bool</span>            <span class="code-comment"># Was loan actually given?</span>
+    outcome_30d: Optional[<span class="code-type">str</span>]  <span class="code-comment"># REPAID / DEFAULTED / PENDING</span>
+    credit_score: <span class="code-type">int</span>
+    dti_ratio: float
+    employment_months: <span class="code-type">int</span>
+    decision_date: datetime
+
+<span class="code-keyword">class</span> <span class="code-function">GroundTruthPipeline</span>:
+    <span class="code-comment">"""Thu thập outcomes sau 30 ngày và match với agent decisions."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, repayment_db_connection):
+        self.db = repayment_db_connection
+        self.outcomes: List[LoanOutcome] = []
+
+    <span class="code-keyword">def</span> <span class="code-function">collect_30day_outcomes</span>(self, cutoff_date: datetime) -> <span class="code-type">int</span>:
+        <span class="code-comment">"""Collect outcomes for loans approved 30+ days ago."""</span>
+        lookback = cutoff_date - timedelta(days=<span class="code-number">30</span>)
+
+        <span class="code-comment"># Query: decisions made 30-60 days ago that have outcome</span>
+        records = self.db.<span class="code-function">query</span>(<span class="code-string">"""
+            SELECT a.application_id, a.agent_decision, a.agent_confidence,
+                   a.credit_score, a.dti_ratio, a.employment_months, a.decision_date,
+                   p.repayment_status as outcome_30d,
+                   (p.repayment_status IS NOT NULL) as disbursed
+            FROM agent_decisions a
+            LEFT JOIN payment_records p ON a.application_id = p.application_id
+            WHERE a.decision_date BETWEEN %s AND %s
+              AND a.agent_decision = 'APPROVE'
+        """</span>, (lookback - timedelta(days=<span class="code-number">30</span>), lookback))
+
+        <span class="code-keyword">for</span> r <span class="code-keyword">in</span> records:
+            self.outcomes.<span class="code-function">append</span>(<span class="code-function">LoanOutcome</span>(**r))
+
+        <span class="code-keyword">return</span> <span class="code-function">len</span>(records)
+
+    <span class="code-keyword">def</span> <span class="code-function">check_trigger_conditions</span>(self) -> dict:
+        <span class="code-comment">"""Kiểm tra xem có cần trigger improvement cycle không."""</span>
+        <span class="code-keyword">if not</span> self.outcomes:
+            <span class="code-keyword">return</span> {<span class="code-string">'trigger'</span>: <span class="code-keyword">False</span>, <span class="code-string">'reason'</span>: <span class="code-string">'No data'</span>}
+
+        disbursed = [o <span class="code-keyword">for</span> o <span class="code-keyword">in</span> self.outcomes <span class="code-keyword">if</span> o.disbursed <span class="code-keyword">and</span> o.outcome_30d]
+        <span class="code-keyword">if not</span> disbursed:
+            <span class="code-keyword">return</span> {<span class="code-string">'trigger'</span>: <span class="code-keyword">False</span>, <span class="code-string">'reason'</span>: <span class="code-string">'No outcome data yet'</span>}
+
+        <span class="code-comment"># Type I error rate: approved loans that defaulted</span>
+        defaults = <span class="code-function">sum</span>(<span class="code-number">1</span> <span class="code-keyword">for</span> o <span class="code-keyword">in</span> disbursed <span class="code-keyword">if</span> o.outcome_30d == <span class="code-string">'DEFAULTED'</span>)
+        type_i_rate = defaults / <span class="code-function">len</span>(disbursed)
+
+        triggers = []
+        <span class="code-keyword">if</span> type_i_rate > <span class="code-number">0.15</span>: triggers.<span class="code-function">append</span>(<span class="code-string">f'Type I error {type_i_rate:.1%} > 15% threshold'</span>)
+        <span class="code-keyword">if</span> <span class="code-function">len</span>(disbursed) >= <span class="code-number">1000</span>: triggers.<span class="code-function">append</span>(<span class="code-string">f'Sufficient data: {len(disbursed)} outcomes'</span>)
+
+        <span class="code-keyword">return</span> {
+            <span class="code-string">'trigger'</span>: <span class="code-function">bool</span>(triggers),
+            <span class="code-string">'type_i_rate'</span>: type_i_rate,
+            <span class="code-string">'n_outcomes'</span>: <span class="code-function">len</span>(disbursed),
+            <span class="code-string">'reasons'</span>: triggers
+        }</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Error Taxonomy — Phân Loại và Định Giá Lỗi</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt Type I (False Positive) vs Type II (False Negative) và chi phí thực tế trong loan context</li>
+          <li>Build confusion matrix và segment errors theo credit score zone, DTI zone, employment</li>
+          <li>Tính Business Cost Matrix: cost của từng loại error tính bằng VNĐ thực tế</li>
+          <li>Identify root cause: error do threshold sai, persona bias, hay data quality vấn đề?</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Type I vs Type II Error trong Credit</div>
+        <p><strong>Type I Error (False Positive)</strong>: Agent quyết định APPROVE nhưng khách hàng thực sự không đủ tiêu chuẩn → loan disbursed → customer defaults → ngân hàng mất vốn. Chi phí ≈ loan amount × (1 − recovery rate). <strong>Type II Error (False Negative)</strong>: Agent quyết định REJECT nhưng khách hàng thực sự đáng vay → loan not given → ngân hàng mất interest income. Chi phí ≈ loan amount × interest_rate × loan_term. Trong FinTech Corp: Type I cost ≈ 180M VNĐ/case (loss); Type II cost ≈ 42M VNĐ/case (opportunity). <strong>Implication</strong>: Type I 4.3× more expensive → chấp nhận tăng một chút Type II để giảm Type I.</p>
+      </div>
+
+      <div class="metric-row">
+        <div class="metric-box">
+          <div class="metric-val">18.2%</div>
+          <div class="metric-lbl">Type I Error Rate (v3.9)</div>
+          <div class="metric-delta delta-neg">↑ 3.2% vs target 15%</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">7.8%</div>
+          <div class="metric-lbl">Type II Error Rate (v3.9)</div>
+          <div class="metric-delta delta-pos">✓ trong acceptable range</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">5.47M₫</div>
+          <div class="metric-lbl">Net Loss/Month (Type I)</div>
+          <div class="metric-delta delta-neg">945 cases × 180M × recovery gap</div>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Root Cause Analysis — Nơi Errors Tập Trung</div>
+        <p>Error analysis trên 5.200 outcomes cho thấy <strong>72% Type I errors</strong> tập trung trong segment: DTI 0.40–0.45 VÀ employment &lt;12 tháng VÀ score 600–650. Đây là "danger zone" mà LoanBot v3.9 consistently overestimates creditworthiness. Root cause: OptimistAgent được prompt để prioritize income stability over employment tenure — khi employment ngắn + DTI cao cùng lúc, OptimistAgent anchor quá nhiều vào income amount mà ignore tenure risk.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Error Segmentation Analysis)</span>
+        <pre><code><span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, List, Tuple
+<span class="code-keyword">import</span> statistics
+
+<span class="code-keyword">def</span> <span class="code-function">segment_errors</span>(outcomes: List[LoanOutcome]) -> Dict:
+    <span class="code-comment">"""Phân tích Type I errors theo các segment để tìm root cause."""</span>
+
+    disbursed = [o <span class="code-keyword">for</span> o <span class="code-keyword">in</span> outcomes <span class="code-keyword">if</span> o.disbursed <span class="code-keyword">and</span> o.outcome_30d]
+
+    segments = {
+        <span class="code-string">'dti_danger_zone'</span>: [],     <span class="code-comment"># DTI 0.40-0.45</span>
+        <span class="code-string">'short_employment'</span>: [],    <span class="code-comment"># emp < 12mo</span>
+        <span class="code-string">'score_borderline'</span>: [],    <span class="code-comment"># score 600-650</span>
+        <span class="code-string">'combined_risk'</span>: [],       <span class="code-comment"># all 3 risk factors</span>
+        <span class="code-string">'other'</span>: []
+    }
+
+    <span class="code-keyword">for</span> o <span class="code-keyword">in</span> disbursed:
+        is_dti  = <span class="code-number">0.40</span> <= o.dti_ratio <= <span class="code-number">0.45</span>
+        is_emp  = o.employment_months < <span class="code-number">12</span>
+        is_score = <span class="code-number">600</span> <= o.credit_score <= <span class="code-number">650</span>
+
+        <span class="code-keyword">if</span> is_dti <span class="code-keyword">and</span> is_emp <span class="code-keyword">and</span> is_score:
+            segments[<span class="code-string">'combined_risk'</span>].<span class="code-function">append</span>(o)
+        <span class="code-keyword">elif</span> is_dti:
+            segments[<span class="code-string">'dti_danger_zone'</span>].<span class="code-function">append</span>(o)
+        <span class="code-keyword">elif</span> is_emp:
+            segments[<span class="code-string">'short_employment'</span>].<span class="code-function">append</span>(o)
+        <span class="code-keyword">elif</span> is_score:
+            segments[<span class="code-string">'score_borderline'</span>].<span class="code-function">append</span>(o)
+        <span class="code-keyword">else</span>:
+            segments[<span class="code-string">'other'</span>].<span class="code-function">append</span>(o)
+
+    results = {}
+    <span class="code-keyword">for</span> seg, cases <span class="code-keyword">in</span> segments.<span class="code-function">items</span>():
+        <span class="code-keyword">if not</span> cases: <span class="code-keyword">continue</span>
+        defaults = <span class="code-function">sum</span>(<span class="code-number">1</span> <span class="code-keyword">for</span> o <span class="code-keyword">in</span> cases <span class="code-keyword">if</span> o.outcome_30d == <span class="code-string">'DEFAULTED'</span>)
+        results[seg] = {
+            <span class="code-string">'n_cases'</span>:    <span class="code-function">len</span>(cases),
+            <span class="code-string">'n_defaults'</span>: defaults,
+            <span class="code-string">'type_i_rate'</span>: <span class="code-function">round</span>(defaults / <span class="code-function">len</span>(cases), <span class="code-number">3</span>),
+            <span class="code-string">'action'</span>: <span class="code-string">'IMMEDIATE FIX'</span> <span class="code-keyword">if</span> defaults / <span class="code-function">len</span>(cases) > <span class="code-number">0.20</span> <span class="code-keyword">else</span> <span class="code-string">'MONITOR'</span>
+        }
+
+    <span class="code-comment"># Sort by Type I rate descending</span>
+    <span class="code-keyword">return</span> <span class="code-function">dict</span>(<span class="code-function">sorted</span>(results.<span class="code-function">items</span>(), key=<span class="code-keyword">lambda</span> x: x[<span class="code-number">1</span>][<span class="code-string">'type_i_rate'</span>], reverse=<span class="code-keyword">True</span>))
+
+<span class="code-comment"># Expected output for FinTech Corp:
+# combined_risk: 45% Type I → IMMEDIATE FIX
+# dti_danger_zone: 28% Type I → IMMEDIATE FIX
+# short_employment: 19% Type I → IMMEDIATE FIX
+# score_borderline: 12% Type I → MONITOR
+# other: 4.2% Type I → OK</span></code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FinTech Corp Type I cost = 180M VNĐ/case, Type II cost = 42M VNĐ/case. Nếu tăng threshold từ score 600 lên 620: giảm 40 Type I errors/tháng nhưng tăng 85 Type II errors/tháng. Thay đổi này có worth making không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Tính net impact: Savings từ giảm Type I = 40 × 180M = 7.2B VNĐ. Additional cost từ tăng Type II = 85 × 42M = 3.57B VNĐ. Net savings = 7.2B − 3.57B = 3.63B VNĐ/tháng. → Worth making. Tuy nhiên cần cẩn thận: 85 Type II errors = 85 khách hàng tốt bị từ chối → ảnh hưởng reputation. Cũng cần check: 85 cases này distribute thế nào trong các segments — nếu tập trung ở một demographic group, có risk discrimination/fairness issue cần xem xét.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Threshold Optimization — Tìm Điểm Tối Ưu</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement Grid Search và Binary Search để tìm optimal threshold trên validation set</li>
+          <li>Dùng Business Cost Matrix thay vì F1 score để optimize — business impact, không phải accuracy</li>
+          <li>Handle multi-dimensional threshold space: credit score + DTI + employment cùng lúc</li>
+          <li>Biết cách validate thresholds: tránh overfitting trên historical data</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Thermostat vs Temperature Control AI</div>
+        <p>Threshold optimization giống điều chỉnh thermostat — không phải chỉ tăng/giảm 1 độ rồi xem kết quả, mà phải <em>sweep</em> qua range và tìm điểm cho kết quả tốt nhất. Điểm phức tạp hơn thermostat: LoanBot có 3 "nhiệt độ" đồng thời (score, DTI, employment) — thay đổi một cái ảnh hưởng đến tất cả. Phải optimize trên không gian 3 chiều, không phải 1 chiều.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Business-Cost Threshold Optimizer)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Tuple
+<span class="code-keyword">import</span> itertools
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ThresholdConfig</span>:
+    min_credit_score: <span class="code-type">int</span>    <span class="code-comment"># Minimum credit score to consider</span>
+    max_dti: float          <span class="code-comment"># DTI ceiling</span>
+    min_employment_months: <span class="code-type">int</span>  <span class="code-comment"># Minimum employment duration</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ThresholdResult</span>:
+    config: ThresholdConfig
+    type_i_errors: <span class="code-type">int</span>
+    type_ii_errors: <span class="code-type">int</span>
+    net_cost_million_vnd: float
+    business_metric: float  <span class="code-comment"># Lower = better (total cost)</span>
+
+<span class="code-keyword">class</span> <span class="code-function">ThresholdOptimizer</span>:
+    <span class="code-comment"># Business cost constants (VNĐ million)</span>
+    TYPE_I_COST  = <span class="code-number">180</span>  <span class="code-comment"># Default loss per case</span>
+    TYPE_II_COST = <span class="code-number">42</span>   <span class="code-comment"># Opportunity cost per case</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, validation_outcomes: List[LoanOutcome]):
+        self.val = validation_outcomes
+
+    <span class="code-keyword">def</span> <span class="code-function">evaluate_config</span>(self, cfg: ThresholdConfig) -> ThresholdResult:
+        <span class="code-comment">"""Evaluate a threshold config on validation data."""</span>
+        type_i = type_ii = <span class="code-number">0</span>
+
+        <span class="code-keyword">for</span> o <span class="code-keyword">in</span> self.val:
+            <span class="code-comment"># Simulate agent decision with this config</span>
+            would_approve = (
+                o.credit_score >= cfg.min_credit_score <span class="code-keyword">and</span>
+                o.dti_ratio <= cfg.max_dti <span class="code-keyword">and</span>
+                o.employment_months >= cfg.min_employment_months
+            )
+            actual_good = (o.outcome_30d == <span class="code-string">'REPAID'</span>)
+
+            <span class="code-keyword">if</span> would_approve <span class="code-keyword">and not</span> actual_good:
+                type_i += <span class="code-number">1</span>   <span class="code-comment"># Approve bad borrower</span>
+            <span class="code-keyword">elif not</span> would_approve <span class="code-keyword">and</span> actual_good:
+                type_ii += <span class="code-number">1</span>  <span class="code-comment"># Reject good borrower</span>
+
+        net_cost = type_i * self.TYPE_I_COST + type_ii * self.TYPE_II_COST
+        <span class="code-keyword">return</span> <span class="code-function">ThresholdResult</span>(cfg, type_i, type_ii, net_cost, net_cost)
+
+    <span class="code-keyword">def</span> <span class="code-function">grid_search</span>(self) -> ThresholdResult:
+        <span class="code-comment">"""Search over discrete threshold candidates."""</span>
+        score_candidates = <span class="code-function">range</span>(<span class="code-number">580</span>, <span class="code-number">680</span>, <span class="code-number">10</span>)   <span class="code-comment"># 580, 590, ..., 670</span>
+        dti_candidates   = [<span class="code-number">0.38</span>, <span class="code-number">0.40</span>, <span class="code-number">0.42</span>, <span class="code-number">0.43</span>, <span class="code-number">0.45</span>]
+        emp_candidates   = [<span class="code-number">6</span>, <span class="code-number">9</span>, <span class="code-number">12</span>, <span class="code-number">18</span>]
+
+        best: Optional[ThresholdResult] = <span class="code-keyword">None</span>
+        <span class="code-keyword">for</span> score, dti, emp <span class="code-keyword">in</span> itertools.<span class="code-function">product</span>(score_candidates, dti_candidates, emp_candidates):
+            result = self.<span class="code-function">evaluate_config</span>(<span class="code-function">ThresholdConfig</span>(score, dti, emp))
+            <span class="code-keyword">if</span> best <span class="code-keyword">is</span> <span class="code-keyword">None</span> <span class="code-keyword">or</span> result.net_cost_million_vnd < best.net_cost_million_vnd:
+                best = result
+
+        <span class="code-keyword">return</span> best
+
+<span class="code-comment"># FinTech Corp grid search result (simulated):
+# Best config: score=620, dti=0.42, emp=9 months
+# Type I: 945 → 437 cases (-53.8%)
+# Type II: 404 → 692 cases (+71.3%)
+# Net cost: 174,375M → 107,730M → SAVINGS: 66,645M VNĐ/month ✅</span></code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Fairness Constraint trong Threshold Optimization
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Threshold optimization thuần túy theo business cost có thể tạo ra disparate impact: nếu nhóm dân số A có average credit score thấp hơn nhóm B do lịch sử (không phải do creditworthiness thực tế), tăng score threshold sẽ disproportionately reject nhóm A.</p>
+          <p><strong>Fairness constraint</strong>: Trong optimization loop, thêm constraint: <code>approval_rate_group_A / approval_rate_group_B &gt;= 0.80</code> (80% rule theo Equal Credit Opportunity Act). Nếu optimal threshold vi phạm fairness constraint → chọn next-best threshold satisfy constraint. Chi phí fairness = additional cost do không dùng business-optimal threshold.</p>
+          <p>FinTech Corp implement fairness check theo 3 dimensions: gender, age group (18-30 vs 30-50 vs 50+), region (urban vs rural).</p>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Persona Rebalancing — Bayesian Weight Updates</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Track per-agent accuracy trên ground truth để detect agent bias</li>
+          <li>Implement Bayesian weight update: accuracy improves → weight tăng</li>
+          <li>Phát hiện và correct agent systematic bias: OptimistAgent consistently over-approve borderlines</li>
+          <li>Biết khi nào thay đổi weight không đủ — cần update persona system prompt</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Bayesian Weight Update</div>
+        <p>Bắt đầu với prior weights (Optimist=1.0, Pessimist=1.2, Regulator=1.5). Sau mỗi cycle, update dựa trên observed accuracy: <strong>new_weight = prior_weight × (accuracy / baseline_accuracy)</strong>. Nếu Pessimist accuracy = 81% vs baseline 70% → multiplier = 81/70 = 1.157 → new weight = 1.2 × 1.157 = 1.39 ≈ 1.4. Nếu OptimistAgent accuracy chỉ 61% → multiplier = 61/70 = 0.871 → new weight = 1.0 × 0.871 = 0.87. Clip weights trong range [0.5, 2.0] để prevent extreme dominance.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Per-Agent Accuracy Tracking + Weight Update)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, List
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">AgentPerformanceRecord</span>:
+    agent_name: <span class="code-type">str</span>
+    total_votes: <span class="code-type">int</span> = <span class="code-number">0</span>
+    correct_votes: <span class="code-type">int</span> = <span class="code-number">0</span>
+    type_i_votes: <span class="code-type">int</span> = <span class="code-number">0</span>   <span class="code-comment"># Voted approve, outcome defaulted</span>
+    type_ii_votes: <span class="code-type">int</span> = <span class="code-number">0</span>  <span class="code-comment"># Voted reject, outcome would-have-repaid</span>
+    current_weight: float = <span class="code-number">1.0</span>
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">accuracy</span>(self) -> float:
+        <span class="code-keyword">return</span> self.correct_votes / self.total_votes <span class="code-keyword">if</span> self.total_votes > <span class="code-number">0</span> <span class="code-keyword">else</span> <span class="code-number">0.0</span>
+
+<span class="code-keyword">class</span> <span class="code-function">PersonaRebalancer</span>:
+    BASELINE_ACCURACY = <span class="code-number">0.70</span>   <span class="code-comment"># Expected if random guessing among valid choices</span>
+    WEIGHT_FLOOR = <span class="code-number">0.5</span>
+    WEIGHT_CEIL  = <span class="code-number">2.0</span>
+    MIN_SAMPLES  = <span class="code-number">200</span>         <span class="code-comment"># Min samples before updating weight</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.records: Dict[<span class="code-type">str</span>, AgentPerformanceRecord] = {}
+
+    <span class="code-keyword">def</span> <span class="code-function">record_vote</span>(self, agent_name: <span class="code-type">str</span>, vote: <span class="code-type">str</span>, outcome: <span class="code-type">str</span>):
+        <span class="code-comment">"""Record whether agent vote matched actual outcome."""</span>
+        <span class="code-keyword">if</span> agent_name <span class="code-keyword">not in</span> self.records:
+            self.records[agent_name] = <span class="code-function">AgentPerformanceRecord</span>(agent_name)
+
+        rec = self.records[agent_name]
+        rec.total_votes += <span class="code-number">1</span>
+
+        <span class="code-comment"># Correctness: agent said APPROVE, loan repaid (true positive)</span>
+        <span class="code-comment">#              agent said REJECT/REVIEW, loan would have defaulted (true negative)</span>
+        correct = (vote == <span class="code-string">'APPROVE'</span> <span class="code-keyword">and</span> outcome == <span class="code-string">'REPAID'</span>) <span class="code-keyword">or</span> \
+                  (vote <span class="code-keyword">in</span> [<span class="code-string">'REJECT'</span>, <span class="code-string">'REVIEW'</span>] <span class="code-keyword">and</span> outcome == <span class="code-string">'DEFAULTED'</span>)
+        <span class="code-keyword">if</span> correct:
+            rec.correct_votes += <span class="code-number">1</span>
+        <span class="code-keyword">if</span> vote == <span class="code-string">'APPROVE'</span> <span class="code-keyword">and</span> outcome == <span class="code-string">'DEFAULTED'</span>:
+            rec.type_i_votes += <span class="code-number">1</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">compute_new_weights</span>(self) -> Dict[<span class="code-type">str</span>, float]:
+        <span class="code-comment">"""Compute updated weights based on observed accuracy."""</span>
+        new_weights = {}
+        <span class="code-keyword">for</span> name, rec <span class="code-keyword">in</span> self.records.<span class="code-function">items</span>():
+            <span class="code-keyword">if</span> rec.total_votes < self.MIN_SAMPLES:
+                new_weights[name] = rec.current_weight  <span class="code-comment"># Not enough data — keep current</span>
+                <span class="code-keyword">continue</span>
+            multiplier = rec.accuracy / self.BASELINE_ACCURACY
+            raw = rec.current_weight * multiplier
+            <span class="code-comment"># Clip to prevent extreme values</span>
+            new_weights[name] = <span class="code-function">round</span>(<span class="code-function">max</span>(self.WEIGHT_FLOOR, <span class="code-function">min</span>(self.WEIGHT_CEIL, raw)), <span class="code-number">2</span>)
+        <span class="code-keyword">return</span> new_weights
+
+<span class="code-comment"># After 90-day cycle — FinTech Corp results:
+# OptimistAgent:  accuracy=61% → multiplier=0.871 → weight 1.0→0.87
+# PessimistAgent: accuracy=81% → multiplier=1.157 → weight 1.2→1.39
+# RegulatorAgent: accuracy=76% → multiplier=1.086 → weight 1.5→1.63 (clip: 1.63)
+# Action: Update persona prompt for OptimistAgent to be less aggressive on borderlines</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: A/B Testing in Production — Safe Deployment</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Design A/B test cho agent improvements: control (v3.9) vs treatment (v4.0)</li>
+          <li>Tính sample size cần thiết để đạt statistical significance (power analysis)</li>
+          <li>Implement traffic splitting: shadow mode → canary → gradual rollout</li>
+          <li>Define stopping criteria: khi nào rollout thành công, khi nào rollback</li>
+        </ul>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Shadow Mode trước khi Canary</div>
+        <p>Trong credit decision context, không thể đơn giản dùng 50/50 A/B split ngay — mỗi wrong decision có real financial consequence. <strong>Shadow Mode</strong>: v4.0 runs in parallel với v3.9 nhưng không ra quyết định thực tế — chỉ log predictions để so sánh offline. Sau 2 tuần shadow: nếu v4.0 predictions align với ground truth tốt hơn → move to <strong>Canary</strong> (5% real traffic). Sau 2 tuần canary với statistical significance → <strong>Gradual Rollout</strong> (25% → 50% → 100%). Total time-to-full-deploy: 6 tuần — an toàn hơn overnight flip nhưng còn nhanh hơn traditional 6-month review cycle.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>A/B Testing Timeline: Shadow Mode 2 tuần → Canary 5% → Gradual Rollout 25%→50%→100% → Full Deploy</title>
+          <defs>
+            <marker id="arr27b" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#fbbf24"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#451a03" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fffbeb">A/B Test Rollout Timeline — LoanBot v4.0</text>
+
+          <!-- Timeline bar -->
+          <rect x="30" y="95" width="700" height="6" fill="#78350f" rx="3"/>
+
+          <!-- Phase 1: Shadow (weeks 1-2) -->
+          <rect x="30" y="45" width="140" height="45" fill="#292524" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="100" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#fde68a">Shadow Mode</text>
+          <text x="100" y="76" text-anchor="middle" font-size="8" fill="#a8a29e">v4.0 logs only</text>
+          <text x="100" y="87" text-anchor="middle" font-size="8" fill="#a8a29e">0% real traffic</text>
+          <line x1="100" y1="90" x2="100" y2="95" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="100" y="110" text-anchor="middle" font-size="8" fill="#fde68a">Tuần 1–2</text>
+
+          <!-- Phase 2: Canary (week 3-4) -->
+          <rect x="195" y="45" width="140" height="45" fill="#422006" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="265" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#fde68a">Canary 5%</text>
+          <text x="265" y="76" text-anchor="middle" font-size="8" fill="#fde68a">Real decisions</text>
+          <text x="265" y="87" text-anchor="middle" font-size="8" fill="#fde68a">Monitor errors</text>
+          <line x1="265" y1="90" x2="265" y2="95" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="265" y="110" text-anchor="middle" font-size="8" fill="#fde68a">Tuần 3–4</text>
+
+          <!-- Phase 3: 25% (week 5) -->
+          <rect x="360" y="45" width="110" height="45" fill="#713f12" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="415" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#fde68a">25% Traffic</text>
+          <text x="415" y="76" text-anchor="middle" font-size="8" fill="#fde68a">p &lt; 0.01</text>
+          <text x="415" y="87" text-anchor="middle" font-size="8" fill="#fde68a">confirmed</text>
+          <line x1="415" y1="90" x2="415" y2="95" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="415" y="110" text-anchor="middle" font-size="8" fill="#fde68a">Tuần 5</text>
+
+          <!-- Phase 4: 50% (week 6) -->
+          <rect x="495" y="45" width="110" height="45" fill="#78350f" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="550" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#fde68a">50% Traffic</text>
+          <text x="550" y="76" text-anchor="middle" font-size="8" fill="#fde68a">Both versions</text>
+          <text x="550" y="87" text-anchor="middle" font-size="8" fill="#fde68a">monitored</text>
+          <line x1="550" y1="90" x2="550" y2="95" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="550" y="110" text-anchor="middle" font-size="8" fill="#fde68a">Tuần 6</text>
+
+          <!-- Phase 5: 100% (week 7) -->
+          <rect x="625" y="45" width="110" height="45" fill="#166534" rx="8" stroke="#4ade80" stroke-width="2"/>
+          <text x="680" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#f0fdf4">100% v4.0</text>
+          <text x="680" y="76" text-anchor="middle" font-size="8" fill="#86efac">Full Deploy</text>
+          <text x="680" y="87" text-anchor="middle" font-size="8" fill="#86efac">v3.9 sunset</text>
+          <line x1="680" y1="90" x2="680" y2="95" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="680" y="110" text-anchor="middle" font-size="8" fill="#86efac">Tuần 7</text>
+
+          <!-- Rollback branch -->
+          <rect x="195" y="130" width="200" height="38" fill="#7f1d1d" rx="8" stroke="#f87171" stroke-width="1.5"/>
+          <text x="295" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fef2f2">⛔ ROLLBACK CRITERIA</text>
+          <text x="295" y="160" text-anchor="middle" font-size="8" fill="#fca5a5">Type I &gt;20% OR errors spike &gt;2σ</text>
+          <line x1="265" y1="90" x2="295" y2="130" stroke="#f87171" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#arr27b)"/>
+
+          <!-- Arrows -->
+          <line x1="170" y1="68" x2="195" y2="68" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27b)"/>
+          <line x1="335" y1="68" x2="360" y2="68" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27b)"/>
+          <line x1="470" y1="68" x2="495" y2="68" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr27b)"/>
+          <line x1="605" y1="68" x2="625" y2="68" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr27b)"/>
+
+          <text x="380" y="185" text-anchor="middle" font-size="8" fill="#a8a29e">Statistical significance: chi-square test trên default rate, p &lt; 0.05 required. Min 500 cases/arm mới evaluate.</text>
+        </svg>
+        <div class="diagram-title">Hình 2: A/B Test Rollout Timeline cho LoanBot v4.0. Shadow Mode (0% real, 2 tuần) → Canary 5% (2 tuần, statistical sig) → 25%→50%→100% (3 tuần). Rollback criteria: Type I &gt;20% hoặc error spike &gt;2σ. Total: 7 tuần từ test đến full deploy.</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Sau 2 tuần Canary 5%: control (v3.9) có 1.850 cases với default rate 18.2%. Treatment (v4.0) có 97 cases với default rate 11.3%. Bạn có nên rollout lên 25% không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> 97 cases là KHÔNG đủ cho statistical significance. Min 500 cases/arm theo design. Với 97 cases treatment, interval confidence rộng — 11.3% default rate có thể là 6%–17% thực tế. Không rollout thêm ngay. Action: (1) Tăng canary từ 5% lên 10% để thu data nhanh hơn; (2) Đợi thêm 1–2 tuần để đạt 300–500 cases; (3) Chạy chi-square test khi đủ sample. Kết quả hiện tại "promising" nhưng chưa "significant." Rollout sớm có risk: nếu v4.0 thực sự không tốt hơn, bạn không biết cho đến khi đã damage 25% khách hàng.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <h2>📚 Glossary Module 27</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m27-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m27-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m27-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Improvement Loop</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp: Deploy → Monitor → Analyze → Update → A/B Test → Re-deploy. Trigger sau 30 ngày hoặc khi detect drift/accuracy drop.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Ground Truth Data</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kết quả thực tế (loan repaid/defaulted) sau 30 ngày — dữ liệu chân lý để evaluate agent accuracy.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Type I Error</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">False Positive trong credit: agent approve nhưng borrower defaults. Chi phí = loan amount × loss rate. Đắt hơn Type II.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Type II Error</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">False Negative trong credit: agent reject nhưng borrower would have repaid. Chi phí = interest income lost.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Business Cost Matrix</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Ma trận chi phí thực tế (VNĐ) cho từng loại error — dùng để optimize thresholds thay vì accuracy/F1.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">PSI (Population Stability Index)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đo mức độ thay đổi của borrower population so với baseline. PSI &gt;0.25 → significant drift → cần retrain.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Threshold Optimization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tìm credit score, DTI, employment thresholds tối ưu theo business cost. Grid search trên validation data.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Bayesian Weight Update</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cập nhật agent weight dựa trên observed accuracy vs baseline. new_weight = prior × (accuracy/baseline). Clip [0.5, 2.0].</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Persona Rebalancing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Điều chỉnh agent weights VÀ/HOẶC update system prompts dựa trên track record. Weight update nếu accuracy low; prompt update nếu systematic bias.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Shadow Mode</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">New agent version chạy parallel nhưng không ra quyết định thực tế — chỉ log predictions để compare offline. Safe first step trước canary.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Canary Deployment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Route 5% real traffic đến new version để validate in production trước full rollout. Statistical significance required trước khi expand.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Statistical Significance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">p &lt; 0.05 (hoặc &lt;0.01 cho high-stakes) từ chi-square test so sánh default rates. Cần ≥500 cases/arm để evaluate.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Power Analysis</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tính sample size cần thiết để detect effect size với desired statistical power (thường 80%). Tránh underpowered tests.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Rollback Criteria</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Điều kiện tự động roll back về version cũ: Type I &gt;20%, error spike &gt;2σ, hoặc latency p99 tăng &gt;50%.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Concept Drift</td><td style="padding:8px 12px;">Khi relationship giữa input features và outcome thay đổi theo thời gian — thường do macro changes (recession, new regulation) → model cần retrain.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module26/index.html" class="btn btn-outline">← Module 26: Debate</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 27 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

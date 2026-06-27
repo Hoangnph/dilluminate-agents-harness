@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 29 — Agent Economics & ROI Analysis</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m29-primary: #14532d;
+      --m29-accent:  #4ade80;
+      --m29-light:   #f0fdf4;
+      --m29-border:  #86efac;
+    }
+    .lesson-header { background: linear-gradient(135deg, #052e16 0%, #14532d 55%, #4ade80 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #f0fdf4; }
+    .lesson-header p { color: #bbf7d0; }
+    .sidebar-nav a.active { background: var(--m29-light); border-left: 3px solid var(--m29-accent); color: var(--m29-primary); }
+    .sidebar-nav a:hover { color: var(--m29-primary); }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+    .roi-table { width: 100%; font-size: .875rem; border-collapse: collapse; margin: var(--space-4) 0; }
+    .roi-table th { background: var(--m29-light); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--m29-border); font-weight: 700; }
+    .roi-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .roi-table tr:last-child td { font-weight: 700; background: #dcfce7; }
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: var(--space-3); margin: var(--space-4) 0; }
+    .metric-tile { border-radius: var(--radius-lg); padding: var(--space-4); text-align: center; border: 1px solid; }
+    .metric-tile .val { font-size: 1.6rem; font-weight: 800; }
+    .metric-tile .lbl { font-size: .75rem; color: var(--text-muted); margin-top: 4px; }
+    .cost-bar { height: 20px; border-radius: 4px; margin: 4px 0; display: flex; align-items: center; padding: 0 8px; font-size: .75rem; font-weight: 700; color: white; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m29-light);color:var(--m29-primary);border-color:var(--m29-border);">MODULE 29</div>
+    <div class="sidebar-title">Agent Economics & ROI Analysis</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. ROI Framework</a>
+      <a href="#lesson2">L2. Token Economics</a>
+      <a href="#lesson3">L3. Scaling Economics</a>
+      <a href="#lesson4">L4. Business Case</a>
+      <a href="#lesson5">L5. Value Monitoring</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m29-accent);">📝 Quiz Module 29</a>
+      <a href="lab.ipynb" download style="color:var(--m29-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module28/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 28: AI Governance</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 29 · Tuần 82–84</span>
+      <h1>💰 Agent Economics & ROI Analysis</h1>
+      <p>Sau 28 module xây dựng LoanBot, câu hỏi cuối cùng với Board: <em>"Đáng tiền không?"</em> Module này builds ROI framework từ nguyên liệu thô — token costs, staff savings, accuracy improvements, và governance overhead — thành một business case thuyết phục với NPV, payback period, và sensitivity analysis mà CFO có thể ký duyệt.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>💰 Economics & ROI</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: ROI Framework — Từ Chi Phí đến Giá Trị</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Xác định tất cả cost components và benefit components của LoanBot deployment</li>
+          <li>Tính Total Cost of Ownership (TCO): development + API + infra + governance + staff</li>
+          <li>Tính Net Business Value: trực tiếp (staff savings, speed) và gián tiếp (quality, compliance)</li>
+          <li>Build ROI formula và interpret kết quả cho C-Suite audience</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FinTech Corp trước và sau LoanBot</div>
+        <p><strong>Trước LoanBot (Manual):</strong> 200 nhân viên thẩm định, mỗi hồ sơ tốn 350.000 VNĐ chi phí trực tiếp (lương + overhead), xử lý 50.000 hồ sơ/tháng = <strong>17.5 tỷ VNĐ/tháng</strong> operating cost. Processing time: 3–5 ngày. Error rate (human): ~12% Type I errors → ~6.000 bad loans/tháng. <strong>Sau LoanBot v4.0:</strong> 25 nhân viên (REVIEW cases + oversight), API cost + infra + governance overhead, xử lý 50.000 hồ sơ/tháng = <strong>5.9 tỷ VNĐ/tháng</strong>. Processing time: 5 phút. Error rate: 8.2% Type I → ~4.100 bad loans/tháng → tiết kiệm ~1.900 × 180M = 342 tỷ/tháng bad loan reduction. Tuy nhiên: 342 tỷ là incremental savings từ accuracy improvement (M27), không phải operational savings thuần túy.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">ROI Formula</div>
+        <div class="formula-text">ROI = (Net Benefit / Total Investment) × 100%</div>
+        <div class="formula-desc">Net Benefit = Total Savings − Total Operating Cost of AI. Total Savings = Staff Cost Reduction + Error Cost Reduction + Speed Value + Compliance Value. Total Investment = Development Cost + Infrastructure Setup. Tất cả tính trên cùng time horizon (thường 3 năm).</div>
+      </div>
+
+      <table class="roi-table">
+        <tr>
+          <th>Hạng mục Chi phí</th>
+          <th>Manual (tháng)</th>
+          <th>LoanBot v4.0 (tháng)</th>
+          <th>Tiết kiệm</th>
+        </tr>
+        <tr>
+          <td>Nhân sự thẩm định</td>
+          <td>17.500.000.000</td>
+          <td>4.375.000.000 (25 người)</td>
+          <td style="color:#16a34a;font-weight:700;">13.125.000.000</td>
+        </tr>
+        <tr>
+          <td>LLM API Costs</td>
+          <td>—</td>
+          <td>340.000.000</td>
+          <td style="color:#dc2626;">−340.000.000</td>
+        </tr>
+        <tr>
+          <td>Infrastructure (cloud)</td>
+          <td>200.000.000</td>
+          <td>500.000.000</td>
+          <td style="color:#dc2626;">−300.000.000</td>
+        </tr>
+        <tr>
+          <td>Bad Loan Losses (Type I)</td>
+          <td>6.000 × 180M = 1.080 tỷ</td>
+          <td>4.100 × 180M = 738 tỷ</td>
+          <td style="color:#16a34a;font-weight:700;">342.000.000.000</td>
+        </tr>
+        <tr>
+          <td>Governance/Compliance overhead</td>
+          <td>—</td>
+          <td>150.000.000</td>
+          <td style="color:#dc2626;">−150.000.000</td>
+        </tr>
+        <tr>
+          <td><strong>TOTAL MONTHLY</strong></td>
+          <td><strong>18.780 tỷ</strong></td>
+          <td><strong>6.103 tỷ</strong></td>
+          <td style="color:#16a34a;"><strong>+12.677 tỷ/tháng</strong></td>
+        </tr>
+      </table>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FinTech Corp đầu tư 2.3 tỷ VNĐ để build LoanBot. Net savings là 12.677 tỷ/tháng. Payback period là bao nhiêu ngày? Và ROI 3-năm?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Payback period = 2.3 tỷ / 12.677 tỷ × 30 ngày = 5.5 ngày. ROI 3-năm: Net Benefit = 12.677 tỷ × 36 tháng − 2.3 tỷ = 453.4 tỷ. ROI = 453.4 / 2.3 × 100% = 19.713%. Đây là ROI extraordinary — trong thực tế, con số này trigger câu hỏi "Tại sao chưa làm sớm hơn?" từ Board. Payback period 5.5 ngày là lý do mọi financial services công ty đều đang race để deploy AI.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Token Economics — Chi Phí Thực Tế của Mỗi Quyết Định</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Tính chính xác cost-per-decision dựa trên token consumption của từng agent call</li>
+          <li>Phân tích tradeoff: simple routing agent (Haiku) vs multi-agent debate (Sonnet/Opus)</li>
+          <li>Implement token budget cho từng decision tier để cap maximum cost/case</li>
+          <li>Tối ưu prompt length để giảm input token cost mà không giảm quality</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Token Cost như Điện thoại theo Phút</div>
+        <p>Thời kỳ điện thoại tính cước theo phút: gọi ngắn là rẻ, gọi dài tốn tiền. LLM API tính theo token: prompt ngắn + output ngắn = rẻ. Khác biệt quan trọng: <em>bạn trả tiền cho cả input lẫn output</em> — và input của mỗi agent call thường mang toàn bộ conversation history (= cumulative cost problem trong multi-turn). FinTech Corp cần biết: "Mỗi loan decision tốn bao nhiêu token — và tôi có thể predict cost không?" Câu trả lời là YES — nếu bạn thiết kế system với token budgets rõ ràng.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>Token Cost Breakdown: 3 tiers của LoanBot decisions — Clear Cases (Haiku), Standard Borderline (Sonnet 3-agent), High-Value (Sonnet 5-agent + Meta-Arbitrator)</title>
+          <defs>
+            <marker id="arr29" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#4ade80"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#052e16" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0fdf4">Token Cost per Decision — LoanBot v4.0 (3 Tiers)</text>
+
+          <!-- Tier 1 -->
+          <rect x="15" y="35" width="225" height="145" fill="#14532d" rx="8" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="127" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="#f0fdf4">TIER 1: Clear Decision (80%)</text>
+          <text x="127" y="68" text-anchor="middle" font-size="8" fill="#bbf7d0">Single Router + Haiku</text>
+          <rect x="25" y="76" width="195" height="14" fill="#16a34a" rx="3"/>
+          <text x="122" y="87" text-anchor="middle" font-size="8" fill="white">Router: 1.200 input tokens → $0.00096</text>
+          <rect x="25" y="93" width="90" height="14" fill="#4ade80" rx="3"/>
+          <text x="70" y="104" text-anchor="middle" font-size="8" fill="#052e16">Output: 300t → $0.0012</text>
+          <line x1="127" y1="115" x2="127" y2="128" stroke="#4ade80" stroke-width="1"/>
+          <rect x="55" y="128" width="145" height="28" fill="#065f46" rx="4" stroke="#4ade80" stroke-width="1"/>
+          <text x="127" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#4ade80">Cost/Decision: ~54 VNĐ</text>
+          <text x="127" y="155" text-anchor="middle" font-size="8" fill="#bbf7d0">($0.00216 × 25,000 VNĐ/$)</text>
+          <text x="127" y="172" text-anchor="middle" font-size="9" fill="#bbf7d0">Volume: 40,000 cases/mo</text>
+
+          <!-- Tier 2 -->
+          <rect x="255" y="35" width="225" height="145" fill="#166534" rx="8" stroke="#86efac" stroke-width="1.5"/>
+          <text x="367" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="#f0fdf4">TIER 2: 3-Agent Debate (17%)</text>
+          <text x="367" y="68" text-anchor="middle" font-size="8" fill="#bbf7d0">3 × Sonnet + Meta-Arbitrator</text>
+          <rect x="265" y="76" width="205" height="14" fill="#15803d" rx="3"/>
+          <text x="367" y="87" text-anchor="middle" font-size="8" fill="white">3 agents × 3.000t input = $0.0072</text>
+          <rect x="265" y="93" width="140" height="14" fill="#4ade80" rx="3"/>
+          <text x="335" y="104" text-anchor="middle" font-size="8" fill="#052e16">3 agents output 800t = $0.0096</text>
+          <rect x="265" y="110" width="100" height="14" fill="#22c55e" rx="3"/>
+          <text x="315" y="121" text-anchor="middle" font-size="8" fill="white">Meta-Arb: $0.004</text>
+          <line x1="367" y1="128" x2="367" y2="141" stroke="#86efac" stroke-width="1"/>
+          <rect x="295" y="141" width="145" height="28" fill="#064e3b" rx="4" stroke="#86efac" stroke-width="1"/>
+          <text x="367" y="155" text-anchor="middle" font-size="9" font-weight="700" fill="#86efac">Cost/Decision: ~518 VNĐ</text>
+          <text x="367" y="168" text-anchor="middle" font-size="8" fill="#bbf7d0">Volume: 8,500 cases/mo</text>
+
+          <!-- Tier 3 -->
+          <rect x="495" y="35" width="250" height="145" fill="#1a4731" rx="8" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="620" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="#fde68a">TIER 3: 5-Agent Panel (3%)</text>
+          <text x="620" y="68" text-anchor="middle" font-size="8" fill="#fde68a">5 × Sonnet + DA + Meta-Arb</text>
+          <rect x="505" y="76" width="230" height="14" fill="#78350f" rx="3"/>
+          <text x="620" y="87" text-anchor="middle" font-size="8" fill="white">5 agents × 3.500t input = $0.014</text>
+          <rect x="505" y="93" width="200" height="14" fill="#d97706" rx="3"/>
+          <text x="605" y="104" text-anchor="middle" font-size="8" fill="white">5 agents × 1.000t output = $0.020</text>
+          <rect x="505" y="110" width="150" height="14" fill="#f59e0b" rx="3"/>
+          <text x="580" y="121" text-anchor="middle" font-size="8" fill="#052e16">DA + Meta-Arb: $0.012</text>
+          <line x1="620" y1="128" x2="620" y2="141" stroke="#fbbf24" stroke-width="1"/>
+          <rect x="548" y="141" width="145" height="28" fill="#1c1917" rx="4" stroke="#fbbf24" stroke-width="1"/>
+          <text x="620" y="155" text-anchor="middle" font-size="9" font-weight="700" fill="#fbbf24">Cost/Decision: ~1.150 VNĐ</text>
+          <text x="620" y="168" text-anchor="middle" font-size="8" fill="#fde68a">Volume: 1,500 cases/mo</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Token cost breakdown cho 3 tiers. Tier 1 (80% volume) rất rẻ nhờ Haiku + short prompts. Tier 3 (3% volume, high-value loans &gt;2B VNĐ) dùng 5-agent panel với Sonnet — tốn hơn nhưng justified bởi loan size. Weighted average: ~115 VNĐ/decision.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Token Budget Manager)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, Optional
+<span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+
+<span class="code-keyword">class</span> <span class="code-function">DecisionTier</span>(Enum):
+    CLEAR     = <span class="code-string">"CLEAR"</span>      <span class="code-comment"># 80% — Haiku single pass</span>
+    STANDARD  = <span class="code-string">"STANDARD"</span>   <span class="code-comment"># 17% — 3-agent Sonnet debate</span>
+    HIGH_VALUE = <span class="code-string">"HIGH_VALUE"</span> <span class="code-comment"># 3%  — 5-agent panel</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">TokenBudget</span>:
+    tier: DecisionTier
+    max_input_tokens: <span class="code-type">int</span>
+    max_output_tokens: <span class="code-type">int</span>
+    model: <span class="code-type">str</span>
+    n_agents: <span class="code-type">int</span>
+    max_cost_usd: float       <span class="code-comment"># Hard cap per decision</span>
+    max_cost_vnd: <span class="code-type">int</span>
+
+<span class="code-comment"># Token budgets per tier — enforced at runtime</span>
+TIER_BUDGETS: Dict[DecisionTier, TokenBudget] = {
+    DecisionTier.CLEAR: <span class="code-function">TokenBudget</span>(
+        tier=DecisionTier.CLEAR,
+        max_input_tokens=<span class="code-number">1500</span>, max_output_tokens=<span class="code-number">400</span>,
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>, n_agents=<span class="code-number">1</span>,
+        max_cost_usd=<span class="code-number">0.005</span>, max_cost_vnd=<span class="code-number">125</span>
+    ),
+    DecisionTier.STANDARD: <span class="code-function">TokenBudget</span>(
+        tier=DecisionTier.STANDARD,
+        max_input_tokens=<span class="code-number">3500</span>, max_output_tokens=<span class="code-number">1000</span>,
+        model=<span class="code-string">"claude-sonnet-4-6"</span>, n_agents=<span class="code-number">3</span>,
+        max_cost_usd=<span class="code-number">0.025</span>, max_cost_vnd=<span class="code-number">625</span>
+    ),
+    DecisionTier.HIGH_VALUE: <span class="code-function">TokenBudget</span>(
+        tier=DecisionTier.HIGH_VALUE,
+        max_input_tokens=<span class="code-number">4500</span>, max_output_tokens=<span class="code-number">1200</span>,
+        model=<span class="code-string">"claude-sonnet-4-6"</span>, n_agents=<span class="code-number">5</span>,
+        max_cost_usd=<span class="code-number">0.060</span>, max_cost_vnd=<span class="code-number">1500</span>
+    ),
+}
+
+<span class="code-keyword">class</span> <span class="code-function">TokenBudgetManager</span>:
+    USD_TO_VND = <span class="code-number">25_000</span>
+    <span class="code-comment"># claude-haiku-4-5: $0.80/MTok in, $4/MTok out</span>
+    <span class="code-comment"># claude-sonnet-4-6: $3/MTok in, $15/MTok out</span>
+    PRICING = {
+        <span class="code-string">"claude-haiku-4-5-20251001"</span>: (<span class="code-number">0.80</span>,  <span class="code-number">4.00</span>),
+        <span class="code-string">"claude-sonnet-4-6"</span>:         (<span class="code-number">3.00</span>, <span class="code-number">15.00</span>),
+    }
+
+    <span class="code-keyword">def</span> <span class="code-function">classify_tier</span>(self, loan_amount: <span class="code-type">int</span>, credit_score: <span class="code-type">int</span>,
+                        dti: float) -> DecisionTier:
+        <span class="code-comment"># Clear REJECT or APPROVE — no debate needed</span>
+        <span class="code-keyword">if</span> credit_score < <span class="code-number">500</span> <span class="code-keyword">or</span> dti > <span class="code-number">0.55</span>: <span class="code-keyword">return</span> DecisionTier.CLEAR
+        <span class="code-keyword">if</span> credit_score >= <span class="code-number">720</span> <span class="code-keyword">and</span> dti <= <span class="code-number">0.35</span>: <span class="code-keyword">return</span> DecisionTier.CLEAR
+        <span class="code-comment"># High-value borderline — 5-agent panel</span>
+        <span class="code-keyword">if</span> loan_amount > <span class="code-number">2_000_000_000</span> <span class="code-keyword">and</span> <span class="code-number">580</span> <= credit_score <= <span class="code-number">700</span>:
+            <span class="code-keyword">return</span> DecisionTier.HIGH_VALUE
+        <span class="code-keyword">return</span> DecisionTier.STANDARD
+
+    <span class="code-keyword">def</span> <span class="code-function">estimate_cost</span>(self, tier: DecisionTier,
+                        actual_tokens: Optional[Dict] = <span class="code-keyword">None</span>) -> dict:
+        <span class="code-comment">"""Estimate or compute actual cost for a decision."""</span>
+        budget = TIER_BUDGETS[tier]
+        tokens = actual_tokens <span class="code-keyword">or</span> {
+            <span class="code-string">'input'</span>: budget.max_input_tokens * budget.n_agents * <span class="code-number">0.85</span>,
+            <span class="code-string">'output'</span>: budget.max_output_tokens * budget.n_agents * <span class="code-number">0.7</span>
+        }
+        price_in, price_out = self.PRICING[budget.model]
+        cost_usd = (tokens[<span class="code-string">'input'</span>] * price_in + tokens[<span class="code-string">'output'</span>] * price_out) / <span class="code-number">1_000_000</span>
+        cost_vnd = <span class="code-type">int</span>(cost_usd * self.USD_TO_VND)
+        over_budget = cost_usd > budget.max_cost_usd
+        <span class="code-keyword">return</span> {<span class="code-string">'tier'</span>: tier.value, <span class="code-string">'cost_usd'</span>: cost_usd, <span class="code-string">'cost_vnd'</span>: cost_vnd,
+                <span class="code-string">'over_budget'</span>: over_budget, <span class="code-string">'budget_usd'</span>: budget.max_cost_usd}
+
+<span class="code-comment"># Monthly cost estimate — 50K cases/month</span>
+mgr = <span class="code-function">TokenBudgetManager</span>()
+monthly_cases = {DecisionTier.CLEAR: <span class="code-number">40000</span>, DecisionTier.STANDARD: <span class="code-number">8500</span>, DecisionTier.HIGH_VALUE: <span class="code-number">1500</span>}
+total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-function">estimate_cost</span>(tier)[<span class="code-string">'cost_vnd'</span>] * count <span class="code-keyword">for</span> tier, count <span class="code-keyword">in</span> monthly_cases.<span class="code-function">items</span>())
+<span class="code-function">print</span>(<span class="code-string">f"Monthly API cost estimate: {total_vnd:,} VNĐ ({total_vnd/50000:.0f} VNĐ/case avg)"</span>)</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Scaling Economics — Chi Phí Biên và Điểm Hòa Vốn</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu fixed vs variable costs trong AI deployment: tại sao marginal cost gần bằng 0</li>
+          <li>Tính Break-Even Point: khi nào LoanBot rẻ hơn hiring thêm nhân viên</li>
+          <li>Model cost curves: LoanBot scale tuyến tính (linear) còn human team scale step-wise</li>
+          <li>Analyze economies of scale: tại sao unit cost giảm khi volume tăng (fixed cost amortization)</li>
+        </ul>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: AI Có Marginal Cost Gần Bằng 0</div>
+        <p>Thêm 1 nhân viên thẩm định: +175M VNĐ/tháng cố định (lương + overhead). Thêm 1.000 hồ sơ/tháng cho AI: +115.000 VNĐ (1.000 × 115 VNĐ/case). Đây là sự khác biệt căn bản giữa human labor và AI: <strong>AI scale tuyến tính với marginal cost thấp</strong>, trong khi human scale step-wise với marginal cost cao. Ý nghĩa chiến lược: FinTech Corp có thể expand sang rural markets (volume tăng 30%) với 0 additional headcount — chỉ thêm API calls. Human team cần thêm 60 nhân viên cho 30% volume increase.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>Cost Scaling Comparison: Human team (step-wise) vs AI LoanBot (linear) — với break-even point tại 6.250 hồ sơ/tháng</title>
+          <rect width="760" height="195" fill="#052e16" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0fdf4">Cost Scaling: Human Team vs LoanBot — Break-Even Analysis</text>
+
+          <!-- Axes -->
+          <line x1="55" y1="165" x2="720" y2="165" stroke="#4ade80" stroke-width="1.5"/>
+          <line x1="55" y1="165" x2="55" y2="35" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="388" y="185" text-anchor="middle" font-size="9" fill="#bbf7d0">Số Hồ Sơ / Tháng</text>
+          <text x="20" y="100" text-anchor="middle" font-size="9" fill="#bbf7d0" transform="rotate(-90 20 100)">Chi Phí (tỷ VNĐ)</text>
+
+          <!-- X axis labels -->
+          <text x="55" y="177" text-anchor="middle" font-size="8" fill="#86efac">0</text>
+          <text x="177" y="177" text-anchor="middle" font-size="8" fill="#86efac">10K</text>
+          <text x="299" y="177" text-anchor="middle" font-size="8" fill="#86efac">20K</text>
+          <text x="421" y="177" text-anchor="middle" font-size="8" fill="#86efac">30K</text>
+          <text x="543" y="177" text-anchor="middle" font-size="8" fill="#86efac">40K</text>
+          <text x="665" y="177" text-anchor="middle" font-size="8" fill="#86efac">50K</text>
+
+          <!-- Y axis labels (cost in billions) -->
+          <text x="48" y="167" text-anchor="end" font-size="8" fill="#86efac">0</text>
+          <text x="48" y="140" text-anchor="end" font-size="8" fill="#86efac">2</text>
+          <text x="48" y="113" text-anchor="end" font-size="8" fill="#86efac">5</text>
+          <text x="48" y="86" text-anchor="end" font-size="8" fill="#86efac">10</text>
+          <text x="48" y="59" text-anchor="end" font-size="8" fill="#86efac">15</text>
+
+          <!-- Human team: step-wise (each step = +40 people → +7B/month per 10K hồ sơ) -->
+          <!-- Segment 1: 0-10K (40 staff @ 175M = 7B) -->
+          <rect x="56" y="113" width="121" height="52" fill="none" stroke="#f87171" stroke-width="2"/>
+          <!-- Segment 2: 10K-20K (80 staff = 14B but floor at 7B for first 10K, step up) -->
+          <line x1="177" y1="113" x2="177" y2="86" stroke="#f87171" stroke-width="2"/>
+          <rect x="177" y="86" width="122" height="27" fill="none" stroke="#f87171" stroke-width="2"/>
+          <!-- Segment 3: 20K-30K (120 staff) -->
+          <line x1="299" y1="86" x2="299" y2="67" stroke="#f87171" stroke-width="2"/>
+          <rect x="299" y="67" width="122" height="19" fill="none" stroke="#f87171" stroke-width="2"/>
+          <!-- Segment 4: 30K-40K -->
+          <line x1="421" y1="67" x2="421" y2="53" stroke="#f87171" stroke-width="2"/>
+          <rect x="421" y="53" width="122" height="14" fill="none" stroke="#f87171" stroke-width="2"/>
+          <!-- Segment 5: 40K-50K -->
+          <line x1="543" y1="53" x2="543" y2="42" stroke="#f87171" stroke-width="2"/>
+          <line x1="543" y1="42" x2="665" y2="42" stroke="#f87171" stroke-width="2"/>
+          <text x="690" y="44" font-size="8" fill="#f87171" font-weight="700">Human</text>
+          <text x="690" y="55" font-size="8" fill="#f87171">~17.5B</text>
+
+          <!-- AI LoanBot: linear, starts at ~0.5B (fixed infra) + 0.115K/case -->
+          <!-- At 0 cases: 0.5B = y=149; at 50K cases: 0.5+50K*0.000115B = 0.5+5.75=6.25B = y~91 -->
+          <line x1="55" y1="158" x2="665" y2="90" stroke="#4ade80" stroke-width="2.5"/>
+          <text x="690" y="92" font-size="8" fill="#4ade80" font-weight="700">LoanBot</text>
+          <text x="690" y="103" font-size="8" fill="#4ade80">~6.1B</text>
+
+          <!-- Break-even point -->
+          <line x1="120" y1="35" x2="120" y2="165" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="120" y="50" text-anchor="middle" font-size="8" font-weight="700" fill="#fbbf24">Break-even</text>
+          <text x="120" y="61" text-anchor="middle" font-size="8" fill="#fde68a">~6.250 cases</text>
+          <circle cx="120" cy="132" r="4" fill="#fbbf24"/>
+
+          <!-- Labels -->
+          <rect x="58" y="80" width="100" height="20" fill="rgba(248,113,113,.1)" rx="3"/>
+          <text x="108" y="93" text-anchor="middle" font-size="8" fill="#f87171">Human: fixed step cost</text>
+          <rect x="350" y="130" width="120" height="20" fill="rgba(74,222,128,.1)" rx="3"/>
+          <text x="410" y="143" text-anchor="middle" font-size="8" fill="#4ade80">AI: linear marginal cost</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Cost scaling comparison. Human team (đỏ): tăng step-wise mỗi khi cần hire thêm batch nhân viên. LoanBot (xanh): tăng tuyến tính với marginal cost 115 VNĐ/case. Break-even tại ~6.250 hồ sơ/tháng. FinTech Corp xử lý 50.000 — well above break-even.</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FinTech Corp muốn expand sang rural markets — dự kiến volume tăng thêm 15.000 hồ sơ/tháng (+30%). Với human team, chi phí tăng bao nhiêu? Với LoanBot?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Human team: cần thêm 15.000/250 hồ sơ/người × 175M/người = 60 người × 175M = 10.5 tỷ/tháng tăng thêm. LoanBot: 15.000 × 115 VNĐ = 1.725.000 VNĐ ≈ 1.73 triệu/tháng tăng thêm. Ratio: Human expensive by 10.5B/1.73M ≈ 6.070 lần. Đây là lý do core business case: AI allows "elastic scaling" — FinTech Corp có thể serve rural markets (mission + revenue) với marginal cost gần bằng 0, điều không thể về mặt kinh tế với human team.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Business Case Construction — Từ Số Liệu đến Quyết Định</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Build 3-year financial model: NPV, IRR, Payback Period cho LoanBot investment</li>
+          <li>Identify và quantify intangible benefits: speed-to-market, compliance, brand reputation</li>
+          <li>Perform sensitivity analysis: điều gì xảy ra nếu assumptions sai?</li>
+          <li>Structure executive presentation: CFO muốn thấy gì trong 5 slides đầu tiên</li>
+        </ul>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Sai Lầm Phổ Biến: Chỉ Count Direct Cost Savings</div>
+        <p>Nhiều teams chỉ present "tiết kiệm nhân sự" và bỏ qua 4 loại value khác: (1) <strong>Speed Value</strong>: 5 phút vs 3 ngày → khách hàng chấp nhận mức lãi suất thấp hơn 0.5% vì convenience → revenue impact lớn. (2) <strong>Compliance Value</strong>: Tránh NHNN penalty 500M VNĐ/incident × probability. (3) <strong>Accuracy Value</strong>: Type I error reduction → bad loan reduction → capital preservation. (4) <strong>Market Expansion Value</strong>: Rural markets previously infeasible → new revenue stream. Khi include tất cả 4 loại, ROI thường 3–5× higher than direct savings alone.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (3-Year NPV Calculator)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+<span class="code-keyword">import</span> math
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">YearlyCashFlow</span>:
+    year: <span class="code-type">int</span>
+    revenue_savings: <span class="code-type">int</span>          <span class="code-comment"># Staff cost reduction</span>
+    error_savings: <span class="code-type">int</span>           <span class="code-comment"># Bad loan reduction value</span>
+    speed_value: <span class="code-type">int</span>             <span class="code-comment"># Revenue from speed premium</span>
+    compliance_value: <span class="code-type">int</span>        <span class="code-comment"># Avoided penalty exposure</span>
+    api_costs: <span class="code-type">int</span>              <span class="code-comment"># LLM API bill</span>
+    infra_costs: <span class="code-type">int</span>            <span class="code-comment"># Cloud + monitoring</span>
+    governance_costs: <span class="code-type">int</span>       <span class="code-comment"># Ethics board, audits</span>
+    capex: <span class="code-type">int</span>                  <span class="code-comment"># Year 0: development investment</span>
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">net_cash_flow</span>(self) -> <span class="code-type">int</span>:
+        benefits = self.revenue_savings + self.error_savings + self.speed_value + self.compliance_value
+        costs    = self.api_costs + self.infra_costs + self.governance_costs + self.capex
+        <span class="code-keyword">return</span> benefits - costs
+
+<span class="code-keyword">class</span> <span class="code-function">BusinessCaseCalculator</span>:
+    DISCOUNT_RATE = <span class="code-number">0.12</span>   <span class="code-comment"># 12% — typical enterprise WACC for Vietnam fintech</span>
+    VND_B = <span class="code-number">1_000_000_000</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">build_3year_model</span>(self) -> List[YearlyCashFlow]:
+        <span class="code-comment"># Month → Year scaling (12x, with growth assumptions)</span>
+        <span class="code-keyword">return</span> [
+            <span class="code-comment"># Year 0: Development + Pilot (6 months actual operation)</span>
+            <span class="code-function">YearlyCashFlow</span>(<span class="code-number">0</span>,
+                revenue_savings=<span class="code-number">13_125_000_000</span> * <span class="code-number">6</span>,    <span class="code-comment"># 6mo partial operation</span>
+                error_savings=<span class="code-number">342_000_000_000</span> * <span class="code-number">6</span>,
+                speed_value=<span class="code-number">2_000_000_000</span> * <span class="code-number">6</span>,
+                compliance_value=<span class="code-number">800_000_000</span> * <span class="code-number">6</span>,
+                api_costs=<span class="code-number">340_000_000</span> * <span class="code-number">6</span>,
+                infra_costs=<span class="code-number">500_000_000</span> * <span class="code-number">6</span>,
+                governance_costs=<span class="code-number">150_000_000</span> * <span class="code-number">6</span>,
+                capex=<span class="code-number">2_300_000_000</span>   <span class="code-comment"># Development + setup</span>
+            ),
+            <span class="code-comment"># Year 1: Full operation + 10% volume growth</span>
+            <span class="code-function">YearlyCashFlow</span>(<span class="code-number">1</span>,
+                revenue_savings=<span class="code-number">13_125_000_000</span> * <span class="code-number">12</span>,
+                error_savings=<span class="code-number">342_000_000_000</span> * <span class="code-number">12</span>,
+                speed_value=<span class="code-number">2_000_000_000</span> * <span class="code-number">12</span>,
+                compliance_value=<span class="code-number">800_000_000</span> * <span class="code-number">12</span>,
+                api_costs=<span class="code-number">340_000_000</span> * <span class="code-number">12</span>,
+                infra_costs=<span class="code-number">500_000_000</span> * <span class="code-number">12</span>,
+                governance_costs=<span class="code-number">150_000_000</span> * <span class="code-number">12</span>,
+                capex=<span class="code-number">0</span>
+            ),
+            <span class="code-comment"># Year 2: +20% volume (rural expansion)</span>
+            <span class="code-function">YearlyCashFlow</span>(<span class="code-number">2</span>,
+                revenue_savings=<span class="code-number">13_125_000_000</span> * <span class="code-number">14</span>,   <span class="code-comment"># Slightly more staff savings</span>
+                error_savings=<span class="code-number">342_000_000_000</span> * <span class="code-number">14</span>,
+                speed_value=<span class="code-number">2_000_000_000</span> * <span class="code-number">14</span>,
+                compliance_value=<span class="code-number">800_000_000</span> * <span class="code-number">14</span>,
+                api_costs=<span class="code-number">340_000_000</span> * <span class="code-number">14</span>,
+                infra_costs=<span class="code-number">600_000_000</span> * <span class="code-number">14</span>,
+                governance_costs=<span class="code-number">200_000_000</span> * <span class="code-number">14</span>,
+                capex=<span class="code-number">0</span>
+            ),
+        ]
+
+    <span class="code-keyword">def</span> <span class="code-function">npv</span>(self, cashflows: List[YearlyCashFlow]) -> <span class="code-type">int</span>:
+        <span class="code-keyword">return</span> <span class="code-type">int</span>(<span class="code-function">sum</span>(
+            cf.net_cash_flow / ((<span class="code-number">1</span> + self.DISCOUNT_RATE) ** cf.year)
+            <span class="code-keyword">for</span> cf <span class="code-keyword">in</span> cashflows
+        ))
+
+    <span class="code-keyword">def</span> <span class="code-function">roi</span>(self, cashflows: List[YearlyCashFlow]) -> float:
+        total_benefit = <span class="code-function">sum</span>(cf.net_cash_flow + cf.capex <span class="code-keyword">for</span> cf <span class="code-keyword">in</span> cashflows <span class="code-keyword">if</span> cf.net_cash_flow > <span class="code-number">0</span>)
+        total_invest  = <span class="code-function">sum</span>(cf.capex <span class="code-keyword">for</span> cf <span class="code-keyword">in</span> cashflows)
+        <span class="code-keyword">return</span> (total_benefit / total_invest * <span class="code-number">100</span>) <span class="code-keyword">if</span> total_invest > <span class="code-number">0</span> <span class="code-keyword">else</span> <span class="code-number">0</span></code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Sensitivity Analysis — Điều Gì Xảy Ra Nếu Assumptions Sai?
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Sensitivity analysis test: nếu 1 assumption thay đổi, NPV thay đổi bao nhiêu?</p>
+          <table class="roi-table" style="font-size:.8rem;">
+            <tr><th>Scenario</th><th>Assumption thay đổi</th><th>NPV Impact</th><th>Go/No-Go</th></tr>
+            <tr><td>Optimistic</td><td>Error savings +20% (Type I giảm xuống 6%)</td><td style="color:#16a34a;">+68.4 tỷ/năm</td><td style="color:#16a34a;">GO</td></tr>
+            <tr><td>Base Case</td><td>Tất cả assumptions như modeled</td><td style="color:#16a34a;">NPV dương mạnh</td><td style="color:#16a34a;">GO</td></tr>
+            <tr><td>Conservative</td><td>API costs tăng gấp đôi (pricing change)</td><td style="color:#d97706;">−3.9 tỷ/năm (nhỏ)</td><td style="color:#16a34a;">GO</td></tr>
+            <tr><td>Pessimistic</td><td>Error savings = 0 (accuracy không improve)</td><td style="color:#dc2626;">−342 tỷ/năm savings lost</td><td style="color:#16a34a;">STILL GO (nhờ staff savings)</td></tr>
+            <tr><td>Break-Even</td><td>Staff savings giảm xuống còn 5 tỷ/năm</td><td>NPV ≈ 0</td><td style="color:#d97706;">BORDERLINE</td></tr>
+          </table>
+          <p>Key takeaway: Business case của LoanBot robust ngay cả trong pessimistic scenario — vì staff savings một mình đã justify investment. Error reduction là bonus.</p>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Continuous Value Monitoring — Đảm Bảo ROI Thực Tế</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Define Value KPIs: phân biệt leading indicators (hiện tại) vs lagging indicators (kết quả)</li>
+          <li>Build Value Dashboard: real-time tracking của cost-per-decision, accuracy, và revenue impact</li>
+          <li>Implement Value Attribution: khi có nhiều improvement đồng thời, attribute credit đúng chỗ</li>
+          <li>Detect Value Erosion: khi model drift dẫn đến ROI giảm — alert trước khi leadership notice</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Leading vs Lagging Value Indicators</div>
+        <p><strong>Lagging Indicators</strong> (kết quả đã xảy ra, chậm vài tháng): Default rate, Revenue from new loans, P&L impact. Vấn đề: bạn biết ROI đang giảm SAU KHI nó đã giảm 3 tháng. <strong>Leading Indicators</strong> (predict future outcomes, real-time): Decision confidence distribution, Type I error rate, Explanation quality score, Model PSI drift. Tốt: bạn biết ROI SẮP giảm trước khi nó xảy ra → can intervene. Rule: monitor leading indicators daily, review lagging indicators monthly, report both to Board quarterly.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Value Dashboard — Real-time KPI Tracker)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, List
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ValueKPI</span>:
+    name: <span class="code-type">str</span>
+    current: float
+    target: float
+    unit: <span class="code-type">str</span>
+    kpi_type: <span class="code-type">str</span>      <span class="code-comment"># 'leading' / 'lagging'</span>
+    direction: <span class="code-type">str</span>    <span class="code-comment"># 'lower_better' / 'higher_better'</span>
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">on_track</span>(self) -> <span class="code-type">bool</span>:
+        <span class="code-keyword">if</span> self.direction == <span class="code-string">'lower_better'</span>: <span class="code-keyword">return</span> self.current <= self.target
+        <span class="code-keyword">return</span> self.current >= self.target
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">variance_pct</span>(self) -> float:
+        <span class="code-keyword">return</span> (self.current - self.target) / self.target * <span class="code-number">100</span>
+
+<span class="code-keyword">class</span> <span class="code-function">ValueDashboard</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.kpis: List[ValueKPI] = [
+            <span class="code-comment"># Leading indicators — monitored daily</span>
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"Cost Per Decision"</span>, <span class="code-number">118</span>, <span class="code-number">125</span>, <span class="code-string">"VNĐ"</span>, <span class="code-string">"leading"</span>, <span class="code-string">"lower_better"</span>),
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"Type I Error Rate"</span>, <span class="code-number">0.082</span>, <span class="code-number">0.100</span>, <span class="code-string">"%"</span>, <span class="code-string">"leading"</span>, <span class="code-string">"lower_better"</span>),
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"Decision Confidence P50"</span>, <span class="code-number">0.78</span>, <span class="code-number">0.75</span>, <span class="code-string">"score"</span>, <span class="code-string">"leading"</span>, <span class="code-string">"higher_better"</span>),
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"PSI Drift Score"</span>, <span class="code-number">0.08</span>, <span class="code-number">0.10</span>, <span class="code-string">"score"</span>, <span class="code-string">"leading"</span>, <span class="code-string">"lower_better"</span>),
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"Fairness Disparity Ratio"</span>, <span class="code-number">0.87</span>, <span class="code-number">0.80</span>, <span class="code-string">"ratio"</span>, <span class="code-string">"leading"</span>, <span class="code-string">"higher_better"</span>),
+            <span class="code-comment"># Lagging indicators — reviewed monthly</span>
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"30-Day Default Rate"</span>, <span class="code-number">0.042</span>, <span class="code-number">0.050</span>, <span class="code-string">"%"</span>, <span class="code-string">"lagging"</span>, <span class="code-string">"lower_better"</span>),
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"Monthly Net Savings"</span>, <span class="code-number">12.4</span>, <span class="code-number">12.0</span>, <span class="code-string">"tỷ VNĐ"</span>, <span class="code-string">"lagging"</span>, <span class="code-string">"higher_better"</span>),
+            <span class="code-function">ValueKPI</span>(<span class="code-string">"Customer NPS (Speed)"</span>, <span class="code-number">72</span>, <span class="code-number">70</span>, <span class="code-string">"score"</span>, <span class="code-string">"lagging"</span>, <span class="code-string">"higher_better"</span>),
+        ]
+
+    <span class="code-keyword">def</span> <span class="code-function">report</span>(self) -> dict:
+        <span class="code-comment">"""Generate value dashboard snapshot."""</span>
+        on_track = [k <span class="code-keyword">for</span> k <span class="code-keyword">in</span> self.kpis <span class="code-keyword">if</span> k.on_track]
+        off_track = [k <span class="code-keyword">for</span> k <span class="code-keyword">in</span> self.kpis <span class="code-keyword">if not</span> k.on_track]
+        alerts = [k <span class="code-keyword">for</span> k <span class="code-keyword">in</span> off_track <span class="code-keyword">if</span> <span class="code-function">abs</span>(k.variance_pct) > <span class="code-number">15</span>]
+        <span class="code-keyword">return</span> {<span class="code-string">'timestamp'</span>: datetime.<span class="code-function">now</span>().<span class="code-function">isoformat</span>(),
+                <span class="code-string">'on_track'</span>: <span class="code-function">len</span>(on_track), <span class="code-string">'off_track'</span>: <span class="code-function">len</span>(off_track),
+                <span class="code-string">'alerts'</span>: [k.name <span class="code-keyword">for</span> k <span class="code-keyword">in</span> alerts],
+                <span class="code-string">'overall_health'</span>: <span class="code-string">'GREEN'</span> <span class="code-keyword">if not</span> alerts <span class="code-keyword">else</span> (<span class="code-string">'YELLOW'</span> <span class="code-keyword">if not</span> off_track <span class="code-keyword">else</span> <span class="code-string">'RED'</span>)}</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <h2>📚 Glossary Module 29</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m29-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m29-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m29-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ROI (Return on Investment)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">(Net Benefit / Total Investment) × 100%. Percentage return trên mỗi đồng đầu tư. AI ROI thường 1.000%+ trong năm đầu do marginal cost thấp.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">NPV (Net Present Value)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tổng cash flows tương lai chiết khấu về hiện tại. NPV > 0 → đầu tư sinh lời. Discount rate thường dùng WACC (12% cho Vietnam fintech).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TCO (Total Cost of Ownership)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tổng chi phí thực sự của AI deployment: development + API + infra + governance + training + maintenance. Không chỉ API cost.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Payback Period</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thời gian để thu hồi vốn đầu tư. LoanBot FinTech Corp: ~5.5 ngày. Thông thường enterprise projects: 12–24 tháng.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost-Per-Decision (CPD)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tổng AI operating cost / số decisions trong period. LoanBot v4.0: ~115 VNĐ/decision (weighted avg across 3 tiers). Key unit economics metric.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Budget</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hard cap cho số token mỗi decision tier được phép dùng. Prevents runaway costs trong debate loops. Enforced at runtime — not just guideline.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Marginal Cost</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chi phí để xử lý thêm 1 unit (1 hồ sơ). AI: ~115 VNĐ (variable). Human: ~175.000 VNĐ (loaded cost). AI marginal cost ≈ 1.500× thấp hơn human.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Break-Even Point</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Volume tại đó AI cost = Human cost. LoanBot: ~6.250 cases/month. Dưới ngưỡng này → human cheaper; trên ngưỡng → AI cheaper.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fixed Cost</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Không thay đổi theo volume: infra (500M/tháng), governance overhead (150M). Amortized qua volume — unit cost giảm khi volume tăng.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Variable Cost</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ với volume: API calls (340M/50K cases ≈ 6.800 VNĐ/case từ API thuần). Tăng linear khi volume tăng.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Leading KPI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chỉ số predict future outcomes: PSI drift, Type I error rate, confidence distribution. Alert trước khi lagging indicators xấu.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Lagging KPI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kết quả đã xảy ra: default rate, monthly savings, NPS. Accurate nhưng chậm (1–3 tháng lag) so với business events.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Value Attribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Phân bổ improvement credit đúng cho đúng thay đổi. Quan trọng khi nhiều updates deploy cùng thời điểm — tránh double-counting benefits.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sensitivity Analysis</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test "what-if": nếu 1 assumption thay đổi ±X%, NPV thay đổi bao nhiêu? Xác định assumptions nào critical vs immaterial.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Value Erosion</td><td style="padding:8px 12px;">ROI giảm dần theo thời gian do model drift, market changes, hoặc competitor actions. Early detection via leading KPIs.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module28/index.html" class="btn btn-outline">← Module 28: AI Governance</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 29 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

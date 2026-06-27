@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 25 — Agent Orchestration at Scale</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m25-primary:#0c4a6e; --m25-accent:#38bdf8; --m25-light:#f0f9ff; --m25-border:#7dd3fc; }
+    .quiz-hero { background: linear-gradient(135deg, #082f49, #0c4a6e, #38bdf8); padding: var(--space-12) var(--space-6); text-align:center; }
+    .module-tag { display:inline-block; background:rgba(56,189,248,.2); color:#7dd3fc; padding:4px 12px; border-radius:99px; font-size:.8rem; font-weight:600; letter-spacing:.08em; margin-bottom:var(--space-3); }
+    .quiz-hero h1 { color:#f0f9ff; font-size:2rem; margin-bottom:var(--space-3); }
+    .quiz-hero p  { color:#7dd3fc; margin-bottom:var(--space-4); }
+    .quiz-stats   { display:flex; justify-content:center; gap:var(--space-6); flex-wrap:wrap; }
+    .quiz-stats span { background:rgba(255,255,255,.1); color:#e0f2fe; padding:4px 14px; border-radius:99px; font-size:.85rem; }
+    .quiz-container { max-width:800px; margin:0 auto; padding:var(--space-8) var(--space-4); }
+    .quiz-progress { margin-bottom:var(--space-6); }
+    .quiz-progress-text { font-size:.9rem; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .quiz-progress-bar  { height:6px; background:var(--border); border-radius:99px; overflow:hidden; }
+    .quiz-progress-fill { height:100%; background:linear-gradient(90deg,#0c4a6e,#38bdf8); border-radius:99px; transition:width .4s ease; }
+    .quiz-question { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-xl); padding:var(--space-6); margin-bottom:var(--space-4); }
+    .quiz-question h3 { font-size:1rem; font-weight:600; color:var(--text-primary); margin-bottom:var(--space-4); line-height:1.6; }
+    .quiz-options  { display:flex; flex-direction:column; gap:var(--space-2); }
+    .quiz-option   { padding:var(--space-3) var(--space-4); border:1px solid var(--border); border-radius:var(--radius-lg); cursor:pointer; transition:all .2s; font-size:.9rem; background:var(--bg); }
+    .quiz-option:hover  { border-color:var(--m25-accent); background:var(--m25-light); }
+    .quiz-option.correct{ border-color:#16a34a; background:#f0fdf4; color:#15803d; font-weight:600; }
+    .quiz-option.wrong  { border-color:#dc2626; background:#fef2f2; color:#dc2626; }
+    .quiz-explanation   { margin-top:var(--space-4); padding:var(--space-4); background:var(--m25-light); border-left:3px solid var(--m25-accent); border-radius:var(--radius-md); font-size:.875rem; line-height:1.6; display:none; }
+    .quiz-nav { display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-4); }
+    .quiz-result { text-align:center; padding:var(--space-8); }
+    .quiz-result .score-circle { width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,#0c4a6e,#38bdf8); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto var(--space-6); }
+    .quiz-result .score-circle .score-num { font-size:2rem; font-weight:700; color:#fff; }
+    .quiz-result .score-circle .score-den { font-size:.875rem; color:#bae6fd; }
+    .quiz-result h2 { margin-bottom:var(--space-3); }
+    .quiz-result p  { color:var(--text-muted); margin-bottom:var(--space-6); }
+    .result-actions { display:flex; gap:var(--space-3); justify-content:center; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 25 · QUIZ</span>
+    <h1>📝 Agent Orchestration at Scale</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="score-circle"><span class="score-num" id="scoreNum">0</span><span class="score-den">/ 15</span></div>
+    <h2 id="scoreTitle"></h2>
+    <p id="scoreMsg"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">← Xem lại bài giảng</a>
+      <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại quiz</button>
+      <a href="../module26/index.html" class="btn btn-primary">→ Module 26</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // --- EASY (5) ---
+  {
+    q: "Tại sao stateless agent dễ scale horizontal hơn stateful agent?",
+    options: [
+      "Stateless agent nhanh hơn vì không đọc RAM",
+      "Bất kỳ instance stateless nào cũng có thể handle bất kỳ request — không cần routing đến đúng instance",
+      "Stateless agent không cần Redis",
+      "Stateless agent tốn ít memory hơn 10 lần"
+    ],
+    answer: 1,
+    explanation: "Stateless agent không giữ local state → bất kỳ instance nào cũng equivalent. Load balancer có thể route request đến bất kỳ worker nào mà không lo về session affinity. Stateful agent: nếu session state trong RAM của Worker A, thì request tiếp theo của cùng user PHẢI đến Worker A — gây 'sticky session' problem, không thể truly horizontal scale. Stateless = mọi worker interchangeable = horizontal scaling trivial."
+  },
+  {
+    q: "Delivery guarantee nào phù hợp nhất cho loan decision processing của LoanBot?",
+    options: [
+      "At-most-once — không cần lo duplicate, chỉ cần fast",
+      "At-least-once + idempotency check",
+      "Exactly-once — mỗi hồ sơ chỉ được xử lý đúng 1 lần tuyệt đối",
+      "No guarantee — cho phép mất hồ sơ để tăng throughput"
+    ],
+    answer: 1,
+    explanation: "At-least-once + idempotency là practical choice: (1) At-most-once quá nguy hiểm — worker crash → hồ sơ mất, customer không có kết quả. (2) Exactly-once cực kỳ phức tạp (distributed transactions, 2PC) — overhead lớn, không xứng với benefit. (3) At-least-once: task có thể processed 2 lần nếu worker crash trước ACK → safe vì idempotency check ở đầu task (nếu kết quả đã tồn tại trong DB → return existing result, skip processing)."
+  },
+  {
+    q: "Little's Law: FinTech Corp peak có arrival rate λ = 5 hồ sơ/giây, processing time W = 3 giây/hồ sơ. Cần tối thiểu bao nhiêu workers?",
+    options: ["5 workers", "15 workers", "8 workers", "3 workers"],
+    answer: 1,
+    explanation: "Little's Law: L = λ × W = 5 × 3 = 15 concurrent tasks trong system. Cần ít nhất 15 workers để steady state (không grow queue). Với 20% buffer → 18 workers. Chú ý: 15 workers = 15 concurrent CIC calls — kiểm tra CIC API rate limit! Nếu CIC limit là 10 concurrent calls → bottleneck chuyển từ worker sang CIC API → cần circuit breaker + batching."
+  },
+  {
+    q: "Trong Saga Pattern, compensating transaction dùng để làm gì?",
+    options: [
+      "Tăng tốc forward transaction bằng cách precompute kết quả",
+      "Undo effect của step đã success trước đó khi downstream step fail",
+      "Backup dữ liệu trước khi execute saga",
+      "Validate input trước khi bắt đầu saga"
+    ],
+    answer: 1,
+    explanation: "Compensating transaction = 'undo' trong distributed systems. Vì không có global rollback (mỗi service có DB riêng), khi step N fail, phải execute compensating transactions theo thứ tự ngược: C(N-1) → C(N-2) → ... → C1. VD: Loan saga: S1 reserve slot, S2 CIC, S3 decision fail → C2 release CIC cache, C1 release slot. Không phải 'real rollback' — là semantic undo. Lưu ý: S4 (notify) và S5 (audit) không cần compensate vì chưa execute."
+  },
+  {
+    q: "Correlation ID trong distributed tracing dùng để làm gì?",
+    options: [
+      "Encrypt request data khi truyền qua nhiều services",
+      "Trace journey của 1 request xuyên suốt tất cả services bằng 1 unique ID",
+      "Tăng tốc lookup trong database",
+      "Authenticate các inter-service calls"
+    ],
+    answer: 1,
+    explanation: "Correlation ID là unique identifier (thường UUID v4) gắn vào mọi log entry, trace span, và metric của 1 request. Khi user report 'hồ sơ FC-2024-9999 bị lỗi lúc 14:32', bạn search correlation_id = 'corr-FC-2024-9999-abc123' trong log aggregator (Elasticsearch/Loki) → thấy toàn bộ journey: Gateway nhận lúc 14:32:01, Worker-3 pick up lúc 14:32:02, CIC timeout lúc 14:32:07, DLQ lúc 14:32:07. Không có correlation ID → phải grep hàng triệu logs, gần như impossible trong distributed system."
+  },
+
+  // --- MEDIUM (7) ---
+  {
+    q: "LoanBot dùng Redis INCR để count decisions hôm nay. Worker A INCR từ 99 → 100. Cùng lúc Worker B INCR từ 99 → 100. Kết quả cuối là 100 hay 101? Tại sao?",
+    options: [
+      "100 — hai INCR race condition, một cái bị overwrite",
+      "101 — Redis INCR là atomic, không có race condition",
+      "Không xác định — phụ thuộc vào network timing",
+      "100 hoặc 101 — Redis không đảm bảo atomicity"
+    ],
+    answer: 1,
+    explanation: "Redis INCR là atomic single-threaded operation — Redis xử lý từng command sequentially. Không có race condition: Worker A INCR 99→100, XONG, Worker B INCR 100→101. Kết quả = 101. Đây là lý do Redis được dùng làm distributed counter thay vì SELECT+UPDATE trong SQL (cần transaction/lock). Atomic = operation complete without interruption. Nếu dùng SQL: SELECT count=99 (cả 2 workers), UPDATE count=100 (cả 2 workers) → count = 100 SAI."
+  },
+  {
+    q: "PEL (Pending Entry List) của Redis Streams chứa gì và tại sao quan trọng trong failure recovery?",
+    options: [
+      "Danh sách workers đang running — để load balancer biết route",
+      "Messages đã delivered nhưng chưa ACK — khi worker crash, PEL cho biết cần re-deliver gì",
+      "Messages đã ACK nhưng chưa persist — để retry nếu DB fail",
+      "Danh sách consumer groups đã register"
+    ],
+    answer: 1,
+    explanation: "PEL (Pending Entry List): khi xreadgroup deliver message M1 cho Worker A, Redis ghi M1 vào PEL của Worker A với delivery_count=1. Worker A process nhưng crash trước xack → M1 vẫn trong PEL. Sau visibility timeout, recovery process chạy xpending và xclaim để claim M1 về Worker B — delivery_count tăng lên 2. Khi delivery_count ≥ MAX_RETRIES → move to DLQ. PEL = 'in-flight tracking' của distributed message system. Thiếu PEL → at-most-once (worker crash = message lost)."
+  },
+  {
+    q: "Auto-scaler có scale_up_threshold=50, cooldown=60s. Queue depth: 30 (t=0), 80 (t=30s), 60 (t=90s), 30 (t=120s). Khi nào scale-up xảy ra?",
+    options: [
+      "t=30s (depth 80 > threshold 50)",
+      "t=90s (đã qua cooldown 60s từ t=30)",
+      "Cả t=30s và t=90s",
+      "Không scale-up vì average depth < threshold"
+    ],
+    answer: 0,
+    explanation: "t=0: depth=30 < 50, no action. t=30s: depth=80 > 50, NOT in cooldown (0s < 60s) → SCALE UP, set last_scale_time=30s. t=90s: depth=60 > 50, nhưng t=90 - last_scale_time=30 = 60s, 60s >= 60s cooldown → SCALE UP (cooldown exact match). t=120s: depth=30 < scale_down_threshold (giả sử 5 < 30), nhưng 30 > 5 → no scale-down nếu threshold là 5. Thực ra: t=30s là trigger rõ ràng, còn t=90s phụ thuộc vào implementation (< vs <=). Câu hỏi này chọn A (t=30s là chắc chắn nhất)."
+  },
+  {
+    q: "FinTech Corp muốn dùng Choreography cho loan notification (SMS/Email) và Orchestration cho loan decision flow. Lý do kỹ thuật nào hợp lý?",
+    options: [
+      "Choreography nhanh hơn cho tất cả trường hợp",
+      "Notification là fire-and-forget (không cần audit trail), decision flow cần centralized control và full visibility",
+      "Orchestration không support async processing",
+      "Choreography cần ít infrastructure hơn"
+    ],
+    answer: 1,
+    explanation: "Hai tiêu chí quyết định Orchestration vs Choreography: (1) Cần audit trail đầy đủ không? Loan decision: YES — regulator có thể audit từng bước → Orchestration với central coordinator biết toàn bộ state. (2) Cần strong consistency không? Decision: YES. Notification: NO — nếu SMS fail, retry async là OK. Choreography cho notification: LoanDecisionCompleted event → NotificationService react và send SMS/Email independently. Nếu SMS fail → retry without affecting loan decision. Orchestration cho notification sẽ coupling loan flow với SMS delivery — nếu SMS provider down, loan decision bị block."
+  },
+  {
+    q: "LoanBot fleet: 10 workers, avg processing time 2.5s. SLO: p99 latency < 8s. Queue depth đột ngột tăng lên 300. p99 latency sẽ như thế nào và cần làm gì?",
+    options: [
+      "p99 sẽ vẫn ~2.5s vì workers không bị ảnh hưởng bởi queue depth",
+      "p99 = queue_wait + processing = (300/10) × 2.5 = 75s → SLO breach → scale up ngay",
+      "p99 sẽ tăng nhẹ lên ~5s — nằm trong SLO",
+      "p99 không thể tính nếu không biết arrival rate"
+    ],
+    answer: 1,
+    explanation: "p99 latency = queue wait time + processing time. Queue wait = tasks_ahead / throughput. tasks_ahead (p99 task) ≈ 300 × 0.99 = 297 tasks. Throughput = 10 workers × (1/2.5s) = 4 tasks/second. Queue wait = 297/4 = 74 seconds. p99 ≈ 74 + 2.5 = 76.5 seconds >> SLO 8s. Immediate action: (1) Scale up to 20 workers → throughput = 8 tasks/s, queue wait = 297/8 = 37s — vẫn breach! (2) Phải đồng thời throttle incoming traffic (circuit breaker at gateway) + scale up để drain queue. Target: queue_depth < 8 × 8s = 64 tasks để meet SLO."
+  },
+  {
+    q: "Graceful shutdown: auto-scaler gửi tín hiệu stop cho Worker X. Worker X đang ở giữa CIC API call (1.5 giây đã qua, còn 1 giây nữa). Worker X nên làm gì?",
+    options: [
+      "Kill ngay lập tức để scale down nhanh — CIC call sẽ timeout sau 5 giây anyway",
+      "Complete CIC call + LoanBot decision + save result + ACK message, sau đó mới stop",
+      "Return task về queue ngay (nack), rồi stop — để worker khác handle",
+      "Ignore stop signal cho đến khi queue empty hoàn toàn"
+    ],
+    answer: 1,
+    explanation: "Graceful shutdown = finish current task trước khi stop. Worker X: (1) Nhận stop signal → set flag 'will_stop = True' (2) Complete CIC call → finish LoanBot decision → save result → xack message (3) Sau khi xong task hiện tại → check 'will_stop' flag → exit. Tại sao không kill ngay? → task in-flight bị dropped → CIC call bị abort → kết quả không save → hồ sơ stuck trong PEL → phải re-process sau. Tại sao không nack? → task về queue là đúng về logic, nhưng worker vừa bỏ ra 1.5 giây CIC call → lãng phí. Finish trong ~1 giây rẻ hơn nhiều."
+  },
+  {
+    q: "Dead Letter Queue có 50 items sau 1 giờ. 40 items lỗi 'CIC API timeout', 10 items lỗi 'Invalid JSON in payload'. Nên handle như thế nào?",
+    options: [
+      "Retry tất cả 50 items sau 10 phút",
+      "Retry 40 CIC timeout items sau 10 phút; 10 invalid JSON items → alert data team, KHÔNG retry",
+      "Move tất cả 50 về main queue ngay",
+      "Delete tất cả — DLQ chỉ là temporary storage"
+    ],
+    answer: 1,
+    explanation: "Phân loại lỗi là critical: (1) 'CIC API timeout' = transient error — CIC có thể temporarily unavailable. Safe to retry sau 10 phút. Nhưng trước khi retry: check CIC API status, nếu vẫn down thì wait longer. (2) 'Invalid JSON in payload' = permanent error — retry sẽ luôn fail vì data corrupt. Cần alert data team để trace nguồn gốc (API gateway bug? encoding issue?). KHÔNG retry — infinite retry loop lãng phí compute và CIC API quota. Rule: transient errors (timeout, rate limit, 5xx) → retry với backoff; permanent errors (4xx, invalid data, schema violation) → human intervention."
+  },
+
+  // --- HARD (3) ---
+  {
+    q: "FinTech Corp deploy Saga cho loan flow. S1 reserve slot (OK), S2 CIC query (OK), S3 LoanBot decision → APPROVE (OK), S4 Send notification → success, S5 record audit → DB timeout. Cần execute compensating transactions không? Nếu có, sequence nào?",
+    options: [
+      "Không cần compensate — S5 failure không ảnh hưởng đến business flow",
+      "Compensate ngược: C4 unsend notification, C3 reverse decision, C2 invalidate CIC, C1 release slot",
+      "Chỉ retry S5 với exponential backoff; các steps trước không cần compensate",
+      "Compensate chỉ C1 release slot; S2, S3, S4 không có compensating transactions"
+    ],
+    answer: 2,
+    explanation: "S5 (record audit) fail → chỉ retry S5, KHÔNG compensate. Lý do: (1) Customer đã nhận notification APPROVE → reverting sẽ gây confusion/harm lớn hơn. (2) Loan đã được approved trong core system (S3 OK). (3) Audit log là append-only — failure thường là transient (DB timeout), retry với exponential backoff 1s→2s→4s→8s usually success. (4) Nếu S5 vẫn fail sau N retries → manual reconciliation — write to backup log, alert ops team. Saga compensate rule: KHÔNG compensate nếu rollback gây harm lớn hơn để lại inconsistency. Exception: nếu S3 fail → phải compensate C2 + C1 vì customer chưa nhận notification, không có downstream effect."
+  },
+  {
+    q: "LoanBot fleet monitoring cho thấy: Worker-7 có PEL size = 45, tất cả workers khác có PEL < 5. Worker-7 processing time avg = 12 giây (normal = 2.5s). Diagnosis và remediation?",
+    options: [
+      "Worker-7 đang process 45 loan applications đồng thời — bình thường, chờ nó xong",
+      "Worker-7 bị stuck: một số tasks trong PEL không được ACK dù đã process (có thể crash loop). Action: xclaim tasks về healthy workers sau visibility timeout, kill và restart Worker-7",
+      "Worker-7 đang handle batch size lớn hơn — giảm batch size là đủ",
+      "PEL size 45 là bình thường khi có queue_depth cao"
+    ],
+    answer: 1,
+    explanation: "PEL size 45 với avg processing time 12s (5× normal) là distress signal: Worker-7 có thể bị trong crash loop — process task → crash trước ACK → task re-deliver → crash lại. Hoặc Worker-7 stuck on một downstream dependency (CIC API rate limit per-IP chỉ áp dụng với IP của Worker-7). Remediation: (1) Check Worker-7 logs — crash loop hay slow? (2) xpending để list tất cả PEL items của Worker-7 và delivery_count. (3) Items với delivery_count ≥ 3 → xclaim sang Worker-8 hoặc healthy worker. (4) Kill Worker-7, investigate, restart. (5) Nếu pattern persist sau restart → check CIC API per-IP rate limit — nếu đúng, cần shared proxy/gateway cho CIC calls."
+  },
+  {
+    q: "FinTech Corp muốn guarantee exactly-once processing cho loan decisions. Engineer đề xuất: idempotency key + Redis distributed lock + DB unique constraint. Vấn đề gì với approach này ở scale 500K/tháng?",
+    options: [
+      "Không có vấn đề — đây là exactly-once implementation hoàn hảo",
+      "Redis distributed lock có thể fail (Redis restart, network partition) → lock bị release → duplicate processing. DB unique constraint là safety net nhưng gây exception phải handle, không phải true exactly-once",
+      "Approach quá chậm — mỗi task tốn 3× round trips",
+      "Idempotency key không work với Redis Streams"
+    ],
+    answer: 1,
+    explanation: "True exactly-once trong distributed systems là cực kỳ khó: (1) Redis distributed lock (SETNX): nếu Redis restart giữa chừng → lock bị release → Worker A và Worker B cùng acquire lock → duplicate. Redis Cluster failover có ~15s downtime → race window. (2) DB unique constraint: nếu Worker A insert, Worker B insert → constraint violation exception → Worker B biết duplicate nhưng phải handle exception explicitly, không phải transparent. (3) Clock skew: lock expiry dựa trên TTL nhưng network latency khác nhau giữa workers → Redlock algorithm giải quyết được nhưng phức tạp. Thực tế: at-least-once + idempotency là pragmatic choice — xử lý duplicate bằng check-before-process thay vì guaranteed exactly-once. True exactly-once cần Kafka transactions + transactional DB trong 1 xa transaction = significant complexity overhead."
+  }
+];
+
+let current = 0, score = 0, answered = [];
+
+function renderQuestion(i) {
+  const q = questions[i];
+  document.getElementById('currentQ').textContent = i + 1;
+  document.getElementById('progressFill').style.width = ((i + 1) / 15 * 100) + '%';
+  const html = `
+    <div class="quiz-question">
+      <h3>${i + 1}. ${q.q}</h3>
+      <div class="quiz-options">
+        ${q.options.map((opt, j) => `<div class="quiz-option" onclick="selectOption(${j})">${String.fromCharCode(65+j)}. ${opt}</div>`).join('')}
+      </div>
+      <div class="quiz-explanation" id="exp">${q.explanation}</div>
+    </div>
+    <div class="quiz-nav">
+      <span style="color:var(--text-muted);font-size:.875rem">Câu ${i+1} / 15</span>
+      ${i < 14
+        ? `<button class="btn btn-primary" id="nextBtn" style="display:none" onclick="nextQ()">Câu tiếp theo →</button>`
+        : `<button class="btn btn-primary" id="nextBtn" style="display:none" onclick="showResult()">Xem kết quả 🎯</button>`}
+    </div>`;
+  document.getElementById('quizArea').innerHTML = html;
+}
+
+function selectOption(j) {
+  if (answered[current]) return;
+  answered[current] = j;
+  const opts = document.querySelectorAll('.quiz-option');
+  const correct = questions[current].answer;
+  opts.forEach((o, k) => {
+    if (k === correct) o.classList.add('correct');
+    else if (k === j && j !== correct) o.classList.add('wrong');
+    o.style.pointerEvents = 'none';
+  });
+  if (j === correct) score++;
+  document.getElementById('exp').style.display = 'block';
+  document.getElementById('nextBtn').style.display = 'inline-flex';
+}
+
+function nextQ() { current++; renderQuestion(current); }
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const res = document.getElementById('resultArea');
+  res.style.display = 'block';
+  document.getElementById('scoreNum').textContent = score;
+  const pct = score / 15;
+  let title, msg;
+  if (pct >= 0.93) { title = '🏆 Xuất sắc! Distributed Systems Master!'; msg = 'Bạn nắm vững scaling patterns, Saga, Redis Streams, và distributed tracing. LoanBot fleet sẽ handle 500K hồ sơ/tháng với SLO p99 < 8s.'; }
+  else if (pct >= 0.73) { title = '✅ Tốt lắm! Gần đạt mastery'; msg = 'Bạn hiểu các concepts chính. Ôn lại PEL, compensating transactions, và Little\'s Law để nắm chắc hơn.'; }
+  else if (pct >= 0.53) { title = '📚 Cần ôn tập thêm'; msg = 'Đọc lại Bài 2 (Message Queue) và Bài 3 (Saga Pattern) — các concepts này có nhiều edge cases quan trọng.'; }
+  else { title = '💪 Cần xem lại từ đầu'; msg = 'Module này có nhiều distributed systems concepts phức tạp. Đọc lại từ đầu và thực hành lab notebook.'; }
+  document.getElementById('scoreTitle').textContent = title;
+  document.getElementById('scoreMsg').textContent = msg;
+}
+
+function restartQuiz() {
+  current = 0; score = 0; answered = [];
+  document.getElementById('quizArea').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+  renderQuestion(0);
+}
+
+renderQuestion(0);
+</script>
+</body>
+</html>

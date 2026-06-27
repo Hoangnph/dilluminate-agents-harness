@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 11 — Human-in-the-Loop Design & Enterprise Workflow Integration</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m11-primary: #3730a3;
+      --m11-accent:  #6366f1;
+      --m11-light:   #eef2ff;
+      --m11-border:  #a5b4fc;
+    }
+    .lesson-header { background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #e0e7ff; }
+    .lesson-header p { color: #c7d2fe; }
+    .sidebar-nav a.active { background: var(--m11-light); border-left: 3px solid var(--m11-accent); color: var(--m11-primary); }
+    .sidebar-nav a:hover { color: var(--m11-primary); }
+
+    .hitl-trigger-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+      margin: var(--space-5) 0;
+    }
+    .trigger-card {
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      border: 1px solid;
+    }
+    .trigger-card.amount  { background: #fef3c7; border-color: #fcd34d; }
+    .trigger-card.fraud   { background: #fee2e2; border-color: #fca5a5; }
+    .trigger-card.border  { background: #eff6ff; border-color: #93c5fd; }
+    .trigger-card.regul   { background: #f0fdf4; border-color: #86efac; }
+    .trigger-card h4 { font-size:.9rem; margin-bottom:var(--space-2); color:var(--primary-dark); }
+    .trigger-card p  { font-size:.85rem; color:var(--text-muted); margin:0; }
+
+    .approval-level {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+      border: 1px solid;
+    }
+    .approval-level.l1 { background: #f0fdf4; border-color: #86efac; }
+    .approval-level.l2 { background: #eff6ff; border-color: #93c5fd; }
+    .approval-level.l3 { background: var(--m11-light); border-color: var(--m11-border); }
+    .approval-level .lv-icon { font-size:1.5rem; }
+    .approval-level .lv-name { font-weight:700; color:var(--primary-dark); font-size:.95rem; }
+    .approval-level .lv-range { font-size:.85rem; color:var(--text-muted); }
+    .approval-level .lv-sla { margin-left:auto; font-size:.8rem; font-weight:700; padding:3px 10px; border-radius:var(--radius-full); }
+
+    .explanation-card {
+      background: var(--surface);
+      border: 1.5px solid var(--m11-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      margin: var(--space-5) 0;
+    }
+    .explanation-card .verdict { font-size:1.25rem; font-weight:800; margin-bottom:var(--space-3); }
+    .factor-row { display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-2); }
+    .factor-bar { height:8px; border-radius:4px; min-width:4px; }
+    .factor-label { font-size:.85rem; flex:1; }
+    .factor-score { font-size:.85rem; font-weight:700; width:40px; text-align:right; }
+
+    .integration-badge {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 12px; border-radius:var(--radius-full);
+      font-size:.8rem; font-weight:700; margin:3px;
+    }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m11-light);color:var(--m11-primary);border-color:var(--m11-border);">MODULE 11</div>
+    <div class="sidebar-title">Human-in-the-Loop Design</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. HITL Patterns & Triggers</a>
+      <a href="#lesson2">L2. Approval Workflow Design</a>
+      <a href="#lesson3">L3. AI Explanations cho Reviewers</a>
+      <a href="#lesson4">L4. Enterprise Integration</a>
+      <a href="#lesson5">L5. Feedback Loop & Cải tiến</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m11-accent);">📝 Quiz Module 11</a>
+      <a href="lab.ipynb" download style="color:var(--m11-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module10/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 10: Cost</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 11 · Tuần 28–30</span>
+      <h1>🤝 Human-in-the-Loop Design & Enterprise Workflow Integration</h1>
+      <p>AI không thay thế con người — AI khuếch đại con người. Module này dạy cách thiết kế hệ thống mà human và AI hợp tác tối ưu, đặc biệt trong tín dụng doanh nghiệp theo EU AI Act.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🤝 Collaboration patterns</span>
+      </div>
+    </div>
+
+    <!-- ===== LESSON 1 ===== -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: HITL Patterns — Khi Nào Cần Human?</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao EU AI Act (Art.14) bắt buộc human oversight cho High-Risk AI</li>
+          <li>Phân loại 4 loại HITL triggers trong LoanBot v3.0</li>
+          <li>Thiết kế escalation logic không block throughput</li>
+          <li>Tính toán capacity planning cho HITL reviewers</li>
+        </ul>
+      </div>
+
+      <p>LoanBot đã xử lý 99.7% hồ sơ tự động trong Modules 1–7. Nhưng 0.3% còn lại — khoảng <strong>150 hồ sơ/tháng</strong> — cần loan officer thực thụ ra quyết định. Đây không phải điểm yếu của AI; đây là thiết kế có chủ ý để đảm bảo <strong>trách nhiệm giải trình</strong> (accountability) theo luật định.</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Human-in-the-Loop (HITL)</div>
+        <p>HITL là pattern thiết kế trong đó hệ thống AI <strong>tạm dừng</strong> và chuyển quyền quyết định sang con người cho những trường hợp nhất định. Khác với Human-on-the-Loop (HOTL) — human monitor nhưng không can thiệp trực tiếp vào mỗi quyết định. LoanBot dùng cả hai: HITL cho borderline cases, HOTL cho full monitoring via Module 8 dashboard.</p>
+      </div>
+
+      <h3>1.1 EU AI Act Art.14 — Bắt buộc Human Oversight</h3>
+
+      <p>EU AI Act (2024) phân loại LoanBot là <strong>High-Risk AI System</strong> (Annex III, creditworthiness assessment). Điều 14 yêu cầu:</p>
+
+      <ol class="process-steps">
+        <li>
+          <strong>Human oversight measures</strong>
+          <p>Phải có ít nhất một người có thẩm quyền có thể <em>hiểu, giám sát và nếu cần, overrule</em> AI output.</p>
+        </li>
+        <li>
+          <strong>Meaningful control</strong>
+          <p>Loan officer không chỉ rubber-stamp — phải có đủ thông tin để thực sự hiểu tại sao AI đề xuất như vậy (→ Lesson 3: Explainability).</p>
+        </li>
+        <li>
+          <strong>Override capability</strong>
+          <p>Human phải có kỹ thuật và quy trình để override quyết định AI khi cần — và override phải được log đầy đủ.</p>
+        </li>
+      </ol>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Rủi ro: "Automation Bias"</div>
+        <p>Nghiên cứu cho thấy khi AI đưa ra recommendation, con người có xu hướng follow theo dù AI sai — gọi là <strong>automation bias</strong>. Design HITL UI cần counter-act điều này: hiển thị factors, không chỉ verdict; yêu cầu loan officer gõ reasoning trước khi xem AI recommendation; thêm friction cho override bị disable.</p>
+      </div>
+
+      <h3>1.2 Bốn Loại HITL Triggers</h3>
+
+      <div class="hitl-trigger-grid">
+        <div class="trigger-card amount">
+          <h4>💰 Trigger 1: Loan Amount</h4>
+          <p>Loan &gt; 500M VNĐ → HITL bắt buộc (EU AI Act Art.14). Loan &gt; 2 tỷ → HITL + Credit Committee approval.</p>
+        </div>
+        <div class="trigger-card fraud">
+          <h4>🚨 Trigger 2: Fraud / Risk Signals</h4>
+          <p>FraudAgent: fraud_probability &gt; 0.3 OR blacklist adjacent match → HITL ngay, không chờ pipeline hoàn tất.</p>
+        </div>
+        <div class="trigger-card border">
+          <h4>📊 Trigger 3: Borderline Score</h4>
+          <p>Credit score 560–680 (grey zone). RiskAgent confidence &lt; 0.75. Agent disagreement: 2+ agents có recommendation khác nhau.</p>
+        </div>
+        <div class="trigger-card regul">
+          <h4>📋 Trigger 4: Regulatory Exception</h4>
+          <p>Khách hàng có lịch sử tranh chấp pháp lý. Loan có mục đích bất thường. Hồ sơ từ jurisdiction đặc biệt.</p>
+        </div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">HITL Rate của LoanBot v3.0</div>
+        <div class="formula-text">HITL Rate = (T1_count + T2_count + T3_count + T4_count) / total_apps</div>
+        <div class="formula-desc">FinTech Corp: ~150 HITL/tháng / 50.000 apps = 0.3% — mỗi loan officer xử lý ~19 HITL cases/ngày (8 giờ ÷ 25 phút/case)</div>
+      </div>
+
+      <h3>1.3 HITL Decision Tree</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 380" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot HITL Decision Tree — When to escalate to human</title>
+          <defs>
+            <marker id="arrowIn" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#4f46e5"/>
+            </marker>
+            <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#16a34a"/>
+            </marker>
+            <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626"/>
+            </marker>
+          </defs>
+          <rect width="760" height="380" fill="#f8fafc" rx="12"/>
+          <text x="380" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#1e1b4b">LoanBot HITL Decision Tree</text>
+
+          <!-- Start -->
+          <ellipse cx="380" cy="60" rx="80" ry="22" fill="#4f46e5"/>
+          <text x="380" y="65" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">Loan Application</text>
+
+          <line x1="380" y1="82" x2="380" y2="105" stroke="#4f46e5" stroke-width="1.5" marker-end="url(#arrowIn)"/>
+
+          <!-- D1: Fraud? -->
+          <polygon points="380,110 470,140 380,170 290,140" fill="#fee2e2" stroke="#f87171" stroke-width="1.5"/>
+          <text x="380" y="136" text-anchor="middle" font-size="11" fill="#991b1b" font-weight="700">Fraud signal</text>
+          <text x="380" y="150" text-anchor="middle" font-size="10" fill="#991b1b">&gt; 0.3?</text>
+
+          <!-- Yes → HITL Immediate -->
+          <line x1="470" y1="140" x2="620" y2="140" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+          <text x="545" y="133" text-anchor="middle" font-size="9" fill="#dc2626">Có</text>
+          <rect x="620" y="118" width="120" height="44" fill="#fee2e2" rx="8" stroke="#f87171" stroke-width="1.5"/>
+          <text x="680" y="136" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">🚨 HITL</text>
+          <text x="680" y="150" text-anchor="middle" font-size="9" fill="#991b1b">Immediate</text>
+
+          <!-- No → D2 -->
+          <line x1="380" y1="170" x2="380" y2="200" stroke="#4f46e5" stroke-width="1.5" marker-end="url(#arrowIn)"/>
+          <text x="393" y="187" font-size="9" fill="#374151">Không</text>
+
+          <!-- D2: Amount > 500M? -->
+          <polygon points="380,205 470,235 380,265 290,235" fill="#fef3c7" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="380" y="231" text-anchor="middle" font-size="11" fill="#92400e" font-weight="700">Amount</text>
+          <text x="380" y="245" text-anchor="middle" font-size="10" fill="#92400e">&gt; 500M?</text>
+
+          <!-- Yes → HITL Standard -->
+          <line x1="470" y1="235" x2="620" y2="235" stroke="#d97706" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+          <text x="545" y="228" text-anchor="middle" font-size="9" fill="#92400e">Có</text>
+          <rect x="620" y="213" width="120" height="44" fill="#fef3c7" rx="8" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="680" y="231" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">⏰ HITL</text>
+          <text x="680" y="245" text-anchor="middle" font-size="9" fill="#92400e">SLA: 4h</text>
+
+          <!-- No → D3 -->
+          <line x1="380" y1="265" x2="380" y2="295" stroke="#4f46e5" stroke-width="1.5" marker-end="url(#arrowIn)"/>
+          <text x="393" y="282" font-size="9" fill="#374151">Không</text>
+
+          <!-- D3: Borderline? -->
+          <polygon points="380,300 470,330 380,360 290,330" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="380" y="326" text-anchor="middle" font-size="11" fill="#1d4ed8" font-weight="700">Borderline</text>
+          <text x="380" y="340" text-anchor="middle" font-size="10" fill="#1d4ed8">score 560–680?</text>
+
+          <!-- Yes → HITL Review -->
+          <line x1="470" y1="330" x2="620" y2="330" stroke="#2563eb" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+          <text x="545" y="323" text-anchor="middle" font-size="9" fill="#2563eb">Có</text>
+          <rect x="620" y="308" width="120" height="44" fill="#eff6ff" rx="8" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="680" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">📋 HITL</text>
+          <text x="680" y="340" text-anchor="middle" font-size="9" fill="#1d4ed8">SLA: 8h</text>
+
+          <!-- No → Auto -->
+          <line x1="290" y1="330" x2="140" y2="330" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+          <text x="215" y="323" text-anchor="middle" font-size="9" fill="#16a34a">Không</text>
+          <rect x="20" y="308" width="120" height="44" fill="#f0fdf4" rx="8" stroke="#86efac" stroke-width="1.5"/>
+          <text x="80" y="326" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">✅ Auto</text>
+          <text x="80" y="340" text-anchor="middle" font-size="9" fill="#15803d">Approve/Reject</text>
+        </svg>
+        <div class="diagram-title">Hình 1: LoanBot HITL Decision Tree — 3 gates kiểm tra tuần tự; 99.7% hồ sơ tự động</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FC-2024-004 (credit score 645, loan 300M VNĐ, is_self_employed=True). Theo Decision Tree, hồ sơ này có bị escalate HITL không? Trigger nào?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Score 645 nằm trong borderline zone (560–680) → Trigger 3. Loan 300M &lt; 500M → Trigger 1 không kích hoạt. is_self_employed làm complexity tăng, RiskAgent có thể có confidence &lt; 0.75 → thêm lý do HITL. Kết quả: HITL với SLA 8h. Loan officer nhận hồ sơ kèm explanation đầy đủ.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 2 ===== -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Approval Workflow Design — Multi-Level, SLA-Driven</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế multi-level approval workflow cho FinTech Corp</li>
+          <li>Implement SLA tracking và auto-escalation khi quá hạn</li>
+          <li>Tạo immutable audit trail cho mọi quyết định HITL</li>
+          <li>Xử lý conflict resolution khi reviewers bất đồng</li>
+        </ul>
+      </div>
+
+      <h3>2.1 Ba Cấp Phê Duyệt</h3>
+
+      <div class="approval-level l1">
+        <div class="lv-icon">👤</div>
+        <div>
+          <div class="lv-name">Level 1 — Loan Officer</div>
+          <div class="lv-range">Loan &lt; 500M VNĐ · Borderline cases · 1 người phê duyệt</div>
+        </div>
+        <div class="lv-sla" style="background:#dcfce7;color:#15803d;">SLA: 8h</div>
+      </div>
+
+      <div class="approval-level l2">
+        <div class="lv-icon">👥</div>
+        <div>
+          <div class="lv-name">Level 2 — Branch Manager</div>
+          <div class="lv-range">Loan 500M–2 tỷ VNĐ · Risk escalations · 1 manager phê duyệt</div>
+        </div>
+        <div class="lv-sla" style="background:#dbeafe;color:#1d4ed8;">SLA: 4h</div>
+      </div>
+
+      <div class="approval-level l3">
+        <div class="lv-icon">🏛️</div>
+        <div>
+          <div class="lv-name">Level 3 — Credit Committee</div>
+          <div class="lv-range">Loan &gt; 2 tỷ VNĐ · Fraud-adjacent · Minimum 3/5 votes</div>
+        </div>
+        <div class="lv-sla" style="background:var(--m11-light);color:var(--m11-primary);">SLA: 24h</div>
+      </div>
+
+      <h3>2.2 Approval Workflow State Machine</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot Approval Workflow State Machine</title>
+          <defs>
+            <marker id="arrW" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#6366f1"/>
+            </marker>
+            <marker id="arrG2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#16a34a"/>
+            </marker>
+            <marker id="arrR2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626"/>
+            </marker>
+          </defs>
+          <rect width="760" height="260" fill="#f8fafc" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#1e1b4b">Approval Workflow State Machine</text>
+
+          <!-- States -->
+          <!-- PENDING -->
+          <rect x="20" y="90" width="110" height="50" fill="#e0e7ff" rx="8" stroke="#a5b4fc" stroke-width="1.5"/>
+          <text x="75" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#3730a3">PENDING</text>
+          <text x="75" y="128" text-anchor="middle" font-size="9" fill="#4f46e5">Chờ reviewer</text>
+
+          <!-- IN_REVIEW -->
+          <rect x="180" y="90" width="110" height="50" fill="#fef9c3" rx="8" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="235" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">IN_REVIEW</text>
+          <text x="235" y="128" text-anchor="middle" font-size="9" fill="#92400e">Đang xem xét</text>
+
+          <!-- ESCALATED -->
+          <rect x="340" y="40" width="110" height="50" fill="#fce7f3" rx="8" stroke="#f9a8d4" stroke-width="1.5"/>
+          <text x="395" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#9d174d">ESCALATED</text>
+          <text x="395" y="76" text-anchor="middle" font-size="9" fill="#9d174d">SLA breach</text>
+
+          <!-- APPROVED -->
+          <rect x="340" y="150" width="110" height="50" fill="#dcfce7" rx="8" stroke="#86efac" stroke-width="1.5"/>
+          <text x="395" y="172" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">APPROVED</text>
+          <text x="395" y="186" text-anchor="middle" font-size="9" fill="#15803d">Human approved</text>
+
+          <!-- REJECTED -->
+          <rect x="500" y="150" width="110" height="50" fill="#fee2e2" rx="8" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="555" y="172" text-anchor="middle" font-size="11" font-weight="700" fill="#991b1b">REJECTED</text>
+          <text x="555" y="186" text-anchor="middle" font-size="9" fill="#991b1b">Human rejected</text>
+
+          <!-- AI_OVERRIDE -->
+          <rect x="630" y="90" width="110" height="50" fill="#f3e8ff" rx="8" stroke="#c4b5fd" stroke-width="1.5"/>
+          <text x="685" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#6d28d9">AI_OVERRIDE</text>
+          <text x="685" y="128" text-anchor="middle" font-size="9" fill="#6d28d9">Human overrode AI</text>
+
+          <!-- Transitions -->
+          <line x1="130" y1="115" x2="178" y2="115" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrW)"/>
+          <text x="154" y="108" text-anchor="middle" font-size="8" fill="#4f46e5">assign</text>
+
+          <line x1="235" y1="90" x2="340" y2="68" stroke="#ec4899" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrW)"/>
+          <text x="275" y="68" text-anchor="middle" font-size="8" fill="#9d174d">SLA breach</text>
+
+          <line x1="290" y1="130" x2="340" y2="165" stroke="#16a34a" stroke-width="1.5" marker-end="url(#arrG2)"/>
+          <text x="305" y="157" text-anchor="middle" font-size="8" fill="#15803d">approve</text>
+
+          <line x1="290" y1="120" x2="498" y2="170" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrR2)"/>
+          <text x="400" y="140" text-anchor="middle" font-size="8" fill="#991b1b">reject</text>
+
+          <line x1="290" y1="115" x2="628" y2="115" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrW)"/>
+          <text x="460" y="108" text-anchor="middle" font-size="8" fill="#6d28d9">disagree with AI</text>
+
+          <!-- SLA timer annotation -->
+          <rect x="155" y="180" width="160" height="55" fill="#fff" rx="8" stroke="#e2e8f0"/>
+          <text x="235" y="198" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">SLA Timer</text>
+          <text x="235" y="213" text-anchor="middle" font-size="9" fill="#6b7280">L1: 8h → escalate</text>
+          <text x="235" y="225" text-anchor="middle" font-size="9" fill="#6b7280">L2: 4h → credit committee</text>
+          <text x="235" y="237" text-anchor="middle" font-size="9" fill="#6b7280">SMS + email alert tại 75% SLA</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Approval Workflow State Machine — SLA breach tự động escalate lên Level cao hơn</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime, timedelta
+<span class="code-keyword">import</span> uuid
+
+<span class="code-keyword">class</span> <span class="code-function">ApprovalStatus</span>(Enum):
+    PENDING     = <span class="code-string">"PENDING"</span>
+    IN_REVIEW   = <span class="code-string">"IN_REVIEW"</span>
+    ESCALATED   = <span class="code-string">"ESCALATED"</span>
+    APPROVED    = <span class="code-string">"APPROVED"</span>
+    REJECTED    = <span class="code-string">"REJECTED"</span>
+    AI_OVERRIDE = <span class="code-string">"AI_OVERRIDE"</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">HITLCase</span>:
+    case_id: <span class="code-type">str</span> = field(default_factory=<span class="code-keyword">lambda</span>: str(uuid.uuid4())[:8])
+    loan_id: <span class="code-type">str</span> = <span class="code-string">""</span>
+    loan_amount_vnd: <span class="code-type">int</span> = <span class="code-number">0</span>
+    trigger_type: <span class="code-type">str</span> = <span class="code-string">""</span>       <span class="code-comment"># "AMOUNT", "FRAUD", "BORDERLINE", "REGULATORY"</span>
+    ai_recommendation: <span class="code-type">str</span> = <span class="code-string">""</span>   <span class="code-comment"># "APPROVE" hoặc "REJECT"</span>
+    ai_confidence: <span class="code-type">float</span> = <span class="code-number">0.0</span>
+    status: ApprovalStatus = ApprovalStatus.PENDING
+    assigned_to: <span class="code-type">str</span> = <span class="code-string">""</span>
+    approval_level: <span class="code-type">int</span> = <span class="code-number">1</span>
+    created_at: datetime = field(default_factory=datetime.now)
+    sla_deadline: datetime = <span class="code-keyword">None</span>
+    decision: <span class="code-type">str</span> = <span class="code-string">""</span>
+    decision_reason: <span class="code-type">str</span> = <span class="code-string">""</span>
+    decided_at: datetime = <span class="code-keyword">None</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">set_sla</span>(self):
+        <span class="code-comment"># SLA tùy theo approval level</span>
+        sla_hours = {<span class="code-number">1</span>: <span class="code-number">8</span>, <span class="code-number">2</span>: <span class="code-number">4</span>, <span class="code-number">3</span>: <span class="code-number">24</span>}
+        hours = sla_hours.get(self.approval_level, <span class="code-number">8</span>)
+        self.sla_deadline = self.created_at + timedelta(hours=hours)
+
+    <span class="code-keyword">def</span> <span class="code-function">is_sla_breached</span>(self) -> <span class="code-type">bool</span>:
+        <span class="code-keyword">return</span> datetime.now() > self.sla_deadline <span class="code-keyword">if</span> self.sla_deadline <span class="code-keyword">else</span> <span class="code-keyword">False</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">human_decide</span>(self, decision: <span class="code-type">str</span>, reason: <span class="code-type">str</span>, reviewer: <span class="code-type">str</span>):
+        <span class="code-comment"># Log quyết định + detect AI override</span>
+        self.decision = decision
+        self.decision_reason = reason
+        self.decided_at = datetime.now()
+        <span class="code-keyword">if</span> decision != self.ai_recommendation:
+            self.status = ApprovalStatus.AI_OVERRIDE
+            <span class="code-comment"># Override phải được log và report cho model improvement</span>
+        <span class="code-keyword">else</span>:
+            self.status = (ApprovalStatus.APPROVED
+                           <span class="code-keyword">if</span> decision == <span class="code-string">"APPROVE"</span>
+                           <span class="code-keyword">else</span> ApprovalStatus.REJECTED)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Loan officer xem xét hồ sơ FC-2024-002 (AI recommend: REJECT, confidence 0.72). Loan officer quyết định APPROVE dựa trên soft factors. Workflow ghi nhận trạng thái gì? Tại sao điều này quan trọng?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Status = AI_OVERRIDE. Quan trọng vì: (1) EU AI Act yêu cầu log mọi override; (2) Accumulated overrides → training signal — nếu loan officer thường override trong tình huống X, model cần học thêm về X; (3) Override rate là KPI: nếu &gt;15% → model quality vấn đề; (4) Override reason tạo labeled dataset cho fine-tuning sau.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 3 ===== -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: AI Explanations cho Human Reviewers (XAI)</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao "black box" AI không phù hợp với HITL trong tín dụng</li>
+          <li>Thiết kế Explanation Card đủ để loan officer ra quyết định có cơ sở</li>
+          <li>Implement ExplanationGenerator từ agent outputs</li>
+          <li>Tránh automation bias qua UI design có chủ ý</li>
+        </ul>
+      </div>
+
+      <p><strong>Explainable AI (XAI)</strong> không phải tính năng "nice to have" — trong tín dụng, đây là <strong>pháp lý bắt buộc</strong>. EU AI Act Art.13 yêu cầu transparency; GDPR Art.22 yêu cầu right to explanation cho automated decisions. Loan officer không thể phê duyệt/từ chối hồ sơ chỉ vì "AI bảo vậy".</p>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Bác sĩ và chẩn đoán AI</div>
+        <p>Hình dung loan officer như bác sĩ nhận kết quả từ hệ thống chẩn đoán AI. Bác sĩ không chỉ nhìn "Positive/Negative" — họ cần: các chỉ số cụ thể, mức độ tin cậy, yếu tố nào đóng góp nhiều nhất, lịch sử bệnh nhân. Loan officer cũng vậy: cần explanation đủ để <em>hiểu và chịu trách nhiệm</em> về quyết định của mình.</p>
+      </div>
+
+      <h3>3.1 Explanation Card của LoanBot</h3>
+
+      <div class="explanation-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--space-4);">
+          <div>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:4px;">FC-2024-004 · Nguyễn Văn D · HITL Case #4821</div>
+            <div class="verdict" style="color:#d97706;">⚠️ AI Recommendation: REVIEW</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:1.1rem;font-weight:800;color:#3730a3;">Confidence: 61%</div>
+            <div style="font-size:.8rem;color:var(--text-muted);">Loan: 300M VNĐ · 36 tháng</div>
+          </div>
+        </div>
+        <div style="font-weight:700;font-size:.85rem;margin-bottom:var(--space-3);color:var(--primary-dark);">🔍 Factors đóng góp vào quyết định:</div>
+        <div class="factor-row">
+          <div class="factor-label">Credit Score (645/850)</div>
+          <div class="factor-bar" style="width:65%;background:#fbbf24;"></div>
+          <div class="factor-score" style="color:#92400e;">+0.65</div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-label">Thu nhập 22M/tháng (tự kinh doanh)</div>
+          <div class="factor-bar" style="width:40%;background:#f97316;"></div>
+          <div class="factor-score" style="color:#ea580c;">-0.40</div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-label">DTI Ratio 38% (OK, &lt;45%)</div>
+          <div class="factor-bar" style="width:30%;background:#34d399;"></div>
+          <div class="factor-score" style="color:#16a34a;">+0.30</div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-label">Lịch sử tín dụng 36 tháng</div>
+          <div class="factor-bar" style="width:25%;background:#60a5fa;"></div>
+          <div class="factor-score" style="color:#2563eb;">+0.25</div>
+        </div>
+        <div class="factor-row">
+          <div class="factor-label">1 lần trả trễ (2023)</div>
+          <div class="factor-bar" style="width:20%;background:#f87171;"></div>
+          <div class="factor-score" style="color:#dc2626;">-0.20</div>
+        </div>
+        <div style="margin-top:var(--space-4);padding:var(--space-3);background:var(--m11-light);border-radius:var(--radius);font-size:.85rem;">
+          <strong style="color:var(--m11-primary);">📝 Lý do cần human review:</strong> Khách hàng tự kinh doanh với thu nhập biến động (σ = 4M/tháng). Score nằm trong borderline zone. Không có dấu hiệu fraud. Loan officer nên xem xét: tính ổn định của ngành nghề, thời gian kinh doanh, tài sản đảm bảo.
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">class</span> <span class="code-function">ExplanationGenerator</span>:
+    <span class="code-comment">"""Tạo human-readable explanation từ agent outputs."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">generate</span>(self, loan_data: <span class="code-type">dict</span>,
+                   agent_outputs: <span class="code-type">dict</span>) -> <span class="code-type">dict</span>:
+        credit = agent_outputs[<span class="code-string">"CreditAgent"</span>]
+        income = agent_outputs[<span class="code-string">"IncomeAgent"</span>]
+        risk   = agent_outputs[<span class="code-string">"RiskAgent"</span>]
+        fraud  = agent_outputs[<span class="code-string">"FraudAgent"</span>]
+
+        <span class="code-comment"># Tính factor contributions (simplified SHAP-style)</span>
+        factors = self.<span class="code-function">_compute_factors</span>(credit, income, risk, fraud)
+        <span class="code-comment"># Tạo natural language summary</span>
+        summary = self.<span class="code-function">_generate_summary</span>(factors, loan_data)
+        <span class="code-comment"># Highlight điểm loan officer cần chú ý nhất</span>
+        attention = self.<span class="code-function">_key_attention_points</span>(factors)
+
+        <span class="code-keyword">return</span> {
+            <span class="code-string">"verdict"</span>: risk[<span class="code-string">"recommendation"</span>],
+            <span class="code-string">"confidence"</span>: risk[<span class="code-string">"confidence"</span>],
+            <span class="code-string">"factors"</span>: factors,
+            <span class="code-string">"summary"</span>: summary,
+            <span class="code-string">"attention_points"</span>: attention,
+            <span class="code-string">"hitl_reason"</span>: self.<span class="code-function">_hitl_reason</span>(credit, risk),
+        }
+
+    <span class="code-keyword">def</span> <span class="code-function">_hitl_reason</span>(self, credit: <span class="code-type">dict</span>, risk: <span class="code-type">dict</span>) -> <span class="code-type">str</span>:
+        <span class="code-comment"># Giải thích TẠI SAO hồ sơ này cần human review</span>
+        reasons = []
+        <span class="code-keyword">if</span> <span class="code-number">560</span> <= credit[<span class="code-string">"credit_score"</span>] <= <span class="code-number">680</span>:
+            reasons.append(<span class="code-string">"Credit score trong borderline zone (560–680)"</span>)
+        <span class="code-keyword">if</span> risk.get(<span class="code-string">"confidence"</span>, <span class="code-number">1.0</span>) < <span class="code-number">0.75</span>:
+            reasons.append(f<span class="code-string">"AI confidence thấp ({risk['confidence']:.0%})"</span>)
+        <span class="code-keyword">return</span> <span class="code-string">"; "</span>.join(reasons) <span class="code-keyword">or</span> <span class="code-string">"Regulatory requirement"</span></code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Anti-Automation Bias UI Design
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Research (Goddard et al., 2012; Skitka et al., 2000) cho thấy 4 kỹ thuật chống automation bias:</p>
+          <ol class="process-steps">
+            <li><strong>Delay AI recommendation</strong> — Hiển thị factors và data trước, AI verdict ở cuối sau khi loan officer đã hình thành ý kiến ban đầu.</li>
+            <li><strong>Require pre-commitment</strong> — Yêu cầu loan officer chọn "Inclined to: Approve / Reject / Unsure" trước khi unlock AI recommendation.</li>
+            <li><strong>Counterfactual display</strong> — "Nếu thu nhập tăng 5M/tháng, AI sẽ APPROVE" — giúp loan officer hiểu decision boundary.</li>
+            <li><strong>Override friction</strong> — Khi agree với AI: 1 click. Khi override: phải nhập lý do ≥ 50 ký tự. Tăng accountability, giảm rubber-stamping cả hai chiều.</li>
+          </ol>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 4 ===== -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Enterprise Integration — Kết Nối LoanBot với Workflow Doanh Nghiệp</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế NotificationHub đa-kênh (Slack, Email, SMS)</li>
+          <li>Implement webhook architecture cho real-time HITL notifications</li>
+          <li>Tích hợp LoanBot với CRM/ERP systems hiện có</li>
+          <li>Xử lý idempotency và retry logic cho notifications</li>
+        </ul>
+      </div>
+
+      <p>LoanBot không sống trong vacuum — nó phải tích hợp vào hệ sinh thái IT của FinTech Corp. Loan officers nhận notifications qua Slack, email, SMS. CRM (Salesforce) được update tự động. ERP tracking loan status. Core Banking System nhận quyết định cuối cùng.</p>
+
+      <h3>4.1 Integration Architecture</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot Enterprise Integration Architecture</title>
+          <defs>
+            <marker id="arrInt" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#6366f1"/>
+            </marker>
+          </defs>
+          <rect width="760" height="300" fill="#1e1b4b" rx="12"/>
+          <text x="380" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#c7d2fe">LoanBot Enterprise Integration Architecture</text>
+
+          <!-- LoanBot Core -->
+          <rect x="300" y="55" width="160" height="60" fill="#3730a3" rx="10" stroke="#818cf8" stroke-width="2"/>
+          <text x="380" y="80" text-anchor="middle" font-size="12" font-weight="700" fill="#e0e7ff">🤖 LoanBot v3.0</text>
+          <text x="380" y="95" text-anchor="middle" font-size="10" fill="#a5b4fc">Orchestrator + 8 Agents</text>
+          <text x="380" y="108" text-anchor="middle" font-size="9" fill="#818cf8">HITL Decision Engine</text>
+
+          <!-- NotificationHub -->
+          <rect x="300" y="155" width="160" height="44" fill="#4f46e5" rx="8" stroke="#818cf8"/>
+          <text x="380" y="174" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">📢 NotificationHub</text>
+          <text x="380" y="188" text-anchor="middle" font-size="9" fill="#c7d2fe">Event-driven, idempotent</text>
+
+          <line x1="380" y1="115" x2="380" y2="153" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+
+          <!-- Left: Slack + Email + SMS -->
+          <rect x="30" y="168" width="90" height="36" fill="#2EB67D" rx="8"/>
+          <text x="75" y="183" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Slack</text>
+          <text x="75" y="197" text-anchor="middle" font-size="8" fill="#fff">Loan Officer</text>
+
+          <rect x="30" y="218" width="90" height="36" fill="#EA4335" rx="8"/>
+          <text x="75" y="233" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Email</text>
+          <text x="75" y="247" text-anchor="middle" font-size="8" fill="#fff">Manager CC</text>
+
+          <rect x="30" y="268" width="90" height="28" fill="#0ea5e9" rx="8"/>
+          <text x="75" y="286" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">SMS Alert</text>
+
+          <line x1="300" y1="177" x2="120" y2="186" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+          <line x1="300" y1="180" x2="120" y2="236" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+          <line x1="300" y1="183" x2="120" y2="282" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+
+          <!-- Right: CRM, ERP, Core Banking -->
+          <rect x="640" y="148" width="105" height="36" fill="#0f766e" rx="8"/>
+          <text x="692" y="163" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Salesforce CRM</text>
+          <text x="692" y="177" text-anchor="middle" font-size="8" fill="#ccfbf1">Auto-update status</text>
+
+          <rect x="640" y="198" width="105" height="36" fill="#7c3aed" rx="8"/>
+          <text x="692" y="213" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">ERP System</text>
+          <text x="692" y="227" text-anchor="middle" font-size="8" fill="#ede9fe">Loan tracking</text>
+
+          <rect x="640" y="248" width="105" height="36" fill="#92400e" rx="8"/>
+          <text x="692" y="263" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Core Banking</text>
+          <text x="692" y="277" text-anchor="middle" font-size="8" fill="#fef3c7">Final decision</text>
+
+          <line x1="460" y1="170" x2="638" y2="166" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+          <line x1="460" y1="175" x2="638" y2="216" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+          <line x1="460" y1="180" x2="638" y2="266" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arrInt)"/>
+
+          <!-- HITL Portal -->
+          <rect x="295" y="230" width="170" height="40" fill="#1e3a5f" rx="8" stroke="#60a5fa" stroke-width="1.5"/>
+          <text x="380" y="247" text-anchor="middle" font-size="10" font-weight="700" fill="#93c5fd">🖥️ HITL Review Portal</text>
+          <text x="380" y="261" text-anchor="middle" font-size="9" fill="#60a5fa">Loan officer decision UI</text>
+          <line x1="380" y1="199" x2="380" y2="228" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrInt)"/>
+        </svg>
+        <div class="diagram-title">Hình 3: Enterprise Integration Architecture — NotificationHub fan-out đến Slack/Email/SMS; kết quả HITL vào CRM/ERP/Core Banking</div>
+      </div>
+
+      <h3>4.2 Slack Notification Implementation</h3>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">import</span> httpx
+<span class="code-keyword">import</span> hashlib
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">NotificationHub</span>:
+    slack_webhook_url: <span class="code-type">str</span>
+    email_api_key: <span class="code-type">str</span>
+    sent_ids: set = None
+
+    <span class="code-keyword">def</span> <span class="code-function">__post_init__</span>(self):
+        self.sent_ids = set()  <span class="code-comment"># idempotency: không gửi duplicate</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">notify_hitl</span>(self, case: <span class="code-type">dict</span>) -> <span class="code-type">bool</span>:
+        <span class="code-comment"># Deduplicate bằng case_id hash</span>
+        notif_id = hashlib.<span class="code-function">md5</span>(
+            f<span class="code-string">"{case['case_id']}-hitl"</span>.encode()
+        ).hexdigest()
+        <span class="code-keyword">if</span> notif_id <span class="code-keyword">in</span> self.sent_ids:
+            <span class="code-keyword">return</span> <span class="code-keyword">False</span>  <span class="code-comment"># đã gửi rồi</span>
+
+        <span class="code-comment"># Format Slack Block Kit message</span>
+        blocks = [
+            {<span class="code-string">"type"</span>: <span class="code-string">"header"</span>,
+             <span class="code-string">"text"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"plain_text"</span>,
+                      <span class="code-string">"text"</span>: f<span class="code-string">"🤝 HITL Required: {case['loan_id']}"</span>}},
+            {<span class="code-string">"type"</span>: <span class="code-string">"section"</span>,
+             <span class="code-string">"fields"</span>: [
+                {<span class="code-string">"type"</span>: <span class="code-string">"mrkdwn"</span>,
+                 <span class="code-string">"text"</span>: f<span class="code-string">"*Loan:* {case['loan_amount_vnd']:,} VNĐ"</span>},
+                {<span class="code-string">"type"</span>: <span class="code-string">"mrkdwn"</span>,
+                 <span class="code-string">"text"</span>: f<span class="code-string">"*AI:* {case['ai_recommendation']} ({case['ai_confidence']:.0%})"</span>},
+                {<span class="code-string">"type"</span>: <span class="code-string">"mrkdwn"</span>,
+                 <span class="code-string">"text"</span>: f<span class="code-string">"*SLA:* {case['sla_deadline']}"</span>},
+                {<span class="code-string">"type"</span>: <span class="code-string">"mrkdwn"</span>,
+                 <span class="code-string">"text"</span>: f<span class="code-string">"*Trigger:* {case['trigger_type']}"</span>},
+             ]},
+            {<span class="code-string">"type"</span>: <span class="code-string">"actions"</span>,
+             <span class="code-string">"elements"</span>: [{
+                 <span class="code-string">"type"</span>: <span class="code-string">"button"</span>,
+                 <span class="code-string">"text"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"plain_text"</span>, <span class="code-string">"text"</span>: <span class="code-string">"📋 Review Now"</span>},
+                 <span class="code-string">"url"</span>: f<span class="code-string">"https://hitl.fintech.vn/cases/{case['case_id']}"</span>,
+                 <span class="code-string">"style"</span>: <span class="code-string">"primary"</span>
+             }]}
+        ]
+        <span class="code-comment"># Send với retry logic (max 3 attempts)</span>
+        <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> range(<span class="code-number">3</span>):
+            r = httpx.<span class="code-function">post</span>(self.slack_webhook_url, json={<span class="code-string">"blocks"</span>: blocks})
+            <span class="code-keyword">if</span> r.status_code == <span class="code-number">200</span>:
+                self.sent_ids.add(notif_id)
+                <span class="code-keyword">return</span> <span class="code-keyword">True</span>
+        <span class="code-keyword">return</span> <span class="code-keyword">False</span></code></pre>
+      </div>
+
+      <p>Notifications được phân loại:
+        <span class="integration-badge" style="background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;">📬 Slack — real-time, loan officer</span>
+        <span class="integration-badge" style="background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;">📧 Email — manager CC, formal record</span>
+        <span class="integration-badge" style="background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;">📱 SMS — SLA breach warning tại 75%</span>
+        <span class="integration-badge" style="background:#f3e5f5;color:#4a148c;border:1px solid #ce93d8;">🔗 Webhook — CRM/ERP sync</span>
+      </p>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 5 ===== -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Feedback Loop & Continuous Improvement</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thu thập human overrides để tạo training dataset</li>
+          <li>Detect model drift từ pattern của HITL decisions</li>
+          <li>Implement active learning signal từ loan officer feedback</li>
+          <li>Thiết kế retraining trigger tự động</li>
+        </ul>
+      </div>
+
+      <h3>5.1 Human Overrides → Training Data</h3>
+
+      <p>Mỗi lần loan officer override AI là một <strong>labeled data point</strong> có giá trị. Nếu loan officer APPROVE khi AI recommend REJECT, đó là evidence rằng AI đang quá conservative với profile đó. Accumulated over time → retraining signal.</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Virtuous Learning Loop</div>
+        <p>LoanBot v3.0 → human overrides → labeled dataset → fine-tuning → LoanBot v3.1 (ít override hơn) → lại thu thập overrides → ... Mỗi vòng lặp, model ngày càng sát với judgment của loan officers thực tế. Điều kiện: overrides phải được structured capture, không phải chỉ log text.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+          <title>Virtuous Learning Loop — từ HITL overrides đến model improvement</title>
+          <defs>
+            <marker id="arrLoop" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#4f46e5"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#eef2ff" rx="12" stroke="#a5b4fc"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#1e1b4b">Virtuous Learning Loop — LoanBot Continuous Improvement</text>
+
+          <!-- 5 nodes in a cycle -->
+          <!-- Node 1: LoanBot -->
+          <ellipse cx="130" cy="110" rx="80" ry="35" fill="#4f46e5"/>
+          <text x="130" y="106" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">🤖 LoanBot</text>
+          <text x="130" y="120" text-anchor="middle" font-size="9" fill="#c7d2fe">v3.0 decisions</text>
+
+          <!-- Node 2: HITL Cases -->
+          <ellipse cx="295" cy="60" rx="80" ry="32" fill="#6d28d9"/>
+          <text x="295" y="56" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">🤝 HITL Cases</text>
+          <text x="295" y="70" text-anchor="middle" font-size="9" fill="#e9d5ff">150/tháng</text>
+
+          <!-- Node 3: Override Log -->
+          <ellipse cx="470" cy="60" rx="80" ry="32" fill="#0369a1"/>
+          <text x="470" y="56" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">📊 Override Log</text>
+          <text x="470" y="70" text-anchor="middle" font-size="9" fill="#bae6fd">structured data</text>
+
+          <!-- Node 4: Training Dataset -->
+          <ellipse cx="630" cy="110" rx="80" ry="35" fill="#065f46"/>
+          <text x="630" y="106" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">📚 Training Data</text>
+          <text x="630" y="120" text-anchor="middle" font-size="9" fill="#a7f3d0">labeled by humans</text>
+
+          <!-- Node 5: Fine-tuned Model -->
+          <ellipse cx="380" cy="175" rx="100" ry="32" fill="#92400e"/>
+          <text x="380" y="171" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">⚡ LoanBot v3.1</text>
+          <text x="380" y="185" text-anchor="middle" font-size="9" fill="#fde68a">fewer overrides needed</text>
+
+          <!-- Arrows -->
+          <path d="M 207 95 Q 245 70 213 68" stroke="#4f46e5" stroke-width="1.5" fill="none" marker-end="url(#arrLoop)"/>
+          <line x1="375" y1="60" x2="388" y2="60" stroke="#4f46e5" stroke-width="1.5" marker-end="url(#arrLoop)"/>
+          <path d="M 547 78 Q 595 90 612 95" stroke="#4f46e5" stroke-width="1.5" fill="none" marker-end="url(#arrLoop)"/>
+          <path d="M 556 130 Q 500 165 483 168" stroke="#4f46e5" stroke-width="1.5" fill="none" marker-end="url(#arrLoop)"/>
+          <path d="M 278 168 Q 200 165 163 140" stroke="#4f46e5" stroke-width="1.5" fill="none" marker-end="url(#arrLoop)"/>
+
+          <!-- Labels on arrows -->
+          <text x="220" y="58" text-anchor="middle" font-size="8" fill="#4f46e5">borderline → HITL</text>
+          <text x="382" y="50" text-anchor="middle" font-size="8" fill="#4f46e5">human review</text>
+          <text x="595" y="80" text-anchor="middle" font-size="8" fill="#4f46e5">override = label</text>
+          <text x="530" y="165" text-anchor="middle" font-size="8" fill="#4f46e5">quarterly retrain</text>
+          <text x="210" y="175" text-anchor="middle" font-size="8" fill="#4f46e5">deploy improvement</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Virtuous Learning Loop — mỗi HITL override là training signal cho model tốt hơn</div>
+      </div>
+
+      <h3>5.2 Drift Detection từ Override Patterns</h3>
+
+      <p><strong>Model drift</strong> xảy ra khi distribution của loan applications thay đổi nhưng model không được update. Dấu hiệu: override rate tăng đột ngột, overrides tập trung vào một segment (ví dụ: self-employed post-COVID).</p>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> collections <span class="code-keyword">import</span> defaultdict
+<span class="code-keyword">from</span> statistics <span class="code-keyword">import</span> mean
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict
+
+<span class="code-keyword">class</span> <span class="code-function">FeedbackCollector</span>:
+    <span class="code-comment">"""Thu thập và phân tích human feedback từ HITL decisions."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self._overrides: List[dict] = []
+        self._override_rate_history: List[float] = []  <span class="code-comment"># mỗi tháng</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">record_override</span>(self, case_id: <span class="code-type">str</span>, loan_id: <span class="code-type">str</span>,
+                          ai_rec: <span class="code-type">str</span>, human_dec: <span class="code-type">str</span>,
+                          reason: <span class="code-type">str</span>, segment: <span class="code-type">str</span>):
+        <span class="code-keyword">if</span> ai_rec != human_dec:  <span class="code-comment"># chỉ log nếu là override</span>
+            self._overrides.append({
+                <span class="code-string">"case_id"</span>: case_id, <span class="code-string">"loan_id"</span>: loan_id,
+                <span class="code-string">"ai_was"</span>: ai_rec, <span class="code-string">"human_chose"</span>: human_dec,
+                <span class="code-string">"reason"</span>: reason,
+                <span class="code-string">"segment"</span>: segment  <span class="code-comment"># "self_employed", "high_amount", etc.</span>
+            })
+
+    <span class="code-keyword">def</span> <span class="code-function">segment_drift_analysis</span>(self) -> Dict[str, float]:
+        <span class="code-comment"># Override rate theo segment → phát hiện model weakness</span>
+        segment_counts = defaultdict(<span class="code-keyword">lambda</span>: {<span class="code-string">"total"</span>: <span class="code-number">0</span>, <span class="code-string">"overrides"</span>: <span class="code-number">0</span>})
+        <span class="code-keyword">for</span> override <span class="code-keyword">in</span> self._overrides:
+            seg = override[<span class="code-string">"segment"</span>]
+            segment_counts[seg][<span class="code-string">"overrides"</span>] += <span class="code-number">1</span>
+
+        <span class="code-comment"># Segment với override rate cao = model cần retrain cho segment đó</span>
+        rates = {seg: data[<span class="code-string">"overrides"</span>]
+                 <span class="code-keyword">for</span> seg, data <span class="code-keyword">in</span> segment_counts.items()}
+        <span class="code-keyword">return</span> dict(<span class="code-function">sorted</span>(rates.items(), key=<span class="code-keyword">lambda</span> x: x[<span class="code-number">1</span>], reverse=<span class="code-keyword">True</span>))
+
+    <span class="code-keyword">def</span> <span class="code-function">should_trigger_retraining</span>(self) -> <span class="code-type">bool</span>:
+        <span class="code-comment"># Trigger nếu override rate tháng này > 1.5× trung bình 3 tháng</span>
+        <span class="code-keyword">if</span> len(self._override_rate_history) < <span class="code-number">3</span>:
+            <span class="code-keyword">return</span> <span class="code-keyword">False</span>
+        current = self._override_rate_history[-<span class="code-number">1</span>]
+        baseline = mean(self._override_rate_history[-<span class="code-number">4</span>:-<span class="code-number">1</span>])
+        <span class="code-keyword">return</span> current > baseline * <span class="code-number">1.5</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 11</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m11-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m11-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m11-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Human-in-the-Loop (HITL)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern thiết kế: AI tạm dừng và chuyển quyền quyết định sang human cho trường hợp nhất định.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Human-on-the-Loop (HOTL)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Human giám sát nhưng không can thiệp mỗi quyết định — phản ứng khi có anomaly.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act Art.14</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Yêu cầu human oversight cho High-Risk AI systems, bao gồm creditworthiness assessment.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Automation Bias</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xu hướng con người follow AI recommendation dù AI sai, vì tin tưởng quá mức vào automation.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLA (Service Level Agreement)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cam kết thời gian xử lý: HITL L1 = 8h, L2 = 4h, L3 = 24h.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Override</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi human reviewer không đồng ý với AI recommendation và chọn quyết định khác.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Override Rate</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">% HITL cases mà loan officer override AI. Baseline tốt: &lt;5%. >15% → model quality issue.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Explainable AI (XAI)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Techniques giúp AI decisions có thể được explain và hiểu bởi con người (LIME, SHAP, attention).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Factor Contribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mức độ đóng góp của từng yếu tố vào quyết định AI — tương tự feature importance.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Borderline Zone</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vùng credit score 560–680 mà AI có low confidence — mọi hồ sơ trong zone này → HITL.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Drift</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hiện tượng model performance giảm dần khi data distribution thực tế thay đổi theo thời gian.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Active Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model chủ động chọn data points không chắc chắn nhất để đưa cho human label, optimize training efficiency.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Virtuous Learning Loop</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp cải tiến: AI decisions → human overrides → training data → better model → fewer overrides.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Idempotency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Property của operation: gọi nhiều lần có cùng kết quả như gọi 1 lần — critical cho retry logic.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">GDPR Art.22</td><td style="padding:8px 12px;">Right to explanation: người dùng có quyền yêu cầu giải thích cho quyết định automated có ảnh hưởng significant.</td></tr>
+      </table>
+
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module10/index.html" class="btn btn-outline">← Module 10: Cost</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 11 →</a>
+    </div>
+
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

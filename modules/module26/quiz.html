@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 26 — Multi-Agent Debate & Consensus</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m26-primary:#701a75;--m26-accent:#e879f9;--m26-light:#fdf4ff;--m26-border:#d946ef; }
+    .quiz-hero { background: linear-gradient(135deg, #3b0764 0%, #701a75 55%, #e879f9 100%); padding: var(--space-12) var(--space-6); text-align:center; }
+    .quiz-hero h1 { color:#fff; font-size:2rem; margin:var(--space-3) 0; }
+    .quiz-hero p  { color:#f0abfc; }
+    .module-tag { background:rgba(255,255,255,.15); color:#fff; padding:4px 12px; border-radius:99px; font-size:.8rem; font-weight:700; }
+    .quiz-stats { display:flex; gap:var(--space-4); justify-content:center; margin-top:var(--space-4); }
+    .quiz-stats span { background:rgba(255,255,255,.15); color:#fff; padding:6px 16px; border-radius:99px; font-size:.85rem; }
+    .quiz-container { max-width:780px; margin:var(--space-8) auto; padding:0 var(--space-4); }
+    .quiz-progress { margin-bottom:var(--space-6); }
+    .quiz-progress-text { font-size:.875rem; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .quiz-progress-bar { height:6px; background:var(--border); border-radius:99px; }
+    .quiz-progress-fill { height:100%; background:linear-gradient(90deg,#701a75,#e879f9); border-radius:99px; transition:width .4s ease; }
+    .quiz-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius-xl); padding:var(--space-6); box-shadow:var(--shadow-sm); }
+    .quiz-q-num { font-size:.8rem; font-weight:700; color:var(--m26-primary); text-transform:uppercase; letter-spacing:.05em; margin-bottom:var(--space-2); }
+    .quiz-q-text { font-size:1rem; line-height:1.7; margin-bottom:var(--space-4); color:var(--text-primary); }
+    .quiz-options { display:flex; flex-direction:column; gap:var(--space-2); }
+    .quiz-option { padding:var(--space-3) var(--space-4); border:1.5px solid var(--border); border-radius:var(--radius-lg); cursor:pointer; font-size:.9rem; transition:all .15s; background:#fff; text-align:left; }
+    .quiz-option:hover { border-color:var(--m26-accent); background:var(--m26-light); }
+    .quiz-option.correct   { background:#f0fdf4; border-color:#16a34a; color:#166534; }
+    .quiz-option.incorrect { background:#fef2f2; border-color:#dc2626; color:#991b1b; }
+    .quiz-option.disabled  { pointer-events:none; opacity:.6; }
+    .quiz-feedback { margin-top:var(--space-4); padding:var(--space-4); border-radius:var(--radius-lg); font-size:.875rem; line-height:1.7; display:none; }
+    .quiz-feedback.correct   { background:#f0fdf4; border:1px solid #86efac; }
+    .quiz-feedback.incorrect { background:#fef2f2; border:1px solid #fca5a5; }
+    .quiz-next { margin-top:var(--space-4); display:none; }
+    .quiz-result { text-align:center; padding:var(--space-8); }
+    .result-score { font-size:3rem; font-weight:800; color:var(--m26-primary); }
+    .result-grade { font-size:1.2rem; color:var(--text-secondary); margin:var(--space-2) 0 var(--space-6); }
+    .result-actions { display:flex; gap:var(--space-3); justify-content:center; flex-wrap:wrap; margin-top:var(--space-4); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <span class="module-tag">MODULE 26 · QUIZ</span>
+  <h1>🗣️ Multi-Agent Debate & Consensus</h1>
+  <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+  <div class="quiz-stats">
+    <span>5 câu dễ</span>
+    <span>7 câu trung bình</span>
+    <span>3 câu khó</span>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="finalScore"></div>
+    <div class="result-grade" id="finalGrade"></div>
+    <p id="finalMsg"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">📖 Xem lại bài giảng</a>
+      <button onclick="restartQuiz()" class="btn btn-outline">🔄 Làm lại</button>
+      <a href="../module27/index.html" class="btn btn-primary">→ Module 27</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // Lesson 1 — Tại sao debate (dễ)
+  {
+    q: "Condorcet Jury Theorem phát biểu rằng panel accuracy tăng khi thêm agents, với điều kiện nào BẮT BUỘC?",
+    opts: [
+      "A. Mỗi agent phải có accuracy > 0.5 VÀ các agents phải independent với nhau",
+      "B. Tất cả agents phải có accuracy > 0.7 để đảm bảo majority correct",
+      "C. Panel phải có ít nhất 5 agents để theorem có hiệu lực",
+      "D. Agents phải được fine-tune trên cùng dataset để đảm bảo consistency"
+    ],
+    correct: 0,
+    explanation: "Đúng: A. Condorcet Jury Theorem đòi hỏi (1) p > 0.5 (mỗi agent có accuracy trên chance) VÀ (2) independence giữa agents. Không cần p > 0.7 (B sai — p > 0.5 là đủ). Không có yêu cầu n ≥ 5 (C sai — dù nhiều agents thì càng tốt). Fine-tune cùng dataset thực ra GIẢM diversity (D sai). Điều quan trọng nhất: nếu agents NOT independent (đều xem reasoning của nhau trước), theorem không còn hiệu lực."
+  },
+  // Lesson 1 — Tại sao debate (dễ)
+  {
+    q: "FinTech Corp quyết định chỉ route hồ sơ vào debate panel khi score ở mức 580–680 hoặc DTI 0.38–0.45. Nguyên tắc thiết kế này gọi là gì?",
+    opts: [
+      "A. Universal debate: tất cả hồ sơ đều phải qua panel để đảm bảo quality",
+      "B. Selective routing: chỉ debate genuinely ambiguous cases để balance accuracy vs latency",
+      "C. Cascade routing: hồ sơ rõ ràng tốt → simple agent, rồi escalate lên panel",
+      "D. Threshold voting: panel chỉ override single agent khi confidence dưới threshold"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Selective routing — chỉ route borderline cases vào debate panel. Clear APPROVE (score ≥ 720, DTI ≤ 0.35, emp ≥ 24mo) và clear REJECT (score < 500, DTI > 0.55) không cần debate — single agent đủ và nhanh hơn. Debate chỉ add value khi có genuine uncertainty. A (universal debate) vừa wasteful vừa slow. C (cascade) là pattern khác — không áp dụng ở đây. D không phải thuật ngữ chính xác."
+  },
+  // Lesson 2 — Consensus (dễ)
+  {
+    q: "Borda Count hoạt động như thế nào? Với 3 options và 3 agents, nếu agent rank REVIEW cao nhất (score 2 mỗi người), tổng Borda score của REVIEW là bao nhiêu?",
+    opts: [
+      "A. 3 — vì có 3 agents vote cho REVIEW",
+      "B. 6 — vì 3 agents × 2 points mỗi người = 6",
+      "C. 2 — vì max Borda score cho 1 option là 2 (khi n=3 options)",
+      "D. 9 — vì mỗi agent cho 3 điểm cho option rank nhất"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Borda Count: với 3 options, rank 1st = 2 points, rank 2nd = 1 point, rank 3rd = 0 points. Nếu cả 3 agents đều rank REVIEW cao nhất → 3 × 2 = 6 total Borda points. Trong ví dụ FC-2024-004: Optimist (2,1,0), Pessimist (1,2,0), Regulator (0,2,1) → APPROVE: 2+1+0=3; REVIEW: 1+2+2=5; REJECT: 0+0+1=1. REVIEW win với 5 điểm."
+  },
+  // Lesson 2 — Consensus (trung bình)
+  {
+    q: "3 agents vote: Optimist APPROVE (weight 1.0, conf 0.80), Pessimist REJECT (weight 1.2, conf 0.85), Regulator REVIEW (weight 1.5, conf 0.90). Weighted vote nào win?",
+    opts: [
+      "A. APPROVE win vì majority rule: APPROVE có nhiều điểm confidence hơn",
+      "B. REVIEW win vì weighted score: REVIEW = 1.5 × 0.90 = 1.35, cao nhất",
+      "C. REJECT win vì Pessimist có confidence cao nhất trong 3 options",
+      "D. Cần thêm rounds Delphi vì không có majority (3 options, 3 votes khác nhau)"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Weighted vote: APPROVE = 1.0 × 0.80 = 0.80; REJECT = 1.2 × 0.85 = 1.02; REVIEW = 1.5 × 0.90 = 1.35. REVIEW win với weighted score cao nhất. Đây là kết quả đúng theo weighted vote mechanism. Majority vote (A) không apply ở đây vì mỗi option chỉ có 1 vote. Confidence cao nhất (C) là của RegulatorAgent (REVIEW), không phải Pessimist. Delphi (D) là optional — không bắt buộc khi weighted vote đã có clear winner."
+  },
+  // Lesson 3 — Devil's Advocate (dễ)
+  {
+    q: "Sycophancy collapse trong multi-agent debate xảy ra khi nào?",
+    opts: [
+      "A. Khi debate kéo dài quá 5 rounds mà vẫn không converge",
+      "B. Khi một agent thay đổi position vì peer pressure từ agents khác, không phải vì argument chất lượng",
+      "C. Khi Meta-Arbitrator override tất cả votes của panel",
+      "D. Khi Optimist và Pessimist disagree quá mức, gây deadlock vĩnh viễn"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Sycophancy collapse = agent thay đổi position vì social pressure, không phải vì logic tốt hơn. Ví dụ: Optimist vote APPROVE, sau đó thấy Pessimist và Regulator đều REVIEW, bèn đổi sang REVIEW không phải vì tìm được counterargument tốt hơn mà chỉ vì muốn fit in với majority. Đây phá vỡ independence assumption của Condorcet. Cách prevent: agents phải commit vote trước khi xem votes của nhau; yêu cầu explicit rebuttal trước khi đổi position."
+  },
+  // Lesson 3 — Devil's Advocate (trung bình)
+  {
+    q: "Devil's Advocate agent có nhiệm vụ gì khác với các agents thông thường trong panel?",
+    opts: [
+      "A. DA agent chỉ xem xét compliance và regulatory aspects của quyết định",
+      "B. DA agent phải explicitly challenge draft decision bất kể position của chính nó — assigned adversarial role",
+      "C. DA agent vote với weight 2.0 để counterbalance khi agents khác đồng ý",
+      "D. DA agent chỉ active khi panel deadlocked 2-2 hoặc 3-2"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Devil's Advocate được assigned explicitly để challenge bất kể personal position. Nhiệm vụ: tìm 2-3 lý do MẠNH NHẤT để phản đối draft decision — không phải vì nó disagree, mà vì role của nó là stress-test. Đây khác với Pessimist agent (C sai) — Pessimist genuinely risk-averse; DA có thể personally agree với draft nhưng vẫn phải challenge. Không phải chỉ compliance (A). Không phải chỉ khi deadlock (D) — DA active ở mỗi debate round."
+  },
+  // Lesson 3 — Devil's Advocate (trung bình)
+  {
+    q: "Trong code devil_advocate_round(), convergence_criteria bao gồm điều kiện nào để stop debate?",
+    opts: [
+      "A. Dừng khi tất cả agents đồng ý OR khi đã qua 10 rounds",
+      "B. Dừng khi đã 3 rounds OR khi 2 rounds liên tiếp không có decision change",
+      "C. Dừng khi Regulator agent đưa ra compliance verdict bất kỳ",
+      "D. Dừng khi confidence của Meta-Arbitrator vượt 0.90"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Convergence criteria trong code: (1) len(rounds) >= 3 → stop (max 3 rounds); (2) 2 rounds liên tiếp không có decision change → stable, stop. Lý do: quá 3 rounds thì thêm rounds có diminishing returns và tăng latency đáng kể. 2 rounds stable → decision đã converge. Không cần unanimity (A — quá strict). Regulator verdict (C) là compliance veto, không phải convergence criteria. Meta-Arbitrator confidence (D) là post-debate metric, không phải convergence trigger."
+  },
+  // Lesson 4 — Specialization (trung bình)
+  {
+    q: "FinTech Corp assign RegulatorAgent weight 1.5 so với OptimistAgent weight 1.0. Trường hợp nào justify việc dùng weights KHÁC NHAU thay vì equal weights?",
+    opts: [
+      "A. Khi một agent có accuracy cao hơn trên TẤT CẢ case types — agent tốt hơn nên có weight cao hơn",
+      "B. Khi domain expertise của agent align với loại query — Regulator có domain advantage trên compliance queries",
+      "C. Khi agent có processing speed nhanh hơn — faster agents nên được tin cậy hơn",
+      "D. Khi agent đã được deployed lâu hơn — experience qua deployment time tương quan với accuracy"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Weighted voting được justify khi có asymmetric domain expertise. RegulatorAgent được trained/prompted đặc biệt cho compliance — nó có domain advantage trên regulatory questions. Không phải vì overall accuracy cao hơn (A — RegulatorAgent có thể kém hơn về growth potential assessment). Speed (C) không correlate với decision quality. Deployment time (D) là proxy rất kém — model architecture quan trọng hơn. Key principle: weight = domain-specific expertise, không phải general superiority."
+  },
+  // Lesson 4 — Specialization (trung bình)
+  {
+    q: "Sau 100 cases, FinTech Corp track per-agent accuracy: OptimistAgent 72%, BalancedAgent 78%, PessimistAgent 81%, RegulatorAgent 76%. Bạn nên làm gì với OptimistAgent?",
+    opts: [
+      "A. Remove OptimistAgent khỏi panel vì accuracy thấp nhất — không contribute value",
+      "B. Giảm weight của OptimistAgent (ví dụ 0.7) dựa trên historical performance",
+      "C. Keep OptimistAgent với weight 1.0 nhưng review persona prompt để improve accuracy",
+      "D. Swap OptimistAgent bằng một Balanced agent thứ hai để tăng accuracy tổng thể"
+    ],
+    correct: 2,
+    explanation: "Đúng: C. 72% accuracy nghe thấp, nhưng OptimistAgent vẫn > 50% (Condorcet threshold). Quan trọng hơn: cần check diversity contribution. Nếu OptimistAgent thường disagree với majority khi majority SAI → nó có high recall on false negatives, dù overall accuracy thấp. Giảm weight (B) có thể đúng nhưng chỉ sau phân tích per-case-type accuracy. Remove (A) mất diversity quan trọng. Swap sang Balanced (D) tạo echo chamber. Correct action: investigate when OptimistAgent is right vs wrong, then review persona prompt nếu có systematic bias."
+  },
+  // Lesson 5 — Arbitration (dễ)
+  {
+    q: "Meta-Arbitrator nhận votes: Optimist APPROVE, Pessimist REVIEW, Regulator REVIEW với compliance_flag=True. Kết quả là gì?",
+    opts: [
+      "A. APPROVE vì Optimist vote APPROVE và Regulator compliance_flag cần verify thêm",
+      "B. REVIEW ngay lập tức vì regulatory veto — compliance_flag overrides majority vote",
+      "C. Weighted vote: APPROVE (1.0) vs REVIEW (1.2+1.5=2.7) → REVIEW win",
+      "D. Escalate to human review vì có compliance flag — machine không nên quyết định"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. compliance_flag=True từ RegulatorAgent triggers regulatory veto — overrides tất cả voting mechanisms. Code meta_arbitrate() check compliance_flags TRƯỚC khi tính weighted vote. Kết quả luôn là REVIEW với explanation từ compliance flag. Không phải APPROVE (A). Weighted vote (C) đúng về tính toán nhưng không được execute vì compliance veto có priority cao hơn. Escalate to human (D) là wrong level — REVIEW với conditions đủ; human escalation chỉ khi compliance issue không thể resolve."
+  },
+  // Lesson 5 — Arbitration (trung bình)
+  {
+    q: "Panel 3 agents: Optimist APPROVE (w=1.0, c=0.85), Pessimist APPROVE (w=1.2, c=0.80), Regulator REJECT (w=1.5, c=0.95). Weighted vote: APPROVE=1.0×0.85+1.2×0.80=1.81, REJECT=1.5×0.95=1.425. Meta-Arbitrator reads reasoning: Regulator cites TT39/2016 Điều 9 — loan purpose không documented. Bạn là Meta-Arbitrator, quyết định gì?",
+    opts: [
+      "A. APPROVE vì weighted score APPROVE (1.81) > REJECT (1.425) — majority và weights đồng ý",
+      "B. REVIEW — Regulator's legal citation là strong minority view cần address trước khi approve",
+      "C. REJECT — Regulator nêu statutory violation và bất kỳ legal issue nào đều là automatic reject",
+      "D. Re-run debate với Delphi round 2 để Optimist và Pessimist có thể rebut Regulator's citation"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Meta-Arbitrator đánh giá CHẤT LƯỢNG của arguments, không chỉ count weighted votes. Regulator's citation (TT39/2016 Điều 9 — specific article, specific requirement) là concrete statutory ground, không phải vague concern. Dù weighted score APPROVE higher, argument quality của Regulator là superior — nó identifies a specific fixable issue (add loan purpose documentation). REVIEW cho phép customer address this và re-apply, fair to customer. APPROVE (A) ignores quality of minority argument. REJECT (C) quá harsh — issue là documentation, not ineligibility. Delphi (D) có thể useful nhưng không necessary khi citation là clear."
+  },
+  // Hard — Lesson 1+2 combined
+  {
+    q: "FinTech Corp báo cáo: sau 3 tháng dùng 3-agent panel, panel accuracy = 84% trên borderline cases (vs single agent 76%). Nhưng diversity index chỉ = 0.15 (gần 0 = thấp). Điều này nói lên vấn đề gì và bạn xử lý thế nào?",
+    opts: [
+      "A. Không có vấn đề — accuracy 84% là mục tiêu chính. Diversity index thấp không quan trọng nếu outcome tốt",
+      "B. Agents quá homogeneous — high agreement rate che giấu individual errors; debate là theater. Fix: diversify personas và prohibit vote-sharing trước khi commit",
+      "C. Panel cần thêm agents (5-agent) vì 3-agent panel quá nhỏ — diversity tự nhiên tăng khi có nhiều agents",
+      "D. Diversity index thấp = good calibration — agents nhất quán với nhau, confidence cao. Tăng sample size để confirm"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Diversity index 0.15 ≈ 0 nghĩa là agents gần như luôn đồng ý trước khi deliberate — echo chamber. Vấn đề: Condorcet Theorem đòi hỏi INDEPENDENT agents. Nếu 3 agents vote A,A,A nhưng actual answer là B, majority wrong. 84% accuracy có thể đến từ individual agent accuracy, không phải collective intelligence. Debate không add value thực sự — chỉ tốn latency. Fix: (1) Diversify system prompts để genuine disagreement; (2) Blind voting — commit position trước khi xem votes khác; (3) Require devil's advocate. Thêm agents (C) không fix homogeneity. Diversity thấp ≠ good calibration (D — nhầm lẫn nguy hiểm)."
+  },
+  // Hard — Lesson 3+5 combined
+  {
+    q: "Devil's Advocate challenge: 'DTI 0.42 gần ceiling 0.45 — nếu khách hàng gặp income shock 10%, DTI tăng lên 0.46, vượt limit.' Original agent rebuttal: 'Income 28M/tháng stable, employment formal sector, shock probability thấp.' Regulator add: 'TT39/2016 không có provision cho income shock — DTI current là duy nhất criterion.' Meta-Arbitrator nên xử lý thế nào?",
+    opts: [
+      "A. Accept rebuttal — income stable + low shock probability + Regulator confirm DTI within limit. APPROVE",
+      "B. REVIEW với condition: require 6-month income buffer account vì DA's stress-test scenario có statistical validity",
+      "C. REJECT vì stress-test DTI 0.46 vượt limit — phải dùng worst-case scenario theo risk management principles",
+      "D. Defer decision — cần thêm thông tin từ khách hàng về income stability trước khi panel có thể reach consensus"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Meta-Arbitrator analysis: DA's stress-test (income shock 10% → DTI 0.46) là legitimate risk scenario với statistical validity (income shocks DO happen). Rebuttal 'low probability' không dismiss risk — nó quantifies it. Regulator correctly notes DTI current = 0.42 (compliant) but that's minimum bar, not optimal decision. REVIEW với income buffer condition: (1) Acknowledges DA's valid concern; (2) Doesn't harshly reject viable borrower; (3) Adds safety net for the identified risk; (4) Regulatory compliant. APPROVE (A) ignores valid stress-test. REJECT (C) too harsh — current DTI fine, stress-test is scenario, not fact. Defer (D) unnecessary delay — enough info to decide REVIEW with condition."
+  },
+  // Hard — System design
+  {
+    q: "FinTech Corp muốn đảm bảo audit trail đầy đủ theo yêu cầu NHNN — mỗi loan decision phải document WHO decided WHAT and WHY. Trong multi-agent panel, data nào trong PanelDecision object là THIẾT YẾU nhất cho regulatory audit?",
+    opts: [
+      "A. final_decision và confidence — regulator chỉ cần biết kết quả cuối và độ tin cậy",
+      "B. audit_trail (per-agent votes + weights + reasoning) và dissent_summary — document toàn bộ deliberation",
+      "C. consensus_method và conditions — shows the process and what customer must do next",
+      "D. explanation và final_decision — narrative explanation is sufficient for regulatory purposes"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. NHNN (và regulatory requirements globally) đòi hỏi explainability + accountability: (1) WHO decided: per-agent votes với agent identity; (2) WHAT: final_decision + conditions; (3) WHY: per-agent reasoning + dissent_summary (minority view cũng phải documented — regulator muốn biết có objections không và chúng được xử lý thế nào). audit_trail = legal record của deliberation process, không chỉ outcome. Chỉ final + confidence (A) không đủ cho dispute resolution. consensus_method + conditions (C) important nhưng thiếu reasoning. Narrative only (D) không đủ structured cho audit — cần machine-readable per-agent data."
+  },
+  // Lesson 5 — trung bình
+  {
+    q: "Diversity index (entropy) của panel là 0 khi nào?",
+    opts: [
+      "A. Khi 3 agents vote 3 options khác nhau: APPROVE, REVIEW, REJECT — maximum disagreement",
+      "B. Khi tất cả agents vote cùng một option — không có disagreement nào trong panel",
+      "C. Khi weighted vote và majority vote cho kết quả khác nhau",
+      "D. Khi confidence của tất cả agents đều bằng nhau (ví dụ: tất cả 0.75)"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Entropy = 0 khi tất cả probability tập trung vào 1 outcome — zero uncertainty, zero diversity. Nếu 3 agents đều vote APPROVE, entropy = -1×log2(1) = 0. Entropy tối đa khi 3 options equally likely (entropy = log2(3) ≈ 1.58). Trong context panel: entropy = 0 → agents đồng ý hoàn toàn → độc lập giả định có thể vi phạm → debate không add value. Options A (3 options khác nhau) cho entropy cao nhất, không phải 0. Weighted vs majority divergence (C) là sign of calibration issue, không phải diversity. Equal confidence (D) không relate đến diversity of votes."
+  }
+];
+
+let currentQ = 0, score = 0;
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const pct = ((currentQ + 1) / 15 * 100).toFixed(2);
+  document.getElementById('currentQ').textContent = currentQ + 1;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-q-num">Câu ${currentQ + 1} / 15</div>
+      <div class="quiz-q-text">${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,i) => `<button class="quiz-option" onclick="selectAnswer(${i})">${o}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="feedback"></div>
+      <div class="quiz-next" id="nextBtn">
+        <button class="btn btn-primary" onclick="nextQuestion()" style="margin-top:var(--space-2);">
+          ${currentQ < 14 ? 'Câu tiếp →' : 'Xem kết quả 🎯'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(idx) {
+  const q = questions[currentQ];
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o => o.classList.add('disabled'));
+
+  const isCorrect = idx === q.correct;
+  opts[idx].classList.add(isCorrect ? 'correct' : 'incorrect');
+  if (!isCorrect) opts[q.correct].classList.add('correct');
+  if (isCorrect) score++;
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'incorrect');
+  fb.style.display = 'block';
+  fb.innerHTML = (isCorrect ? '✅ <strong>Chính xác!</strong> ' : '❌ <strong>Chưa đúng.</strong> ') + q.explanation;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < 15) { renderQuestion(); }
+  else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const res = document.getElementById('resultArea');
+  res.style.display = 'block';
+  const pct = Math.round(score / 15 * 100);
+  document.getElementById('finalScore').textContent = score + '/15';
+  let grade, msg;
+  if (pct >= 90) { grade = '🏆 Xuất sắc — Debate Master!'; msg = 'Bạn nắm vững toàn bộ multi-agent debate và consensus mechanisms. Sẵn sàng cho Module 27!'; }
+  else if (pct >= 70) { grade = '✅ Tốt — Panel Designer'; msg = 'Bạn hiểu tốt core concepts. Xem lại bài giảng về Meta-Arbitrator và Diversity Index để hoàn thiện.'; }
+  else { grade = '📖 Cần ôn thêm'; msg = 'Xem lại bài giảng, đặc biệt Lessons 2 và 5 về Consensus Mechanisms và Arbitration.'; }
+  document.getElementById('finalGrade').textContent = grade;
+  document.getElementById('finalMsg').textContent = msg;
+}
+
+function restartQuiz() {
+  currentQ = 0; score = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

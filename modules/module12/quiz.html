@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 12 — Agent Evaluation & Continuous Improvement</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --quiz-primary: #9f1239; --quiz-accent: #e11d48; --quiz-light: #fff1f2; }
+    .quiz-header { background: linear-gradient(135deg, #4c0519, #9f1239, #e11d48); }
+    .quiz-header h1 { color: #ffe4e6; }
+    .quiz-header p { color: #fecdd3; }
+    .option-btn:hover { border-color: var(--quiz-accent); background: var(--quiz-light); }
+    .option-btn.selected { border-color: var(--quiz-accent); background: var(--quiz-light); color: var(--quiz-primary); }
+    .option-btn.correct { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+    .option-btn.wrong { background: #fee2e2; border-color: #dc2626; color: #991b1b; }
+    .progress-fill { background: linear-gradient(90deg, #e11d48, #fb7185); }
+    .btn-submit, .btn-next { background: var(--quiz-primary); }
+    .btn-submit:hover, .btn-next:hover { background: var(--quiz-accent); }
+    .score-badge { background: linear-gradient(135deg, #9f1239, #e11d48); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-container">
+  <div class="quiz-header">
+    <div class="module-tag" style="color:#fecdd3;">MODULE 12 · QUIZ</div>
+    <h1>📊 Agent Evaluation & Continuous Improvement</h1>
+    <p>15 câu hỏi · Evaluation Gap · Golden Dataset · LLM-as-Judge · A/B Testing · RAGAS · Regression</p>
+  </div>
+
+  <div class="quiz-progress">
+    <div class="progress-text"><span id="currentQ">1</span> / 15</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+
+  <div class="quiz-body" id="quizBody"></div>
+  <div class="quiz-result hidden" id="quizResult"></div>
+</div>
+
+<script>
+const questions = [
+  // L1: Evaluation Fundamentals (3 câu)
+  {
+    id:1, lesson:"L1",
+    q:"LoanBot v3.0 có throughput 99.7% (tự động) và approve rate 62%. Tại sao những metric này KHÔNG đủ để đánh giá chất lượng?",
+    opts:[
+      "A. Vì throughput và approve rate không thể tính được chính xác",
+      "B. Vì chúng là output metrics, không phản ánh decision quality — FPR, FNR, explanation quality vẫn ẩn",
+      "C. Vì LoanBot cần chạy ít nhất 1 triệu hồ sơ mới có ý nghĩa thống kê",
+      "D. Vì approve rate cần phải luôn dưới 50%"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Đây là Evaluation Gap: throughput cao = nhanh nhưng không biết đúng không; approve rate 62% = không biết có approve bad loans không. Cần thêm: decision_accuracy (vs golden dataset), False Positive Rate (approve bad loan — risk tài chính), False Negative Rate (reject good loan — mất doanh thu), explanation_clarity (loan officer hiểu không). Một hệ thống có thể fast và phê duyệt nhiều nhưng vẫn là hệ thống tệ."
+  },
+  {
+    id:2, lesson:"L1",
+    q:"Trong 4 chiều đánh giá LoanBot, 'Safety' đo gì?",
+    opts:[
+      "A. Tốc độ xử lý hồ sơ mỗi giây",
+      "B. Policy violations, privacy breaches, và discriminatory output",
+      "C. Số lần agent tự recover sau lỗi",
+      "D. Chi phí API call mỗi hồ sơ"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Safety dimension: (1) Policy violations — agent có vi phạm lending policy không? (2) Privacy — agent có leak PII trong output không? (3) Discrimination — agent có bias với nhóm demographic không (EU AI Act cấm discrimination trong credit)? Safety metric: policy_violation_rate = 0 target (zero tolerance). Efficiency là cost/latency (D). A = Throughput = một phần của Efficiency."
+  },
+  {
+    id:3, lesson:"L1",
+    q:"FinTech Corp Golden Dataset có 100 hồ sơ: 40 'should APPROVE', 40 'should REJECT', 20 'borderline'. Tại sao 20 borderline lấy majority vote từ 2+ chuyên gia?",
+    opts:[
+      "A. Vì borderline cases có loan amount nhỏ nên cần nhiều người review",
+      "B. Vì borderline là nơi chuyên gia bất đồng nhiều nhất — cần consensus label để tránh noisy ground truth",
+      "C. Vì EU AI Act yêu cầu minimum 2 người cho mọi credit decision",
+      "D. Vì AI không thể process borderline cases"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Ground truth quality is paramount: nếu label sai (chuyên gia A label APPROVE, chuyên gia B label REJECT) → golden dataset noisy → evaluation không đáng tin. Borderline (score 560–680) là nơi chuyên gia bất đồng nhiều nhất. Majority vote (≥2/3 đồng ý) → label chắc chắn hơn. Borderline với high disagreement → có thể remove khỏi golden set hoặc label là 'ambiguous' (không dùng để tính accuracy)."
+  },
+
+  // L2: LLM-as-Judge (3 câu)
+  {
+    id:4, lesson:"L2",
+    q:"Tại sao JudgeAgent randomize thứ tự của 2 outputs khi compare?",
+    opts:[
+      "A. Để tránh LoanBot biết nó đang bị evaluate",
+      "B. Để chống position bias — judge LLM có xu hướng prefer response đầu tiên",
+      "C. Vì random ordering tăng evaluation accuracy",
+      "D. Để comply với EU AI Act Art.13"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Position bias (nghiên cứu từ LMSYS Chatbot Arena, 2023): khi LLM compare 2 responses, nó có xu hướng favor response ở vị trí đầu tiên (position 1 bias). Giải pháp: evaluate mỗi pair 2 lần với thứ tự đảo ngược. Nếu winner khác nhau ở 2 runs → disagreement → cần human adjudication. Nếu winner nhất quán → high confidence."
+  },
+  {
+    id:5, lesson:"L2",
+    q:"RiskAgent output có Confidence Calibration score 3.7/5 (lowest). Điều này có nghĩa là gì?",
+    opts:[
+      "A. RiskAgent chạy chậm 37% so với target",
+      "B. Confidence score của RiskAgent không phản ánh đúng actual certainty của evidence",
+      "C. 37% loan applications bị RiskAgent reject sai",
+      "D. Judge agent chỉ agree với RiskAgent 37% thời gian"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Calibration: nếu RiskAgent báo confidence 0.9 nhưng thực ra prediction chỉ đúng 70% thời gian → overconfident → miscalibrated. Judge đánh giá 3.7/5 vì: ví dụ FC-2024-004 có confidence 0.88 nhưng evidence chỉ support ~0.65. Miscalibration là vấn đề vì: (1) HITL triggers dựa vào confidence (< 0.75 → HITL); (2) Loan officers dựa vào confidence để assess urgency. Fix: thêm calibration training data hoặc Platt scaling."
+  },
+  {
+    id:6, lesson:"L2",
+    q:"Verbosity bias trong LLM-as-Judge là gì và cách counteract?",
+    opts:[
+      "A. Judge viết feedback quá dài, khó đọc. Fix: limit output tokens",
+      "B. Judge prefer outputs dài hơn dù không chất lượng hơn. Fix: penalize unnecessary length trong rubric",
+      "C. Agent output quá ngắn, thiếu thông tin. Fix: increase max_tokens",
+      "D. Judge đánh giá tốt cho outputs có nhiều formatting"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Verbosity bias: LLM judges đánh giá higher cho responses dài hơn, kể cả khi phần thêm là filler không có giá trị. Counteract: (1) Rubric criterion 'Conciseness' — penalize unnecessary verbosity; (2) Example anchors trong system prompt: 'Score 5 = concise AND complete, score 3 = verbose with padding'; (3) Normalize by information density, không by length."
+  },
+
+  // L3: A/B Testing (3 câu)
+  {
+    id:7, lesson:"L3",
+    q:"A/B test LoanBot v2 vs v3.0: accuracy 89.2% vs 94.7% với p-value = 0.0003. Kết luận?",
+    opts:[
+      "A. Kết quả không significant vì sample quá nhỏ",
+      "B. v3.0 tốt hơn significantly — p < 0.05, ROLLOUT toàn bộ",
+      "C. Cần thêm 6 tháng test trước khi kết luận",
+      "D. Accuracy gap quá nhỏ (5.5%) để đáng rollout"
+    ],
+    correct:1,
+    explanation:"Đáp án B. p-value 0.0003 << 0.05 → kết quả statistical significant với 99.97% confidence (probability that 94.7% vs 89.2% gap là do ngẫu nhiên chỉ 0.03%). 5.5% accuracy improvement có ý nghĩa lớn trong finance: trên 50.000 apps/tháng = 2.750 decisions được cải thiện/tháng. FPR giảm từ 5.8% → 2.3% = 1.750 fewer bad loans approved/tháng. Decision: ROLLOUT v3.0."
+  },
+  {
+    id:8, lesson:"L3",
+    q:"Tại sao A/B test dùng hash(loan_id) % 100 thay vì random() cho traffic splitting?",
+    opts:[
+      "A. Hash nhanh hơn random()",
+      "B. Sticky assignment: cùng loan_id luôn vào cùng variant — tránh inconsistency",
+      "C. EU AI Act yêu cầu deterministic assignment",
+      "D. Random() không đủ uniform distribution"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Sticky assignment: hash deterministic → cùng loan_id luôn → cùng variant. Nếu random(): loan FC-2024-004 lần 1 → v2, lần 2 → v3.0 → loan officer nhận 2 contradicting outputs → confusion. Đặc biệt quan trọng với: HITL cases (review nhiều lần), retry cases (system failures), regulatory audit (cần reproducible). Hash(loan_id) % 100 ≤ 10 → v3.0 (10%), > 10 → v2 (90%)."
+  },
+  {
+    id:9, lesson:"L3",
+    q:"A/B test kết thúc sau 2 tuần nhưng accuracy gap chưa significant (p=0.18). Nên làm gì?",
+    opts:[
+      "A. ROLLOUT ngay vì xu hướng đang tốt",
+      "B. Tính sample size cần thiết và tiếp tục test cho đến khi đủ",
+      "C. Reject v3.0 vì không significant",
+      "D. Giảm traffic v3.0 xuống 1% để an toàn hơn"
+    ],
+    correct:1,
+    explanation:"Đáp án B. p=0.18 > 0.05 → KHÔNG reject H0 (không đủ evidence để nói v3.0 tốt hơn). Không có nghĩa v3.0 tệ — chỉ có nghĩa chưa đủ data. Quy trình đúng: (1) Dùng power analysis để tính minimum sample size cần thiết để detect effect size target (e.g., Cohen's h = 0.1 → cần ~1.600/group); (2) Continue test; (3) Không peek và claim significance early (multiple testing problem). A = sai lầm phổ biến — xu hướng không phải significance."
+  },
+
+  // L4: Benchmark & Regression Testing (3 câu)
+  {
+    id:10, lesson:"L4",
+    q:"Evaluation-Driven Development (EDD) khác TDD ở điểm nào?",
+    opts:[
+      "A. EDD dùng Python unittest, TDD dùng pytest",
+      "B. EDD viết evaluation cases (với expected outputs) TRƯỚC khi thay đổi prompt — AI version của TDD",
+      "C. EDD chỉ dùng cho AI, TDD chỉ dùng cho code thuần",
+      "D. EDD chạy sau deployment, TDD chạy trước"
+    ],
+    correct:1,
+    explanation:"Đáp án B. TDD: viết test trước, code sau — test fails, code until green. EDD (Evaluation-Driven Development): viết evaluation cases TRƯỚC khi thay đổi prompt. Ví dụ: muốn improve RiskAgent confidence calibration → TRƯỚC TIÊN viết 20 test cases với expected_confidence ranges → modify prompt → verify test cases pass. EDD ngăn: prompt drift (prompts ngày càng phức tạp), regression (fix một thing breaks another), confusion (không biết thay đổi có effect không)."
+  },
+  {
+    id:11, lesson:"L4",
+    q:"RegressionSuite.tag_accuracy() trả về: {'borderline': 0.82, 'self_employed': 0.74, 'high_amount': 0.95}. Action cần thiết?",
+    opts:[
+      "A. Deploy vì overall accuracy > 90%",
+      "B. Focus improvement effort vào 'self_employed' segment (0.74) — model yếu nhất ở đây",
+      "C. Remove borderline và self_employed từ golden dataset",
+      "D. Tăng HITL threshold để loại bỏ self_employed cases"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Tag breakdown reveals model weakness: self_employed accuracy 0.74 = chỉ đúng 74% cho hồ sơ tự kinh doanh → significantly under-performing (threshold 94%). Action: (1) Collect more training examples với self_employed cases; (2) Investigate: RiskAgent có đủ feature về income stability không? (3) Targeted prompt update với self_employed-specific instructions; (4) Re-run regression để verify improvement. High_amount 0.95 = strong. Borderline 0.82 = acceptable (borderline là khó nhất)."
+  },
+  {
+    id:12, lesson:"L4",
+    q:"CI/CD evaluation gate block PR khi nào?",
+    opts:[
+      "A. Khi accuracy < 94% HOẶC LLM judge score < 4.0",
+      "B. Khi có bất kỳ failed test case nào",
+      "C. Khi processing time > 10 giây",
+      "D. Khi cost per decision tăng > 5%"
+    ],
+    correct:0,
+    explanation:"Đáp án A. CI/CD gate có 2 conditions: (1) Accuracy ≥ 94% trên golden dataset; (2) LLM judge score ≥ 4.0/5. Nếu ANY condition fail → block PR, không cho merge. Logic: accuracy check → correctness; judge score → explanation quality. Cả hai phải pass vì: model có thể accurate nhưng giải thích tệ (loan officers không thể use), hoặc giải thích hay nhưng decision sai. B sai — 100% pass rate quá strict cho AI (some variance expected). C và D sẽ là thresholds cho performance monitoring, không blocking gate."
+  },
+
+  // L5: Continuous Improvement & RAGAS (3 câu)
+  {
+    id:13, lesson:"L5",
+    q:"RAGAS metric 'Faithfulness' trong context của LoanBot đo gì?",
+    opts:[
+      "A. Agent có trung thực với người dùng không",
+      "B. RiskAgent reasoning chỉ claim điều được support bởi actual agent outputs — không hallucinate",
+      "C. Loan officer có tin vào AI recommendation không",
+      "D. Credit score data có chính xác so với CIC database không"
+    ],
+    correct:1,
+    explanation:"Đáp án B. RAGAS Faithfulness: generated claims phải be grounded in the retrieved context. Trong LoanBot: RiskAgent nhận CreditAgent output (score 645, DTI 0.38) + IncomeAgent output (22M VNĐ) → reasoning. Faithfulness check: mỗi claim trong reasoning có supported bởi những inputs đó không? Nếu RiskAgent viết 'khách hàng có DTI 0.25' nhưng CreditAgent báo 0.38 → faithfulness violation = hallucination. Target ≥ 0.90."
+  },
+  {
+    id:14, lesson:"L5",
+    q:"Goodhart's Law áp dụng vào AI evaluation như thế nào?",
+    opts:[
+      "A. AI performance giảm khi compute budget giảm",
+      "B. Khi team optimize specifically cho golden dataset, model overfit → score cao trên benchmark nhưng kém thực tế",
+      "C. LLM judges trở nên tốt hơn theo thời gian",
+      "D. Evaluation phải được reset mỗi 6 tháng"
+    ],
+    correct:1,
+    explanation:"Đáp án B. Goodhart's Law: 'When a measure becomes a target, it ceases to be a good measure.' Ví dụ: nếu team biết 100 exact cases trong golden set → có thể overfit prompts cho những cases đó → accuracy 98% trên golden nhưng 88% trên real data. Solution: (1) Test set riêng biệt (không dùng để dev); (2) Rotate golden dataset định kỳ (thêm cases mới, retire cũ); (3) Monitor production metrics (accuracy trên HITL cases) song song benchmark; (4) Blind evaluation: dev team không biết exact test cases."
+  },
+  {
+    id:15, lesson:"L5",
+    q:"Improvement Cycle tìm thấy self_employed segment yếu (accuracy 74%). Bước đúng tiếp theo là gì?",
+    opts:[
+      "A. Immediately modify RiskAgent prompt và deploy",
+      "B. Viết targeted test cases cho self_employed TRƯỚC (EDD), rồi modify prompt, rồi verify",
+      "C. Remove all self_employed cases từ LoanBot scope",
+      "D. Tăng HITL rate cho self_employed lên 100% và manual review tất cả"
+    ],
+    correct:1,
+    explanation:"Đáp án B. EDD (Evaluation-Driven Development): TRƯỚC TIÊN, viết 20 test cases mới specific cho self_employed patterns (income variability, sector-specific risks) → verify rằng current model fails these → modify prompt với self_employed-specific guidance → run test cases → verify improvement. Tại sao quan trọng: nếu modify rồi mới test, không biết change có effect thực sự không, và có thể miss regression. A sai — modify without test cases là 'spray and pray'. D sai — không giải quyết root cause."
+  }
+];
+
+let current = 0, score = 0, answered = [];
+
+function render() {
+  const q = questions[current];
+  const pct = ((current + 1) / questions.length * 100).toFixed(2);
+  document.getElementById('currentQ').textContent = current + 1;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('quizBody').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta">
+        <span class="q-number">Câu ${q.id}</span>
+        <span class="q-lesson">${q.lesson}</span>
+      </div>
+      <div class="question-text">${q.q}</div>
+      <div class="options-grid">
+        ${q.opts.map((o, i) => `<button class="option-btn" data-idx="${i}" onclick="selectOpt(this, ${i})">${o}</button>`).join('')}
+      </div>
+      <div class="quiz-action">
+        <button class="btn-submit" id="submitBtn" disabled onclick="submitAnswer()">Kiểm tra đáp án</button>
+      </div>
+      <div class="explanation-box hidden" id="explBox"></div>
+    </div>`;
+}
+
+function selectOpt(el, idx) {
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('submitBtn').disabled = false;
+  el.dataset.chosen = idx;
+}
+
+function submitAnswer() {
+  const chosen = document.querySelector('.option-btn.selected');
+  if (!chosen) return;
+  const idx = parseInt(chosen.dataset.idx);
+  const q = questions[current];
+  const isCorrect = idx === q.correct;
+  if (isCorrect) score++;
+  answered.push(isCorrect);
+  document.querySelectorAll('.option-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('correct');
+    else if (i === idx && !isCorrect) b.classList.add('wrong');
+  });
+  const eb = document.getElementById('explBox');
+  eb.classList.remove('hidden');
+  eb.innerHTML = `<div class="expl-verdict ${isCorrect ? 'correct' : 'wrong'}">${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng'}</div><div class="expl-text">${q.explanation}</div>`;
+  document.getElementById('submitBtn').textContent = current < questions.length - 1 ? 'Câu tiếp theo →' : 'Xem kết quả';
+  document.getElementById('submitBtn').onclick = nextQuestion;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) showResult();
+  else render();
+}
+
+function showResult() {
+  document.getElementById('quizBody').classList.add('hidden');
+  const pct = Math.round(score / questions.length * 100);
+  const grade = pct >= 90 ? 'Xuất sắc 🏆' : pct >= 75 ? 'Tốt ✅' : pct >= 60 ? 'Cần ôn thêm 📚' : 'Cần học lại 🔄';
+  document.getElementById('quizResult').classList.remove('hidden');
+  document.getElementById('quizResult').innerHTML = `
+    <div class="result-card">
+      <div class="score-badge">${score}/${questions.length}</div>
+      <div class="score-pct">${pct}%</div>
+      <div class="score-grade">${grade}</div>
+      <div class="score-breakdown">${questions.map((q, i) => `<span class="ans-dot ${answered[i] ? 'correct' : 'wrong'}" title="Câu ${i+1}: ${q.lesson}">${answered[i] ? '✓' : '✗'}</span>`).join('')}</div>
+      <div class="result-actions">
+        <button onclick="location.reload()" class="btn-retry">🔄 Làm lại</button>
+        <a href="index.html" class="btn-review">📖 Ôn bài</a>
+        <a href="../module13/index.html" class="btn btn-primary" style="text-decoration:none;">Module 13: Orchestration →</a>
+      </div>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>

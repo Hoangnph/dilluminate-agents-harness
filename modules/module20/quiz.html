@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 20 — Agent Testing & QA</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m20-primary: #713f12; --m20-accent: #eab308; --m20-light: #fefce8; --m20-border: #fde047; }
+    .quiz-hero { background: linear-gradient(135deg, #422006 0%, #713f12 60%, #eab308 100%); padding: var(--space-16) var(--space-8); text-align: center; }
+    .quiz-hero h1 { color: #fefce8; font-size: 2rem; margin-bottom: var(--space-3); }
+    .quiz-hero p  { color: #fde047; font-size: 1.1rem; margin-bottom: var(--space-4); }
+    .module-tag   { display: inline-block; background: rgba(234,179,8,.2); border: 1px solid #eab308; color: #fef08a; padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 700; margin-bottom: var(--space-3); }
+    .quiz-stats   { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; margin-top: var(--space-4); }
+    .quiz-stats span { background: rgba(255,255,255,.1); color: #fefce8; padding: 6px 16px; border-radius: 20px; font-size: .85rem; }
+    .quiz-container { max-width: 800px; margin: var(--space-10) auto; padding: 0 var(--space-6) var(--space-16); }
+    .quiz-progress { margin-bottom: var(--space-6); }
+    .quiz-progress-text { font-size: .85rem; color: var(--text-muted); margin-bottom: var(--space-2); }
+    .quiz-progress-bar  { height: 6px; background: var(--border); border-radius: 3px; }
+    .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #713f12, #eab308); border-radius: 3px; transition: width .4s ease; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+    .question-level { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: var(--space-3); padding: 4px 10px; border-radius: 12px; display: inline-block; }
+    .level-easy   { background: #f0fdf4; color: #166534; }
+    .level-medium { background: #fffbeb; color: #713f12; }
+    .level-hard   { background: #fef2f2; color: #991b1b; }
+    .question-text { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-6); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-3); }
+    .option-btn { text-align: left; padding: var(--space-4) var(--space-5); border: 2px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); color: var(--text-primary); font-size: .95rem; cursor: pointer; transition: all .2s; line-height: 1.5; }
+    .option-btn:hover:not(:disabled) { border-color: var(--m20-accent); background: var(--m20-light); }
+    .option-btn.correct { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+    .option-btn.wrong   { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+    .option-btn:disabled { cursor: default; }
+    .feedback { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); font-size: .9rem; line-height: 1.6; }
+    .feedback.correct-fb { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .feedback.wrong-fb   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .next-btn { margin-top: var(--space-5); padding: var(--space-3) var(--space-6); background: #713f12; color: #fefce8; border: none; border-radius: var(--radius-lg); font-size: .95rem; font-weight: 600; cursor: pointer; }
+    .next-btn:hover { background: #92400e; }
+    .quiz-result { text-align: center; }
+    .result-score { font-size: 3rem; font-weight: 800; color: var(--m20-primary); margin: var(--space-4) 0; }
+    .result-label { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .result-breakdown { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-4); margin: var(--space-6) 0; }
+    .breakdown-item { padding: var(--space-4); border-radius: var(--radius-lg); }
+    .breakdown-easy   { background: #f0fdf4; border: 1px solid #86efac; }
+    .breakdown-medium { background: #fffbeb; border: 1px solid #fde047; }
+    .breakdown-hard   { background: #fef2f2; border: 1px solid #fca5a5; }
+    .breakdown-item h4 { font-size: .85rem; margin-bottom: var(--space-1); }
+    .breakdown-item p  { font-size: 1.2rem; font-weight: 700; margin: 0; }
+    .result-actions { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; margin-top: var(--space-6); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">← Bài giảng</a><a href="../../index.html">Trang chủ</a></div>
+</nav>
+
+<div class="quiz-hero">
+  <span class="module-tag">MODULE 20 · QUIZ</span>
+  <h1>🧪 Agent Testing & Quality Assurance</h1>
+  <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+  <div class="quiz-stats">
+    <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <h2>🎉 Hoàn thành Quiz!</h2>
+    <div class="result-score" id="scoreDisplay"></div>
+    <div class="result-label" id="scoreLabel"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-item breakdown-easy"><h4>Dễ (5 câu)</h4><p id="easyScore"></p></div>
+      <div class="breakdown-item breakdown-medium"><h4>Trung bình (7 câu)</h4><p id="medScore"></p></div>
+      <div class="breakdown-item breakdown-hard"><h4>Khó (3 câu)</h4><p id="hardScore"></p></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn btn-outline">📖 Ôn bài</a>
+      <a href="../module21/index.html" class="btn btn-primary">Module 21: Streaming Agents →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // === DỄ (5) ===
+  {
+    level: "easy",
+    q: "Tại sao AI agents cần thêm tầng 'Chaos' vào Testing Pyramid truyền thống?",
+    opts: [
+      "Vì AI agents có nhiều bugs hơn software thông thường",
+      "Vì AI agents phụ thuộc vào external APIs và LLMs có thể fail bất ngờ — cần test resilience",
+      "Vì chaos testing là requirement của EU AI Act cho high-risk AI",
+      "Vì unit tests không work cho AI code"
+    ],
+    correct: 1,
+    fb: "Đúng! AI agents phụ thuộc vào LLM APIs, external data sources, và network calls — tất cả đều có thể fail. Chaos testing verify agent vẫn hoạt động gracefully (fallback, queue, degrade) khi dependencies fail. Software thông thường ít dependent hơn vào external services không ổn định. EU AI Act không yêu cầu chaos testing cụ thể, và AI code vẫn có unit tests bình thường."
+  },
+  {
+    level: "easy",
+    q: "LoanBot trả về kết quả: `{\"decision\": \"APPROVE\", \"confidence\": 0.87, \"explanation\": \"Good profile...\"}`. Bạn muốn viết test cho explanation. Cách nào là đúng?",
+    opts: [
+      "assert explanation == 'Good profile with strong credit score and low DTI ratio'",
+      "assert len(explanation) > 50 and 'credit' in explanation.lower()",
+      "assert explanation.startswith('Good')",
+      "Không cần test explanation — chỉ test decision"
+    ],
+    correct: 1,
+    fb: "Đúng! LLM output thay đổi mỗi lần chạy nên không thể assert exact string. Cần test properties: độ dài đủ (meaningful explanation), chứa key terms liên quan (credit, dti), format hợp lý. Option A sẽ fail sau lần chạy tiếp theo khi LLM paraphrase khác đi. Option C tương tự — fragile. Option D sai vì explanation là critical part của audit trail (EU AI Act yêu cầu)."
+  },
+  {
+    level: "easy",
+    q: "Golden dataset là gì và tại sao cần nó?",
+    opts: [
+      "Một dataset đắt tiền mua từ vendor để train LoanBot",
+      "Tập cases có expected outcomes được domain expert verify — ground truth để evaluate AI system",
+      "Dataset chứa toàn dữ liệu vàng (financial data) của FinTech Corp",
+      "Synthetic dataset được tạo bởi LLM để augment training"
+    ],
+    correct: 1,
+    fb: "Đúng! Golden dataset là tập cases 'đã biết đáp án đúng' — được loan officers thực sự review và xác nhận. Khi thay đổi prompt, model, hoặc logic: chạy lại golden dataset và so sánh kết quả. Nếu accuracy drop >2% → rollback. Đây không phải dataset training (LoanBot không fine-tuned), không phải commercial data, và không nên dùng synthetic data làm ground truth vì LLM có thể bịa đáp án."
+  },
+  {
+    level: "easy",
+    q: "Monotonicity invariant cho LoanBot có nghĩa là gì?",
+    opts: [
+      "LoanBot phải luôn give same answer cho cùng input",
+      "LoanBot phải xử lý applications theo thứ tự nhận được",
+      "Applicant với profile tốt hơn (credit score cao hơn, DTI thấp hơn) không thể nhận decision tệ hơn",
+      "Số lượng applications được approve phải tăng đều theo tháng"
+    ],
+    correct: 2,
+    fb: "Đúng! Monotonicity là fairness invariant: nếu A có credit_score=700 và DTI=35%, và B có credit_score=600 và DTI=45%, thì A phải có decision ≥ B (APPROVE ≥ REVIEW ≥ REJECT). Vi phạm monotonicity là nghiêm trọng: người tốt hơn bị từ chối, người kém hơn được duyệt — đây là inconsistency có thể gây legal liability và erode trust. Option A là determinism (khác với monotonicity). Option B là FIFO queue. Option D là business target, không phải testing invariant."
+  },
+  {
+    level: "easy",
+    q: "Contract testing cho tools trong AI agent context verify điều gì?",
+    opts: [
+      "LoanBot phải có contract lao động hợp lệ trước khi deploy",
+      "Interface giữa LoanBot và external tools (CIC API, gateway) không thay đổi unexpectedly",
+      "Số lượng tool calls mỗi application không vượt quá ngưỡng cho phép",
+      "LoanBot phải có SLA contract với từng vendor trước khi tích hợp"
+    ],
+    correct: 1,
+    fb: "Đúng! Contract testing verify 'hợp đồng interface' giữa LoanBot và CIC API: request format đúng, response schema được validate, error cases được handle. Nếu CIC đổi field name từ `credit_score` → `score`, contract test phát hiện ngay khi chạy CI — trước khi đến production. Options còn lại đều không liên quan đến software testing concepts."
+  },
+
+  // === TRUNG BÌNH (7) ===
+  {
+    level: "medium",
+    q: "FinTech Corp đang chạy golden dataset evaluation và nhận được kết quả: easy accuracy 99%, borderline accuracy 78%, overall accuracy 94%. Quyết định nào đúng?",
+    opts: [
+      "Deploy — overall accuracy 94% vượt ngưỡng 90%",
+      "Block deploy — borderline accuracy 78% quá thấp dù overall tốt",
+      "Deploy với warning — team sẽ monitor sau",
+      "Rollback hoàn toàn và rebuild LoanBot từ đầu"
+    ],
+    correct: 1,
+    fb: "Đúng! Borderline cases (applicants ở ranh giới approve/reject) là high-stakes nhất về business và compliance. 78% accuracy trên borderline nghĩa là 22% các trường hợp khó nhất bị xử lý sai — có thể reject người đáng approve hoặc approve người đáng reject. Đây là financial và regulatory risk. Overall 94% deceives nếu easy cases dominate dataset. Cần fix trước khi deploy. Option C (monitor sau) không acceptable với tỷ lệ lỗi cao như vậy. Option D quá extreme — cần identify root cause trước."
+  },
+  {
+    level: "medium",
+    q: "Hypothesis library trong Python được dùng để làm gì trong AI agent testing?",
+    opts: [
+      "Generate test hypotheses từ code documentation",
+      "Test theories về tại sao LoanBot fail",
+      "Automatically generate many random inputs để test invariants — tìm edge cases tự động",
+      "Create hypothesis cho feature experiments trong A/B testing"
+    ],
+    correct: 2,
+    fb: "Đúng! Hypothesis là property-based testing library: bạn define `@given(credit_score=st.integers(300, 850))` và Hypothesis tự generate nhiều random values (mặc định 100 runs), tìm kiếm cases vi phạm invariant. Khi tìm được failing case, Hypothesis tự động shrink về minimal reproducing example. Đây mạnh hơn manual test cases vì discover edge cases bạn không nghĩ đến. Các options khác không liên quan đến Python Hypothesis library."
+  },
+  {
+    level: "medium",
+    q: "LoanBot đang chạy chaos test với 30% API timeout rate. Test pass với 88% success rate nhưng threshold là 90%. Nguyên nhân nào dưới đây là LIKELY nhất?",
+    opts: [
+      "LoanBot thiếu retry logic — khi API timeout lần 1 là fail luôn",
+      "Golden dataset không đủ borderline cases",
+      "Hypothesis library chưa được install",
+      "Contract test chưa run"
+    ],
+    correct: 0,
+    fb: "Đúng! Với 30% timeout rate và retry logic tốt (ví dụ: retry 3 lần với exponential backoff), expected success rate ≈ 97%+ (P(fail 3 lần liên tiếp) = 0.3³ = 2.7%). Chỉ đạt 88% suggests retry logic thiếu hoặc broken — mỗi timeout là permanent failure. Fix: implement retry với exponential backoff trong LLM gateway call. Options còn lại (golden dataset, Hypothesis, contract test) không ảnh hưởng đến chaos test runtime behavior."
+  },
+  {
+    level: "medium",
+    q: "Snapshot testing trong CI/CD pipeline cho LoanBot hoạt động như thế nào?",
+    opts: [
+      "Chụp screenshot UI của LoanBot để verify không đổi",
+      "Lưu known-good LLM outputs, alert khi future outputs drift quá ngưỡng cho phép",
+      "Backup database của LoanBot mỗi ngày",
+      "Record video của loan officer review session để compare"
+    ],
+    correct: 1,
+    fb: "Đúng! Snapshot testing: (1) Chạy LoanBot trên test cases, lưu outputs làm baseline JSON; (2) Sau mỗi thay đổi code/prompt, chạy lại và so sánh với baseline; (3) Alert nếu decision drift >2% hoặc explanation drift >15% (cosine similarity). Không phải test UI screenshots (LoanBot không có visual UI trong batch mode), không phải database backup, không phải video recording. Key insight: snapshot là 'frozen good state' — changes from snapshot require human review."
+  },
+  {
+    level: "medium",
+    q: "Team LoanBot thay đổi system prompt để cải thiện explanation quality. Sau khi chạy full test suite, regression test phát hiện: 4/200 golden cases đổi decision (tất cả APPROVE → REVIEW). Bước tiếp theo đúng là?",
+    opts: [
+      "Auto-approve vì 4/200 = 2% — đúng bằng threshold không vượt",
+      "Auto-reject vì bất kỳ regression nào cũng không acceptable",
+      "Investigate 4 cases: xem chúng easy hay borderline, hỏi expert, quyết định có accept change không",
+      "Tăng threshold lên 5% để accommodate change này"
+    ],
+    correct: 2,
+    fb: "Đúng! 2% đúng bằng threshold — là borderline call cần human judgment, không phải auto-approve. Cần investigate: (1) Nếu 4 cases là easy cases (stable), explanation prompt change không nên thay đổi decision — red flag; (2) Nếu 4 là borderline cases, APPROVE→REVIEW là conservative direction — có thể acceptable; (3) Expert review xác nhận direction đúng không; (4) Tuyệt đối không tăng threshold để accommodate change — đó là gaming the metrics, không phải quality improvement."
+  },
+  {
+    level: "medium",
+    q: "Hallucination test cho LoanBot kiểm tra điều gì cụ thể?",
+    opts: [
+      "LoanBot có bịa ra approval nơi không có — phantom approvals",
+      "LoanBot có tạo ra text không có nghĩa — gibberish responses",
+      "LoanBot có tự bịa ra số liệu (loan amounts, credit scores) không có trong input application",
+      "LoanBot có tạo ra quyết định phân biệt đối xử không"
+    ],
+    correct: 2,
+    fb: "Đúng! Hallucination test verify LLM không invent data: nếu input là loan_amount=300,000,000 VNĐ, explanation không được mention 400,000,000 (số không có trong input). Test extract all numbers from explanation và verify chúng xuất phát từ input values hoặc known constants (thresholds). Option A (phantom approval) là decision error, not hallucination. Option B (gibberish) là model failure. Option D (bias) là fairness test riêng. Hallucination là fabrication of specific facts — đặc biệt nguy hiểm trong regulatory context."
+  },
+  {
+    level: "medium",
+    q: "Quality Gate trong CI/CD pipeline cho LoanBot có tác dụng gì khi bị trigger?",
+    opts: [
+      "Gửi email cho team lead để review manual",
+      "Tự động block deployment và có thể trigger rollback — không cần human action",
+      "Log warning và continue deployment với reduced confidence",
+      "Pause deployment 24h để team có thời gian review"
+    ],
+    correct: 1,
+    fb: "Đúng! Quality gates là automated enforcement — không cần human trong the loop để block deployment. Khi regression drift >2%: block PR merge. Khi bias metric >1.20: auto-rollback (không cần human approve). Khi prod error rate >0.1%: circuit breaker kích hoạt. Tính chất automated là critical: human review mất time, trong khi faulty model có thể process thousands of applications trong window đó. Tuy nhiên, override mechanism phải tồn tại (CAIO approval) cho exceptional cases."
+  },
+
+  // === KHÓ (3) ===
+  {
+    level: "hard",
+    q: "FinTech Corp có 2 LoanBot versions: v3.4 và v3.5. Bạn chạy A/B test: v3.4 có golden accuracy 95.5%, v3.5 có 96.0%. Nhưng khi phân tích chi tiết: v3.5 có borderline accuracy 88% (vs v3.4: 91%), và easy accuracy 99.5% (vs v3.4: 98%). Decision nào đúng nhất?",
+    opts: [
+      "Deploy v3.5 vì overall accuracy cao hơn",
+      "Keep v3.4 vì borderline accuracy quan trọng hơn overall accuracy",
+      "Deploy v3.5 cho easy cases, keep v3.4 cho borderline cases — routing by difficulty",
+      "Merge v3.4 và v3.5 để tạo ensemble model"
+    ],
+    correct: 1,
+    fb: "Đúng! Borderline cases quan trọng hơn về business và risk: đây là applicants ở ranh giới approve/reject — mỗi wrong decision có financial và regulatory impact lớn nhất. v3.5 cải thiện easy cases (98%→99.5%) nhưng regression trên borderline (91%→88%). Tradeoff này không worth it — easy cases không cần improvement nhiều (đã 98%), trong khi borderline accuracy drop 3% là significant. Option C (routing) phức tạp, tốn thêm difficulty classifier, có thể tạo ra inconsistency. Option D (ensemble) không trivial với LLM-based system và không solve root cause. Keep v3.4 và investigate tại sao v3.5 regressed on borderline before proceeding."
+  },
+  {
+    level: "hard",
+    q: "Chaos Gameday đang chạy: LoanBot primary API down, và bạn observe: degraded mode kích hoạt trong 45s (trong SLA 60s), nhưng Redis queue đang grow từ 0 → 500 items trong 10 phút. Sau khi API recover, queue drain mất 35 phút (2.1x normal processing time). Vấn đề architecture nào đây và cách fix?",
+    opts: [
+      "LoanBot cần thêm servers để process nhanh hơn — horizontal scaling",
+      "Queue priority inverted — items cuối vào được process trước items đầu vào",
+      "Thundering herd khi recovery: tất cả queued items rush simultaneously, không có backpressure — fix bằng token bucket rate limiter trong recovery drain",
+      "Redis configuration sai — cần tăng memory limit"
+    ],
+    correct: 2,
+    fb: "Đúng! Thundering herd problem: khi API recover sau outage, queue drain kích hoạt nhưng không có backpressure — tất cả 500 items cố gắng process đồng thời, gây overload API (vượt rate limits, tăng latency, có thể trigger secondary failures). Kết quả: 2.1x normal time thay vì ~1.1x expected. Fix: token bucket rate limiter trong recovery phase — ví dụ max 50 req/min khi drain, tăng dần đến normal throughput qua 5 phút. Option A (horizontal scaling) không fix thundering herd — chỉ delay nó. Option B (inverted priority) không match symptom — drain mất lâu hơn là priority issue. Option D (Redis memory) không related đến drain speed."
+  },
+  {
+    level: "hard",
+    q: "LoanBot regression test phát hiện: sau khi update credit bureau integration từ CIC v1 → v2, 12/200 golden cases thay đổi decision. Investigation cho thấy: CIC v2 trả về credit_score theo thang điểm mới (300-950 thay vì 300-850). LoanBot v3.5 dùng hardcoded threshold 620 cho approval. Với credit_score=680 trên thang v2 tương đương ~607 trên thang v1. Hiện tại 680 được approve (vì >620). Đây là bug loại gì và fix approach đúng?",
+    opts: [
+      "Configuration bug — chỉ cần update threshold từ 620 lên 690 (620 * 950/850)",
+      "Integration bug với semantic mismatch — threshold phải scaled và validated, golden dataset phải re-calibrated với v2 scores, contract test phải verify score range",
+      "Golden dataset bug — cần rebuild golden dataset với CIC v2 data",
+      "LoanBot prompt bug — cần rewrite prompt để xử lý cả 2 thang điểm"
+    ],
+    correct: 1,
+    fb: "Đúng! Đây là semantic mismatch bug — số 680 trong v1 và v2 có nghĩa khác nhau nhưng LoanBot treat chúng identical. Fix phải đồng bộ nhiều layers: (1) **Scale threshold**: 620 (v1 max 850) → 620 * 950/850 ≈ 693 (v2 max 950), hoặc convert all v2 scores về v1 scale trước khi evaluate; (2) **Validate trong contract test**: response phải include score_version field, nếu không có → fail; (3) **Re-run golden dataset với v2 scores** để re-establish baseline; (4) **Alert về affected decisions**: 12 cases trong test = có thể N*50 cases đã bị ảnh hưởng trong production nếu CIC v2 đã live. Option A (chỉ update threshold) không fix root cause — cần conversion logic. Option C/D đúng một phần nhưng không full solution."
+  }
+];
+
+let current = 0, score = 0;
+const easyQ = [0,1,2,3,4], medQ = [5,6,7,8,9,10,11], hardQ = [12,13,14];
+let easyScore = 0, medScore = 0, hardScore = 0;
+
+function renderQ() {
+  const q = questions[current];
+  document.getElementById("currentQ").textContent = current + 1;
+  document.getElementById("progressFill").style.width = ((current + 1) / 15 * 100) + "%";
+  const levelClass = {easy:"level-easy",medium:"level-medium",hard:"level-hard"}[q.level];
+  const levelLabel = {easy:"⭐ Dễ",medium:"⭐⭐ Trung bình",hard:"⭐⭐⭐ Khó"}[q.level];
+  document.getElementById("quizArea").innerHTML = `
+    <div class="question-card">
+      <span class="question-level ${levelClass}">${levelLabel}</span>
+      <p class="question-text">${q.q}</p>
+      <div class="options">
+        ${q.opts.map((o,i)=>`<button class="option-btn" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("")}
+      </div>
+    </div>`;
+}
+
+function selectAnswer(idx) {
+  const q = questions[current];
+  document.querySelectorAll(".option-btn").forEach(b=>b.disabled=true);
+  const btns = document.querySelectorAll(".option-btn");
+  if (idx === q.correct) {
+    btns[idx].classList.add("correct");
+    score++;
+    if (easyQ.includes(current)) easyScore++;
+    else if (medQ.includes(current)) medScore++;
+    else hardScore++;
+  } else {
+    btns[idx].classList.add("wrong");
+    btns[q.correct].classList.add("correct");
+  }
+  const fb = document.createElement("div");
+  fb.className = "feedback " + (idx === q.correct ? "correct-fb" : "wrong-fb");
+  fb.innerHTML = (idx === q.correct ? "<strong>✅ Chính xác!</strong> " : "<strong>❌ Chưa đúng.</strong> ") + q.fb;
+  const btn = document.createElement("button");
+  btn.className = "next-btn";
+  btn.textContent = current < 14 ? "Câu tiếp theo →" : "Xem kết quả →";
+  btn.onclick = nextQ;
+  document.querySelector(".question-card").appendChild(fb);
+  document.querySelector(".question-card").appendChild(btn);
+}
+
+function nextQ() {
+  current++;
+  if (current < 15) renderQ();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById("quizArea").style.display = "none";
+  const ra = document.getElementById("resultArea");
+  ra.style.display = "block";
+  const pct = Math.round(score/15*100);
+  document.getElementById("scoreDisplay").textContent = score + "/15";
+  const labels = ["Cần ôn thêm 📚","Đang tiến bộ 💪","Khá tốt 🌟","Xuất sắc 🏆","Hoàn hảo 🎉"];
+  document.getElementById("scoreLabel").textContent = pct < 50 ? labels[0] : pct < 65 ? labels[1] : pct < 80 ? labels[2] : pct < 95 ? labels[3] : labels[4];
+  document.getElementById("easyScore").textContent = easyScore + "/5";
+  document.getElementById("medScore").textContent = medScore + "/7";
+  document.getElementById("hardScore").textContent = hardScore + "/3";
+}
+
+function restartQuiz() {
+  current = score = easyScore = medScore = hardScore = 0;
+  document.getElementById("quizArea").style.display = "block";
+  document.getElementById("resultArea").style.display = "none";
+  renderQ();
+}
+
+renderQ();
+</script>
+</body>
+</html>

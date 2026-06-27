@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 30 — Future of AI Agents (Capstone)</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m30-primary: #1e1b4b;
+      --m30-accent:  #818cf8;
+      --m30-light:   #eef2ff;
+      --m30-border:  #a5b4fc;
+    }
+    .lesson-header { background: linear-gradient(135deg, #0d0b26 0%, #1e1b4b 55%, #818cf8 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #eef2ff; }
+    .lesson-header p { color: #c7d2fe; }
+    .sidebar-nav a.active { background: var(--m30-light); border-left: 3px solid var(--m30-accent); color: var(--m30-primary); }
+    .sidebar-nav a:hover { color: var(--m30-primary); }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+    .timeline-row { display: grid; grid-template-columns: 100px 1fr; gap: var(--space-4); margin-bottom: var(--space-4); align-items: start; }
+    .timeline-year { background: var(--m30-primary); color: var(--m30-accent); font-weight: 800; font-size: .9rem; border-radius: var(--radius-lg); padding: var(--space-2) var(--space-3); text-align: center; }
+    .timeline-content { border-left: 2px solid var(--m30-border); padding-left: var(--space-4); }
+    .capability-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin: var(--space-4) 0; }
+    .capability-card { border-radius: var(--radius-lg); padding: var(--space-4); border: 1px solid var(--m30-border); background: var(--m30-light); }
+    .cap-icon { font-size: 1.5rem; margin-bottom: var(--space-2); }
+    .cap-title { font-weight: 700; font-size: .9rem; color: var(--m30-primary); margin-bottom: 6px; }
+    .career-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-3); }
+    .career-title { font-weight: 700; font-size: 1rem; color: var(--m30-primary); margin-bottom: var(--space-2); }
+    .review-module { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); margin-bottom: 6px; background: var(--bg); border: 1px solid var(--border); font-size: .85rem; }
+    .review-badge { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .7rem; font-weight: 800; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz Final</a>
+    <a href="lab.ipynb" download>🔬 Capstone Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m30-light);color:var(--m30-primary);border-color:var(--m30-border);">MODULE 30 · CAPSTONE</div>
+    <div class="sidebar-title">Future of AI Agents</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. AI Landscape 2026–2030</a>
+      <a href="#lesson2">L2. Capabilities on the Horizon</a>
+      <a href="#lesson3">L3. Agent-to-Agent Ecosystems</a>
+      <a href="#lesson4">L4. Human-Agent Collaboration 2.0</a>
+      <a href="#lesson5">L5. Capstone: LoanBot & Beyond</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m30-accent);">📝 Final Quiz</a>
+      <a href="lab.ipynb" download style="color:var(--m30-accent);">🔬 Capstone Lab</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module29/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 29: ROI Analysis</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 30 · CAPSTONE · Tuần 85–87</span>
+      <h1>🚀 Future of AI Agents — LoanBot v5.0 & Beyond</h1>
+      <p>Bạn đã xây dựng LoanBot từ zero — single agent (M1) → harness (M2) → multi-agent debate (M26) → self-improvement (M27) → governance (M28) → ROI justified (M29). Module cuối nhìn về phía trước: AI agents sẽ như thế nào năm 2028–2030, và bạn cần học gì tiếp theo để dẫn đầu sóng thay đổi này.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🎓 Capstone Module</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: AI Agent Landscape 2026–2030 — Sóng Thay Đổi Tiếp Theo</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Map toàn bộ trajectory của AI agent capabilities từ 2024 đến 2030</li>
+          <li>Phân biệt hype vs reality: capabilities nào đã production-ready, capabilities nào vẫn R&D</li>
+          <li>Predict impact của model cost halving mỗi 18 tháng lên business case của LoanBot</li>
+          <li>Identify 3 major disruption vectors cho financial services AI trong 5 năm tới</li>
+        </ul>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Moore's Law cho AI — Capability × Cost</div>
+        <p>Từ 2020–2026: model capabilities tăng ~10× trong khi cost-per-token giảm ~100×. Trend này là exponential, không linear. Ý nghĩa cho FinTech Corp: LoanBot v4.0 dùng claude-haiku-4-5 ở 80% decisions với cost 54 VNĐ/case. LoanBot v5.0 (2028) sẽ có capability tương đương Sonnet-4-6 hôm nay nhưng ở giá Haiku hôm nay. Kết quả: high-value 5-agent panel (1.150 VNĐ hiện tại) sẽ cost ~100 VNĐ vào 2028 — mở ra economics cho ultra-complex decisions mà hôm nay không viable. Điều quan trọng hơn: <em>bất kỳ ai biết build agentic systems hôm nay đang sở hữu skill set có half-life dài nhất trong tech</em>.</p>
+      </div>
+
+      <div class="timeline-row">
+        <div class="timeline-year">2024–2025</div>
+        <div class="timeline-content">
+          <strong>Foundation Era:</strong> Single agents, basic tool use, RAG. LLMs reliable nhưng cost còn cao. Multi-agent là cutting-edge. <em>LoanBot M1–M15 của chúng ta.</em>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-year">2026–2027</div>
+        <div class="timeline-content">
+          <strong>Scale Era (HÔM NAY):</strong> Multi-agent debate, self-improvement, governance frameworks. Computer-use agents mainstream. MCP standardizing tool protocols. Long-context (200K+ tokens) changes RAG. <em>LoanBot M16–M30 của chúng ta.</em>
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-year">2027–2028</div>
+        <div class="timeline-content">
+          <strong>Autonomy Era:</strong> Agents run weeks-long tasks independently. Inter-agent trust protocols (agent-to-agent authentication). Real-time learning from deployment (no separate retrain cycle). Multimodal: agents see, hear, and act simultaneously.
+        </div>
+      </div>
+      <div class="timeline-row">
+        <div class="timeline-year">2028–2030</div>
+        <div class="timeline-content">
+          <strong>Ecosystem Era:</strong> Agent marketplaces (specialist agents for hire). Cross-organization agent networks (LoanBot ↔ Credit Bureau AI ↔ Central Bank AI). Agent-designed agents (meta-learning at system level). Regulatory frameworks matured. <em>LoanBot v6.0 territory.</em>
+        </div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FinTech Corp 2028 — LoanBot v5.0</div>
+        <p>Bối cảnh: Năm 2028. FinTech Corp đã mở rộng ra 5 quốc gia Đông Nam Á. LoanBot v5.0 xử lý 5 triệu hồ sơ/tháng (100× M4 speed). Khác biệt cốt lõi so với v4.0: (1) <strong>Persistent Memory</strong>: LoanBot nhớ toàn bộ 3-year loan history của mỗi customer — không cần RAG, full context mỗi decision. (2) <strong>Multimodal Document Processing</strong>: Camera phone photo của bảng lương → instant OCR + structured data, không cần manual entry. (3) <strong>Real-time Adaptation</strong>: Model cập nhật thresholds daily từ defaults, không cần 30-day batch cycle. (4) <strong>Cross-border Agent Network</strong>: LoanBot Vietnam ↔ LoanBot Thailand ↔ Credit Bureau ASEAN Agent — real-time fraud detection cross-country.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Advanced Capabilities on the Horizon — What's Coming</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Understand computer-use agents: agents xem màn hình và điều khiển UI như người thật</li>
+          <li>Analyze long-context implications: khi context window = toàn bộ lịch sử khách hàng</li>
+          <li>Explore real-time learning: agents cập nhật behavior từ feedback without full retrain</li>
+          <li>Evaluate multimodal input: voice interview + document scan → loan decision</li>
+        </ul>
+      </div>
+
+      <div class="capability-grid">
+        <div class="capability-card">
+          <div class="cap-icon">🖥️</div>
+          <div class="cap-title">Computer-Use Agents</div>
+          <p style="font-size:.85rem;">Agents điều khiển browser, desktop apps như người thật. LoanBot v5.0: tự login vào BHXH portal → verify employment data → fill forms → submit → track status. Không cần API integration — agents use existing UI.</p>
+        </div>
+        <div class="capability-card">
+          <div class="cap-icon">📚</div>
+          <div class="cap-title">Long-Context Memory (1M+ tokens)</div>
+          <p style="font-size:.85rem;">Toàn bộ 5-year bank statement, tất cả past loan applications, correspondence → single context window. No more RAG retrieval latency. LoanBot sees complete customer relationship, not fragments.</p>
+        </div>
+        <div class="capability-card">
+          <div class="cap-icon">🎙️</div>
+          <div class="cap-title">Voice + Visual Multimodal</div>
+          <p style="font-size:.85rem;">LoanBot v5.0: video call với customer → listen to verbal income explanation → OCR salary slip họ show on camera → cross-reference với tax records → make decision — tất cả trong 1 agent session.</p>
+        </div>
+        <div class="capability-card">
+          <div class="cap-icon">⚡</div>
+          <div class="cap-title">Real-Time In-Context Learning</div>
+          <p style="font-size:.85rem;">Không cần batch 30-day ground truth cycle (M27). Agents update internal priors từ feedback trong conversation: "Customer từ Nghệ An seasonal worker, income lower Jan–Mar → adjust thresholds in-flight."</p>
+        </div>
+        <div class="capability-card">
+          <div class="cap-icon">🔧</div>
+          <div class="cap-title">Self-Designing Tools</div>
+          <p style="font-size:.85rem;">Agents viết tool code của chính mình khi gặp task mới. LoanBot discovers cần validate business license → writes BizLicenseLookupTool → tests → deploys → uses trong same session.</p>
+        </div>
+        <div class="capability-card">
+          <div class="cap-icon">🌐</div>
+          <div class="cap-title">MCP Ecosystem Maturity</div>
+          <p style="font-size:.85rem;">Model Context Protocol standardizes agent-to-tool-to-agent communication. LoanBot sử dụng MCP marketplace: CreditBureauAgent, TaxAuthAgent, FraudDetectorAgent — như app store cho agent capabilities.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (LoanBot v5.0 — Multimodal Interview Agent Sketch)</span>
+        <pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotV5InterviewAgent</span>:
+    <span class="code-comment">"""Next-gen: voice + visual + long-context + real-time adaptation."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.client = anthropic.Anthropic()
+        self.conversation_history: List[dict] = []
+        self.customer_context = {}    <span class="code-comment"># Long-context: 5yr history</span>
+
+    <span class="code-keyword">async def</span> <span class="code-function">conduct_interview</span>(self, customer_id: <span class="code-type">str</span>,
+                                    video_frames: list = <span class="code-keyword">None</span>,
+                                    audio_transcript: <span class="code-type">str</span> = <span class="code-keyword">None</span>) -> dict:
+        <span class="code-comment"># Build rich multimodal context</span>
+        messages = [
+            {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: [
+                <span class="code-comment"># Text context: 5-year customer history (long-context)</span>
+                {<span class="code-string">"type"</span>: <span class="code-string">"text"</span>,
+                 <span class="code-string">"text"</span>: <span class="code-string">f"Customer {customer_id} history:\n{self._load_full_history(customer_id)}"</span>},
+                <span class="code-comment"># Audio: what customer said in the interview</span>
+                {<span class="code-string">"type"</span>: <span class="code-string">"text"</span>,
+                 <span class="code-string">"text"</span>: <span class="code-string">f"Customer verbal statement: {audio_transcript}"</span>},
+                <span class="code-comment"># Image: document they showed on camera</span>
+                *([{<span class="code-string">"type"</span>: <span class="code-string">"image"</span>,
+                    <span class="code-string">"source"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"base64"</span>,
+                              <span class="code-string">"media_type"</span>: <span class="code-string">"image/jpeg"</span>,
+                              <span class="code-string">"data"</span>: frame}}
+                   <span class="code-keyword">for</span> frame <span class="code-keyword">in</span> (video_frames <span class="code-keyword">or</span> [])]),
+            ]}
+        ]
+
+        <span class="code-comment"># Extended thinking: reason through multimodal evidence</span>
+        response = self.client.messages.create(
+            model=<span class="code-string">"claude-sonnet-4-6"</span>,
+            max_tokens=<span class="code-number">4000</span>,
+            thinking={<span class="code-string">"type"</span>: <span class="code-string">"enabled"</span>, <span class="code-string">"budget_tokens"</span>: <span class="code-number">2000</span>},
+            system=<span class="code-string">"""You are LoanBot v5.0. You have access to:
+- Full 5-year customer financial history
+- Customer's verbal interview statement
+- Document images (salary slips, bank statements) shown on camera
+- OCR capability for document images
+Conduct thorough analysis across all evidence sources.
+Produce: decision (APPROVE/REVIEW/REJECT), confidence, key factors, customer explanation."""</span>,
+            messages=messages
+        )
+        <span class="code-keyword">return</span> {<span class="code-string">'decision'</span>: <span class="code-string">'REVIEW'</span>, <span class="code-comment"># Extracted from response</span>
+                <span class="code-string">'confidence'</span>: <span class="code-number">0.81</span>,
+                <span class="code-string">'reasoning'</span>: response.content[<span class="code-number">-1</span>].text}
+
+    <span class="code-keyword">def</span> <span class="code-function">_load_full_history</span>(self, customer_id: <span class="code-type">str</span>) -> <span class="code-type">str</span>:
+        <span class="code-comment"># In v5.0: query vector DB for 5yr full history</span>
+        <span class="code-keyword">return</span> <span class="code-string">f"[5-year financial history for {customer_id}]"</span></code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Extended Thinking — Agents Reasoning Deeper
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p><strong>Extended Thinking</strong> (claude-sonnet-4-6 feature): khi set <code>thinking.enabled = true</code>, model có riêng một "scratchpad" để reason trước khi produce output. Ứng dụng cho LoanBot v5.0:</p>
+          <ul style="margin: var(--space-3) 0; padding-left: var(--space-6);">
+            <li>Evidence reconciliation: verbal statement conflicts với document → extended thinking để resolve</li>
+            <li>Complex borderline cases: thay vì multi-agent debate → single agent với deeper reasoning có thể đủ</li>
+            <li>Audit trail: thinking blocks logged → regulators có thể see agent's reasoning process</li>
+          </ul>
+          <p><strong>Token budget</strong>: thinking_budget_tokens = 2.000 → agent spends up to 2K tokens thinking before answering. Đây là "slow thinking" (System 2) thay vì fast pattern matching (System 1). Cost: thinking tokens billed at input rate.</p>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Agent-to-Agent Ecosystems — Mạng Lưới Agents Liên Tổ Chức</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu Model Context Protocol (MCP) như chuẩn giao tiếp agent-to-tool và agent-to-agent</li>
+          <li>Design cross-organization trust protocol: LoanBot ↔ Central Bank AI ↔ Credit Bureau</li>
+          <li>Implement agent credential verification: làm sao LoanBot biết agent kia là authentic?</li>
+          <li>Evaluate agent marketplace economics: khi nào mua specialist agent vs tự build</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>Agent Ecosystem Map 2028: LoanBot kết nối với Credit Bureau Agent, Tax Authority Agent, Central Bank AI, và ASEAN Fraud Detection Network qua MCP protocol</title>
+          <defs>
+            <marker id="arr30" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#818cf8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#0d0b26" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#eef2ff">Agent Ecosystem 2028 — LoanBot v5.0 Network</text>
+
+          <!-- Central LoanBot -->
+          <rect x="295" y="60" width="170" height="75" fill="#1e1b4b" rx="10" stroke="#818cf8" stroke-width="2"/>
+          <text x="380" y="87" text-anchor="middle" font-size="10" font-weight="700" fill="#eef2ff">🤖 LoanBot v5.0</text>
+          <text x="380" y="103" text-anchor="middle" font-size="8" fill="#c7d2fe">FinTech Corp</text>
+          <text x="380" y="118" text-anchor="middle" font-size="7" fill="#a5b4fc">Multi-agent debate</text>
+          <text x="380" y="129" text-anchor="middle" font-size="7" fill="#a5b4fc">Governance + XAI</text>
+
+          <!-- Credit Bureau Agent -->
+          <rect x="20" y="45" width="145" height="60" fill="#1a1a3e" rx="8" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="92" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#eef2ff">📊 Credit Bureau AI</text>
+          <text x="92" y="82" text-anchor="middle" font-size="8" fill="#c7d2fe">Real-time credit score</text>
+          <text x="92" y="95" text-anchor="middle" font-size="8" fill="#c7d2fe">Cross-bank debt check</text>
+
+          <!-- Tax Authority Agent -->
+          <rect x="20" y="120" width="145" height="60" fill="#1a1a3e" rx="8" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="92" y="143" text-anchor="middle" font-size="9" font-weight="700" fill="#eef2ff">🏛️ Tax Authority AI</text>
+          <text x="92" y="157" text-anchor="middle" font-size="8" fill="#c7d2fe">Income verification</text>
+          <text x="92" y="170" text-anchor="middle" font-size="8" fill="#c7d2fe">Business tax compliance</text>
+
+          <!-- Central Bank Agent -->
+          <rect x="595" y="45" width="145" height="60" fill="#1a1a3e" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="667" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#eef2ff">🏦 Central Bank AI</text>
+          <text x="667" y="82" text-anchor="middle" font-size="8" fill="#c7d2fe">Regulatory rules (TT39)</text>
+          <text x="667" y="95" text-anchor="middle" font-size="8" fill="#c7d2fe">Real-time policy updates</text>
+
+          <!-- ASEAN Fraud Agent -->
+          <rect x="595" y="120" width="145" height="60" fill="#1a1a3e" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="667" y="143" text-anchor="middle" font-size="9" font-weight="700" fill="#eef2ff">🔍 ASEAN Fraud AI</text>
+          <text x="667" y="157" text-anchor="middle" font-size="8" fill="#c7d2fe">Cross-border identity</text>
+          <text x="667" y="170" text-anchor="middle" font-size="8" fill="#c7d2fe">Syndicate detection</text>
+
+          <!-- Connections with MCP labels -->
+          <line x1="165" y1="75" x2="295" y2="88" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arr30)"/>
+          <text x="228" y="76" text-anchor="middle" font-size="7" fill="#818cf8">MCP: credit_check</text>
+          <line x1="165" y1="150" x2="295" y2="120" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arr30)"/>
+          <text x="228" y="148" text-anchor="middle" font-size="7" fill="#818cf8">MCP: tax_verify</text>
+          <line x1="465" y1="88" x2="595" y2="75" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arr30)"/>
+          <text x="532" y="76" text-anchor="middle" font-size="7" fill="#a5b4fc">MCP: rule_check</text>
+          <line x1="465" y1="120" x2="595" y2="150" stroke="#818cf8" stroke-width="1.5" marker-end="url(#arr30)"/>
+          <text x="532" y="148" text-anchor="middle" font-size="7" fill="#a5b4fc">MCP: fraud_check</text>
+        </svg>
+        <div class="diagram-title">Hình 1: LoanBot v5.0 Agent Ecosystem. MCP protocol standardizes communication: mỗi external agent cung cấp tool endpoints, LoanBot orchestrates. Trust: mutual TLS + agent credential tokens. Response time target: <500ms per external call (parallel, not sequential).</div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Agent Trust Protocol — Làm Sao Biết Agent Kia Là Thật?</div>
+        <p>Trong agent ecosystem, LoanBot cần verify rằng "Central Bank AI" nó đang nói chuyện thực sự là từ NHNN — không phải attacker impersonating NHNN agent (prompt injection at ecosystem level). Trust mechanisms: (1) <strong>Mutual TLS</strong>: cả 2 agents exchange certificates. (2) <strong>Agent Credential Token</strong>: NHNN-issued JWT với expiry + signed claims. (3) <strong>Response Validation</strong>: LoanBot không blindly trust rule từ external agent — validate against local ruleset snapshot. (4) <strong>Rate Limiting + Anomaly Detection</strong>: nếu "NHNN Agent" đột ngột gửi 1.000 rule updates/minute → anomaly, halt và alert. M9 (Agent Security) principles apply đầy đủ trong ecosystem context.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Human-Agent Collaboration 2.0 — Tổ Chức Sẽ Thay Đổi Như Thế Nào</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu mô hình "Centaur" — human strategic thinking + AI operational speed</li>
+          <li>Map transformation org chart của FinTech Corp từ 2024 đến 2028</li>
+          <li>Identify 4 new job roles created by AI agents (not destroyed)</li>
+          <li>Design HITL protocol phù hợp với capability level của AI agent năm 2028</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Centaur Chess — Người + AI > Người Giỏi Nhất</div>
+        <p>Năm 1997, Deep Blue đánh bại Kasparov. Nhưng năm 2005, Centaur Chess tournaments (human + AI team) đánh bại <em>cả</em> Deep Blue và human grandmasters. Principle: AI + human > AI alone > human alone — khi phân công đúng chỗ. FinTech Corp 2028 tương tự: LoanBot v5.0 handle 98% decisions, con người tập trung vào: exception cases, ethical dilemmas, relationship management với khách hàng VIP, policy design, system oversight. 200 nhân viên thẩm định của 2024 → 25 AI Oversight Managers, 5 Agent Trainers, 3 Ethics Officers, 2 AI Product Managers — ít hơn về số, nhưng cao hơn về impact và lương.</p>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp Org Chart 2028 — AI-First Structure</div>
+        <p><strong>Không còn tồn tại (role eliminated):</strong> Thẩm định viên thủ công, Data Entry, Compliance Checklist reviewers. <strong>Roles transformed:</strong> Loan Officer → AI Oversight Manager (supervise LoanBot panels, handle REVIEW escalations). Risk Manager → AI Risk Architect (design governance policies, tune fairness constraints). <strong>Roles created:</strong> (1) <em>Agent Trainer</em>: chuyên viên feedback quality vào LoanBot — writing ground truth labels, red-teaming agents, improving prompts. (2) <em>AI Ethics Officer</em>: full-time role governance, bias auditing, regulatory liaison. (3) <em>Agent Architect</em>: designs multi-agent systems, selects models, manages costs. (4) <em>AI Customer Experience Designer</em>: designs how AI explains decisions, manages customer journeys through AI interactions. Net jobs: từ 200 → 35 roles, nhưng average salary tăng 3×.</p>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Năm 2028, LoanBot v5.0 đạt 99% accuracy và xử lý 5 triệu hồ sơ/tháng. Có nên giảm human oversight từ 25 người xuống còn 5 người không? Lý luận của bạn?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Không nên giảm quá nhiều, vì 3 lý do: (1) 99% accuracy trên 5 triệu = 50.000 cases/tháng có thể sai — nhiều hơn absolute number so với 8.2% × 50K = 4.100 cases hôm nay. Scale amplifies errors. (2) EU AI Act và NHNN mandate human oversight cho High-Risk AI — giảm xuống 5 người có thể vi phạm "adequate human oversight" requirement. (3) Black swan events: global financial crisis, regulatory overhaul, pandemic — AI trained on 2024-2028 data không có experience với black swans. Human oversight là circuit breaker. Counter-argument: 25 người supervise 5M cases = 1 person per 200K cases — không meaningful oversight anyway. Giải pháp: maintain headcount nhưng shift focus từ case review sang system monitoring và exception handling.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Capstone — LoanBot Journey & Your Career Roadmap</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Review toàn bộ 30-module journey: từ "agent là gì" đến enterprise production governance</li>
+          <li>Trace LoanBot evolution: v1 single agent → v4.0 self-improving multi-agent system</li>
+          <li>Map 4 career paths bạn có thể pursue sau khóa học này</li>
+          <li>Identify 3 capstone projects để build portfolio chứng minh mastery</li>
+        </ul>
+      </div>
+
+      <h3>LoanBot Evolution — 30 Modules, 1 System</h3>
+
+      <div class="review-module"><div class="review-badge" style="background:#0f4c81;color:white;">1-3</div><div><strong>Foundation:</strong> Agent là gì, Harness architecture, Evaluation & Testing. LoanBot v1: single Haiku agent + 5 tools.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#7c3aed;color:white;">4-6</div><div><strong>Enterprise Core:</strong> Production deployment, Security, Multi-agent basics. LoanBot v2: production-ready với guardrails.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#0891b2;color:white;">7-9</div><div><strong>Operations:</strong> Enterprise multi-agent, AgentOps observability, Security red-teaming. LoanBot v2.5: monitored, secured.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#16a34a;color:white;">10-12</div><div><strong>Optimization:</strong> Cost engineering, HITL design, Continuous improvement. LoanBot v3.0: cost-optimized, human-in-the-loop.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#b45309;color:white;">13-15</div><div><strong>Advanced Architecture:</strong> Orchestration patterns, Memory/RAG, Tool use mastery. LoanBot v3.5: intelligent memory + rich tool ecosystem.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#b91c1c;color:white;">16-18</div><div><strong>Intelligence:</strong> Prompt engineering, Multimodal documents, LLM Gateway. LoanBot v3.6: multimodal document processing.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#0c4a6e;color:white;">19-21</div><div><strong>Compliance & Reliability:</strong> AI compliance, Agent testing/QA, Streaming. LoanBot v3.7: fully compliant + real-time.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#7f1d1d;color:white;">22-24</div><div><strong>Advanced AI:</strong> Fine-tuning, Reasoning/planning, Epistemics. LoanBot v3.8: fine-tuned domain expertise.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:#4c1d95;color:white;">25-27</div><div><strong>Scale & Learning:</strong> Orchestration at scale, Multi-agent debate, Self-improvement. LoanBot v4.0: Condorcet panels + auto self-improvement.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:linear-gradient(135deg,#134e4a,#14532d);color:white;">28-29</div><div><strong>Governance & Economics:</strong> AI Governance, ROI Analysis. LoanBot v4.0: fully governed, NPV-justified, ROI tracked.</div></div>
+      <div class="review-module"><div class="review-badge" style="background:linear-gradient(135deg,#1e1b4b,#818cf8);color:white;">30</div><div><strong>Future:</strong> Agent ecosystems, human-AI collaboration 2.0, capstone. LoanBot v5.0 vision: cross-org, multimodal, autonomous.</div></div>
+
+      <hr class="lesson-divider">
+
+      <h3>Career Paths Sau Khóa Học</h3>
+
+      <div class="career-card">
+        <div class="career-title">🛠️ AI Engineer / Agent Architect</div>
+        <p style="font-size:.85rem;margin-bottom:var(--space-2);">Build, deploy, và maintain AI agent systems. Focus: harness design, tool integration, multi-agent orchestration. Modules most relevant: M2 (Harness), M13 (Orchestration), M15 (Tool Use), M18 (LLM Gateway), M25 (Scale).</p>
+        <p style="font-size:.8rem;color:var(--text-muted);">Salary range Vietnam 2026: 2.000–5.000 USD/month. High demand. Capstone project: Build production-grade agentic system cho real business problem.</p>
+      </div>
+
+      <div class="career-card">
+        <div class="career-title">📊 AI Product Manager</div>
+        <p style="font-size:.85rem;margin-bottom:var(--space-2);">Define AI product strategy, prioritize features, translate business needs into agent requirements. Modules most relevant: M11 (HITL), M19 (Compliance), M29 (ROI), M30 (Future trends).</p>
+        <p style="font-size:.8rem;color:var(--text-muted);">Salary range Vietnam 2026: 1.500–3.500 USD/month. Bridge between tech và business. Capstone project: Write full product spec + business case cho AI agent product.</p>
+      </div>
+
+      <div class="career-card">
+        <div class="career-title">⚖️ AI Ethics Officer / Governance Lead</div>
+        <p style="font-size:.85rem;margin-bottom:var(--space-2);">Ensure AI systems are fair, transparent, và compliant. Modules most relevant: M9 (Security), M19 (Compliance), M28 (Governance), M20 (QA Testing).</p>
+        <p style="font-size:.8rem;color:var(--text-muted);">Salary range Vietnam 2026: 1.200–2.500 USD/month. Emerging role, growing demand. Capstone project: Conduct full fairness audit + governance charter cho existing AI system.</p>
+      </div>
+
+      <div class="career-card">
+        <div class="career-title">🔬 MLOps / AI Platform Engineer</div>
+        <p style="font-size:.85rem;margin-bottom:var(--space-2);">Infrastructure, CI/CD, observability cho AI systems. Modules most relevant: M8 (AgentOps), M10 (Cost Optimization), M12 (Evaluation), M20 (Testing), M27 (Self-Improvement).</p>
+        <p style="font-size:.8rem;color:var(--text-muted);">Salary range Vietnam 2026: 1.800–4.000 USD/month. Technical depth required. Capstone project: Build complete MLOps pipeline với automated testing + monitoring + CI/CD.</p>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <h2>📚 Glossary Module 30</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m30-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m30-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m30-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agentic AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI systems can take sequences of actions, plan, and pursue goals with minimal human intervention. Contrast với chatbots (single-turn) và traditional ML (classification only).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Computer-Use Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent có thể nhìn màn hình và điều khiển UI (click, type, scroll) như người. Không cần API integration — works với bất kỳ existing software nào.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Long-Context Window</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model có thể xử lý hàng triệu tokens in một lần. Enables: full 5-year customer history as context, entire codebase, complete document libraries — without RAG retrieval.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extended Thinking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model reasoning mode: allocate "thinking budget" (tokens) cho internal deliberation trước khi output. System 2 thinking — slower, deeper, more accurate cho complex reasoning.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">MCP (Model Context Protocol)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Emerging standard (Anthropic 2024) cho agent-to-tool communication. Như USB-C cho agents: one protocol, many tools. Agent marketplaces built on MCP.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agent Ecosystem</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Network of agents từ nhiều organizations tương tác với nhau via defined protocols. LoanBot v5.0 + Credit Bureau AI + Central Bank AI = agent ecosystem.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agent Trust Protocol</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mechanisms để verify authenticity của agent trong ecosystem: mutual TLS, credential tokens, response validation. Prevents impersonation attacks in cross-org networks.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Centaur Model</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Human + AI collaboration where combined performance > either alone. Named after Centaur Chess (human + chess engine > either separately). Optimal division: AI operational, human strategic.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Real-Time Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent cập nhật behavior từ feedback within deployment, không cần batch retrain cycle. Contrast với M27 (30-day ground truth batch). Future capability, not yet production-ready at scale.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Designing Tool</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent viết và tests code cho tool của chính nó khi gặp task chưa có tool sẵn. Requires: code execution sandbox, automated testing, safety validation trước khi deploy.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agent Marketplace</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Platform mua/thuê specialized agent capabilities: CreditCheckAgent, FraudDetectionAgent, ComplianceAgent. Như app store nhưng cho agent tools và sub-agents.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Oversight Manager</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">New role (2026+): supervise AI agent panels, handle escalations, ensure governance policies followed. Evolution của Loan Officer trong AI-first bank.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Disruption Vector</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Direction từ đó AI disruption có thể đến: (1) Cost collapse (100× cheaper → new markets viable); (2) Capability jump (new modality); (3) Regulatory mandate (forced adoption/restriction).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Half-Life of Skills</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">How long a skill remains valuable before becoming obsolete. In AI: specific model knowledge has short half-life (months); system design principles have long half-life (years). Build durable skills.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Agent Harness Engineer</td><td style="padding:8px 12px;">Người build và maintain harness infrastructure cho AI agents. Ngành nghề mới nhất, high demand, skills from this entire 30-module course. That's you after completing this program.</td></tr>
+      </table>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Final Key Insight: Tại Sao Bạn Có Lợi Thế</div>
+        <p>Hầu hết người dùng AI chỉ biết prompting. Hầu hết developers chỉ biết gọi API. Rất ít người hiểu: harness architecture, multi-agent orchestration, governance frameworks, ROI economics, và fairness requirements — tất cả trong một mental model nhất quán, build trên một ví dụ thực tế (LoanBot) xuyên suốt 30 module. Bạn đã học điều đó. Gap này sẽ tồn tại ít nhất 3–5 năm, vì không phải model capability mà là <em>engineering judgment</em> — khả năng quyết định khi nào dùng multi-agent vs single agent, khi nào cần governance vs speed, khi nào ROI justify cost — không thể học nhanh từ tutorials. Chúc mừng bạn đã hoàn thành chương trình.</p>
+      </div>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module29/index.html" class="btn btn-outline">← Module 29: ROI Analysis</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Final Quiz Module 30 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 30 — Future of AI Agents (Final)</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m30-primary: #1e1b4b; --m30-accent: #818cf8; --m30-light: #eef2ff; --m30-border: #a5b4fc; }
+    .quiz-hero { background: linear-gradient(135deg, #0d0b26 0%, #1e1b4b 55%, #818cf8 100%); padding: var(--space-12) var(--space-6); text-align: center; }
+    .quiz-hero-content { max-width: 700px; margin: 0 auto; }
+    .module-tag { display: inline-block; background: rgba(129,140,248,.2); color: #c7d2fe; border: 1px solid rgba(165,180,252,.4); border-radius: 100px; padding: 4px 14px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--space-4); }
+    .quiz-hero h1 { color: #eef2ff; font-size: 2rem; margin-bottom: var(--space-3); }
+    .quiz-hero p { color: #c7d2fe; font-size: 1.05rem; margin-bottom: var(--space-4); }
+    .quiz-stats { display: flex; justify-content: center; gap: var(--space-4); }
+    .quiz-stats span { background: rgba(255,255,255,.1); color: #e0e7ff; border-radius: var(--radius-md); padding: 6px 14px; font-size: .8rem; font-weight: 600; }
+    .quiz-container { max-width: 780px; margin: 0 auto; padding: var(--space-8) var(--space-6); }
+    .quiz-progress { margin-bottom: var(--space-6); }
+    .quiz-progress-text { font-size: .85rem; color: var(--text-muted); margin-bottom: var(--space-2); }
+    .quiz-progress-bar { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #1e1b4b, #818cf8); border-radius: 100px; transition: width .3s ease; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-4); }
+    .question-num { font-size: .75rem; font-weight: 700; color: var(--m30-accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: var(--space-3); }
+    .question-text { font-size: 1rem; font-weight: 600; color: var(--text); line-height: 1.5; margin-bottom: var(--space-4); }
+    .options { display: grid; gap: var(--space-2); }
+    .option { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1.5px solid var(--border); border-radius: var(--radius-lg); cursor: pointer; transition: all .15s; background: var(--bg); }
+    .option:hover { border-color: var(--m30-border); background: var(--m30-light); }
+    .option.selected { border-color: var(--m30-accent); background: var(--m30-light); }
+    .option.correct { border-color: var(--success); background: #f0fdf4; }
+    .option.wrong { border-color: var(--danger); background: #fef2f2; }
+    .option-letter { width: 26px; height: 26px; border-radius: 50%; background: var(--border); color: var(--text-muted); font-size: .75rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .option.correct .option-letter { background: var(--success); color: white; }
+    .option.wrong .option-letter { background: var(--danger); color: white; }
+    .option-text { font-size: .9rem; line-height: 1.45; }
+    .feedback { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-lg); display: none; }
+    .feedback.correct { background: #f0fdf4; border: 1px solid #86efac; color: #14532d; }
+    .feedback.wrong { background: #fef2f2; border: 1px solid #fca5a5; color: #7f1d1d; }
+    .feedback-title { font-weight: 700; margin-bottom: var(--space-2); }
+    .btn-next { background: linear-gradient(135deg, #1e1b4b, #818cf8); color: white; border: none; border-radius: var(--radius-lg); padding: 10px 28px; font-size: .9rem; font-weight: 600; cursor: pointer; margin-top: var(--space-4); }
+    .btn-next:hover { opacity: .9; }
+    .quiz-result { text-align: center; padding: var(--space-8); }
+    .result-score { font-size: 3.5rem; font-weight: 900; color: var(--m30-primary); margin: var(--space-4) 0; }
+    .result-label { font-size: 1.1rem; color: var(--text-muted); margin-bottom: var(--space-4); }
+    .result-actions { display: flex; gap: var(--space-3); justify-content: center; flex-wrap: wrap; margin-top: var(--space-6); }
+    .completion-badge { background: linear-gradient(135deg, #0d0b26, #1e1b4b); color: #eef2ff; border-radius: var(--radius-xl); padding: var(--space-6); margin: var(--space-6) 0; }
+    .completion-badge h2 { font-size: 1.5rem; margin-bottom: var(--space-2); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">← Bài giảng</a><a href="../../index.html">Trang chủ</a></div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 30 · FINAL QUIZ</span>
+    <h1>📝 Future of AI Agents — Capstone</h1>
+    <p>15 câu hỏi cuối · Phủ đều 5 lessons · ~20 phút · Bài kiểm tra tốt nghiệp</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="completion-badge">
+      <h2>🎓 Chúc Mừng Tốt Nghiệp!</h2>
+      <p>Bạn đã hoàn thành toàn bộ 30 module của chương trình AI Agent Harness Engineering.</p>
+    </div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-label" id="resultLabel"></div>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">↩ Ôn lại Module 30</a>
+      <a href="../../index.html" class="btn btn-primary">🏠 Trang chủ — Xem tất cả Module →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // EASY (5)
+  {
+    q: "Theo xu hướng AI từ 2020–2026, cost-per-token đã giảm khoảng bao nhiêu lần trong khi model capabilities tăng ~10×?",
+    opts: ["10×","50×","100×","1.000×"],
+    correct: 2,
+    feedback: "Đúng! Cost-per-token giảm ~100× từ 2020–2026, trong khi capabilities tăng ~10×. Đây là lý do economics của AI agent applications thay đổi nhanh chóng — ví dụ LoanBot v4.0 dùng Haiku ở 80% cases với 54 VNĐ/case, và xu hướng này sẽ tiếp tục. Ba option còn lại (10×, 50×, 1.000×) đều không chính xác với trajectory thực tế đã quan sát.",
+  },
+  {
+    q: "MCP (Model Context Protocol) đóng vai trò gì trong agent ecosystem năm 2028?",
+    opts: ["Ngôn ngữ lập trình mới cho AI agents","Chuẩn giao tiếp giữa agent và tools/agents khác","Database lưu trữ agent conversation history","Security protocol chống prompt injection"],
+    correct: 1,
+    feedback: "Đúng! MCP là communication standard — như USB-C cho agents: one protocol, many tools và agents. Agent marketplaces được xây trên MCP. Nó KHÔNG phải ngôn ngữ lập trình (agents vẫn dùng Python/JS), không phải database, và không phải security protocol (dù security được layer on top).",
+  },
+  {
+    q: "Computer-use agents có đặc điểm nào khác biệt cơ bản với traditional API-based agents?",
+    opts: ["Chạy nhanh hơn vì không cần network calls","Có thể điều khiển UI trực tiếp — không cần API integration","Sử dụng model nhỏ hơn, ít tốn kém hơn","Không cần human oversight vì ít rủi ro hơn"],
+    correct: 1,
+    feedback: "Đúng! Computer-use agents nhìn màn hình và điều khiển UI như người (click, type, scroll) — điều này có nghĩa chúng có thể work với bất kỳ existing software nào không có API. Ví dụ LoanBot v5.0: login vào BHXH portal → verify employment → tất cả qua UI. Ba option khác sai: chúng thực ra chậm hơn API calls, dùng capable models, và cần MORE oversight vì hành động UI có thể gây side effects.",
+  },
+  {
+    q: "Trong mô hình Centaur (Human + AI), human và AI nên phân công công việc như thế nào để đạt hiệu quả tối đa?",
+    opts: ["Human làm tất cả quyết định quan trọng, AI chỉ hỗ trợ thông tin","AI xử lý operational tasks, human tập trung vào strategic thinking và exception cases","Human kiểm tra mọi quyết định của AI trước khi execute","AI chỉ được dùng cho tasks đơn giản, không phức tạp"],
+    correct: 1,
+    feedback: "Đúng! Centaur model: AI operational + human strategic — kết hợp này vượt qua cả hai khi độc lập. FinTech Corp 2028: LoanBot xử lý 5M hồ sơ/tháng, 25 AI Oversight Managers focus on exception cases, governance, và strategic decisions. Option A quá hạn chế AI; Option C không khả thi ở scale; Option D bỏ lãng phí AI capability.",
+  },
+  {
+    q: "Extended Thinking trong claude-sonnet-4-6 hoạt động như thế nào khi enabled?",
+    opts: ["Model thực hiện web search để tìm thêm thông tin","Model có scratchpad riêng để reason trước khi produce output, billed at input rate","Model call thêm external APIs để verify facts","Model tạo ra multiple candidate answers và chọn câu trả lời tốt nhất bằng majority vote"],
+    correct: 1,
+    feedback: "Đúng! Extended Thinking: khi enabled, model có riêng một 'scratchpad' (thinking block) để reason — System 2 thinking thay vì fast pattern matching. Thinking tokens được billed at input token rate. Nó KHÔNG phải web search, không gọi external APIs. Option D mô tả multi-agent debate từ M26, không phải extended thinking của single model.",
+  },
+  // MEDIUM (7)
+  {
+    q: "FinTech Corp dự kiến mở rộng ra ASEAN năm 2028. LoanBot v5.0 cần connect với 'ASEAN Fraud Detection AI' từ tổ chức khác. Cơ chế nào là QUAN TRỌNG NHẤT để đảm bảo LoanBot không bị attacker impersonate ASEAN Fraud AI?",
+    opts: ["Rate limiting — block nếu quá nhiều requests","Response caching để so sánh với historical data","Mutual TLS + Agent Credential Token (JWT signed bởi trusted authority)","Chỉ accept requests từ IP addresses được whitelist"],
+    correct: 2,
+    feedback: "Đúng! Mutual TLS + Credential Tokens là cơ chế mạnh nhất vì: (1) cả 2 phía exchange certificates — authentication 2 chiều, không chỉ 1 chiều; (2) JWT signed bởi trusted authority (ví dụ ASEAN FinTech Council) có expiry và signed claims. Rate limiting (A) ngăn DDoS nhưng không verify identity. Response caching (B) không detect impersonation. IP whitelist (D) không đủ — attacker có thể route qua trusted IP, và dynamic IPs không khả thi ở scale.",
+  },
+  {
+    q: "Nếu cost-per-token tiếp tục trend từ 2020–2026 (giảm ~100× trong 6 năm), điều gì sẽ xảy ra với economics của LoanBot trong bài toán break-even vào năm 2030?",
+    opts: ["Break-even point sẽ tăng vì infra costs tăng","Break-even point giữ nguyên vì human costs cũng giảm","Break-even point giảm xuống, mở ra market cho very small-volume lenders","AI sẽ không economical vì model costs dominate revenue","Break-even point sẽ không thay đổi vì labor laws protect human jobs"],
+    correct: 2,
+    feedback: "Đúng! Khi cost-per-token giảm tiếp (~100× / 6 năm → thêm ~10-50× vào 2030), AI cost-per-case sẽ giảm từ 115 VNĐ xuống còn vài VNĐ. Break-even point (hiện 6.250 cases/month) sẽ giảm xuống vài trăm cases — mở ra market cho small co-ops, microfinance lenders mà hôm nay không viable vì volume quá thấp. Option A sai (infra cũng giảm); Option B sai (human costs KHÔNG giảm theo); Option D ngược chiều với reality.",
+  },
+  {
+    q: "Long-context window (1M+ tokens) thay đổi gì trong architecture của LoanBot v5.0 so với v4.0 (dùng RAG)?",
+    opts: ["RAG không còn cần thiết — toàn bộ lịch sử khách hàng fit trong context","Cần nhiều agent hơn để process long context song song","Cần GPU mạnh hơn cho inference vì context dài","Latency tăng đáng kể nên không dùng được trong real-time decisions"],
+    correct: 0,
+    feedback: "Đúng! Với 1M+ token context window, toàn bộ 5-year customer history (statements, loan history, correspondence) fit trong một single context — không cần RAG retrieval với chunking, embedding search, relevancy ranking. Điều này eliminates RAG latency và 'lost context' problems. Options B, C, D: cloud-served long-context models không cần local GPU và latency được managed by providers; parallelism thông qua nhiều agents là M25 concern, không phải long-context problem.",
+  },
+  {
+    q: "Trong Agent Ecosystem 2028, LoanBot nhận response từ 'Central Bank AI' với 500 regulatory rule updates trong vòng 10 giây. Phản ứng đúng nhất là gì?",
+    opts: ["Apply tất cả 500 rules ngay lập tức để comply với regulator","Ignore response và continue với current ruleset","Trigger anomaly detection, halt external agent connection, alert human oversight","Log 500 rules vào database và apply dần dần qua 24h"],
+    correct: 2,
+    feedback: "Đúng! 500 updates trong 10 giây là rate anomaly — NHNN trong thực tế không gửi 500 rules cùng lúc. LoanBot phải: (1) flag as anomaly; (2) halt connection với external agent; (3) alert human oversight. Đây có thể là: compromised Central Bank agent, man-in-the-middle attack, hoặc bug. Option A là catastrophic — blindly apply có thể corrupt ruleset. Option B bỏ qua legitimate updates. Option D vẫn apply unverified rules.",
+  },
+  {
+    q: "Trong transformation của FinTech Corp từ 200 nhân viên thẩm định sang 35 AI roles, tại sao average salary tăng 3× mặc dù headcount giảm?",
+    opts: ["AI Oversight Managers làm nhiều giờ hơn","Mới roles yêu cầu expertise hiếm — AI + domain knowledge + governance — trong khi supply thấp","Labor shortage tổng quát trong ngành FinTech","Management quyết định tăng lương để giữ chân nhân viên lo lắng mất việc"],
+    correct: 1,
+    feedback: "Đúng! Skill premium: AI Oversight Manager, Agent Architect, Ethics Officer đều cần intersection của: AI systems understanding + domain expertise (credit risk) + governance/regulatory knowledge. Đây là rare combination với low supply nhưng high demand (every bank going AI-first simultaneously). Options A (overtime) không drive 3× salary. Options C/D là secondary factors, không phải primary driver.",
+  },
+  {
+    q: "Vào năm 2028, LoanBot v5.0 đạt 99.3% accuracy trên 5M cases/month. Tỷ lệ này có nghĩa là bao nhiêu cases bị quyết định sai mỗi tháng?",
+    opts: ["Rất ít — dưới 1.000 cases, negligible","35.000 cases — more than LoanBot v4.0 processed in total 1 tháng","350 cases — acceptable given the speed advantage","70.000 cases — một con số lớn cần xem xét governance"],
+    correct: 1,
+    feedback: "Đúng! 0.7% × 5.000.000 = 35.000 cases/tháng bị sai — nhiều hơn toàn bộ volume mà LoanBot v4.0 xử lý trong 1 tháng (50.000). Đây là lý do tại sao 'accuracy percentage' misleading ở scale — absolute error count quan trọng hơn. Governance (M28) và human oversight không thể giảm chỉ vì percentage accuracy cao — scale amplifies errors absolutely.",
+  },
+  {
+    q: "Real-time in-context learning khác với batch learning (M27 self-improvement cycle) như thế nào về mechanism?",
+    opts: ["Real-time learning nhanh hơn vì dùng GPU mạnh hơn","Real-time learning cập nhật model weights ngay lập tức trong session, batch learning không thay đổi weights","Real-time learning cập nhật internal priors/beliefs trong conversation context không cần retrain weights, batch learning điều chỉnh model weights qua training","Không có sự khác biệt — cả hai đều require 30-day ground truth collection"],
+    correct: 2,
+    feedback: "Đúng! Distinction quan trọng: Real-time in-context learning = agent adjusts reasoning/priors WITHIN a conversation based on new information, không thay đổi model weights. Ví dụ: 'Customer từ Nghệ An seasonal worker → adjust income interpretation in-flight.' Batch learning (M27) = collect 30-day ground truth → retrain/fine-tune → update model weights permanently. Option B nhầm về 'update weights instantly' — không thể. Option D sai — real-time learning không cần ground truth collection.",
+  },
+  // HARD (3)
+  {
+    q: "FinTech Corp 2028 đang cân nhắc: giảm AI Oversight team từ 25 xuống còn 8 người vì LoanBot v5.0 đạt 99.3% accuracy và có Extended Thinking. Argument PHẢN ĐỐI mạnh nhất (không phải weak argument) đến từ đâu?",
+    opts: ["EU AI Act Art.14 mandates 'adequate human oversight' — giảm xuống 8/5M cases có thể không đủ về mặt quy định pháp lý","8 người không đủ để review all escalations physically","25 người đang được trả lương — giảm headcount sẽ ảnh hưởng morale","LoanBot v5.0 chưa được tested đủ với 5M volume"],
+    correct: 0,
+    feedback: "Đúng! EU AI Act Art.14 (Human Oversight requirement) là hard regulatory constraint — không thể argument away bằng accuracy numbers. 8 people supervising 5M cases = 1 person per 625.000 cases, đây khó đáp ứng 'meaningful oversight' standard. Regulators có thể interpret này là non-compliant, dẫn đến fines hoặc forced shutdown. Option B (physical capacity) là operational concern nhưng có workarounds. Option C (morale) là HR argument, not business-critical. Option D (testing) là temporary issue, not structural.",
+  },
+  {
+    q: "Một startup FinTech muốn build 'Agent Marketplace' — nơi LoanBot có thể 'hire' specialist agents theo usage. Trong mô hình này, khi LoanBot thuê 'FraudDetectionAgent' từ vendor khác và agent đó trả về quyết định 'HIGH_RISK', LoanBot có thể blindly trust quyết định này không? Tại sao?",
+    opts: ["Có — vendor agents đã được audited và có SLA đảm bảo accuracy","Không — FraudDetectionAgent có thể bị compromised, có training data bias, hoặc optimize cho metric khác với LoanBot's objective","Có — nếu vendor có ISO 27001 certification thì đảm bảo trust","Không — vì legal liability sẽ shift sang vendor, không phải FinTech Corp"],
+    correct: 1,
+    feedback: "Đúng! Không thể blindly trust vì 3 independent reasons: (1) Security: FraudDetectionAgent có thể bị compromised hoặc prompt injected — output 'HIGH_RISK' có thể adversarial; (2) Bias: vendor agent được trained on different data, có thể flagged geographic/demographic group incorrectly; (3) Objective misalignment: FraudDetection maximizes recall (catch all fraud) → high false positive rate, nhưng LoanBot cần balance precision và recall vì false positives hurt good customers. LoanBot phải validate response against local fraud signals trước khi act. Option A (SLA) và C (ISO) address process, không address output correctness. Option D về liability là secondary, không phải primary concern.",
+  },
+  {
+    q: "Khi đánh giá career path sau khóa học này, bạn nhận ra mình có: (1) background finance/credit risk, (2) đã học toàn bộ 30 modules về AI agents, (3) quan tâm đến fairness và regulatory compliance. Role nào tận dụng TẤT CẢ 3 thế mạnh này tốt nhất, và module nào của khóa học relevant nhất?",
+    opts: ["AI Engineer — M2 Harness, M13 Orchestration, M25 Scale","AI Product Manager — M11 HITL, M19 Compliance, M29 ROI","AI Ethics Officer / Governance Lead — M19 Compliance, M28 Governance, M9 Security kết hợp với finance domain expertise","MLOps Engineer — M8 AgentOps, M12 Evaluation, M20 Testing"],
+    correct: 2,
+    feedback: "Đúng! AI Ethics Officer / Governance Lead tận dụng đúng cả 3: (1) Finance/credit background → hiểu impact của AI decisions trên khách hàng vay, regulatory landscape (NHNN, TT39); (2) Technical AI knowledge từ 30 modules → có thể đọc và audit model decisions, không phải black box; (3) Fairness interest → core của role là bias auditing, EU AI Act compliance, Demographic Parity. Options A và D không leverage finance background. Option B (AI PM) leverage nhưng ít technical depth về fairness cụ thể. Ethics Officer intersection = rare, high-value.",
+  },
+];
+
+let current = 0, score = 0;
+
+function render() {
+  const q = questions[current];
+  document.getElementById('currentQ').textContent = current + 1;
+  document.getElementById('progressFill').style.width = ((current + 1) / 15 * 100) + '%';
+  const diff = current < 5 ? 'Dễ' : current < 12 ? 'Trung bình' : 'Khó';
+  const diffColor = current < 5 ? '#16a34a' : current < 12 ? '#d97706' : '#dc2626';
+  document.getElementById('quizArea').innerHTML = `
+    <div class="question-card">
+      <div class="question-num">Câu ${current + 1} · <span style="color:${diffColor}">${diff}</span></div>
+      <div class="question-text">${q.q}</div>
+      <div class="options" id="opts">
+        ${q.opts.map((o, i) => `
+          <div class="option" id="opt${i}" onclick="choose(${i})">
+            <div class="option-letter">${['A','B','C','D'][i]}</div>
+            <div class="option-text">${o}</div>
+          </div>`).join('')}
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <button class="btn-next" id="btnNext" onclick="next()" style="display:none">${current < 14 ? 'Câu tiếp theo →' : 'Xem kết quả 🎓'}</button>
+    </div>`;
+}
+
+function choose(idx) {
+  const q = questions[current];
+  document.querySelectorAll('.option').forEach(o => o.onclick = null);
+  const fb = document.getElementById('feedback');
+  const isRight = idx === q.correct;
+  if (isRight) score++;
+  document.querySelectorAll('.option').forEach((o, i) => {
+    if (i === q.correct) o.classList.add('correct');
+    else if (i === idx && !isRight) o.classList.add('wrong');
+  });
+  fb.className = 'feedback ' + (isRight ? 'correct' : 'wrong');
+  fb.style.display = 'block';
+  fb.innerHTML = `<div class="feedback-title">${isRight ? '✅ Chính xác!' : '❌ Chưa đúng'}</div><p>${q.feedback}</p>`;
+  document.getElementById('btnNext').style.display = 'inline-block';
+}
+
+function next() {
+  current++;
+  if (current >= 15) showResult();
+  else render();
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const pct = Math.round(score / 15 * 100);
+  let label = pct >= 90 ? '🏆 Xuất sắc — Master Level! Sẵn sàng lead AI transformation.' :
+              pct >= 75 ? '🌟 Tốt — Solid foundation! Review lại các bài học liên quan.' :
+              '📚 Cần ôn tập thêm — Đọc lại Module 30 và các module liên quan.';
+  document.getElementById('resultScore').textContent = `${score}/15 · ${pct}%`;
+  document.getElementById('resultLabel').textContent = label;
+  document.getElementById('resultArea').style.display = 'block';
+}
+
+render();
+</script>
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

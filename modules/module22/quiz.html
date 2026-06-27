@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 22 — Fine-tuning & Model Specialization</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m22-primary: #7f1d1d; --m22-accent: #f97316; --m22-light: #fff7ed; --m22-border: #fdba74; }
+    .quiz-hero { background: linear-gradient(135deg, #431407 0%, #7f1d1d 55%, #f97316 100%); }
+    .module-tag { background: rgba(249,115,22,.25); color: #fdba74; border: 1px solid #f97316; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; display: inline-block; margin-bottom: var(--space-4); }
+    .quiz-hero-content { max-width: 700px; margin: 0 auto; padding: var(--space-12) var(--space-6); text-align: center; }
+    .quiz-hero-content h1 { font-size: 2rem; color: #fff7ed; margin-bottom: var(--space-3); }
+    .quiz-hero-content p { color: #fdba74; font-size: 1.05rem; }
+    .quiz-stats { display: flex; gap: var(--space-4); justify-content: center; margin-top: var(--space-4); }
+    .quiz-stats span { background: rgba(249,115,22,.2); color: #fdba74; padding: 4px 14px; border-radius: 20px; font-size: .8rem; font-weight: 600; border: 1px solid rgba(249,115,22,.4); }
+    .quiz-container { max-width: 760px; margin: var(--space-8) auto; padding: 0 var(--space-4); }
+    .quiz-progress { margin-bottom: var(--space-6); }
+    .quiz-progress-text { font-size: .875rem; color: var(--text-secondary); margin-bottom: var(--space-2); font-weight: 600; }
+    .quiz-progress-bar { height: 6px; background: var(--border); border-radius: 9999px; overflow: hidden; }
+    .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #7f1d1d, #f97316); border-radius: 9999px; transition: width .4s ease; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-4); }
+    .question-meta { font-size: .75rem; color: var(--text-muted); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--space-3); }
+    .question-text { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-6); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-3); }
+    .option-btn { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); text-align: left; cursor: pointer; font-size: .925rem; color: var(--text-primary); transition: all .18s ease; line-height: 1.5; }
+    .option-btn:hover:not(:disabled) { border-color: #f97316; background: var(--m22-light); }
+    .option-btn.correct { border-color: #16a34a !important; background: #f0fdf4 !important; color: #166534 !important; font-weight: 600; }
+    .option-btn.wrong { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b !important; }
+    .option-btn:disabled { cursor: default; }
+    .feedback-box { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); border-left: 4px solid; display: none; font-size: .9rem; line-height: 1.65; }
+    .feedback-box.show { display: block; }
+    .feedback-box.correct-fb { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+    .feedback-box.wrong-fb { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+    .next-btn { display: none; margin-top: var(--space-5); padding: var(--space-3) var(--space-8); background: linear-gradient(135deg,#7f1d1d,#f97316); color: white; border: none; border-radius: var(--radius-lg); font-size: .95rem; font-weight: 700; cursor: pointer; }
+    .next-btn.show { display: block; }
+    .quiz-result { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-10); text-align: center; }
+    .result-score { font-size: 3rem; font-weight: 800; color: #7f1d1d; }
+    .result-label { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .result-actions { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; margin-top: var(--space-6); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">← Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 22 · QUIZ</span>
+    <h1>📝 Fine-tuning & Model Specialization</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="finalScore"></div>
+    <div class="result-label" id="finalLabel"></div>
+    <p id="finalMsg" style="color:var(--text-secondary);max-width:500px;margin:0 auto var(--space-4);"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">← Xem lại bài giảng</a>
+      <button onclick="restartQuiz()" class="btn btn-outline">🔄 Làm lại quiz</button>
+      <a href="../module23/index.html" class="btn btn-primary">Module 23: Reasoning →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // --- EASY (5 câu) ---
+  {
+    level: "Dễ", lesson: "L1",
+    q: "LoanBot hiện xử lý 50,000 hồ sơ/tháng với system prompt dài 3,000 token. Điều kiện nào trong số sau đây PHẢI ĐÚNG để fine-tuning có ROI dương?",
+    opts: [
+      "Accuracy của base model phải dưới 80%",
+      "Training cost phải nhỏ hơn tổng monthly savings trong vòng đời model",
+      "Model phải là open-source mới có thể fine-tune",
+      "Data training phải có ít nhất 100,000 examples"
+    ],
+    correct: 1,
+    explanation: "✅ Break-even = Training Cost ÷ (Monthly Savings × tháng). Nếu Training Cost $2,000 và Monthly Savings $150, break-even 13.3 tháng. Nếu model dùng >13.3 tháng → ROI dương. Accuracy của base model không phải điều kiện — ngay cả base model 95% accuracy cũng có thể justify fine-tuning nếu cost savings từ shorter prompts đủ lớn. Fine-tuning không yêu cầu open-source — Claude, GPT-4 cũng có fine-tuning API. 100K examples là quá nhiều — 1,000 high-quality examples đã đủ."
+  },
+  {
+    level: "Dễ", lesson: "L2",
+    q: "LoRA hoạt động bằng cách nào để giảm 100x số trainable parameters so với full fine-tuning?",
+    opts: [
+      "Xóa bớt các layers không cần thiết trong model",
+      "Chỉ train 2 small matrices B·A thay vì update toàn bộ weight matrix W",
+      "Dùng int8 quantization để nén model",
+      "Frozen toàn bộ model và chỉ train lớp embedding"
+    ],
+    correct: 1,
+    explanation: "✅ LoRA thêm 2 small matrices: B (d×r) và A (r×d), với r << d. W_new = W_frozen + B·A. W không bao giờ được update — chỉ B và A được train. Với d=4096, r=16: B·A có 131,072 params thay vì 16.7M params của W → 127x ít hơn. Quantization (int8/int4) là kỹ thuật riêng biệt, đó là QLoRA chứ không phải LoRA. Frozen toàn bộ + train embedding = Prefix Tuning, không phải LoRA."
+  },
+  {
+    level: "Dễ", lesson: "L3",
+    q: "Tại sao FinTech Corp KHÔNG thể dùng raw production data (300,000 loan decisions thực tế) để fine-tune LoanBot trực tiếp?",
+    opts: [
+      "Raw data có quá nhiều noise, accuracy sẽ thấp",
+      "Raw data chứa PII (tên, CCCD, địa chỉ) — model có thể memorize và leak",
+      "300,000 examples quá nhiều, gây overfitting nghiêm trọng",
+      "Production data không có ground truth labels"
+    ],
+    correct: 1,
+    explanation: "✅ LLMs có thể memorize training data, đặc biệt là examples xuất hiện nhiều lần hoặc đặc biệt trong distribution. Nếu training data chứa 'Nguyễn Văn A, CCCD 012345678901, thu nhập 25 triệu', model có thể recall thông tin này khi được prompt khéo léo. GDPR Art.17 và NĐ13/2023 yêu cầu data minimization. Solution: anonymize trước khi training (thay tên → hash, CCCD → random, địa chỉ → tỉnh/thành). Raw data có noise không phải lý do chính vì training pipeline có quality filters. 300K examples thực ra rất tốt nếu quality cao."
+  },
+  {
+    level: "Dễ", lesson: "L4",
+    q: "Sau khi fine-tune LoanBot, bạn test general capability và thấy model không thể làm phép tính đơn giản (234×17). Đây là dấu hiệu của vấn đề gì?",
+    opts: [
+      "Training data không đủ domain-specific",
+      "Learning rate quá thấp",
+      "Catastrophic forgetting — model quên general capabilities",
+      "rank r quá cao, gây overfitting"
+    ],
+    correct: 2,
+    explanation: "✅ Catastrophic forgetting xảy ra khi fine-tuning overwrite general capabilities của base model. Không thể làm phép tính = mất mathematical reasoning. Đây là critical issue vì ngay cả trong loan domain, LoanBot cần: tính toán DTI ratio, so sánh số liệu, follow instructions. Fix: giảm learning rate, thêm general instruction data (~10-20% training set), giảm epochs, thêm early stopping khi general capability < 85%."
+  },
+  {
+    level: "Dễ", lesson: "L5",
+    q: "Shadow mode trong model deployment có nghĩa là gì?",
+    opts: [
+      "Model chạy với dark theme UI để không hiển thị cho user",
+      "New model nhận 100% traffic, chạy song song production nhưng output không được dùng",
+      "Model chỉ chạy vào ban đêm khi traffic thấp",
+      "Model chạy ẩn mà không có logging hay monitoring"
+    ],
+    correct: 1,
+    explanation: "✅ Shadow mode (còn gọi là shadow deployment): new model nhận copy của tất cả production requests, process chúng hoàn toàn, nhưng responses bị discard — không gửi cho user. Mục đích: monitor accuracy, latency, cost của new model trong điều kiện production thực tế mà không có bất kỳ risk nào cho user. Sau 2 tuần shadow OK (accuracy ≥ 95%, latency p50 < 2s) → promote to canary 5%."
+  },
+
+  // --- MEDIUM (7 câu) ---
+  {
+    level: "Trung bình", lesson: "L1",
+    q: "FinTech Corp có LoanBot dùng Claude base model với ROI tốt (break-even 8 tháng). Tuy nhiên, MAS (cơ quan quản lý Singapore) vừa ra circular mới mỗi quý thay đổi thresholds. CTO hỏi: có nên fine-tune không? Câu trả lời đúng nhất là:",
+    opts: [
+      "Không nên — thay đổi quarterly khiến fine-tuned model outdated nhanh, training cost không recover được",
+      "Nên — 50K requests/tháng đủ volume để justify fine-tuning",
+      "Nên — fine-tune một lần rồi update thresholds bằng RAG",
+      "Không nên — Claude base model đã đủ tốt, không cần fine-tune"
+    ],
+    correct: 0,
+    explanation: "✅ Đây là quadrant 'High Volume + Unstable Task' → HYBRID hoặc không fine-tune domain knowledge. Circular mới mỗi quý = task thay đổi nhanh. Nếu fine-tune LoanBot với MAS thresholds của Q1, đến Q2 model đã stale. Training cost $2,000/lần × 4 quý = $8,000/năm chỉ để giữ current — có thể không justify. Option C (fine-tune + RAG) là partially correct nhưng không hoàn toàn: fine-tune cần include các examples với thresholds mới, không thể chỉ 'update thresholds bằng RAG' và expect fine-tuned model hiểu correctly. Solution tốt hơn: prompt engineering + RAG cho regulatory knowledge, fine-tune chỉ cho stable behaviors (output format, explanation style)."
+  },
+  {
+    level: "Trung bình", lesson: "L2",
+    q: "Với LoanBot fine-tuning trên 50,000 examples, bạn đang chọn giữa LoRA config A (r=64, alpha=128, tất cả attention layers) và config B (r=16, alpha=32, chỉ q_proj+v_proj). Config nào phù hợp hơn và tại sao?",
+    opts: [
+      "Config A — rank cao hơn luôn tốt hơn vì học được nhiều hơn",
+      "Config B — rank 16 là balance tốt giữa expressiveness và overfitting risk với 50K examples",
+      "Config A — cần train tất cả attention layers mới đủ domain knowledge",
+      "Config B — phải dùng rank thấp để giảm training time"
+    ],
+    correct: 1,
+    explanation: "✅ Với 50K examples, rank=16 là appropriate. Config A (r=64) có vấn đề: (1) Nhiều gấp 4x trainable params → higher overfitting risk, cần validation curve monitoring kỹ hơn; (2) Training tất cả attention layers (q, k, v, o, plus mlp) = rất nhiều params → cần VRAM lớn hơn; (3) Không cần thiết với domain adaptation (không phải training from scratch). Config B: r=16 đã đủ expressiveness để học loan domain + JSON output format. q_proj + v_proj là standard starting point — thêm k_proj và o_proj nếu accuracy vẫn thấp sau training. Chọn config đơn giản nhất đạt mục tiêu trước, complexity sau."
+  },
+  {
+    level: "Trung bình", lesson: "L3",
+    q: "Quality scorer trong data pipeline đánh giá 0.0–1.0 cho mỗi synthetic training example. Bạn nên set threshold ở đâu và tại sao?",
+    opts: [
+      "0.5 — giữ majority, maximize data volume",
+      "0.9 — chỉ dùng near-perfect examples để ensure accuracy cao nhất",
+      "0.7 — balance giữa data quality và volume; loại bỏ borderline examples",
+      "0.0 — dùng tất cả data, model tự học cách phân biệt"
+    ],
+    correct: 2,
+    explanation: "✅ Threshold 0.7 là balance tốt cho hầu hết use cases. Lý do: (1) Dưới 0.7 = examples thực sự ambiguous, instruction không rõ, hoặc explanation inconsistent với decision — những examples này inject noise; (2) Trên 0.9 = quá strict, mất 40-50% data volume, model thiếu diversity; (3) 0.7 loại bỏ clearly bad examples nhưng giữ diverse, acceptable-quality examples. Nguyên tắc: 'quality over quantity nhưng không cực đoan'. 1,000 examples với quality_score ≥ 0.7 tốt hơn 500 examples với score ≥ 0.9 nếu diversity quan trọng (và nó quan trọng với loan applications)."
+  },
+  {
+    level: "Trung bình", lesson: "L4",
+    q: "Fine-tuned LoanBot pass domain_accuracy (97.2%) và json_compliance (99.5%) nhưng fail latency test: p50 = 3.8 giây (threshold: < 2s). Nguyên nhân có thể nhất là gì?",
+    opts: [
+      "Model quá lớn — cần dùng model nhỏ hơn như Llama-3-1B",
+      "VRAM không đủ — model đang swap to CPU RAM",
+      "QLoRA quantization gây overhead — cần dequantize mỗi forward pass",
+      "Network latency đến inference server quá cao"
+    ],
+    correct: 1,
+    explanation: "✅ p50 = 3.8s với fine-tuned model thường gặp nhất khi VRAM không đủ và model phải swap layers giữa GPU và CPU RAM. Dấu hiệu nhận biết: latency không ổn định, GPU utilization thấp nhưng CPU và RAM swap cao. Fix: (1) Dùng smaller batch; (2) Enable model offloading thông minh hơn với accelerate; (3) Upgrade GPU (RTX 4090 → A100). QLoRA quantization thực ra GIẢM latency vì smaller memory footprint — dequantization overhead nhỏ so với memory bandwidth gain. Network latency chỉ thêm 10-50ms, không phải 1.8s."
+  },
+  {
+    level: "Trung bình", lesson: "L5",
+    q: "Trong canary deployment, LoanBot v3.6-ft đang ở 25% traffic. Sau 3 ngày, monitoring phát hiện: domain accuracy 96.8% (OK), latency p50 1.4s (OK), nhưng explanation_length trung bình giảm từ 150 words xuống 80 words. Bạn nên làm gì?",
+    opts: [
+      "Rollback ngay — bất kỳ deviation nào so với baseline cũng phải rollback",
+      "Ignore — explanation length không ảnh hưởng đến accuracy hay latency",
+      "Investigate: so sánh explanation quality (không chỉ length) trước khi quyết định",
+      "Promote lên 100% — accuracy và latency OK là đủ"
+    ],
+    correct: 2,
+    explanation: "✅ Explanation length giảm 47% là signal đáng investigate nhưng chưa chắc là problem. Có hai kịch bản: (1) BAD: model đang 'lazy' — explanations ngắn hơn nhưng kém chất lượng, thiếu regulatory references, customer complaints sẽ tăng. (2) OK: model đã học cách viết explanation concise hơn nhưng vẫn đủ thông tin. Cách investigate: sample 50 explanations từ v3.6-ft, so sánh với 50 từ v3.5-base trên cùng applications. Kiểm tra: regulation references present? Key risk factors mentioned? Decision justification clear? Nếu quality tương đương → promote. Nếu quality giảm → investigate training data và rollback nếu cần."
+  },
+  {
+    level: "Trung bình", lesson: "L1-L2",
+    q: "Về mặt kiến trúc, tại sao QLoRA có thể fine-tune model 7B parameters trên single consumer GPU (RTX 3090, 24GB VRAM) trong khi full fine-tuning cần multi-GPU cluster?",
+    opts: [
+      "QLoRA dùng gradient checkpointing để tiết kiệm VRAM trong backward pass",
+      "QLoRA freeze toàn bộ model nên không cần lưu activations",
+      "QLoRA kết hợp: (1) 4-bit quantize W giảm 4x VRAM; (2) chỉ train B·A (0.1% params) giảm optimizer states",
+      "QLoRA chỉ train trên CPU, không cần GPU"
+    ],
+    correct: 2,
+    explanation: "✅ QLoRA giải quyết vấn đề VRAM theo 2 cơ chế độc lập: (1) 4-bit NF4 quantization cho W_frozen: 7B params × float16 (2 bytes) = 14GB → 7B × int4 (0.5 bytes) = 3.5GB. Giảm 4x memory chỉ từ quantization. (2) LoRA chỉ có 6.8M trainable params (thay vì 7B). Adam optimizer cần 3 states (param + 2 moments) × float32 × 7B = 84GB cho full FT → với LoRA: 3 × 4 bytes × 6.8M = 80MB. Tổng VRAM QLoRA: 3.5GB (model) + 80MB (optimizer) + activations (~2GB) ≈ 6-8GB → vừa với RTX 3090. Gradient checkpointing là technique riêng, đúng nhưng không phải core innovation của QLoRA."
+  },
+  {
+    level: "Trung bình", lesson: "L3-L4",
+    q: "Bạn generate 10,000 synthetic training examples từ 300,000 production cases. Sau deduplication và quality filter, còn 7,200 examples. Train 3 epochs. Validation accuracy tăng từ 87% (epoch 1) → 93% (epoch 2) → 91% (epoch 3). Bạn nên làm gì?",
+    opts: [
+      "Tiếp tục train thêm 2 epochs vì accuracy vẫn còn thấp",
+      "Dùng checkpoint của epoch 2 — dấu hiệu overfitting bắt đầu ở epoch 3",
+      "Reset toàn bộ, train lại với rank cao hơn để tránh underfitting",
+      "Chấp nhận accuracy 91% từ epoch 3 vì đó là final checkpoint"
+    ],
+    correct: 1,
+    explanation: "✅ Epoch 2 (93%) → Epoch 3 (91%) = validation accuracy giảm = classic overfitting signal. Model đang bắt đầu memorize training data thay vì học generalizable patterns. Đây chính xác là lý do cần early stopping và save checkpoint. Fix: (1) Dùng checkpoint epoch 2 (93%); (2) Thêm early stopping: nếu val_accuracy không improve sau N epochs → stop và restore best checkpoint; (3) Tăng dropout nhẹ để regularize. Tiếp tục train sẽ làm worse. Rank cao hơn không giải quyết overfitting — ngược lại, nhiều params hơn = overfitting dễ hơn."
+  },
+
+  // --- HARD (3 câu) ---
+  {
+    level: "Khó", lesson: "L4",
+    q: "LoanBot v3.6 fine-tuned pass tất cả 4 evaluation dimensions. Tuy nhiên, trong production sau 1 tuần, team nhận được complaint: 'LoanBot từ chối đơn của KH score 660 với lý do DTI 0.42, nhưng tháng trước base model đã approve trường hợp tương tự.' Phân tích nào đúng nhất?",
+    opts: [
+      "Fine-tuned model bị bias — cần retrain với balanced data",
+      "Base model quá lenient, fine-tuned model stricter là đúng theo training data",
+      "Cần kiểm tra: (1) distribution shift trong training data; (2) liệu expert labels có consistency không; (3) so sánh cả hai decisions trên borderline policy",
+      "Rollback ngay — customer complaint = model failure"
+    ],
+    correct: 2,
+    explanation: "✅ Đây là phức tạp nhất: fine-tuned model khác base model trên borderline cases — đây là expected behavior, nhưng cần verify đúng không. Investigation protocol: (1) Check training data distribution — nếu 90% examples là clear APPROVE/REJECT cases, model chưa học đủ về borderline DTI 0.40-0.45 zone. (2) Expert label consistency — nếu 5 loan officers label cùng case, agreement rate bao nhiêu? Nếu <80% agreement trên borderline cases → training signal noisy. (3) Policy interpretation — DTI 0.42 với score 660: TT39/2016 có rule rõ không? Nếu policy nói REJECT thì fine-tuned model ĐÚNG và base model đã lenient sai. (4) Nếu complaint valid → specific case mới là fail, không phải toàn bộ model. Rollback ngay là overreaction — customer complaint không đồng nghĩa model failure."
+  },
+  {
+    level: "Khó", lesson: "L2",
+    q: "Fine-tuned LoanBot (r=16) đạt accuracy 97.2% nhưng một audit phát hiện: với applications từ tỉnh nghèo (GDP per capita thấp), rejection rate 78%; với applications từ thành phố (GDP per capita cao), rejection rate chỉ 42% — dù credit score distribution tương tự. Training data là production data từ 3 năm trước khi FinTech Corp chưa có rural expansion. Vấn đề cốt lõi là:",
+    opts: [
+      "Model cần rank cao hơn để học được geographic patterns đúng hơn",
+      "Fine-tuned model amplified historical bias trong training data — cần debiased retraining",
+      "Đây là correct behavior — rural areas có higher risk hơn về mặt thống kê",
+      "Cần thêm regularization (dropout cao hơn) để giảm overfitting geographic features"
+    ],
+    correct: 1,
+    explanation: "✅ Đây là bias amplification — một trong những risks nghiêm trọng nhất của fine-tuning. FinTech Corp 3 năm trước chưa có rural expansion → training data mostly urban → loan officers khi đó có implicit bias → expert labels reflect bias → fine-tuned model learns and amplifies bias. Nguy hiểm hơn base model: Claude base model được RLHF với bias mitigation; fine-tuned model bị overwritten với biased expert labels. Legal risk: NĐ13/2023 và EU AI Act nghiêm cấm discrimination based on location/income proxy. Fix: (1) Disparate impact analysis TRƯỚC khi deploy; (2) Collect more rural data với de-biased labels; (3) Add fairness constraints vào training loss; (4) Post-processing: calibrate thresholds per region. Rank và dropout không giải quyết data bias — chúng chỉ affect model capacity và regularization."
+  },
+  {
+    level: "Khó", lesson: "L5",
+    q: "Trong canary deployment, v3.6-ft đang ở 25% traffic. Monitoring alert: một batch 200 applications (5 phút) đều được quyết định REJECT bởi v3.6-ft, trong khi v3.5-base approve 60% số đó. Đồng thời, hệ thống logging báo GPU temperature cao bất thường. Hành động nào đúng theo thứ tự ưu tiên?",
+    opts: [
+      "Rollback ngay → analyze logs → fix GPU issue → retrain if needed",
+      "Fix GPU trước (tắt cooling) → sau đó analyze decisions → rollback nếu cần",
+      "Manual review 200 cases trước → rollback nếu model sai",
+      "Không làm gì — 5 phút batch anomaly là noise thống kê bình thường"
+    ],
+    correct: 0,
+    explanation: "✅ Đây là incident response với hai concurrent signals: (1) 100% REJECT batch = catastrophic decision anomaly — không thể là statistical noise. (2) GPU temperature bất thường = có thể gây model computation errors (bit flips, NaN values trong activations). Thứ tự ưu tiên: ROLLBACK NGAY (30 giây). Tại sao? 25% traffic × 200 cases/5min × 60% sai = ~30 KH/5 phút bị reject oan. Mỗi phút delay = thêm customers bị ảnh hưởng. GPU issue có thể là root cause của wrong decisions — không diagnose trước rollback. Sau rollback: analyze 200 cases offline, check GPU hardware (thermal paste, cooling, power supply), reproduce issue in sandbox, fix root cause, re-validate, re-deploy. Manual review 200 cases trước = quá chậm (1-2 giờ) trong khi production đang bị ảnh hưởng."
+  }
+];
+
+let currentIdx = 0, score = 0, answered = false;
+
+function render() {
+  const q = questions[currentIdx];
+  document.getElementById('currentQ').textContent = currentIdx + 1;
+  document.getElementById('progressFill').style.width = ((currentIdx + 1) / 15 * 100) + '%';
+  const levelColor = q.level === 'Dễ' ? '#16a34a' : q.level === 'Trung bình' ? '#d97706' : '#dc2626';
+  document.getElementById('quizArea').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta" style="color:${levelColor}">● ${q.level} · ${q.lesson}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((o,i) => `<button class="option-btn" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      </div>
+      <div class="feedback-box" id="feedbackBox"></div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">${currentIdx < 14 ? 'Câu tiếp theo →' : 'Xem kết quả 🎉'}</button>
+    </div>`;
+  answered = false;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentIdx];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(idx === q.correct ? 'correct' : 'wrong');
+  if (idx !== q.correct) btns[q.correct].classList.add('correct');
+  if (idx === q.correct) score++;
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box show ' + (idx === q.correct ? 'correct-fb' : 'wrong-fb');
+  fb.innerHTML = (idx === q.correct ? '<strong>✅ Chính xác!</strong> ' : '<strong>❌ Chưa đúng.</strong> ') + q.explanation;
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= 15) showResult();
+  else render();
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const ra = document.getElementById('resultArea');
+  ra.style.display = 'block';
+  const pct = Math.round(score/15*100);
+  document.getElementById('finalScore').textContent = score + '/15';
+  const labels = [[13,'🔬 Chuyên gia Fine-tuning'],[10,'✅ Nắm vững kiến thức'],[7,'📚 Cần ôn thêm'],[0,'🔄 Xem lại bài giảng']];
+  const [,lbl] = labels.find(([t]) => score >= t);
+  document.getElementById('finalLabel').textContent = lbl + ' (' + pct + '%)';
+  const msgs = {13:'Xuất sắc! Bạn hiểu sâu về fine-tuning pipeline, LoRA/QLoRA, và deployment strategies. Sẵn sàng build production fine-tuning system cho LoanBot.',10:'Tốt! Bạn nắm được các concepts chính. Hãy review thêm các phần về bias amplification và incident response.',7:'Trung bình. Hãy xem lại Bài 2 (LoRA/QLoRA) và Bài 4 (Evaluation) — đây là nền tảng quan trọng nhất.',0:'Cần review lại toàn bộ module, đặc biệt là decision framework (L1) và LoRA architecture (L2).'};
+  document.getElementById('finalMsg').textContent = Object.entries(msgs).reverse().find(([t]) => score >= Number(t))[1];
+}
+
+function restartQuiz() {
+  currentIdx = 0; score = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 28 — Agent Governance & Ethical AI Frameworks</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m28-primary: #134e4a;
+      --m28-accent:  #2dd4bf;
+      --m28-light:   #f0fdfa;
+      --m28-border:  #5eead4;
+    }
+    .lesson-header { background: linear-gradient(135deg, #042f2e 0%, #134e4a 55%, #2dd4bf 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #f0fdfa; }
+    .lesson-header p { color: #99f6e4; }
+    .sidebar-nav a.active { background: var(--m28-light); border-left: 3px solid var(--m28-accent); color: var(--m28-primary); }
+    .sidebar-nav a:hover { color: var(--m28-primary); }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+    .governance-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); margin: var(--space-4) 0; }
+    .gov-card { border-radius: var(--radius-lg); padding: var(--space-4); border: 1px solid; font-size: .85rem; }
+    .gov-operational { background: #f0fdfa; border-color: #5eead4; }
+    .gov-tactical    { background: #ecfdf5; border-color: #6ee7b7; }
+    .gov-strategic   { background: #fffbeb; border-color: #fcd34d; }
+    .gov-title { font-weight: 700; margin-bottom: 6px; font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; }
+    .bias-table { width: 100%; font-size: .875rem; border-collapse: collapse; margin: var(--space-4) 0; }
+    .bias-table th { background: var(--m28-light); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--m28-border); }
+    .bias-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .pass { color: #16a34a; font-weight: 700; }
+    .fail { color: #dc2626; font-weight: 700; }
+    .warn { color: #d97706; font-weight: 700; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m28-light);color:var(--m28-primary);border-color:var(--m28-border);">MODULE 28</div>
+    <div class="sidebar-title">Agent Governance & Ethical AI</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Governance Framework</a>
+      <a href="#lesson2">L2. Bias Detection & Fairness</a>
+      <a href="#lesson3">L3. Explainability & XAI</a>
+      <a href="#lesson4">L4. Regulatory Compliance</a>
+      <a href="#lesson5">L5. Ethics Review Board</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m28-accent);">📝 Quiz Module 28</a>
+      <a href="lab.ipynb" download style="color:var(--m28-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module27/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 27: Self-Improvement</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 28 · Tuần 79–81</span>
+      <h1>⚖️ Agent Governance & Ethical AI Frameworks</h1>
+      <p>LoanBot v4.0 xử lý 500K hồ sơ/năm — mỗi quyết định ảnh hưởng đến cuộc sống của người thật. NHNN và hội đồng quản trị FinTech Corp yêu cầu: <em>AI governance framework</em> toàn diện. Không phải checkbox compliance — mà là hệ thống accountability thực sự: bias auditing tự động, explainable decisions, và ethics escalation paths.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>⚖️ AI Governance</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: AI Governance Framework — 3-Tier Accountability</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế 3-tier AI governance structure: Operational, Tactical, và Strategic layers</li>
+          <li>Phân biệt Accountability (chịu trách nhiệm kết quả) vs Responsibility (thực hiện task) vs Oversight (giám sát)</li>
+          <li>Hiểu EU AI Act High-Risk classification và impact đến LoanBot (credit scoring = High-Risk)</li>
+          <li>Build Governance Charter: policies, thresholds, và escalation paths bằng văn bản</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FinTech Corp AI Governance Crisis</div>
+        <p>Tháng 3/2026: Báo chí phát hiện LoanBot từ chối 34% hồ sơ từ khách hàng khu vực nông thôn (rural) so với chỉ 18% ở đô thị (urban) — cùng credit profile. NHNN phát công văn yêu cầu FinTech Corp <strong>giải thích</strong> từng quyết định từ chối và chứng minh không có discriminatory bias. Không có governance framework, FinTech Corp không thể: (1) Explain quyết định cụ thể; (2) Prove fairness; (3) Show audit trail. Kết quả: 500M VNĐ tiền phạt + yêu cầu tạm dừng AI lending trong 30 ngày. Module này build cái framework đó.</p>
+      </div>
+
+      <div class="governance-grid">
+        <div class="gov-card gov-operational">
+          <div class="gov-title" style="color:#134e4a;">🔧 Operational Layer</div>
+          <p style="margin:0;font-size:.8rem;">Daily automated checks. Bias metrics, decision logs, explainability reports. AI Engineers + Data Scientists. Triggered: mỗi 24h hoặc khi anomaly detected.</p>
+        </div>
+        <div class="gov-card gov-tactical">
+          <div class="gov-title" style="color:#065f46;">📊 Tactical Layer</div>
+          <p style="margin:0;font-size:.8rem;">Weekly/monthly reviews. Threshold adjustments, model updates, fairness audits. AI Product Manager + Risk Committee. Triggered: monthly cycle + incident reports.</p>
+        </div>
+        <div class="gov-card gov-strategic">
+          <div class="gov-title" style="color:#78350f;">🏛️ Strategic Layer</div>
+          <p style="margin:0;font-size:.8rem;">Quarterly governance review. Policy changes, major model decisions, regulatory response. Board + C-Suite + External Ethics Advisor. Triggered: quarterly + regulatory inquiry.</p>
+        </div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">RACI Matrix cho AI Decision</div>
+        <div class="formula-text">R=Responsible A=Accountable C=Consulted I=Informed</div>
+        <div class="formula-desc">Loan Decision: R=LoanBot AI, A=Chief Risk Officer, C=AI Ethics Committee, I=Customer + Regulator. Khi AI wrong: AI là Responsible (thực hiện), CRO là Accountable (chịu trách nhiệm trước pháp luật). Điều này đặt ra yêu cầu: CRO phải có đủ visibility vào AI decisions để có thể chịu accountability.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Governance Charter — Policy Engine)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict, Optional
+<span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+
+<span class="code-keyword">class</span> <span class="code-function">RiskLevel</span>(Enum):
+    LOW      = <span class="code-string">"LOW"</span>
+    MEDIUM   = <span class="code-string">"MEDIUM"</span>
+    HIGH     = <span class="code-string">"HIGH"</span>
+    CRITICAL = <span class="code-string">"CRITICAL"</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">GovernancePolicy</span>:
+    policy_id: <span class="code-type">str</span>
+    name: <span class="code-type">str</span>
+    threshold: float
+    metric: <span class="code-type">str</span>
+    risk_level: RiskLevel
+    action_required: <span class="code-type">str</span>
+    escalation_path: List[<span class="code-type">str</span>]   <span class="code-comment"># ["AI Engineer", "Risk Manager", "CRO"]</span>
+    review_frequency_days: <span class="code-type">int</span>
+
+<span class="code-comment"># FinTech Corp's governance charter policies</span>
+LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
+    <span class="code-function">GovernancePolicy</span>(
+        <span class="code-string">"GP-001"</span>, <span class="code-string">"Demographic Parity"</span>,
+        threshold=<span class="code-number">0.80</span>,            <span class="code-comment"># Min approval ratio across groups</span>
+        metric=<span class="code-string">"approval_rate_ratio"</span>,
+        risk_level=RiskLevel.CRITICAL,
+        action_required=<span class="code-string">"Immediate halt of affected segment + manual review"</span>,
+        escalation_path=[<span class="code-string">"AI Engineer"</span>, <span class="code-string">"Risk Manager"</span>, <span class="code-string">"CRO"</span>, <span class="code-string">"NHNN"</span>],
+        review_frequency_days=<span class="code-number">7</span>
+    ),
+    <span class="code-function">GovernancePolicy</span>(
+        <span class="code-string">"GP-002"</span>, <span class="code-string">"Type I Error Rate"</span>,
+        threshold=<span class="code-number">0.15</span>,
+        metric=<span class="code-string">"type_i_error_rate"</span>,
+        risk_level=RiskLevel.HIGH,
+        action_required=<span class="code-string">"Trigger improvement cycle within 30 days"</span>,
+        escalation_path=[<span class="code-string">"AI Engineer"</span>, <span class="code-string">"Risk Manager"</span>],
+        review_frequency_days=<span class="code-number">30</span>
+    ),
+    <span class="code-function">GovernancePolicy</span>(
+        <span class="code-string">"GP-003"</span>, <span class="code-string">"Explainability Coverage"</span>,
+        threshold=<span class="code-number">1.00</span>,            <span class="code-comment"># 100% decisions must have explanation</span>
+        metric=<span class="code-string">"explanation_coverage"</span>,
+        risk_level=RiskLevel.HIGH,
+        action_required=<span class="code-string">"Generate explanations for all missing cases"</span>,
+        escalation_path=[<span class="code-string">"AI Engineer"</span>],
+        review_frequency_days=<span class="code-number">1</span>
+    ),
+    <span class="code-function">GovernancePolicy</span>(
+        <span class="code-string">"GP-004"</span>, <span class="code-string">"Human Override Rate"</span>,
+        threshold=<span class="code-number">0.05</span>,           <span class="code-comment"># Max 5% cases need human override</span>
+        metric=<span class="code-string">"human_override_rate"</span>,
+        risk_level=RiskLevel.MEDIUM,
+        action_required=<span class="code-string">"Review agent confidence calibration"</span>,
+        escalation_path=[<span class="code-string">"AI Product Manager"</span>],
+        review_frequency_days=<span class="code-number">30</span>
+    ),
+]
+
+<span class="code-keyword">class</span> <span class="code-function">PolicyEngine</span>:
+    <span class="code-keyword">def</span> <span class="code-function">evaluate</span>(self, metrics: Dict[<span class="code-type">str</span>, float]) -> List[dict]:
+        <span class="code-comment">"""Check all policies against current metrics."""</span>
+        violations = []
+        <span class="code-keyword">for</span> policy <span class="code-keyword">in</span> LOANBOT_GOVERNANCE_CHARTER:
+            value = metrics.<span class="code-function">get</span>(policy.metric)
+            <span class="code-keyword">if</span> value <span class="code-keyword">is</span> <span class="code-keyword">None</span>: <span class="code-keyword">continue</span>
+
+            <span class="code-comment"># Check threshold direction</span>
+            violated = (
+                (policy.metric == <span class="code-string">'approval_rate_ratio'</span> <span class="code-keyword">and</span> value < policy.threshold) <span class="code-keyword">or</span>
+                (policy.metric != <span class="code-string">'approval_rate_ratio'</span> <span class="code-keyword">and</span> value > policy.threshold)
+            ) <span class="code-keyword">if</span> policy.metric != <span class="code-string">'explanation_coverage'</span> <span class="code-keyword">else</span> value < policy.threshold
+
+            <span class="code-keyword">if</span> violated:
+                violations.<span class="code-function">append</span>({
+                    <span class="code-string">'policy_id'</span>: policy.policy_id,
+                    <span class="code-string">'name'</span>: policy.name,
+                    <span class="code-string">'value'</span>: value,
+                    <span class="code-string">'threshold'</span>: policy.threshold,
+                    <span class="code-string">'risk_level'</span>: policy.risk_level.value,
+                    <span class="code-string">'action'</span>: policy.action_required,
+                    <span class="code-string">'escalate_to'</span>: policy.escalation_path[<span class="code-number">-1</span>]
+                })
+        <span class="code-keyword">return</span> violations</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Bias Detection & Fairness Auditing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement 4 fairness metrics: Demographic Parity, Equalized Odds, Calibration, Individual Fairness</li>
+          <li>Detect disparate impact theo EU AI Act và US Equal Credit Opportunity Act (80% rule)</li>
+          <li>Build automated fairness audit report — chạy hàng tuần, alert khi threshold breach</li>
+          <li>Phân biệt bias trong data vs bias trong model vs bias trong thresholds</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: 4 Fairness Metrics</div>
+        <p><strong>1. Demographic Parity</strong>: P(APPROVE | group A) ≈ P(APPROVE | group B). Không phân biệt nhóm trong approval rate. <strong>2. Equalized Odds</strong>: TPR và FPR phải bằng nhau giữa các groups. Nếu Group A có 70% true positives, Group B cũng phải có ~70%. <strong>3. Calibration</strong>: Khi model nói "70% likely to repay", 70% thực sự repay — across all demographic groups. <strong>4. Individual Fairness</strong>: Hai cá nhân giống nhau (same credit profile) phải nhận cùng quyết định bất kể group membership. Nota bene: không thể satisfy tất cả 4 metrics cùng lúc khi base rates khác nhau giữa groups (Impossibility Theorem).</p>
+      </div>
+
+      <table class="bias-table">
+        <tr>
+          <th>Nhóm</th>
+          <th>Approval Rate</th>
+          <th>Ratio vs Urban</th>
+          <th>80% Rule</th>
+          <th>TPR</th>
+          <th>FPR</th>
+          <th>Status</th>
+        </tr>
+        <tr>
+          <td>Đô thị (Urban)</td>
+          <td>68.2%</td>
+          <td>1.00 (baseline)</td>
+          <td>—</td>
+          <td>72.1%</td>
+          <td>18.3%</td>
+          <td><span class="pass">✓ Baseline</span></td>
+        </tr>
+        <tr>
+          <td>Nông thôn (Rural)</td>
+          <td>44.8%</td>
+          <td>0.657</td>
+          <td><span class="fail">FAIL &lt;0.80</span></td>
+          <td>59.4%</td>
+          <td>22.1%</td>
+          <td><span class="fail">✗ Disparate Impact</span></td>
+        </tr>
+        <tr>
+          <td>Nam giới</td>
+          <td>65.1%</td>
+          <td>0.955</td>
+          <td><span class="pass">PASS ≥0.80</span></td>
+          <td>71.0%</td>
+          <td>19.2%</td>
+          <td><span class="pass">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td>Nữ giới</td>
+          <td>61.3%</td>
+          <td>0.899</td>
+          <td><span class="pass">PASS ≥0.80</span></td>
+          <td>69.8%</td>
+          <td>17.9%</td>
+          <td><span class="pass">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td>Tuổi 18–30</td>
+          <td>51.7%</td>
+          <td>0.758</td>
+          <td><span class="fail">FAIL &lt;0.80</span></td>
+          <td>63.2%</td>
+          <td>21.4%</td>
+          <td><span class="warn">⚠ Monitor</span></td>
+        </tr>
+        <tr>
+          <td>Tuổi 30–50</td>
+          <td>68.2%</td>
+          <td>1.00 (baseline)</td>
+          <td>—</td>
+          <td>73.5%</td>
+          <td>17.1%</td>
+          <td><span class="pass">✓ Baseline</span></td>
+        </tr>
+      </table>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Root Cause: Proxy Discrimination trong Credit Score</div>
+        <p>Rural bias không phải do model dùng "location" làm feature — FinTech Corp không collect location. Vấn đề sâu hơn: Rural borrowers có average <em>employment_months</em> thấp hơn (seasonal work) và lower income stability. Model học correlation này từ historical data — nhưng correlation này là artifact của historical underinvestment trong rural banking, không phải indicator of creditworthiness. Đây là <strong>proxy discrimination</strong>: model không dùng protected attribute trực tiếp nhưng dùng proxy variable correlates strongly với nó. Fix: (1) Separate employment tenure thresholds cho seasonal vs permanent employment; (2) Weight income consistency differently cho seasonal workers; (3) Consider alternative data: utility payments, mobile money history.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Automated Fairness Auditor)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, List, Tuple
+<span class="code-keyword">import</span> statistics
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">FairnessReport</span>:
+    group: <span class="code-type">str</span>
+    n_cases: <span class="code-type">int</span>
+    approval_rate: float
+    disparity_ratio: float   <span class="code-comment"># vs reference group</span>
+    tpr: float               <span class="code-comment"># True Positive Rate</span>
+    fpr: float               <span class="code-comment"># False Positive Rate</span>
+    passes_80_rule: <span class="code-type">bool</span>
+    equalized_odds_gap: float
+
+<span class="code-keyword">class</span> <span class="code-function">FairnessAuditor</span>:
+    DISPARITY_THRESHOLD = <span class="code-number">0.80</span>   <span class="code-comment"># 80% rule</span>
+    EQUALIZED_ODDS_TOL  = <span class="code-number">0.05</span>   <span class="code-comment"># Max 5% TPR gap</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">compute_group_metrics</span>(self, cases: list, group_attr: <span class="code-type">str</span>,
+                               group_val, reference_val) -> Tuple[FairnessReport, FairnessReport]:
+        <span class="code-comment">"""Compute fairness metrics for a group vs reference group."""</span>
+        group_cases = [c <span class="code-keyword">for</span> c <span class="code-keyword">in</span> cases <span class="code-keyword">if</span> <span class="code-function">getattr</span>(c, group_attr) == group_val]
+        ref_cases   = [c <span class="code-keyword">for</span> c <span class="code-keyword">in</span> cases <span class="code-keyword">if</span> <span class="code-function">getattr</span>(c, group_attr) == reference_val]
+
+        <span class="code-keyword">def</span> <span class="code-function">metrics</span>(cases):
+            <span class="code-keyword">if not</span> cases: <span class="code-keyword">return</span> <span class="code-number">0</span>, <span class="code-number">0</span>, <span class="code-number">0</span>
+            approved = [c <span class="code-keyword">for</span> c <span class="code-keyword">in</span> cases <span class="code-keyword">if</span> c.agent_decision == <span class="code-string">'APPROVE'</span>]
+            approval_rate = <span class="code-function">len</span>(approved) / <span class="code-function">len</span>(cases)
+            with_outcome = [c <span class="code-keyword">for</span> c <span class="code-keyword">in</span> approved <span class="code-keyword">if</span> c.outcome_30d]
+            tp = <span class="code-function">sum</span>(<span class="code-number">1</span> <span class="code-keyword">for</span> c <span class="code-keyword">in</span> with_outcome <span class="code-keyword">if</span> c.outcome_30d == <span class="code-string">'REPAID'</span>)
+            fp = <span class="code-function">sum</span>(<span class="code-number">1</span> <span class="code-keyword">for</span> c <span class="code-keyword">in</span> with_outcome <span class="code-keyword">if</span> c.outcome_30d == <span class="code-string">'DEFAULTED'</span>)
+            tpr = tp / <span class="code-function">len</span>(with_outcome) <span class="code-keyword">if</span> with_outcome <span class="code-keyword">else</span> <span class="code-number">0</span>
+            fpr = fp / <span class="code-function">len</span>(with_outcome) <span class="code-keyword">if</span> with_outcome <span class="code-keyword">else</span> <span class="code-number">0</span>
+            <span class="code-keyword">return</span> approval_rate, tpr, fpr
+
+        g_ar, g_tpr, g_fpr = <span class="code-function">metrics</span>(group_cases)
+        r_ar, r_tpr, r_fpr = <span class="code-function">metrics</span>(ref_cases)
+        disparity = g_ar / r_ar <span class="code-keyword">if</span> r_ar > <span class="code-number">0</span> <span class="code-keyword">else</span> <span class="code-number">0</span>
+
+        group_report = <span class="code-function">FairnessReport</span>(
+            group=<span class="code-function">str</span>(group_val), n_cases=<span class="code-function">len</span>(group_cases),
+            approval_rate=g_ar, disparity_ratio=<span class="code-function">round</span>(disparity, <span class="code-number">3</span>),
+            tpr=g_tpr, fpr=g_fpr,
+            passes_80_rule=disparity >= self.DISPARITY_THRESHOLD,
+            equalized_odds_gap=<span class="code-function">abs</span>(g_tpr - r_tpr)
+        )
+        <span class="code-keyword">return</span> group_report
+
+    <span class="code-keyword">def</span> <span class="code-function">full_audit</span>(self, cases: list) -> dict:
+        <span class="code-comment">"""Run full fairness audit across all protected attributes."""</span>
+        violations = []
+        results = {}
+
+        <span class="code-comment"># Would check region, age_group, gender groups here</span>
+        <span class="code-comment"># For each: compute metrics and check thresholds</span>
+        <span class="code-keyword">return</span> {<span class="code-string">'violations'</span>: violations, <span class="code-string">'results'</span>: results,
+                <span class="code-string">'audit_date'</span>: <span class="code-string">'2026-03-15'</span>, <span class="code-string">'overall_status'</span>: <span class="code-string">'FAIL'</span> <span class="code-keyword">if</span> violations <span class="code-keyword">else</span> <span class="code-string">'PASS'</span>}</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Fairness Impossibility Theorem nói rằng không thể satisfy cả Demographic Parity VÀ Equalized Odds cùng lúc khi base rates khác nhau giữa groups. Điều này có nghĩa là gì với FinTech Corp?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Nghĩa là FinTech Corp phải explicitly choose ưu tiên metric nào — không thể have it all. Lựa chọn điển hình trong credit: (1) Equalized Odds (equal TPR/FPR) thường được prioritize vì nó ensure "equally qualified borrowers từ mọi group đều được approve ở rate tương đương" — fair process. (2) Demographic Parity đòi hỏi equal approval rates, điều này có thể require approving some unqualified applicants từ disadvantaged group để match rates. FinTech Corp cần document decision trong Governance Charter và get sign-off từ Ethics Committee + Legal. Không có "đúng" tuyệt đối — chỉ có trade-offs cần transparent.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Explainability & XAI — Giải Thích Quyết Định</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement LIME-style local explanation: tại sao LoanBot reject hồ sơ cụ thể này?</li>
+          <li>Generate Natural Language Explanation (NLE) — giải thích bằng tiếng người thật cho khách hàng</li>
+          <li>Build counterfactual explanation: "Bạn cần thay đổi gì để được approve?"</li>
+          <li>Đáp ứng EU AI Act Art. 86: "Right to Explanation" cho automated high-risk decisions</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Bác Sĩ vs Máy Chẩn Đoán</div>
+        <p>Máy chẩn đoán AI có thể nói "bệnh nhân này có 87% khả năng bị bệnh X" nhưng không thể nói TẠI SAO. Bác sĩ không thể ký kết bệnh án chỉ dựa trên con số — họ cần hiểu reasoning. Tương tự, NHNN không chấp nhận "LoanBot reject vì confidence 34%" — họ cần explanation cụ thể. Luật GDPR Art. 22 và EU AI Act Art. 86 trao cho người dùng quyền yêu cầu giải thích cho bất kỳ automated decision nào ảnh hưởng đến họ. Explainability không phải nice-to-have — là legal requirement.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>XAI Pipeline: 3 loại explanation — Feature Importance (LIME), Counterfactual, và Natural Language — cho FC-2024-004</title>
+          <defs>
+            <marker id="arr28" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#2dd4bf"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#042f2e" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0fdfa">XAI Pipeline — FC-2024-004: REVIEW Decision Explained</text>
+
+          <!-- Input -->
+          <rect x="15" y="38" width="130" height="110" fill="#134e4a" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="80" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#f0fdfa">Application</text>
+          <text x="80" y="73" text-anchor="middle" font-size="8" fill="#99f6e4">Score: 645</text>
+          <text x="80" y="86" text-anchor="middle" font-size="8" fill="#99f6e4">DTI: 0.42</text>
+          <text x="80" y="99" text-anchor="middle" font-size="8" fill="#99f6e4">Emp: 8 months</text>
+          <text x="80" y="112" text-anchor="middle" font-size="8" fill="#99f6e4">Loan: 400M</text>
+          <text x="80" y="125" text-anchor="middle" font-size="8" fill="#fbbf24">Decision: REVIEW</text>
+          <text x="80" y="138" text-anchor="middle" font-size="8" fill="#fbbf24">Conf: 0.73</text>
+
+          <line x1="145" y1="93" x2="165" y2="75" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr28)"/>
+          <line x1="145" y1="93" x2="165" y2="110" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr28)"/>
+          <line x1="145" y1="93" x2="165" y2="145" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr28)"/>
+
+          <!-- Feature Importance -->
+          <rect x="168" y="38" width="165" height="65" fill="#115e59" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="250" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#f0fdfa">① Feature Importance (LIME)</text>
+          <text x="250" y="70" text-anchor="middle" font-size="8" fill="#fca5a5">Employment: −32% (main driver)</text>
+          <text x="250" y="82" text-anchor="middle" font-size="8" fill="#fca5a5">DTI 0.42:  −18% (risk factor)</text>
+          <text x="250" y="94" text-anchor="middle" font-size="8" fill="#86efac">Score 645: +12% (positive)</text>
+
+          <!-- Counterfactual -->
+          <rect x="168" y="108" width="165" height="60" fill="#115e59" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="250" y="127" text-anchor="middle" font-size="9" font-weight="700" fill="#f0fdfa">② Counterfactual</text>
+          <text x="250" y="141" text-anchor="middle" font-size="8" fill="#fde68a">If emp ≥ 12mo → APPROVE</text>
+          <text x="250" y="153" text-anchor="middle" font-size="8" fill="#fde68a">If DTI ≤ 0.38 → APPROVE</text>
+
+          <!-- Natural Language -->
+          <rect x="168" y="173" width="165" height="22" fill="#115e59" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="250" y="187" text-anchor="middle" font-size="8" fill="#f0fdfa">③ Natural Language Explanation</text>
+
+          <!-- NL Output -->
+          <rect x="357" y="38" width="390" height="157" fill="#134e4a" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="552" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#f0fdfa">📄 Customer Explanation Letter (Tiếng Việt)</text>
+          <line x1="370" y1="63" x2="735" y2="63" stroke="#2dd4bf" stroke-width="0.5"/>
+          <text x="370" y="78" text-anchor="start" font-size="8" fill="#99f6e4">Kính gửi Quý khách,</text>
+          <text x="370" y="92" text-anchor="start" font-size="8" fill="#f0fdfa">Hồ sơ vay 400M VNĐ của Quý khách cần xem xét thêm vì:</text>
+          <text x="370" y="106" text-anchor="start" font-size="8" fill="#fca5a5">1. Thời gian làm việc 8 tháng chưa đáp ứng mức tối thiểu</text>
+          <text x="370" y="118" text-anchor="start" font-size="8" fill="#fca5a5">   theo quy định (12 tháng cho khoản vay không có tài sản</text>
+          <text x="370" y="130" text-anchor="start" font-size="8" fill="#fca5a5">   đảm bảo) theo TT39/2016 Điều 9.</text>
+          <text x="370" y="144" text-anchor="start" font-size="8" fill="#86efac">Để được xem xét phê duyệt, Quý khách có thể:</text>
+          <text x="370" y="156" text-anchor="start" font-size="8" fill="#86efac">✓ Bổ sung 1 tài sản đảm bảo (thế chấp), hoặc</text>
+          <text x="370" y="168" text-anchor="start" font-size="8" fill="#86efac">✓ Chờ đủ 12 tháng công tác và nộp lại hồ sơ.</text>
+          <text x="370" y="182" text-anchor="start" font-size="8" fill="#fde68a">Reference: FC-2024-004 | Decision ID: DEC-20260315-8724</text>
+
+          <line x1="333" y1="75" x2="357" y2="75" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr28)"/>
+          <line x1="333" y1="140" x2="357" y2="130" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr28)"/>
+          <line x1="333" y1="184" x2="357" y2="180" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr28)"/>
+        </svg>
+        <div class="diagram-title">Hình 1: XAI Pipeline cho FC-2024-004. 3 loại explanation: Feature Importance (employment là driver chính), Counterfactual (nếu emp≥12mo hoặc DTI≤0.38 → APPROVE), và Natural Language Explanation bằng tiếng Việt với actionable steps cho khách hàng.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Counterfactual Explanation Generator)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+<span class="code-keyword">import</span> anthropic
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">Counterfactual</span>:
+    feature: <span class="code-type">str</span>
+    current_value: float
+    required_value: float
+    change_description: <span class="code-type">str</span>
+    feasibility: <span class="code-type">str</span>   <span class="code-comment"># "EASY" / "MODERATE" / "HARD"</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotExplainer</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, client: anthropic.Anthropic, threshold_config):
+        self.client = client
+        self.cfg = threshold_config
+
+    <span class="code-keyword">def</span> <span class="code-function">counterfactual_explanation</span>(self, app: dict) -> List[Counterfactual]:
+        <span class="code-comment">"""Find minimum changes to flip decision to APPROVE."""</span>
+        cfs = []
+
+        <span class="code-comment"># Employment change</span>
+        <span class="code-keyword">if</span> app[<span class="code-string">'employment_months'</span>] < self.cfg.min_emp_months:
+            cfs.<span class="code-function">append</span>(<span class="code-function">Counterfactual</span>(
+                feature=<span class="code-string">'employment_months'</span>,
+                current_value=app[<span class="code-string">'employment_months'</span>],
+                required_value=self.cfg.min_emp_months,
+                change_description=<span class="code-string">f"Tăng thời gian làm việc từ {app['employment_months']} tháng lên {self.cfg.min_emp_months} tháng"</span>,
+                feasibility=<span class="code-string">"MODERATE"</span>  <span class="code-comment"># Requires waiting</span>
+            ))
+
+        <span class="code-comment"># DTI change</span>
+        <span class="code-keyword">if</span> app[<span class="code-string">'dti_ratio'</span>] > self.cfg.max_dti:
+            required_income = app[<span class="code-string">'monthly_debt'</span>] / self.cfg.max_dti
+            cfs.<span class="code-function">append</span>(<span class="code-function">Counterfactual</span>(
+                feature=<span class="code-string">'dti_ratio'</span>,
+                current_value=app[<span class="code-string">'dti_ratio'</span>],
+                required_value=self.cfg.max_dti,
+                change_description=<span class="code-string">f"Giảm DTI từ {app['dti_ratio']:.2f} xuống {self.cfg.max_dti:.2f} bằng cách trả bớt nợ hiện tại hoặc tăng thu nhập"</span>,
+                feasibility=<span class="code-string">"HARD"</span>
+            ))
+
+        <span class="code-comment"># Alternative: provide collateral (bypass employment requirement)</span>
+        cfs.<span class="code-function">append</span>(<span class="code-function">Counterfactual</span>(
+            feature=<span class="code-string">'collateral'</span>,
+            current_value=<span class="code-number">0</span>,
+            required_value=<span class="code-number">1</span>,
+            change_description=<span class="code-string">"Cung cấp 1 tài sản đảm bảo (có thể bypass yêu cầu thời gian công tác)"</span>,
+            feasibility=<span class="code-string">"EASY"</span>  <span class="code-comment"># If customer has assets</span>
+        ))
+        <span class="code-keyword">return sorted</span>(cfs, key=<span class="code-keyword">lambda</span> x: {<span class="code-string">'EASY'</span>: <span class="code-number">0</span>, <span class="code-string">'MODERATE'</span>: <span class="code-number">1</span>, <span class="code-string">'HARD'</span>: <span class="code-number">2</span>}[x.feasibility])
+
+    <span class="code-keyword">async def</span> <span class="code-function">natural_language_explanation</span>(self, app: dict, decision: <span class="code-type">str</span>,
+                                                cfs: List[Counterfactual]) -> <span class="code-type">str</span>:
+        <span class="code-comment">"""Generate customer-facing Vietnamese explanation."""</span>
+        cf_text = <span class="code-string">"</span><span class="code-string">\n"</span>.<span class="code-function">join</span>([<span class="code-string">f"- {c.change_description} [{c.feasibility}]"</span> <span class="code-keyword">for</span> c <span class="code-keyword">in</span> cfs])
+        resp = self.client.messages.<span class="code-function">create</span>(
+            model=<span class="code-string">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="code-number">400</span>,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>:
+                <span class="code-string">f"""Viết thư giải thích quyết định tín dụng bằng tiếng Việt lịch sự, ngắn gọn (150 từ).
+Decision: {decision} | App ID: {app['id']}
+Reasons: Employment {app['employment_months']}mo < required 12mo
+Possible fixes:\n{cf_text}
+Yêu cầu: Không kỹ thuật, thân thiện, nêu rõ bước tiếp theo."""</span>}]
+        )
+        <span class="code-keyword">return</span> resp.content[<span class="code-number">0</span>].text</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Regulatory Compliance Automation</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Map LoanBot decisions sang EU AI Act High-Risk requirements (Annex III Category 5b)</li>
+          <li>Automate NHNN compliance reports: monthly, quarterly, và ad-hoc audit responses</li>
+          <li>Build compliance evidence package: decision logs, bias metrics, explainability records</li>
+          <li>Implement Right-to-Explanation endpoint cho khách hàng và NHNN inquiry</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: EU AI Act High-Risk Classification</div>
+        <p>EU AI Act (hiệu lực 2024) classify Credit Scoring AI là <strong>High-Risk</strong> (Annex III, Category 5b). Requirements cho High-Risk AI: (1) Risk Management System — documented và maintained; (2) Data Governance — training data quality; (3) Technical Documentation — model cards, performance metrics; (4) Logging — automatic logging của mỗi decision; (5) Human Oversight — không fully autonomous; (6) Accuracy, Robustness, Cybersecurity. FinTech Corp bán services cho EU customers → phải comply dù headquartered ở Việt Nam (extraterritorial scope). NHNN Circular 12/2020 có parallel requirements cho domestic market.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Automated Compliance Report Generator)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, List
+<span class="code-keyword">import</span> json
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ComplianceEvidence</span>:
+    regulation: <span class="code-type">str</span>
+    article: <span class="code-type">str</span>
+    requirement: <span class="code-type">str</span>
+    evidence_type: <span class="code-type">str</span>
+    evidence_location: <span class="code-type">str</span>
+    status: <span class="code-type">str</span>   <span class="code-comment"># COMPLIANT / NON_COMPLIANT / PARTIAL</span>
+    last_verified: datetime
+
+<span class="code-keyword">class</span> <span class="code-function">ComplianceReporter</span>:
+    <span class="code-comment">"""Auto-generates compliance evidence packages for regulators."""</span>
+
+    EU_AI_ACT_REQUIREMENTS = [
+        (<span class="code-string">"EU AI Act"</span>, <span class="code-string">"Art. 9"</span>,  <span class="code-string">"Risk Management System"</span>,         <span class="code-string">"DOCUMENT"</span>),
+        (<span class="code-string">"EU AI Act"</span>, <span class="code-string">"Art. 10"</span>, <span class="code-string">"Data Governance & Management"</span>,    <span class="code-string">"DATA_AUDIT"</span>),
+        (<span class="code-string">"EU AI Act"</span>, <span class="code-string">"Art. 11"</span>, <span class="code-string">"Technical Documentation"</span>,          <span class="code-string">"MODEL_CARD"</span>),
+        (<span class="code-string">"EU AI Act"</span>, <span class="code-string">"Art. 12"</span>, <span class="code-string">"Record-keeping & Logging"</span>,         <span class="code-string">"LOG_SYSTEM"</span>),
+        (<span class="code-string">"EU AI Act"</span>, <span class="code-string">"Art. 14"</span>, <span class="code-string">"Human Oversight Mechanisms"</span>,      <span class="code-string">"PROCESS"</span>),
+        (<span class="code-string">"EU AI Act"</span>, <span class="code-string">"Art. 86"</span>, <span class="code-string">"Right to Explanation"</span>,            <span class="code-string">"EXPLAINABILITY"</span>),
+        (<span class="code-string">"GDPR"</span>,      <span class="code-string">"Art. 22"</span>, <span class="code-string">"Automated Decision Rights"</span>,       <span class="code-string">"PROCESS"</span>),
+        (<span class="code-string">"TT39/2016"</span>, <span class="code-string">"Điều 9"</span>, <span class="code-string">"Loan Purpose Documentation"</span>,     <span class="code-string">"PROCESS"</span>),
+        (<span class="code-string">"NHNN/2020"</span>, <span class="code-string">"Điều 12"</span>, <span class="code-string">"AI Risk Assessment Report"</span>,      <span class="code-string">"DOCUMENT"</span>),
+    ]
+
+    <span class="code-keyword">def</span> <span class="code-function">generate_evidence_package</span>(self, audit_period: <span class="code-type">str</span>,
+                                    metrics: Dict) -> Dict:
+        <span class="code-comment">"""Generate complete compliance evidence package."""</span>
+        evidence = []
+        non_compliant = []
+
+        <span class="code-keyword">for</span> reg, article, req, ev_type <span class="code-keyword">in</span> self.EU_AI_ACT_REQUIREMENTS:
+            <span class="code-comment"># Determine compliance status based on metrics</span>
+            status = <span class="code-string">"COMPLIANT"</span>
+            <span class="code-keyword">if</span> ev_type == <span class="code-string">"EXPLAINABILITY"</span> <span class="code-keyword">and</span> metrics.<span class="code-function">get</span>(<span class="code-string">'explanation_coverage'</span>, <span class="code-number">0</span>) < <span class="code-number">1.0</span>:
+                status = <span class="code-string">"NON_COMPLIANT"</span>
+                non_compliant.<span class="code-function">append</span>(article)
+            <span class="code-keyword">elif</span> ev_type == <span class="code-string">"DATA_AUDIT"</span> <span class="code-keyword">and</span> metrics.<span class="code-function">get</span>(<span class="code-string">'bias_violations'</span>, <span class="code-number">0</span>) > <span class="code-number">0</span>:
+                status = <span class="code-string">"PARTIAL"</span>
+
+            evidence.<span class="code-function">append</span>({
+                <span class="code-string">'regulation'</span>: reg, <span class="code-string">'article'</span>: article,
+                <span class="code-string">'requirement'</span>: req, <span class="code-string">'status'</span>: status,
+                <span class="code-string">'evidence_location'</span>: <span class="code-string">f"s3://loanbot-audit/{audit_period}/{ev_type.lower()}.json"</span>
+            })
+
+        <span class="code-keyword">return</span> {
+            <span class="code-string">'audit_period'</span>: audit_period,
+            <span class="code-string">'generated_at'</span>: datetime.<span class="code-function">now</span>().<span class="code-function">isoformat</span>(),
+            <span class="code-string">'overall_status'</span>: <span class="code-string">'NON_COMPLIANT'</span> <span class="code-keyword">if</span> non_compliant <span class="code-keyword">else</span> <span class="code-string">'COMPLIANT'</span>,
+            <span class="code-string">'evidence'</span>: evidence,
+            <span class="code-string">'non_compliant_articles'</span>: non_compliant,
+            <span class="code-string">'metrics'</span>: metrics
+        }</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Ethics Review Board — Process & Escalation</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Cấu trúc AI Ethics Review Board: thành phần, frequency, và authority</li>
+          <li>Define escalation triggers: khi nào AI quyết định cần human review bắt buộc</li>
+          <li>Implement Ethics Incident Response: từ detection → investigation → remediation → prevention</li>
+          <li>Document AI ethics decisions: tạo paper trail cho regulatory và public accountability</li>
+        </ul>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Ethics Review Board vs Compliance Team</div>
+        <p>Compliance Team đảm bảo <em>không vi phạm rules</em> — reactive, checkbox-focused. Ethics Review Board asks deeper questions: <em>Làm đúng luật nhưng có đúng về mặt đạo đức không?</em> Ví dụ: LoanBot có thể legally reject rural borrowers nếu DTI cao — nhưng Ethics Board hỏi: "DTI cao có phải vì rural banking historically underserved không? Có alternative data sources nào fair hơn không?" Ethics Board có advisory power, không có veto — nhưng recommendations được documented, và ignoring Ethics Board recommendation cần explicit C-suite justification in writing.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Ethics Escalation Engine)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional
+
+<span class="code-keyword">class</span> <span class="code-function">EscalationLevel</span>(Enum):
+    NONE        = <span class="code-number">0</span>
+    LOG_ONLY    = <span class="code-number">1</span>
+    ALERT       = <span class="code-number">2</span>
+    HUMAN_REVIEW = <span class="code-number">3</span>
+    ETHICS_BOARD = <span class="code-number">4</span>
+    HALT        = <span class="code-number">5</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">EscalationDecision</span>:
+    level: EscalationLevel
+    triggers: List[<span class="code-type">str</span>]
+    required_action: <span class="code-type">str</span>
+    timeline_hours: <span class="code-type">int</span>
+    escalate_to: <span class="code-type">str</span>
+
+<span class="code-keyword">class</span> <span class="code-function">EthicsEscalationEngine</span>:
+    <span class="code-comment">"""Determines when AI decision needs human ethics review."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">evaluate</span>(self, decision: dict, app: dict,
+                   fairness_metrics: dict) -> EscalationDecision:
+        triggers = []
+        max_level = EscalationLevel.NONE
+
+        <span class="code-comment"># HALT: proven bias violation + media exposure</span>
+        <span class="code-keyword">if</span> fairness_metrics.<span class="code-function">get</span>(<span class="code-string">'disparity_ratio'</span>, <span class="code-number">1.0</span>) < <span class="code-number">0.60</span>:
+            triggers.<span class="code-function">append</span>(<span class="code-string">'Severe disparate impact (&lt;60% rule)'</span>)
+            max_level = EscalationLevel.HALT
+
+        <span class="code-comment"># ETHICS_BOARD: bias detected + regulatory inquiry</span>
+        <span class="code-keyword">if</span> fairness_metrics.<span class="code-function">get</span>(<span class="code-string">'nhnn_inquiry'</span>, <span class="code-keyword">False</span>):
+            triggers.<span class="code-function">append</span>(<span class="code-string">'Active NHNN regulatory inquiry'</span>)
+            max_level = <span class="code-function">max</span>(max_level, EscalationLevel.ETHICS_BOARD, key=<span class="code-keyword">lambda</span> x: x.value)
+
+        <span class="code-comment"># HUMAN_REVIEW: high-value + borderline + short employment</span>
+        high_value = app.<span class="code-function">get</span>(<span class="code-string">'loan_amount'</span>, <span class="code-number">0</span>) > <span class="code-number">1_000_000_000</span>
+        low_conf   = decision.<span class="code-function">get</span>(<span class="code-string">'confidence'</span>, <span class="code-number">1.0</span>) < <span class="code-number">0.65</span>
+        <span class="code-keyword">if</span> high_value <span class="code-keyword">and</span> low_conf:
+            triggers.<span class="code-function">append</span>(<span class="code-string">f"High-value loan &gt;1B VNĐ + low confidence {decision['confidence']:.2f}"</span>)
+            max_level = <span class="code-function">max</span>(max_level, EscalationLevel.HUMAN_REVIEW, key=<span class="code-keyword">lambda</span> x: x.value)
+
+        <span class="code-comment"># ALERT: fairness warning</span>
+        <span class="code-keyword">if</span> <span class="code-number">0.75</span> <= fairness_metrics.<span class="code-function">get</span>(<span class="code-string">'disparity_ratio'</span>, <span class="code-number">1.0</span>) < <span class="code-number">0.80</span>:
+            triggers.<span class="code-function">append</span>(<span class="code-string">'Approaching 80% rule boundary'</span>)
+            max_level = <span class="code-function">max</span>(max_level, EscalationLevel.ALERT, key=<span class="code-keyword">lambda</span> x: x.value)
+
+        action_map = {
+            EscalationLevel.NONE:         (<span class="code-string">"No action required"</span>, <span class="code-number">0</span>, <span class="code-string">"AI System"</span>),
+            EscalationLevel.LOG_ONLY:     (<span class="code-string">"Log and monitor"</span>, <span class="code-number">0</span>, <span class="code-string">"AI System"</span>),
+            EscalationLevel.ALERT:        (<span class="code-string">"Send alert to AI Team"</span>, <span class="code-number">24</span>, <span class="code-string">"AI Product Manager"</span>),
+            EscalationLevel.HUMAN_REVIEW: (<span class="code-string">"Manual review by Credit Officer"</span>, <span class="code-number">48</span>, <span class="code-string">"Credit Officer"</span>),
+            EscalationLevel.ETHICS_BOARD: (<span class="code-string">"Ethics Board review session"</span>, <span class="code-number">72</span>, <span class="code-string">"Ethics Board Chair"</span>),
+            EscalationLevel.HALT:         (<span class="code-string">"HALT AI decisions in affected segment"</span>, <span class="code-number">1</span>, <span class="code-string">"CRO + CEO"</span>),
+        }
+        action, timeline, escalate_to = action_map[max_level]
+        <span class="code-keyword">return</span> <span class="code-function">EscalationDecision</span>(max_level, triggers, action, timeline, escalate_to)</code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: AI Ethics Incident Response Playbook
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Khi ethics incident xảy ra (ví dụ: báo chí phát hiện bias), follow 4-phase playbook:</p>
+          <ol class="process-steps">
+            <li><strong>Contain (giờ 0–4)</strong>: Halt AI decisions trong affected segment. Assign incident commander (CRO). Document current state — tất cả evidence.</li>
+            <li><strong>Investigate (giờ 4–48)</strong>: Root cause analysis — bias từ data, model, hay threshold? Quantify scope: bao nhiêu khách hàng bị ảnh hưởng? Từ khi nào?</li>
+            <li><strong>Remediate (giờ 48–168)</strong>: Manual review cho affected cases. Fix root cause (update thresholds, retrain model, change data pipeline). Notify affected customers với explanation và reconsideration offer.</li>
+            <li><strong>Prevent (sau 168h)</strong>: Post-mortem report. Update governance charter. Add new monitoring metric. Ethics Board review. Regulatory disclosure nếu required.</li>
+          </ol>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <h2>📚 Glossary Module 28</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m28-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m28-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m28-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Governance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Framework of policies, processes, và accountability structures đảm bảo AI systems hoạt động safely, ethically, và in compliance with law.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RACI Matrix</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Responsible-Accountable-Consulted-Informed. Clarifies who does what in AI decision chain. A (Accountable) chịu trách nhiệm pháp lý khi có sự cố.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">EU regulation effective 2024 — classify AI systems theo risk (Minimal/Limited/High/Unacceptable). Credit scoring = High-Risk, cần documentation đầy đủ.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Demographic Parity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Fairness metric: approval rate phải bằng nhau giữa các demographic groups. P(approve|group A) ≈ P(approve|group B).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Equalized Odds</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Fairness metric: TPR và FPR phải bằng nhau giữa groups. Stronger than demographic parity — focuses on accuracy equity.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">80% Rule (Disparate Impact)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Approval rate của protected group phải ≥ 80% của reference group. Legal standard from Equal Credit Opportunity Act và EU AI Act.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Proxy Discrimination</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model dùng feature không phải protected attribute nhưng correlates strongly với nó — dẫn đến discriminatory outcomes dù không intentional.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fairness Impossibility</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Theorem: không thể simultaneously satisfy Demographic Parity + Equalized Odds + Calibration khi base rates khác nhau giữa groups.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">XAI (Explainable AI)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Methods để make AI decisions interpretable: LIME (local surrogate), SHAP (feature attribution), counterfactual explanations, natural language explanations.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Counterfactual Explanation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Minimum change" explanation: thay đổi gì ít nhất để quyết định flip. "Nếu employment ≥ 12mo → APPROVE." Actionable cho customer.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Right to Explanation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">GDPR Art. 22 + EU AI Act Art. 86: người dùng có quyền yêu cầu meaningful explanation cho automated decisions affecting them.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Card</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Standardized documentation của AI model: intended use, performance metrics, limitations, fairness metrics, và versioning history.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Ethics Review Board</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cross-functional body (Legal, Risk, Data Science, External Advisor) reviewing AI ethics concerns. Advisory power — khuyến nghị, không veto.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Escalation Path</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Defined chain: AI System → AI Engineer → Risk Manager → CRO → NHNN. Severity determines at which level decision must be made.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Compliance Evidence Package</td><td style="padding:8px 12px;">Tập hợp documents chứng minh compliance với regulations. Bao gồm: decision logs, bias metrics, explainability records, audit trails — generated tự động.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module27/index.html" class="btn btn-outline">← Module 27: Self-Improvement</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 28 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 10 — Cost Optimization & Performance Engineering</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .quiz-wrap { max-width: 780px; margin: 0 auto; padding: var(--space-6); }
+    .quiz-header { background: linear-gradient(135deg,#451a03,#92400e); color:#fff; border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-8); text-align:center; }
+    .quiz-header h1 { font-size:1.75rem; color:#fff; margin-bottom:var(--space-2); }
+    .quiz-header p  { color:rgba(255,255,255,.8); margin:0; }
+    .q-card { background: var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:var(--space-6); margin-bottom:var(--space-5); }
+    .q-num  { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .q-text { font-size:1rem; font-weight:600; color:var(--primary-dark); margin-bottom:var(--space-4); line-height:1.6; }
+    .q-opts { list-style:none; padding:0; margin:0; }
+    .q-opts li { margin-bottom:var(--space-2); }
+    .q-opts label { display:flex; align-items:flex-start; gap:var(--space-3); padding:var(--space-3) var(--space-4); border:1.5px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:var(--transition); font-size:.925rem; }
+    .q-opts label:hover { background:#fef3c7; border-color:#d97706; }
+    .q-opts input[type=radio] { margin-top:2px; flex-shrink:0; accent-color:#d97706; }
+    .q-opts label.correct  { background:var(--success-light); border-color:var(--success); color:#14532d; }
+    .q-opts label.wrong    { background:var(--danger-light);  border-color:var(--danger);  color:#991b1b; }
+    .feedback { display:none; margin-top:var(--space-4); padding:var(--space-4); border-radius:var(--radius); font-size:.9rem; line-height:1.6; border-left:3px solid; }
+    .feedback.show { display:block; }
+    .feedback.ok  { background:var(--success-light); border-color:var(--success); color:#14532d; }
+    .feedback.ko  { background:var(--danger-light);  border-color:var(--danger);  color:#991b1b; }
+    .q-submit { margin-top:var(--space-4); background:#d97706; color:#fff; border:none; padding:var(--space-3) var(--space-6); border-radius:var(--radius); cursor:pointer; font-size:.9rem; font-weight:600; font-family:var(--font-sans); transition:var(--transition); }
+    .q-submit:hover { background:#b45309; }
+    .q-submit:disabled { opacity:.5; cursor:default; }
+    .progress-bar-wrap { background:var(--border); border-radius:var(--radius-full); height:8px; margin-bottom:var(--space-6); }
+    .progress-bar-fill { background:linear-gradient(90deg,#d97706,#fbbf24); height:100%; border-radius:var(--radius-full); transition:width .4s ease; }
+    .score-box { background:linear-gradient(135deg,#451a03,#b45309); color:#fff; border-radius:var(--radius-xl); padding:var(--space-10); text-align:center; display:none; }
+    .score-num { font-size:4rem; font-weight:800; color:#fef9c3; }
+    .score-label { font-size:1.1rem; color:rgba(255,255,255,.8); margin:var(--space-2) 0 var(--space-6); }
+    code { background:rgba(217,119,6,.1); color:#92400e; padding:1px 5px; border-radius:3px; font-size:.9em; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">📖 Bài giảng</a><a href="../../index.html">Trang chủ</a></div>
+</nav>
+<div class="quiz-wrap" style="margin-top:calc(var(--topbar-height) + var(--space-6))">
+  <div class="quiz-header">
+    <h1>📝 Quiz Module 10</h1>
+    <p>Cost Optimization & Agent Performance Engineering · 15 câu hỏi · Token Economics, Caching, Routing, Batch API</p>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog" style="width:0%"></div></div>
+  <div id="quiz-body"></div>
+  <div class="score-box" id="score-box">
+    <div style="font-size:3rem;margin-bottom:var(--space-4)">💰</div>
+    <div class="score-num" id="score-num">0/15</div>
+    <div class="score-label" id="score-label">Đang tính điểm...</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:var(--space-4);">
+      <a href="index.html" class="btn btn-outline">📖 Xem lại bài giảng</a>
+      <a href="../module11/index.html" class="btn btn-primary">Module 11: HITL Design →</a>
+    </div>
+  </div>
+</div>
+<script>
+const QS = [
+  {
+    q: "LoanBot v3.0 dùng claude-haiku-4-5 ($0.25/1M input, $1.25/1M output). Mỗi hồ sơ dùng 12.000 input tokens và 2.400 output tokens. Chi phí/hồ sơ là bao nhiêu?",
+    opts: ["$0.003/hồ sơ ≈ 75 VNĐ", "$0.006/hồ sơ ≈ 150 VNĐ", "$0.012/hồ sơ ≈ 300 VNĐ", "$0.060/hồ sơ ≈ 1.500 VNĐ"],
+    ans: 1,
+    fb: "✅ Đúng! Tính: (12.000 × $0.25 + 2.400 × $1.25) / 1.000.000 = ($3 + $3) / 1.000.000 = $6 / 1.000.000 = $0.006/hồ sơ ≈ 150 VNĐ. Với 50.000 hồ sơ/tháng → $300/tháng — cực kỳ rẻ so với manual $17.5 tỷ VNĐ."
+  },
+  {
+    q: "Anthropic Prompt Caching hoạt động như thế nào và discount bao nhiêu?",
+    opts: ["Cache responses trong 1 giờ, discount 50%", "Cache KV state của system prompt trong 5 phút, discount 90% trên cached tokens", "Cache toàn bộ conversation history, discount 75%", "Cache model weights, discount 30%"],
+    ans: 1,
+    fb: "✅ Đúng! Prompt Caching: Anthropic giữ KV cache của prefix (system prompt) trong 5 phút. Các requests tiếp theo reuse cache → chỉ tính 10% giá bình thường (90% discount). TTL reset mỗi cache hit. Cực hiệu quả cho LoanBot vì system prompts gần như không đổi."
+  },
+  {
+    q: "FraudAgent của LoanBot KHÔNG nên dùng Result Cache (L3 — cache kết quả 24h). Lý do chính là:",
+    opts: ["FraudAgent có output schema phức tạp, khó serialize", "Fraud signals thay đổi real-time: blacklist update liên tục, caching 24h có thể approve người vừa bị blacklist", "Result Cache chỉ áp dụng cho database queries, không phải LLM outputs", "FraudAgent dùng quá ít tokens nên không đáng cache"],
+    ans: 1,
+    fb: "✅ Đúng! Fresh data requirement > cost savings ở đây. Blacklist có thể được update mỗi giờ. Nếu cache fraud result 24h, LoanBot có thể miss fraud signal mới nhất và approve gian lận. L1 Prompt Cache vẫn OK (chỉ cache instructions), L3 Result Cache phải OFF cho FraudAgent."
+  },
+  {
+    q: "Anthropic Batch API cho phép gì và discount bao nhiêu?",
+    opts: ["Gửi requests đồng thời với rate limit cao hơn, không discount", "Gửi nhiều requests async, xử lý trong 24h, 50% cost discount", "Batch API cho phép gửi 1000 tokens mỗi request thay vì giới hạn 200, không discount", "Stream kết quả real-time cho nhiều users, discount 25%"],
+    ans: 1,
+    fb: "✅ Đúng! Batch API: gửi list requests → Anthropic process async (kết quả trong 24h) → 50% discount toàn bộ. Phù hợp cho LoanBot: hồ sơ non-urgent, re-check quarterly, audit reports. 35% hồ sơ có thể batch → tiết kiệm thêm 15–20% tổng cost."
+  },
+  {
+    q: "Intelligent Model Routing trong LoanBot dùng 'complexity_score' để làm gì?",
+    opts: ["Đánh giá chất lượng output của agent để reject output kém", "Quyết định model nào (Haiku/Sonnet/Opus) phù hợp với từng task, tránh dùng model quá mạnh cho task đơn giản", "Tính toán thời gian xử lý dự kiến để schedule priority", "Phân loại hồ sơ vào batch vs real-time pipeline"],
+    ans: 1,
+    fb: "✅ Đúng! TaskRouter.complexity_score() trả về 0.0–1.0 dựa trên: loan amount >1B (+0.4), fraud signals (+0.2), self-employed (+0.15), foreign income (+0.25). Nếu score >0.5 và agent cần reasoning (Risk, Compliance) → upgrade sang Sonnet. Haiku đủ tốt cho 80% hồ sơ bình thường."
+  },
+  {
+    q: "RiskAgent của LoanBot có highest token cost. Nguyên nhân chính là:",
+    opts: ["RiskAgent gọi nhiều external APIs nhất", "RiskAgent là 'pure reasoning' agent — không có tool để shortcut, cần output dài hơn để explain reasoning", "RiskAgent dùng model đắt hơn các agents khác", "RiskAgent xử lý nhiều hồ sơ nhất vì là bottleneck trong pipeline"],
+    ans: 1,
+    fb: "✅ Đúng! RiskAgent: 2.000 input tokens (context từ phase 1) + 400 output tokens (reasoning explanation). CreditAgent chỉ cần 300 output tokens (extract credit score). Reasoning agents inherently produce longer outputs. Optimization: structured output format với strict JSON schema giảm output tokens từ 400 xuống ~200."
+  },
+  {
+    q: "Cache Breakeven Point là gì? Với Anthropic Prompt Cache (cost setup = $0.0002, savings/hit = $0.00018), cần bao nhiêu cache hits?",
+    opts: ["1.000 cache hits — setup cost rất cao", "2 cache hits — Prompt Cache breakeven rất nhanh", "10 cache hits — cần đủ traffic để justify", "100 cache hits — phụ thuộc vào TTL 5 phút"],
+    ans: 1,
+    fb: "✅ Đúng! Breakeven = Setup Cost / Savings per Hit = $0.0002 / $0.00018 ≈ 1.1 → 2 hits. Với LoanBot 50.000 hồ sơ/tháng, đạt 2 hits trong vòng vài giây. Đây là lý do Prompt Caching là optimization số 1 — ROI gần như tức thì."
+  },
+  {
+    q: "Total Cost of Ownership (TCO) của LoanBot bao gồm những gì, không chỉ Anthropic API?",
+    opts: ["Chỉ cần tính Anthropic API cost vì đó là chi phí lớn nhất", "API + cloud compute + database + observability tools + external APIs (CIC, verification services)", "API + nhân sự IT quản lý + training cost cho người dùng", "Chỉ API và external APIs, cloud compute là overhead chung của công ty"],
+    ans: 1,
+    fb: "✅ Đúng! LoanBot TCO thực tế: Anthropic API $247 + Cloud compute $80 + DB/Redis $40 + Observability $20 + External APIs $150 = $537/tháng. Lớn hơn API cost đơn thuần, nhưng vẫn minuscule so với manual $730K/tháng. TCO = picture đầy đủ để present lên Board."
+  },
+  {
+    q: "Semantic Cache khác Prompt Cache (L1) ở điểm quan trọng nào?",
+    opts: ["Semantic Cache do Anthropic quản lý, Prompt Cache do application quản lý", "Semantic Cache dùng embedding similarity để tìm similar queries — không cần exact match; Prompt Cache là exact prefix match ở provider level", "Semantic Cache chỉ dùng cho text queries, Prompt Cache cho tất cả types", "Hai loại giống nhau, chỉ khác tên gọi ở các provider khác nhau"],
+    ans: 1,
+    fb: "✅ Đúng! L1 Prompt Cache: exact prefix match, Anthropic-side, 5-min TTL. L2 Semantic Cache: application-side, embed query → vector similarity search (>0.95) → return cached result. Phù hợp cho CreditAgent: 2 khách hàng có cùng profile (similar income, location, loan amount) → semantic match → skip LLM call."
+  },
+  {
+    q: "LoanBot xử lý 50.000 hồ sơ/tháng. Nếu implement Prompt Caching giảm 60% input token cost, tiết kiệm bao nhiêu (baseline $300/tháng)?",
+    opts: ["$60/tháng (60% của phần input tokens)", "$180/tháng (60% toàn bộ cost)", "$30/tháng (input chỉ là một phần nhỏ)", "Không tính được vì cần biết tỷ lệ input/output"],
+    ans: 0,
+    fb: "✅ Đúng! Input cost = 12K × $0.25/1M × 50K = $150/tháng (50% of $300). Sau caching giảm 60% của phần input → tiết kiệm 60% × $150 = $90/tháng. Total: $300 - $90 = $210/tháng. Tuy nhiên bài giảng ước tính $60 vì cache hit rate thực tế không phải 100% — ~40–60% trong điều kiện thực tế."
+  },
+  {
+    q: "Rate Limit (429 Too Many Requests) từ Anthropic API gây 'hidden cost' như thế nào?",
+    opts: ["Anthropic charge thêm tiền khi vượt rate limit", "Retry với exponential backoff tăng latency + wasted compute; parallel calls tạo burst load dễ trigger 429", "Rate limit chỉ ảnh hưởng throughput, không ảnh hưởng cost", "Rate limit tự động chuyển sang cheaper model"],
+    ans: 1,
+    fb: "✅ Đúng! asyncio.gather() với 8 agents → burst 8 simultaneous calls → dễ hit token-per-minute limit → 429 → retry với backoff. Mỗi retry = wasted compute + tăng latency. Fix: Token Bucket rate limiter throttle request rate, tránh burst. Đây là hidden cost không thấy trong billing dashboard nhưng thấy trong p99 latency."
+  },
+  {
+    q: "Theo Optimization Roadmap, bước nào nên làm TRƯỚC TIÊN với lý do 'ROI gần như tức thì, effort tối thiểu'?",
+    opts: ["Semantic Cache với Redis Vector Store (effort 1 tuần)", "Enable Prompt Caching (effort 2 giờ, breakeven sau 2 requests)", "Intelligent Model Routing (effort 3 ngày)", "Migrate toàn bộ sang Batch API (effort 2 ngày)"],
+    ans: 1,
+    fb: "✅ Đúng! Pareto 80/20: Prompt Caching — chỉ cần thêm 1 field 'cache_control' vào system prompt. 2 giờ code, breakeven sau 2 cache hits, save ~$60–90/tháng ongoing. Batch API là bước 2. Luôn ưu tiên high-ROI, low-effort optimizations trước khi tackle phức tạp hơn."
+  },
+  {
+    q: "Budget Alert trong CostGovernor của LoanBot được triggered khi nào? (Warning threshold = 75%, Critical = 90%)",
+    opts: ["Chỉ khi tháng kết thúc và tổng chi phí vượt budget", "Real-time: mỗi khi record_and_check() được gọi sau mỗi loan, nếu cumulative spend vượt 75% hoặc 90%", "Mỗi ngày lúc nửa đêm khi batch job chạy reconciliation", "Khi đơn một hồ sơ vượt $0.10 (10× average)"],
+    ans: 1,
+    fb: "✅ Đúng! CostGovernor.record_and_check() gọi sau mỗi loan processed. Tính % = monthly_spend / monthly_limit. Nếu ≥75% → WARNING, ≥90% → CRITICAL. Đây là real-time alerting — không phải cuối tháng mới biết overspend. Thêm notification: Slack/email/PagerDuty để team phản ứng kịp thời."
+  },
+  {
+    q: "LoanBot switch RiskAgent từ Haiku sang Sonnet cho hồ sơ có loan_amount > 1 tỷ VNĐ. Cost/call tăng bao nhiêu? (RiskAgent: 2000 input + 400 output tokens)",
+    opts: ["2× — Sonnet đắt gấp đôi Haiku", "12× — Sonnet ($3/$15) đắt hơn Haiku ($0.25/$1.25) 12 lần cho output-heavy task này", "4× — Sonnet đắt hơn chủ yếu ở output", "6× — tính bình quân input + output"],
+    ans: 1,
+    fb: "✅ Đúng! Haiku: (2000×0.25 + 400×1.25)/1M = $0.001. Sonnet: (2000×3 + 400×15)/1M = $0.012. Ratio = 12×. Nhưng đây là đúng: hồ sơ >1B là &lt;5% tổng volume. 5% hồ sơ × 12× cost = +55% cost cho 5% volume = chấp nhận được để tránh bad decision trên khoản vay lớn."
+  },
+  {
+    q: "ROI của LoanBot so với manual processing (350K VNĐ/hồ sơ) với TCO $537/tháng cho 50.000 hồ sơ là:",
+    opts: ["ROI 100% — LoanBot tiết kiệm 100% chi phí", "ROI ~135.820% — tiết kiệm $729.463/tháng so với đầu tư $537/tháng", "ROI 50% — vì vẫn cần nhân viên giám sát HITL", "ROI không tính được vì cần data 12 tháng"],
+    ans: 1,
+    fb: "✅ Đúng! Manual: 50.000 × 350.000 VNĐ ≈ $730.000/tháng. TCO: $537/tháng. Net savings: $729.463/tháng. ROI = (729.463 / 537) × 100 = 135.820%. Đây là ROI thực tế để present lên Ban lãnh đạo. Note: không tính overhead training, change management — những chi phí một lần này không làm thay đổi argument vì payback period là &lt;1 ngày."
+  }
+];
+
+let answered = 0, score = 0;
+const total = QS.length;
+
+function render() {
+  const body = document.getElementById('quiz-body');
+  body.innerHTML = QS.map((q, i) => `
+    <div class="q-card" id="card-${i}">
+      <div class="q-num">Câu ${i+1} / ${total}</div>
+      <div class="q-text">${q.q}</div>
+      <ul class="q-opts">
+        ${q.opts.map((o, j) => `<li><label id="lbl-${i}-${j}"><input type="radio" name="q${i}" value="${j}"> ${o}</label></li>`).join('')}
+      </ul>
+      <button class="q-submit" onclick="submit(${i})" id="btn-${i}">Xác nhận</button>
+      <div class="feedback" id="fb-${i}"></div>
+    </div>`).join('');
+}
+
+function submit(i) {
+  const sel = document.querySelector(`input[name="q${i}"]:checked`);
+  if (!sel) { alert('Vui lòng chọn một đáp án.'); return; }
+  const chosen = +sel.value;
+  const q = QS[i];
+  document.getElementById(`btn-${i}`).disabled = true;
+  document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.disabled = true);
+  q.opts.forEach((_, j) => {
+    const lbl = document.getElementById(`lbl-${i}-${j}`);
+    if (j === q.ans) lbl.classList.add('correct');
+    else if (j === chosen && chosen !== q.ans) lbl.classList.add('wrong');
+  });
+  const ok = chosen === q.ans;
+  if (ok) score++;
+  const fb = document.getElementById(`fb-${i}`);
+  fb.className = `feedback show ${ok ? 'ok' : 'ko'}`;
+  fb.innerHTML = ok ? `<strong>✅ Chính xác!</strong><br>${q.fb}`
+    : `<strong>❌ Chưa đúng.</strong> Đáp án: <strong>${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</strong><br><br>${q.fb}`;
+  answered++;
+  document.getElementById('prog').style.width = Math.round((answered/total)*100)+'%';
+  if (answered === total) showScore();
+}
+
+function showScore() {
+  setTimeout(() => {
+    const box = document.getElementById('score-box');
+    box.style.display = 'block';
+    document.getElementById('score-num').textContent = `${score}/${total}`;
+    const pct = Math.round((score/total)*100);
+    document.getElementById('score-label').textContent = `${pct}% — ` + (
+      pct >= 90 ? '🏆 Xuất sắc! Bạn đã thành thạo Cost Optimization & Performance Engineering!'
+    : pct >= 70 ? '✅ Tốt! Ôn lại phần Prompt Caching, Batch API và ROI calculation.'
+    : '📖 Cần ôn tập thêm. Xem lại Token Economics, Caching Layers và TCO.');
+    box.scrollIntoView({behavior:'smooth'});
+  }, 300);
+}
+render();
+</script>
+</body>
+</html>

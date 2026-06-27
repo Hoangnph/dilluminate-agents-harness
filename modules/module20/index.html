@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 20 — Agent Testing & Quality Assurance</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m20-primary: #713f12;
+      --m20-accent:  #eab308;
+      --m20-light:   #fefce8;
+      --m20-border:  #fde047;
+    }
+    .lesson-header { background: linear-gradient(135deg, #422006 0%, #713f12 50%, #eab308 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fefce8; }
+    .lesson-header p { color: #fde047; }
+    .sidebar-nav a.active { background: var(--m20-light); border-left: 3px solid var(--m20-accent); color: var(--m20-primary); }
+    .sidebar-nav a:hover { color: var(--m20-primary); }
+
+    .test-level {
+      padding: var(--space-4); border-radius: var(--radius-lg); border-left: 4px solid;
+      margin-bottom: var(--space-3);
+    }
+    .test-level h4 { font-size: .875rem; font-weight: 700; margin-bottom: var(--space-1); }
+    .test-level p  { font-size: .85rem; margin: 0; }
+    .test-unit    { border-color: #16a34a; background: #f0fdf4; }
+    .test-unit h4 { color: #166534; }
+    .test-integ   { border-color: #0891b2; background: #f0f9ff; }
+    .test-integ h4 { color: #075985; }
+    .test-e2e     { border-color: #9333ea; background: #faf5ff; }
+    .test-e2e h4  { color: #6b21a8; }
+    .test-chaos   { border-color: #dc2626; background: #fef2f2; }
+    .test-chaos h4 { color: #991b1b; }
+
+    .test-result { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: .85rem; margin-bottom: var(--space-2); }
+    .test-pass { background: #f0fdf4; border: 1px solid #86efac; }
+    .test-fail { background: #fef2f2; border: 1px solid #fca5a5; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m20-light);color:var(--m20-primary);border-color:var(--m20-border);">MODULE 20</div>
+    <div class="sidebar-title">Agent Testing & QA</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Testing Pyramid for AI</a>
+      <a href="#lesson2">L2. Golden Dataset Testing</a>
+      <a href="#lesson3">L3. Property-Based Testing</a>
+      <a href="#lesson4">L4. Regression & Contract Testing</a>
+      <a href="#lesson5">L5. Chaos Engineering for Agents</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m20-accent);">📝 Quiz Module 20</a>
+      <a href="lab.ipynb" download style="color:var(--m20-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module19/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 19: AI Compliance</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 20 · Tuần 55–57</span>
+      <h1>🧪 Agent Testing & Quality Assurance</h1>
+      <p>LoanBot v3.5 xử lý 50,000 hồ sơ/tháng. Một prompt thay đổi nhỏ có thể làm sai 1,400 quyết định. Làm thế nào để biết thay đổi nào an toàn trước khi deploy lên production? Module này xây dựng test suite toàn diện cho LoanBot.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🧪 TDD for AI</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Testing Pyramid for AI Agents — Tại Sao AI Testing Khác?</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao AI agents cần testing pyramid khác với software thông thường</li>
+          <li>Biết 4 tầng testing: Unit → Integration → E2E → Chaos</li>
+          <li>Phân biệt deterministic tests vs probabilistic tests</li>
+          <li>Thiết kế test strategy cho LoanBot: mỗi PR phải pass trước khi merge</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Test như QC dây chuyền sản xuất</div>
+        <p>Nhà máy sản xuất xe hơi có 3 trạm kiểm tra: (1) Kiểm tra từng linh kiện riêng lẻ (unit test); (2) Kiểm tra engine sau khi lắp ráp (integration test); (3) Test drive toàn xe trên đường (E2E test). AI agent testing tương tự — nhưng thêm tầng thứ 4: <strong>Chaos test</strong> — cố tình phá hỏng đường để xem xe có kiểm soát được không.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg">
+          <title>AI Agent Testing Pyramid cho LoanBot — 4 tầng testing với tỷ lệ và thời gian thực thi</title>
+          <defs>
+            <marker id="arrTest" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#eab308"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#422006" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fefce8">LoanBot Testing Pyramid — 4 Tầng QA</text>
+
+          <!-- Chaos (top/rare) -->
+          <polygon points="340,35 420,35 460,72 300,72" fill="#7f1d1d" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="380" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#fca5a5">CHAOS</text>
+
+          <!-- E2E -->
+          <polygon points="280,78 480,78 530,118 230,118" fill="#312e81" stroke="#a5b4fc" stroke-width="1.5"/>
+          <text x="380" y="103" text-anchor="middle" font-size="10" font-weight="700" fill="#c7d2fe">END-TO-END</text>
+
+          <!-- Integration -->
+          <polygon points="210,124 550,124 610,170 150,170" fill="#065f46" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="380" y="151" text-anchor="middle" font-size="11" font-weight="700" fill="#d1fae5">INTEGRATION</text>
+
+          <!-- Unit (base/most) -->
+          <polygon points="130,176 630,176 680,212 80,212" fill="#713f12" stroke="#fde047" stroke-width="1.5"/>
+          <text x="380" y="199" text-anchor="middle" font-size="12" font-weight="700" fill="#fef08a">UNIT TESTS</text>
+
+          <!-- Right annotations -->
+          <text x="485" y="59" font-size="8" fill="#fca5a5">~5 tests · monthly</text>
+          <text x="485" y="103" font-size="8" fill="#c7d2fe">~30 tests · per release</text>
+          <text x="535" y="151" font-size="8" fill="#d1fae5">~150 tests · per PR</text>
+          <text x="555" y="199" font-size="8" fill="#fef08a">~500 tests · on commit</text>
+
+          <!-- Left: what each tests -->
+          <text x="125" y="59" text-anchor="end" font-size="8" fill="#fca5a5">Fault injection</text>
+          <text x="225" y="103" text-anchor="end" font-size="8" fill="#c7d2fe">Full loan flow</text>
+          <text x="205" y="151" text-anchor="end" font-size="8" fill="#d1fae5">Tool calls + LLM</text>
+          <text x="125" y="199" text-anchor="end" font-size="8" fill="#fef08a">Functions + prompts</text>
+
+          <!-- AI vs Traditional note -->
+          <rect x="10" y="35" width="100" height="35" fill="#422006" rx="6" stroke="#fde047"/>
+          <text x="60" y="50" text-anchor="middle" font-size="7" font-weight="700" fill="#fef08a">AI Testing</text>
+          <text x="60" y="62" text-anchor="middle" font-size="7" fill="#fde047">adds CHAOS tier</text>
+        </svg>
+        <div class="diagram-title">Hình 1: LoanBot Testing Pyramid — 4 tầng từ dưới lên: Unit (500+ tests, on commit) → Integration (150+, per PR) → E2E (30+, per release) → Chaos (5+, monthly). AI agents cần Chaos tier mà software thông thường không có.</div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Deterministic vs Probabilistic Tests</div>
+        <p><strong>Deterministic test:</strong> input X → output Y, luôn luôn. Ví dụ: "credit_score=400 và blacklisted=True → decision='REJECT'". Có thể verify bằng <code>assert</code> đơn giản.</p>
+        <p><strong>Probabilistic test:</strong> LLM output khác nhau mỗi lần. Thay vì verify exact string, verify <em>properties</em>: "explanation phải chứa credit_score", "decision phải là một trong APPROVE/REJECT/REVIEW", "confidence phải 0.0–1.0". Tests này cần <strong>LLM-as-Judge</strong> hoặc regex patterns thay vì string equality.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Công thức cốt lõi</div>
+        <div class="formula-text">Test AI = Assert Properties, Not Strings</div>
+        <div class="formula-desc">LLM output không bao giờ identical qua 2 lần chạy. Verify structure, format, semantic correctness — không verify exact wording.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (LoanBot Test Framework — Base Classes)</span>
+        <pre><code><span class="code-keyword">import</span> pytest
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Callable
+<span class="code-keyword">import</span> json
+
+<span class="code-comment"># Deterministic test — exact assertion</span>
+<span class="code-keyword">def</span> <span class="code-function">test_blacklist_always_rejects</span>():
+    <span class="code-comment"># Blacklisted → REJECT is deterministic (rule-based, no LLM needed)</span>
+    result = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">720</span>, blacklisted=<span class="code-keyword">True</span>)
+    <span class="code-keyword">assert</span> result[<span class="code-string">"decision"</span>] == <span class="code-string">"REJECT"</span>
+    <span class="code-keyword">assert</span> result[<span class="code-string">"confidence"</span>] >= <span class="code-number">0.95</span>
+
+<span class="code-comment"># Probabilistic test — property assertion</span>
+<span class="code-keyword">def</span> <span class="code-function">test_explanation_has_required_fields</span>():
+    result = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">580</span>, dti=<span class="code-number">0.58</span>)
+    explanation = result[<span class="code-string">"explanation"</span>]
+    <span class="code-comment"># Don't assert exact text — assert semantic properties</span>
+    <span class="code-keyword">assert</span> result[<span class="code-string">"decision"</span>] <span class="code-keyword">in</span> {<span class="code-string">"APPROVE"</span>, <span class="code-string">"REJECT"</span>, <span class="code-string">"REVIEW"</span>}
+    <span class="code-keyword">assert</span> <span class="code-number">0.0</span> <= result[<span class="code-string">"confidence"</span>] <= <span class="code-number">1.0</span>
+    <span class="code-keyword">assert</span> <span class="code-function">len</span>(explanation) >= <span class="code-number">50</span>     <span class="code-comment"># not empty</span>
+    <span class="code-keyword">assert</span> <span class="code-string">"credit"</span> <span class="code-keyword">in</span> explanation.<span class="code-function">lower</span>()  <span class="code-comment"># mentions credit</span>
+    <span class="code-keyword">assert</span> <span class="code-string">"approve"</span> <span class="code-keyword">not</span> <span class="code-keyword">in</span> result[<span class="code-string">"explanation"</span>].<span class="code-function">lower</span>() <span class="code-comment"># no contradiction</span>
+
+<span class="code-comment"># Structural test — output schema validation</span>
+<span class="code-function">REQUIRED_FIELDS</span> = {<span class="code-string">"decision"</span>, <span class="code-string">"confidence"</span>, <span class="code-string">"explanation"</span>, <span class="code-string">"regulation_refs"</span>}
+<span class="code-keyword">def</span> <span class="code-function">test_output_schema</span>():
+    result = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">645</span>, dti=<span class="code-number">0.38</span>)
+    <span class="code-keyword">assert</span> <span class="code-function">REQUIRED_FIELDS</span>.<span class="code-function">issubset</span>(result.<span class="code-function">keys</span>()), <span class="code-string">f"Missing: {REQUIRED_FIELDS - result.keys()}"</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Golden Dataset Testing — Ground Truth & LLM-as-Judge</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Xây dựng golden dataset: tập cases với expected outcomes đã được expert verify</li>
+          <li>Implement LLM-as-Judge để evaluate LoanBot explanations</li>
+          <li>Đo accuracy, precision, recall trên golden dataset</li>
+          <li>Thiết kế continuous evaluation pipeline: chạy tự động sau mỗi model/prompt change</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot Golden Dataset v1</div>
+        <p>Tháng 1/2025, FinTech Corp nhờ 5 cán bộ tín dụng senior review 200 hồ sơ đặc biệt (50 easy approve, 50 easy reject, 50 borderline approve, 50 borderline reject). Đây là <strong>golden dataset</strong> — ground truth để evaluate LoanBot. Mỗi khi team thay đổi prompt, model, hoặc logic: chạy lại 200 cases này và so sánh kết quả với expert judgment. Accuracy drop > 2% → rollback.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Golden Dataset Evaluation)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Literal
+<span class="code-keyword">import</span> json
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">GoldenCase</span>:
+    case_id:        <span class="code-type">str</span>
+    credit_score:   <span class="code-type">int</span>
+    dti_ratio:      <span class="code-type">float</span>
+    employment_months: <span class="code-type">int</span>
+    loan_amount:    <span class="code-type">int</span>
+    expert_decision: <span class="code-type">str</span>   <span class="code-comment"># APPROVE / REJECT / REVIEW</span>
+    expert_notes:   <span class="code-type">str</span>   <span class="code-comment"># why the expert made this decision</span>
+    difficulty:     <span class="code-type">str</span>   <span class="code-comment"># easy / borderline / edge_case</span>
+
+<span class="code-comment"># Sample golden dataset (real dataset = 200 cases)</span>
+GOLDEN_DATASET = [
+    <span class="code-function">GoldenCase</span>(<span class="code-string">"GD-001"</span>, <span class="code-number">720</span>, <span class="code-number">0.32</span>, <span class="code-number">48</span>, <span class="code-number">500_000_000</span>, <span class="code-string">"APPROVE"</span>, <span class="code-string">"Strong profile"</span>, <span class="code-string">"easy"</span>),
+    <span class="code-function">GoldenCase</span>(<span class="code-string">"GD-002"</span>, <span class="code-number">400</span>, <span class="code-number">0.75</span>, <span class="code-number">2</span>,  <span class="code-number">200_000_000</span>, <span class="code-string">"REJECT"</span>,  <span class="code-string">"Multiple failures"</span>, <span class="code-string">"easy"</span>),
+    <span class="code-function">GoldenCase</span>(<span class="code-string">"GD-003"</span>, <span class="code-number">620</span>, <span class="code-number">0.44</span>, <span class="code-number">7</span>,  <span class="code-number">300_000_000</span>, <span class="code-string">"APPROVE"</span>, <span class="code-string">"Just above threshold"</span>, <span class="code-string">"borderline"</span>),
+    <span class="code-function">GoldenCase</span>(<span class="code-string">"GD-004"</span>, <span class="code-number">580</span>, <span class="code-number">0.46</span>, <span class="code-number">12</span>, <span class="code-number">400_000_000</span>, <span class="code-string">"REJECT"</span>,  <span class="code-string">"DTI marginally over"</span>, <span class="code-string">"borderline"</span>),
+    <span class="code-function">GoldenCase</span>(<span class="code-string">"GD-005"</span>, <span class="code-number">650</span>, <span class="code-number">0.43</span>, <span class="code-number">5</span>,  <span class="code-number">250_000_000</span>, <span class="code-string">"REVIEW"</span>,  <span class="code-string">"Employment borderline"</span>, <span class="code-string">"borderline"</span>),
+]
+
+<span class="code-keyword">def</span> <span class="code-function">evaluate_golden_dataset</span>(loanbot_fn, dataset: List[GoldenCase]) -> dict:
+    <span class="code-comment">"""Run LoanBot on golden dataset and compare to expert decisions."""</span>
+    total = <span class="code-function">len</span>(dataset)
+    correct = wrong = <span class="code-number">0</span>
+    errors = []
+    by_difficulty = {<span class="code-string">"easy"</span>: [], <span class="code-string">"borderline"</span>: [], <span class="code-string">"edge_case"</span>: []}
+
+    <span class="code-keyword">for</span> case <span class="code-keyword">in</span> dataset:
+        result = <span class="code-function">loanbot_fn</span>(
+            credit_score=case.credit_score, dti=case.dti_ratio,
+            employment_months=case.employment_months, loan_amount=case.loan_amount
+        )
+        predicted = result.<span class="code-function">get</span>(<span class="code-string">"decision"</span>)
+        is_correct = predicted == case.expert_decision
+        <span class="code-keyword">if</span> is_correct: correct += <span class="code-number">1</span>
+        <span class="code-keyword">else</span>:
+            wrong += <span class="code-number">1</span>
+            errors.<span class="code-function">append</span>({<span class="code-string">"case"</span>: case.case_id, <span class="code-string">"expected"</span>: case.expert_decision,
+                            <span class="code-string">"got"</span>: predicted, <span class="code-string">"difficulty"</span>: case.difficulty})
+        by_difficulty.<span class="code-function">get</span>(case.difficulty, []).<span class="code-function">append</span>(is_correct)
+
+    accuracy = correct / total
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"total"</span>:    total, <span class="code-string">"correct"</span>: correct, <span class="code-string">"wrong"</span>: wrong,
+        <span class="code-string">"accuracy"</span>: accuracy,
+        <span class="code-string">"pass"</span>:     accuracy >= <span class="code-number">0.95</span>,    <span class="code-comment"># 95% minimum to ship</span>
+        <span class="code-string">"errors"</span>:   errors,
+        <span class="code-string">"by_difficulty"</span>: {
+            k: <span class="code-function">sum</span>(v) / <span class="code-function">len</span>(v) <span class="code-keyword">if</span> v <span class="code-keyword">else</span> <span class="code-number">0</span>
+            <span class="code-keyword">for</span> k, v <span class="code-keyword">in</span> by_difficulty.<span class="code-function">items</span>()
+        }
+    }</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Accuracy 95% trên golden dataset nghe có vẻ tốt. Nhưng nếu golden dataset chỉ có 5% borderline cases và LoanBot sai 100% borderline nhưng đúng 100% easy → accuracy vẫn 95%. Vấn đề gì và cách fix?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Đây là vấn đề imbalanced evaluation — overall accuracy che giấu poor performance trên important subset. Fix: (1) <strong>Stratified accuracy</strong> — report accuracy riêng cho từng difficulty level; (2) Đặt minimum threshold riêng: easy ≥ 99%, borderline ≥ 90%, edge_case ≥ 80%; (3) Weight borderline cases cao hơn trong overall metric (chúng represent business risk nhiều hơn); (4) F1-score thay vì accuracy để handle class imbalance. Golden dataset GD-001 đến GD-005 ở trên đã có 3 borderline cases trong 5 — đó là tỷ lệ tốt.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Property-Based Testing — Invariants Không Bao Giờ Được Vi Phạm</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Định nghĩa 6 invariants cốt lõi của LoanBot không được vi phạm</li>
+          <li>Implement property tests với Hypothesis (Python library)</li>
+          <li>Detect hallucinations: LLM tự bịa số không có trong input</li>
+          <li>Test monotonicity: credit_score cao hơn → không thể có decision tệ hơn</li>
+        </ul>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Property Vi Phạm Nguy Hiểm Nhất: Score Inversion</div>
+        <p>Scenario thực tế: LoanBot với prompt mới approve FC-A (score 580, DTI 58%) nhưng reject FC-B (score 680, DTI 35%). Đây là <strong>monotonicity violation</strong> — người có profile tốt hơn bị từ chối, người tệ hơn được duyệt. Về mặt business và pháp lý, đây là disaster: EU AI Act §10 yêu cầu consistent, non-discriminatory decisions; nếu phát hiện sau khi deploy → phải cancel tất cả decisions trong period đó và re-process thủ công.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Property-Based Tests — Core Invariants)</span>
+        <pre><code><span class="code-keyword">from</span> hypothesis <span class="code-keyword">import</span> given, strategies <span class="code-keyword">as</span> st
+<span class="code-keyword">import</span> re
+
+<span class="code-comment"># INVARIANT 1: Output schema luôn đúng</span>
+<span class="code-keyword">@given</span>(
+    credit_score=st.<span class="code-function">integers</span>(<span class="code-number">300</span>, <span class="code-number">850</span>),
+    dti=st.<span class="code-function">floats</span>(<span class="code-number">0.0</span>, <span class="code-number">1.0</span>),
+    employment=st.<span class="code-function">integers</span>(<span class="code-number">0</span>, <span class="code-number">120</span>)
+)
+<span class="code-keyword">def</span> <span class="code-function">test_output_schema_always_valid</span>(credit_score, dti, employment):
+    result = loanbot.<span class="code-function">evaluate</span>(credit_score=credit_score, dti=dti, employment_months=employment)
+    <span class="code-keyword">assert</span> result[<span class="code-string">"decision"</span>] <span class="code-keyword">in</span> {<span class="code-string">"APPROVE"</span>, <span class="code-string">"REJECT"</span>, <span class="code-string">"REVIEW"</span>}
+    <span class="code-keyword">assert</span> <span class="code-number">0.0</span> <= result[<span class="code-string">"confidence"</span>] <= <span class="code-number">1.0</span>
+    <span class="code-keyword">assert</span> <span class="code-function">isinstance</span>(result[<span class="code-string">"explanation"</span>], <span class="code-type">str</span>)
+    <span class="code-keyword">assert</span> <span class="code-function">len</span>(result[<span class="code-string">"regulation_refs"</span>]) > <span class="code-number">0</span>
+
+<span class="code-comment"># INVARIANT 2: Blacklisted luôn REJECT</span>
+<span class="code-keyword">@given</span>(credit_score=st.<span class="code-function">integers</span>(<span class="code-number">300</span>, <span class="code-number">850</span>))
+<span class="code-keyword">def</span> <span class="code-function">test_blacklist_always_rejects</span>(credit_score):
+    <span class="code-comment"># Không quan trọng score bao nhiêu — blacklisted → REJECT</span>
+    result = loanbot.<span class="code-function">evaluate</span>(credit_score=credit_score, blacklisted=<span class="code-keyword">True</span>)
+    <span class="code-keyword">assert</span> result[<span class="code-string">"decision"</span>] == <span class="code-string">"REJECT"</span>
+
+<span class="code-comment"># INVARIANT 3: Monotonicity — better profile ≥ better or equal decision</span>
+<span class="code-function">DECISION_RANK</span> = {<span class="code-string">"APPROVE"</span>: <span class="code-number">2</span>, <span class="code-string">"REVIEW"</span>: <span class="code-number">1</span>, <span class="code-string">"REJECT"</span>: <span class="code-number">0</span>}
+<span class="code-keyword">def</span> <span class="code-function">test_monotonicity</span>():
+    <span class="code-comment"># Higher score, lower DTI should never get worse decision</span>
+    base    = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">600</span>, dti=<span class="code-number">0.40</span>)
+    better  = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">700</span>, dti=<span class="code-number">0.30</span>)
+    <span class="code-keyword">assert</span> DECISION_RANK[better[<span class="code-string">"decision"</span>]] >= DECISION_RANK[base[<span class="code-string">"decision"</span>]], \
+        <span class="code-string">f"Monotonicity violation: {base['decision']} → {better['decision']}"</span>
+
+<span class="code-comment"># INVARIANT 4: Không hallucinate numbers</span>
+<span class="code-keyword">def</span> <span class="code-function">test_no_hallucinated_numbers</span>():
+    <span class="code-comment"># LoanBot không được tự bịa ra loan amounts không có trong input</span>
+    result = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">620</span>, loan_amount=<span class="code-number">300_000_000</span>)
+    explanation = result[<span class="code-string">"explanation"</span>]
+    <span class="code-comment"># Extract any numbers in explanation</span>
+    numbers = [<span class="code-function">int</span>(n.<span class="code-function">replace</span>(<span class="code-string">","</span>, <span class="code-string">""</span>)) <span class="code-keyword">for</span> n <span class="code-keyword">in</span> re.<span class="code-function">findall</span>(<span class="code-string">r'\d[\d,]+'</span>, explanation)]
+    <span class="code-comment"># 300,000,000 should appear but not invented numbers like 400,000,000</span>
+    <span class="code-keyword">for</span> num <span class="code-keyword">in</span> numbers:
+        <span class="code-keyword">if</span> num > <span class="code-number">1_000_000</span>:   <span class="code-comment"># significant amounts</span>
+            <span class="code-keyword">assert</span> abs(num - <span class="code-number">300_000_000</span>) < <span class="code-number">1_000_000</span>, <span class="code-string">f"Hallucinated amount: {num}"</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Regression & Contract Testing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement regression tests: phát hiện khi thay đổi mới phá vỡ existing behavior</li>
+          <li>Contract testing for tools: đảm bảo CIC API interface không thay đổi unexpectedly</li>
+          <li>Snapshot testing: lock in known-good outputs và alert khi drift</li>
+          <li>Build CI/CD gate: PR không được merge nếu regression tests fail</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 185" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot CI/CD Testing Pipeline — từ git push đến production với automated test gates</title>
+          <defs>
+            <marker id="arrCI" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#eab308"/>
+            </marker>
+          </defs>
+          <rect width="760" height="185" fill="#422006" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fefce8">LoanBot CI/CD Quality Gate Pipeline</text>
+
+          <!-- Stage 1: Commit -->
+          <rect x="15" y="38" width="95" height="50" fill="#713f12" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="62" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#fef08a">Git Push</text>
+          <text x="62" y="72" text-anchor="middle" font-size="8" fill="#fde047">Prompt/code</text>
+          <text x="62" y="82" text-anchor="middle" font-size="8" fill="#fde047">change</text>
+
+          <line x1="110" y1="63" x2="130" y2="63" stroke="#eab308" stroke-width="1.5" marker-end="url(#arrCI)"/>
+
+          <!-- Stage 2: Unit -->
+          <rect x="132" y="38" width="95" height="50" fill="#065f46" rx="8" stroke="#6ee7b7"/>
+          <text x="179" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">Unit Tests</text>
+          <text x="179" y="67" text-anchor="middle" font-size="8" fill="#6ee7b7">~500 tests</text>
+          <text x="179" y="78" text-anchor="middle" font-size="8" fill="#6ee7b7">~30s</text>
+          <text x="179" y="90" text-anchor="middle" font-size="7" fill="#34d399">Schema + Invariants</text>
+
+          <line x1="227" y1="63" x2="247" y2="63" stroke="#eab308" stroke-width="1.5" marker-end="url(#arrCI)"/>
+
+          <!-- Stage 3: Integration -->
+          <rect x="249" y="38" width="95" height="50" fill="#1e3a5f" rx="8" stroke="#93c5fd"/>
+          <text x="296" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#bfdbfe">Integration</text>
+          <text x="296" y="67" text-anchor="middle" font-size="8" fill="#93c5fd">~150 tests</text>
+          <text x="296" y="78" text-anchor="middle" font-size="8" fill="#93c5fd">~5 min</text>
+          <text x="296" y="90" text-anchor="middle" font-size="7" fill="#60a5fa">Golden Dataset</text>
+
+          <line x1="344" y1="63" x2="364" y2="63" stroke="#eab308" stroke-width="1.5" marker-end="url(#arrCI)"/>
+
+          <!-- Stage 4: Regression -->
+          <rect x="366" y="38" width="95" height="50" fill="#312e81" rx="8" stroke="#a5b4fc"/>
+          <text x="413" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#c7d2fe">Regression</text>
+          <text x="413" y="67" text-anchor="middle" font-size="8" fill="#a5b4fc">Snapshot diff</text>
+          <text x="413" y="78" text-anchor="middle" font-size="8" fill="#a5b4fc">~10 min</text>
+          <text x="413" y="90" text-anchor="middle" font-size="7" fill="#818cf8">Detect drift</text>
+
+          <line x1="461" y1="63" x2="481" y2="63" stroke="#eab308" stroke-width="1.5" marker-end="url(#arrCI)"/>
+
+          <!-- Stage 5: E2E -->
+          <rect x="483" y="38" width="95" height="50" fill="#4c1d95" rx="8" stroke="#c4b5fd"/>
+          <text x="530" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#ddd6fe">E2E Tests</text>
+          <text x="530" y="67" text-anchor="middle" font-size="8" fill="#c4b5fd">Full loan flow</text>
+          <text x="530" y="78" text-anchor="middle" font-size="8" fill="#c4b5fd">~20 min</text>
+          <text x="530" y="90" text-anchor="middle" font-size="7" fill="#a78bfa">FC-001 → FC-004</text>
+
+          <line x1="578" y1="63" x2="598" y2="63" stroke="#eab308" stroke-width="1.5" marker-end="url(#arrCI)"/>
+
+          <!-- Stage 6: Deploy -->
+          <rect x="600" y="38" width="95" height="50" fill="#065f46" rx="8" stroke="#34d399" stroke-width="2"/>
+          <text x="647" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">✅ Deploy</text>
+          <text x="647" y="67" text-anchor="middle" font-size="8" fill="#6ee7b7">Staging first</text>
+          <text x="647" y="78" text-anchor="middle" font-size="8" fill="#6ee7b7">then Prod</text>
+          <text x="647" y="90" text-anchor="middle" font-size="7" fill="#34d399">Blue-Green</text>
+
+          <!-- Fail paths -->
+          <rect x="15" y="108" width="730" height="65" fill="#1a0a00" rx="8" stroke="#fde047" stroke-width="1"/>
+          <text x="380" y="126" text-anchor="middle" font-size="9" font-weight="700" fill="#fef08a">FAIL GATES — Khi nào block deployment?</text>
+          <text x="30" y="142" font-size="8" fill="#fde047">Unit fail → Block PR merge</text>
+          <text x="30" y="154" font-size="8" fill="#fde047">Integration fail → Block PR merge</text>
+          <text x="30" y="165" font-size="8" fill="#fde047">Regression drift &gt;2% → Block PR merge + alert team</text>
+          <text x="260" y="142" font-size="8" fill="#fde047">E2E fail → Block staging deploy</text>
+          <text x="260" y="154" font-size="8" fill="#fde047">Staging SLA breach → Block prod deploy</text>
+          <text x="260" y="165" font-size="8" fill="#fde047">Bias metric &gt;1.20 → Auto-rollback</text>
+          <text x="530" y="142" font-size="8" fill="#fde047">Prod error rate &gt;0.1% → Auto-rollback</text>
+          <text x="530" y="154" font-size="8" fill="#fde047">P99 &gt;5s for 5min → Circuit breaker</text>
+          <text x="530" y="165" font-size="8" fill="#fde047">Manual override → CAIO approval required</text>
+        </svg>
+        <div class="diagram-title">Hình 2: LoanBot CI/CD Quality Gate Pipeline — 5 test stages trước khi deploy. Mỗi stage có explicit fail criteria. Regression drift &gt;2% và bias metric &gt;1.20 tự động block merge.</div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Contract Testing cho Tools</div>
+        <p>LoanBot dùng <code>query_cic()</code> để lấy credit score. Nếu CIC API thay đổi response format (thêm field, đổi key name) → LoanBot parse sai → quyết định sai. <strong>Contract test</strong> verify interface giữa LoanBot và external tools: (1) Request format đúng; (2) Response schema được validate; (3) Error cases được handle. Chạy contract tests riêng với mock CIC server → phát hiện breaking changes trước khi integrate.</p>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Team thay đổi system prompt để LoanBot giải thích rõ hơn. Regression test baseline chạy trước khi change. Sau khi change, 3/200 golden cases đổi từ APPROVE → REVIEW. Quyết định của bạn là gì?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> 3/200 = 1.5% change — dưới threshold 2%. Nhưng cần investigate: (1) 3 cases này là borderline hay easy? Nếu easy cases thay đổi → red flag (stable cases không nên thay đổi do prompt explanation change); (2) Direction có hợp lý không? APPROVE → REVIEW là conservative (không reject loans that should be approved) — có thể acceptable; (3) Query những loan officers về 3 cases này — nếu expert đồng ý REVIEW là hợp lý hơn APPROVE → có thể accept change. (4) Nếu có bất kỳ APPROVE → REJECT changes → hard block, cần investigation sâu hơn. Decision: investigate trước khi merge, không auto-approve dù dưới threshold.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Chaos Engineering for AI Agents</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế chaos experiments cho LoanBot: cố tình gây lỗi để test resilience</li>
+          <li>Fault injection: timeout, partial response, malformed JSON từ LLM</li>
+          <li>Test graceful degradation: LoanBot phải hoạt động khi API down 30 giây</li>
+          <li>Gameday exercise: full simulated outage drill với toàn team</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot Gameday — Tháng 2/2026</div>
+        <p>FinTech Corp tổ chức <strong>Gameday</strong> — buổi tập disaster recovery với LoanBot:</p>
+        <ol style="margin-top:8px;">
+          <li><strong>09:00</strong> — Inject API timeout 30% requests trong 10 phút: LoanBot có switch sang backup pool không?</li>
+          <li><strong>09:30</strong> — Simulate CIC API down: LoanBot có queue requests hay crash không?</li>
+          <li><strong>10:00</strong> — Inject malformed JSON response 10% cases: LoanBot có parse error gracefully không?</li>
+          <li><strong>10:30</strong> — Full primary API outage: degraded mode kích hoạt trong &lt;60 giây không?</li>
+          <li><strong>11:00</strong> — Recovery: drain queue, verify all queued decisions processed correctly</li>
+        </ol>
+        <p>Kết quả: team phát hiện 2 bugs trong recovery code và fix trước khi xảy ra real outage.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Chaos Test Suite)</span>
+        <pre><code><span class="code-keyword">import</span> random, time
+<span class="code-keyword">from</span> unittest.mock <span class="code-keyword">import</span> patch, MagicMock
+<span class="code-keyword">from</span> contextlib <span class="code-keyword">import</span> contextmanager
+
+<span class="code-keyword">@contextmanager</span>
+<span class="code-keyword">def</span> <span class="code-function">inject_api_timeout</span>(failure_rate: float = <span class="code-number">0.3</span>):
+    <span class="code-comment">"""Inject random timeouts into Claude API calls."""</span>
+    original_call = anthropic_client.messages.create
+
+    <span class="code-keyword">def</span> <span class="code-function">flaky_call</span>(*args, **kwargs):
+        <span class="code-keyword">if</span> random.<span class="code-function">random</span>() < failure_rate:
+            <span class="code-keyword">raise</span> <span class="code-function">TimeoutError</span>(<span class="code-string">"Injected timeout for chaos testing"</span>)
+        <span class="code-keyword">return</span> <span class="code-function">original_call</span>(*args, **kwargs)
+
+    <span class="code-keyword">with</span> <span class="code-function">patch</span>.<span class="code-function">object</span>(anthropic_client.messages, <span class="code-string">"create"</span>, side_effect=flaky_call):
+        <span class="code-keyword">yield</span>
+
+<span class="code-keyword">def</span> <span class="code-function">test_resilience_under_timeout</span>():
+    <span class="code-comment">"""LoanBot phải xử lý được 30% API timeouts với retry logic."""</span>
+    test_apps = [(f<span class="code-string">"CHAOS-{i:03d}"</span>, <span class="code-number">620</span> + i, <span class="code-number">0.35</span>) <span class="code-keyword">for</span> i <span class="code-keyword">in</span> <span class="code-function">range</span>(<span class="code-number">20</span>)]
+    success_count = <span class="code-number">0</span>
+
+    <span class="code-keyword">with</span> <span class="code-function">inject_api_timeout</span>(failure_rate=<span class="code-number">0.3</span>):
+        <span class="code-keyword">for</span> app_id, score, dti <span class="code-keyword">in</span> test_apps:
+            <span class="code-keyword">try</span>:
+                result = loanbot.<span class="code-function">evaluate</span>(credit_score=score, dti=dti)
+                <span class="code-keyword">if</span> result[<span class="code-string">"decision"</span>] <span class="code-keyword">in</span> {<span class="code-string">"APPROVE"</span>, <span class="code-string">"REJECT"</span>, <span class="code-string">"REVIEW"</span>}:
+                    success_count += <span class="code-number">1</span>
+            <span class="code-keyword">except</span> Exception <span class="code-keyword">as</span> e:
+                <span class="code-function">print</span>(<span class="code-string">f"  Failed: {app_id} — {e}"</span>)
+
+    <span class="code-comment"># With 30% timeout rate and retry, expect ≥90% success</span>
+    success_rate = success_count / <span class="code-function">len</span>(test_apps)
+    <span class="code-keyword">assert</span> success_rate >= <span class="code-number">0.90</span>, <span class="code-string">f"Resilience failure: {success_rate:.1%} (expected ≥90%)"</span>
+    <span class="code-function">print</span>(<span class="code-string">f"✅ Chaos test passed: {success_rate:.1%} success rate under 30% timeout"</span>)
+
+<span class="code-keyword">def</span> <span class="code-function">test_malformed_response_handling</span>():
+    <span class="code-comment">"""LoanBot phải handle khi LLM trả về JSON không hợp lệ."""</span>
+    bad_responses = [
+        <span class="code-string">"{invalid json"</span>,           <span class="code-comment"># parse error</span>
+        <span class="code-string">'{"decision": "MAYBE"}'</span>,   <span class="code-comment"># invalid decision value</span>
+        <span class="code-string">""</span>,                         <span class="code-comment"># empty response</span>
+        <span class="code-string">'{"confidence": 1.5}'</span>,      <span class="code-comment"># out-of-range</span>
+    ]
+    <span class="code-keyword">for</span> bad_resp <span class="code-keyword">in</span> bad_responses:
+        <span class="code-comment"># LoanBot must not crash — return fallback or queue for human review</span>
+        <span class="code-keyword">with</span> <span class="code-function">patch</span>(<span class="code-string">"loanbot.call_llm"</span>, return_value=bad_resp):
+            result = loanbot.<span class="code-function">evaluate</span>(credit_score=<span class="code-number">620</span>, dti=<span class="code-number">0.35</span>)
+            <span class="code-keyword">assert</span> result <span class="code-keyword">is</span> <span class="code-keyword">not</span> <span class="code-keyword">None</span>                          <span class="code-comment"># no crash</span>
+            <span class="code-keyword">assert</span> result.<span class="code-function">get</span>(<span class="code-string">"decision"</span>) == <span class="code-string">"REVIEW"</span>          <span class="code-comment"># fallback to human review</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 20</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m20-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m20-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m20-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Testing Pyramid</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mô hình phân tầng tests: nhiều unit tests ở đáy, ít E2E tests ở đỉnh. AI agents thêm Chaos tier.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Deterministic Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test có output chính xác, lặp lại được — ví dụ: blacklisted=True → REJECT luôn luôn.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Probabilistic Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test verify properties của output thay vì exact string — dùng cho LLM output thay đổi mỗi lần.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Golden Dataset</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập cases có expected outcomes đã được domain expert verify — ground truth để evaluate AI system.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM-as-Judge</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dùng LLM khác để evaluate output của LoanBot — cho phép check semantic correctness thay vì string match.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Property-Based Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test invariants (điều luôn phải đúng) thay vì specific inputs — tìm ra edge cases tự động.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Monotonicity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Invariant: better input → not worse output. Credit score cao hơn không bao giờ cho decision tệ hơn.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hallucination Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Verify LLM không tự bịa ra số liệu, tên, hoặc thông tin không có trong input.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Regression Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test phát hiện khi thay đổi mới phá vỡ existing behavior — so sánh với baseline snapshot.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Contract Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Verify interface giữa LoanBot và external tools (CIC, gateway) không thay đổi unexpectedly.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Snapshot Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lưu known-good output làm baseline, alert khi future output drift quá ngưỡng cho phép.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chaos Engineering</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cố tình inject failures vào hệ thống để test resilience — phát hiện weaknesses trước real incidents.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fault Injection</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kỹ thuật cố tình gây lỗi: timeout, network failure, malformed response — trong controlled environment.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Gameday</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Buổi tập disaster recovery có kế hoạch — toàn team thực hành xử lý various failure scenarios.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Quality Gate</td><td style="padding:8px 12px;">Checkpoint tự động trong CI/CD: block deployment nếu test failure, regression drift, hoặc bias violation.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module19/index.html" class="btn btn-outline">← Module 19: AI Compliance</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 20 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

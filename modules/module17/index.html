@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 17 — Multi-Modal Agents & Document Intelligence</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m17-primary: #075985;
+      --m17-accent:  #0ea5e9;
+      --m17-light:   #f0f9ff;
+      --m17-border:  #7dd3fc;
+    }
+    .lesson-header { background: linear-gradient(135deg, #082f49 0%, #075985 50%, #0ea5e9 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #e0f2fe; }
+    .lesson-header p { color: #7dd3fc; }
+    .sidebar-nav a.active { background: var(--m17-light); border-left: 3px solid var(--m17-accent); color: var(--m17-primary); }
+    .sidebar-nav a:hover { color: var(--m17-primary); }
+
+    .doc-type-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin: var(--space-4) 0;
+    }
+    .doc-card {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--m17-border);
+      background: var(--m17-light); text-align: center;
+    }
+    .doc-card .doc-icon { font-size: 2rem; margin-bottom: var(--space-2); }
+    .doc-card h4 { font-size: .85rem; font-weight: 700; color: var(--m17-primary); margin-bottom: var(--space-1); }
+    .doc-card p  { font-size: .75rem; color: var(--text-muted); margin: 0; }
+    .doc-card .accuracy { font-size: .75rem; font-weight: 700; color: var(--m17-accent); margin-top: 4px; }
+
+    .pipeline-flow {
+      display: flex; gap: 0; margin: var(--space-4) 0; overflow-x: auto;
+    }
+    .pipe-step {
+      display: flex; flex-direction: column; align-items: center; min-width: 120px;
+    }
+    .pipe-box {
+      padding: var(--space-3); border-radius: var(--radius); text-align: center;
+      font-size: .78rem; font-weight: 600; width: 100%;
+    }
+    .pipe-arrow {
+      display: flex; align-items: center; padding: 0 6px;
+      color: var(--m17-accent); font-size: 1.2rem; align-self: center;
+    }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m17-light);color:var(--m17-primary);border-color:var(--m17-border);">MODULE 17</div>
+    <div class="sidebar-title">Multi-Modal Agents</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Vision API Fundamentals</a>
+      <a href="#lesson2">L2. Document Intelligence</a>
+      <a href="#lesson3">L3. Bank Statement Processing</a>
+      <a href="#lesson4">L4. Property Document Analysis</a>
+      <a href="#lesson5">L5. Multi-Modal Pipeline & QC</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m17-accent);">📝 Quiz Module 17</a>
+      <a href="lab.ipynb" download style="color:var(--m17-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module16/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 16: Prompt Eng.</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 17 · Tuần 46–48</span>
+      <h1>📄 Multi-Modal Agents & Document Intelligence</h1>
+      <p>LoanBot xử lý 50,000 hồ sơ/tháng — mỗi hồ sơ kèm 5–12 documents: payslip, bank statements, property deed, tax certificates. Trước đây: nhân viên đọc tay 3–5 ngày. Với multi-modal AI: extract, verify, cross-check tự động trong 90 giây.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>📄 Document-first design</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Vision API Fundamentals — Claude Nhìn Thấy Gì?</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu Claude Vision API: image_url, base64, document types supported</li>
+          <li>Phân biệt OCR vs Visual Understanding — khi nào dùng cái nào</li>
+          <li>Gửi ảnh/PDF cho Claude và nhận structured data extraction</li>
+          <li>Nắm các giới hạn: max image size, resolution, supported formats</li>
+        </ul>
+      </div>
+
+      <p>LoanBot v3.3 bổ sung <strong>Document Intelligence layer</strong> — khả năng đọc và hiểu documents thay vì chỉ nhận dữ liệu structured từ APIs. Thay vì cần integration với 8 external data providers, LoanBot có thể "nhìn" trực tiếp vào PDF payslip, ảnh sổ tiết kiệm, và scan của property deed.</p>
+
+      <div class="doc-type-grid">
+        <div class="doc-card">
+          <div class="doc-icon">💰</div>
+          <h4>Payslip / Phiếu lương</h4>
+          <p>Extract: tên, CCCD, employer, net income, gross income, allowances, deductions</p>
+          <div class="accuracy">Accuracy: 97.2%</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-icon">🏦</div>
+          <h4>Bank Statement / Sao kê</h4>
+          <p>Extract: 12-month transactions, average balance, recurring deposits, overdraft patterns</p>
+          <div class="accuracy">Accuracy: 94.8%</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-icon">🏠</div>
+          <h4>Property Deed / Sổ đỏ</h4>
+          <p>Extract: parcel ID, area (m²), owner names, address, issue date, encumbrances</p>
+          <div class="accuracy">Accuracy: 96.1%</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-icon">📋</div>
+          <h4>Tax Certificate / Thuế thu nhập</h4>
+          <p>Extract: annual income, tax paid, employer TIN, income period, withholding</p>
+          <div class="accuracy">Accuracy: 95.4%</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-icon">🪪</div>
+          <h4>CCCD / Căn cước công dân</h4>
+          <p>Extract: full name, DOB, hometown, ID number, issue date, expiry, address</p>
+          <div class="accuracy">Accuracy: 99.1%</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-icon">📑</div>
+          <h4>Loan Contract / Hợp đồng vay</h4>
+          <p>Extract: loan amount, term, rate, collateral clause, parties, signatures</p>
+          <div class="accuracy">Accuracy: 93.7%</div>
+        </div>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Vision > OCR</div>
+        <p>Traditional OCR chỉ extract text — không hiểu context. Claude Vision <em>hiểu</em> document structure: biết "Net Income" là số cuối cùng trong cột lương, không phải "Tax Deduction". Với payslip có format khác nhau từ hàng nghìn employer khác nhau, rule-based OCR fail 23% cases. Claude Vision generalize tốt hơn vì nó reason về layout, label, và context.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Claude Vision API)</span>
+        <pre><code><span class="code-keyword">import</span> anthropic, base64, pathlib
+
+client = anthropic.<span class="code-function">Anthropic</span>()
+
+<span class="code-keyword">def</span> <span class="code-function">extract_from_document</span>(doc_path: <span class="code-type">str</span>, doc_type: <span class="code-type">str</span>) -> dict:
+    <span class="code-comment">"""Extract structured data từ document image/PDF."""</span>
+    <span class="code-comment"># Load và encode document</span>
+    raw   = pathlib.<span class="code-function">Path</span>(doc_path).<span class="code-function">read_bytes</span>()
+    b64   = base64.<span class="code-function">standard_b64encode</span>(raw).<span class="code-function">decode</span>(<span class="code-string">"utf-8"</span>)
+    media = <span class="code-string">"image/jpeg"</span> <span class="code-keyword">if</span> doc_path.<span class="code-function">endswith</span>(<span class="code-string">('.jpg','.jpeg'</span>)) <span class="code-keyword">else</span> <span class="code-string">"application/pdf"</span>
+
+    <span class="code-comment"># Schema cho từng doc type</span>
+    schemas = {
+        <span class="code-string">"payslip"</span>: <span class="code-string">"""{"employee_name": str, "employer": str, "id_number": str,
+            "period": "YYYY-MM", "gross_income": int, "net_income": int,
+            "total_deductions": int, "allowances": int}"""</span>,
+        <span class="code-string">"bank_statement"</span>: <span class="code-string">"""{"account_number": str, "account_holder": str,
+            "period_months": int, "avg_monthly_balance": int,
+            "avg_monthly_inflow": int, "avg_monthly_outflow": int,
+            "overdraft_incidents": int, "largest_transaction": int}"""</span>,
+    }
+
+    response = client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-sonnet-4-6"</span>,  <span class="code-comment"># sonnet for vision tasks</span>
+        max_tokens=<span class="code-number">1024</span>,
+        messages=[{
+            <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+            <span class="code-string">"content"</span>: [
+                {
+                    <span class="code-string">"type"</span>:       <span class="code-string">"image"</span>,
+                    <span class="code-string">"source"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"base64"</span>, <span class="code-string">"media_type"</span>: media, <span class="code-string">"data"</span>: b64}
+                },
+                {
+                    <span class="code-string">"type"</span>: <span class="code-string">"text"</span>,
+                    <span class="code-string">"text"</span>: f<span class="code-string">"""Extract data từ {doc_type} này.
+Trả về ONLY valid JSON theo schema:
+{schemas.get(doc_type, '{}')}
+
+Nếu field không tìm thấy → null. Amounts in VNĐ (integers)."""</span>
+                }
+            ]
+        }]
+    )
+    <span class="code-keyword">import</span> json
+    <span class="code-keyword">return</span> json.<span class="code-function">loads</span>(response.content[<span class="code-number">0</span>].text)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao dùng claude-sonnet-4-6 thay vì claude-haiku-4-5 cho vision tasks?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Vision tasks — đặc biệt document extraction — yêu cầu model phải reason về layout, font, context, và số liệu tài chính phức tạp. Sonnet có better visual understanding, ít hallucinate hơn với blurry scans, và handle các payslip format kỳ lạ tốt hơn. Haiku nhanh hơn và rẻ hơn nhưng accuracy thấp hơn ~8% trên các documents phức tạp. LoanBot dùng haiku cho CCCD verification (structured, always clear), sonnet cho payslip/bank statement (complex, variable format).
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Document Intelligence Architecture — Pipeline Xử Lý Tài Liệu</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế Document Intelligence Pipeline cho LoanBot: Ingest → Classify → Extract → Validate → Cross-check</li>
+          <li>Implement document classifier — tự động nhận biết loại document</li>
+          <li>Xây dựng confidence scoring cho mỗi extracted field</li>
+          <li>Trigger HITL khi document quality thấp hoặc extraction confidence &lt; 0.80</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Document Intelligence Pipeline — LoanBot v3.3 document processing flow</title>
+          <defs>
+            <marker id="arrDoc" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#0ea5e9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#e0f2fe">LoanBot v3.3 — Document Intelligence Pipeline</text>
+
+          <!-- Stage 1: Ingest -->
+          <rect x="12" y="38" width="95" height="60" fill="#1e293b" rx="8"/>
+          <text x="59" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">① Ingest</text>
+          <text x="59" y="72" text-anchor="middle" font-size="7.5" fill="#94a3b8">Upload PDF/JPG</text>
+          <text x="59" y="84" text-anchor="middle" font-size="7.5" fill="#94a3b8">Validate format</text>
+          <text x="59" y="96" text-anchor="middle" font-size="7.5" fill="#94a3b8">OCR pre-check</text>
+
+          <line x1="107" y1="68" x2="135" y2="68" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrDoc)"/>
+
+          <!-- Stage 2: Classify -->
+          <rect x="137" y="38" width="95" height="60" fill="#075985" rx="8"/>
+          <text x="184" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#e0f2fe">② Classify</text>
+          <text x="184" y="72" text-anchor="middle" font-size="7.5" fill="#7dd3fc">Detect doc type</text>
+          <text x="184" y="84" text-anchor="middle" font-size="7.5" fill="#7dd3fc">Payslip/Bank/</text>
+          <text x="184" y="96" text-anchor="middle" font-size="7.5" fill="#7dd3fc">Deed/CCCD/Tax</text>
+
+          <line x1="232" y1="68" x2="260" y2="68" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrDoc)"/>
+
+          <!-- Stage 3: Extract -->
+          <rect x="262" y="38" width="95" height="60" fill="#1e3a8a" rx="8"/>
+          <text x="309" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#dbeafe">③ Extract</text>
+          <text x="309" y="72" text-anchor="middle" font-size="7.5" fill="#93c5fd">Claude Vision</text>
+          <text x="309" y="84" text-anchor="middle" font-size="7.5" fill="#93c5fd">Structured JSON</text>
+          <text x="309" y="96" text-anchor="middle" font-size="7.5" fill="#93c5fd">+ confidence</text>
+
+          <line x1="357" y1="68" x2="385" y2="68" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrDoc)"/>
+
+          <!-- Stage 4: Validate -->
+          <rect x="387" y="38" width="95" height="60" fill="#1e293b" rx="8" stroke="#0ea5e9" stroke-width="1"/>
+          <text x="434" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">④ Validate</text>
+          <text x="434" y="72" text-anchor="middle" font-size="7.5" fill="#94a3b8">Format checks</text>
+          <text x="434" y="84" text-anchor="middle" font-size="7.5" fill="#94a3b8">Range checks</text>
+          <text x="434" y="96" text-anchor="middle" font-size="7.5" fill="#94a3b8">Consistency</text>
+
+          <line x1="482" y1="68" x2="510" y2="68" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrDoc)"/>
+
+          <!-- Stage 5: Cross-check -->
+          <rect x="512" y="38" width="100" height="60" fill="#065f46" rx="8"/>
+          <text x="562" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">⑤ Cross-check</text>
+          <text x="562" y="72" text-anchor="middle" font-size="7.5" fill="#6ee7b7">vs Application</text>
+          <text x="562" y="84" text-anchor="middle" font-size="7.5" fill="#6ee7b7">vs Other docs</text>
+          <text x="562" y="96" text-anchor="middle" font-size="7.5" fill="#6ee7b7">Discrepancy flag</text>
+
+          <line x1="612" y1="68" x2="640" y2="68" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrDoc)"/>
+
+          <!-- Stage 6: Decision -->
+          <rect x="642" y="38" width="108" height="60" fill="#312e81" rx="8"/>
+          <text x="696" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#e0e7ff">⑥ Decision</text>
+          <text x="696" y="69" text-anchor="middle" font-size="7.5" fill="#a5b4fc">OK → proceed</text>
+          <text x="696" y="81" text-anchor="middle" font-size="7.5" fill="#a5b4fc">WARN → flag</text>
+          <text x="696" y="93" text-anchor="middle" font-size="7.5" fill="#a5b4fc">FAIL → HITL</text>
+
+          <!-- HITL fallback -->
+          <line x1="696" y1="98" x2="696" y2="140" stroke="#dc2626" stroke-width="1.5"/>
+          <rect x="600" y="140" width="190" height="28" fill="#7f1d1d" rx="6"/>
+          <text x="695" y="159" text-anchor="middle" font-size="9" fill="#fca5a5">HITL: Loan Officer reviews manually</text>
+
+          <!-- Quality thresholds -->
+          <rect x="12" y="115" width="580" height="70" fill="#1e293b" rx="8"/>
+          <text x="302" y="134" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Quality Thresholds (per field)</text>
+          <text x="30" y="152" font-size="8" fill="#94a3b8">• confidence ≥ 0.95 → AUTO ACCEPT</text>
+          <text x="30" y="166" font-size="8" fill="#94a3b8">• confidence 0.80–0.95 → FLAG + human review flag</text>
+          <text x="200" y="152" font-size="8" fill="#94a3b8">• confidence 0.60–0.80 → REQUEST re-upload</text>
+          <text x="200" y="166" font-size="8" fill="#94a3b8">• confidence &lt; 0.60 → HITL mandatory</text>
+          <text x="410" y="152" font-size="8" fill="#94a3b8">• ANY critical field missing → HITL</text>
+          <text x="410" y="166" font-size="8" fill="#94a3b8">• Discrepancy &gt;10% vs application → HITL</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Document Intelligence Pipeline — 6 stages từ document upload đến decision. Confidence thresholds quyết định AUTO ACCEPT vs FLAG vs HITL</div>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Document Tampering Detection</div>
+        <p>LoanBot phải detect các documents bị chỉnh sửa. Red flags: font inconsistency trong cùng document, số liệu không hợp lý (salary 200M/tháng nhưng DTI = 0.1%), metadata mismatch giữa PDF creation date và document date, và rounded numbers (income = 20,000,000 đúng VNĐ thay vì 19,800,000). Khi phát hiện → không tự động reject mà trigger HITL Level 2 với reason = "potential_document_tampering".</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Bank Statement Processing — 12-Tháng Transaction Analysis</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Extract 12-month transaction history từ bank statement PDFs</li>
+          <li>Identify income patterns: salary deposits, freelance, business revenue</li>
+          <li>Detect risk signals: overdrafts, gambling transactions, suspicious transfers</li>
+          <li>Calculate verified average monthly income để so sánh với declared income</li>
+        </ul>
+      </div>
+
+      <p>Bank statement là nguồn dữ liệu giàu thông tin nhất — không chỉ thu nhập mà còn lifestyle, spending habits, và risk behaviors. FC-2024-004 (Phạm Thị Dung) nộp sao kê 12 tháng từ VCB. LoanBot phải extract và analyze toàn bộ 200+ transactions.</p>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FC-2024-004 Bank Statement Analysis</div>
+        <p><strong>Input:</strong> 12-page VCB bank statement PDF (200+ transactions), tháng 7/2025 – 6/2026.<br>
+        <strong>Expected extraction:</strong></p>
+        <ul style="margin-top:8px;">
+          <li>Avg monthly inflow: <strong>31,250,000 VNĐ</strong> (vs declared 32M → discrepancy 2.4% → OK)</li>
+          <li>Salary pattern: regular deposit 28th every month from "FPT Software" → income_source = employment</li>
+          <li>Avg end-of-month balance: <strong>8,400,000 VNĐ</strong> → healthy savings</li>
+          <li>Overdraft incidents: <strong>0</strong></li>
+          <li>Largest single transfer: <strong>15,000,000 VNĐ</strong> (rent payment — recurring)</li>
+          <li>Red flags: <strong>none</strong></li>
+        </ul>
+        <p><strong>Decision: APPROVE</strong> — bank statement xác nhận income và spending pattern ổn định.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Bank Statement Extractor)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">BankStatementData</span>:
+    account_holder:       <span class="code-type">str</span>
+    bank:                 <span class="code-type">str</span>
+    period_months:        <span class="code-type">int</span>
+    avg_monthly_inflow:   <span class="code-type">int</span>     <span class="code-comment"># VNĐ</span>
+    avg_monthly_outflow:  <span class="code-type">int</span>
+    avg_end_balance:      <span class="code-type">int</span>
+    overdraft_count:      <span class="code-type">int</span>
+    income_source:        <span class="code-type">str</span>     <span class="code-comment"># "employment" | "business" | "mixed" | "unknown"</span>
+    income_regularity:    <span class="code-type">str</span>     <span class="code-comment"># "regular" | "irregular" | "volatile"</span>
+    employer_name:        Optional[<span class="code-type">str</span>] = <span class="code-keyword">None</span>
+    red_flags:            List[<span class="code-type">str</span>] = <span class="code-function">None</span>
+    confidence:           <span class="code-type">float</span> = <span class="code-number">0.0</span>
+
+BANK_STATEMENT_PROMPT = <span class="code-string">"""
+Đây là sao kê ngân hàng của khách hàng vay vốn tại FinTech Corp.
+Phân tích 12 tháng giao dịch và trả về JSON:
+
+{
+  "account_holder": string,
+  "bank": string,
+  "period_months": int,
+  "avg_monthly_inflow": int (VNĐ),
+  "avg_monthly_outflow": int,
+  "avg_end_balance": int,
+  "overdraft_count": int,
+  "income_source": "employment"|"business"|"mixed"|"unknown",
+  "income_regularity": "regular"|"irregular"|"volatile",
+  "employer_name": string|null,
+  "salary_deposit_day": int|null,
+  "largest_transfer_vnd": int,
+  "red_flags": [string]
+}
+
+Red flags cần detect:
+- Overdraft >2 lần/năm
+- Gambling keywords: betano, 1xbet, casino, bet
+- Unusual round transfers (10M, 20M, 50M) đến unknown recipients
+- Income variance >40% between months (volatile)
+- Balance consistently near zero before salary
+
+Confidence: tính dựa trên clarity của document (0.0-1.0).
+"""</span>
+
+<span class="code-keyword">def</span> <span class="code-function">analyze_bank_statement</span>(pdf_path: <span class="code-type">str</span>, declared_income: <span class="code-type">int</span>) -> dict:
+    <span class="code-comment">"""Full bank statement analysis with cross-check vs declared income."""</span>
+    raw_data = <span class="code-function">extract_from_document</span>(pdf_path, <span class="code-string">"bank_statement"</span>)
+
+    <span class="code-comment"># Cross-check declared income</span>
+    disc_pct = abs(raw_data[<span class="code-string">'avg_monthly_inflow'</span>] - declared_income) / declared_income
+    raw_data[<span class="code-string">'income_discrepancy_pct'</span>] = round(disc_pct * <span class="code-number">100</span>, <span class="code-number">1</span>)
+    raw_data[<span class="code-string">'income_verified'</span>]       = disc_pct < <span class="code-number">0.10</span>  <span class="code-comment"># <10% discrepancy → verified</span>
+
+    <span class="code-keyword">if</span> disc_pct >= <span class="code-number">0.20</span>:
+        raw_data[<span class="code-string">'red_flags'</span>] = raw_data.get(<span class="code-string">'red_flags'</span>, []) + [
+            f<span class="code-string">"Income discrepancy {disc_pct:.1%} vs declared"</span>
+        ]
+    <span class="code-keyword">return</span> raw_data</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Property Document Analysis — Sổ Đỏ, Sổ Hồng & Collateral Verification</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Extract key fields từ Giấy chứng nhận quyền sử dụng đất (Sổ đỏ/Hồng)</li>
+          <li>Verify owner identity: so sánh tên/CCCD trong deed vs loan application</li>
+          <li>Detect encumbrances: existing mortgages, liens, legal disputes</li>
+          <li>Flag mismatch giữa property address trong deed và valuation report</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Collateral Verification Chain</div>
+        <p>Để approve loan với collateral, LoanBot phải verify 4 links trong chain: (1) <strong>Identity</strong>: người đứng tên sổ = người vay (CCCD match); (2) <strong>Encumbrance</strong>: sổ không có mortgage/lien đang tồn tại; (3) <strong>Valuation</strong>: địa chỉ trong sổ = địa chỉ định giá; (4) <strong>Area</strong>: diện tích trong sổ ≈ diện tích định giá. Nếu bất kỳ link nào fail → HITL Level 2. LoanBot không thể approve secured loan với broken chain.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Property Deed Extractor)</span>
+        <pre><code>PROPERTY_DEED_PROMPT = <span class="code-string">"""
+Đây là Giấy chứng nhận quyền sử dụng đất (Sổ đỏ/Hồng) Việt Nam.
+Extract và trả về JSON:
+
+{
+  "certificate_number": string,
+  "issue_date": "YYYY-MM-DD",
+  "issuing_authority": string,
+  "owner_names": [string],
+  "owner_ids": [string],
+  "parcel_id": string,
+  "address": string,
+  "area_sqm": float,
+  "land_purpose": string,
+  "land_use_term_years": int|null,
+  "encumbrances": [string],
+  "has_existing_mortgage": boolean,
+  "signature_present": boolean,
+  "confidence": float
+}
+
+QUAN TRỌNG:
+- encumbrances: list các ghi chú về thế chấp, tranh chấp, hạn chế
+- has_existing_mortgage: true nếu có "đã thế chấp" hoặc mortgage stamp
+- Nếu không rõ → null, không đoán mò
+"""</span>
+
+<span class="code-keyword">def</span> <span class="code-function">verify_collateral_chain</span>(deed_data: dict, application: dict, valuation: dict) -> dict:
+    <span class="code-comment">"""Verify all 4 links in collateral verification chain."""</span>
+    issues = []
+    warnings = []
+
+    <span class="code-comment"># Link 1: Identity — owner names must match applicant</span>
+    app_name = application[<span class="code-string">'name'</span>].<span class="code-function">lower</span>()
+    deed_owners = [n.<span class="code-function">lower</span>() <span class="code-keyword">for</span> n <span class="code-keyword">in</span> deed_data.get(<span class="code-string">'owner_names'</span>, [])]
+    <span class="code-keyword">if not</span> <span class="code-function">any</span>(app_name <span class="code-keyword">in</span> o <span class="code-keyword">or</span> o <span class="code-keyword">in</span> app_name <span class="code-keyword">for</span> o <span class="code-keyword">in</span> deed_owners):
+        issues.<span class="code-function">append</span>(f<span class="code-string">"Identity mismatch: {app_name} not in deed owners {deed_owners}"</span>)
+
+    <span class="code-comment"># Link 2: No existing encumbrances</span>
+    <span class="code-keyword">if</span> deed_data.get(<span class="code-string">'has_existing_mortgage'</span>):
+        issues.<span class="code-function">append</span>(<span class="code-string">"Existing mortgage on property — cannot use as collateral"</span>)
+
+    <span class="code-comment"># Link 3: Address consistency</span>
+    deed_addr = deed_data.get(<span class="code-string">'address'</span>, <span class="code-string">''</span>).<span class="code-function">lower</span>()
+    val_addr  = valuation.get(<span class="code-string">'address'</span>, <span class="code-string">''</span>).<span class="code-function">lower</span>()
+    <span class="code-keyword">if</span> deed_addr <span class="code-keyword">and</span> val_addr <span class="code-keyword">and</span> deed_addr[:30] != val_addr[:30]:
+        warnings.<span class="code-function">append</span>(f<span class="code-string">"Address mismatch: deed='{deed_addr[:40]}' vs valuation='{val_addr[:40]}'"</span>)
+
+    <span class="code-comment"># Link 4: Area consistency (allow 5% tolerance)</span>
+    deed_area = deed_data.get(<span class="code-string">'area_sqm'</span>, <span class="code-number">0</span>)
+    val_area  = valuation.get(<span class="code-string">'area_sqm'</span>, <span class="code-number">0</span>)
+    <span class="code-keyword">if</span> deed_area <span class="code-keyword">and</span> val_area:
+        area_diff = abs(deed_area - val_area) / deed_area
+        <span class="code-keyword">if</span> area_diff > <span class="code-number">0.05</span>:
+            warnings.<span class="code-function">append</span>(f<span class="code-string">"Area mismatch: deed={deed_area}m² vs valuation={val_area}m² ({area_diff:.1%} diff)"</span>)
+
+    return {
+        <span class="code-string">'chain_valid'</span>:   <span class="code-function">len</span>(issues) == <span class="code-number">0</span>,
+        <span class="code-string">'hitl_required'</span>: <span class="code-function">len</span>(issues) > <span class="code-number">0</span>,
+        <span class="code-string">'critical_issues'</span>: issues,
+        <span class="code-string">'warnings'</span>:        warnings,
+        <span class="code-string">'hitl_level'</span>:     <span class="code-number">2</span> <span class="code-keyword">if</span> issues <span class="code_keyword">else</span> (<span class="code-number">1</span> <span class="code-keyword">if</span> warnings <span class="code-keyword">else</span> <span class="code-keyword">None</span>)
+    }</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FC-2024-004 nộp sổ đỏ đứng tên chồng (Nguyễn Văn Bình), nhưng hồ sơ vay là của cô ấy (Phạm Thị Dung). Link 1 fail. LoanBot nên làm gì?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> KHÔNG auto-reject — vợ/chồng có thể dùng property của nhau làm collateral theo luật Việt Nam nếu có sự đồng thuận. LoanBot trigger HITL Level 2 với reason="owner_mismatch_spousal_property". Loan officer verify: (1) Hôn thú hợp lệ? (2) Có sự đồng thuận bằng văn bản của chồng? (3) Luật áp dụng cho joint property? Đây là typical case cần human judgment — auto-reject sẽ sai, auto-approve cũng sai.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Multi-Modal Pipeline & Quality Control</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Orchestrate full document processing pipeline cho một loan application</li>
+          <li>Implement quality scoring: aggregate confidence across all documents</li>
+          <li>Build Document Completeness Checker — phát hiện missing documents</li>
+          <li>Design HITL triggers: khi nào human phải review document manually</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg">
+          <title>Multi-Modal LoanBot Pipeline — Document processing kết hợp với credit assessment</title>
+          <defs>
+            <marker id="arrMM" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#0ea5e9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#e0f2fe">Multi-Modal LoanBot v3.3 — Parallel Document + Credit Assessment</text>
+
+          <!-- Documents input -->
+          <rect x="10" y="38" width="130" height="80" fill="#1e293b" rx="8"/>
+          <text x="75" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Documents (PDF/JPG)</text>
+          <text x="75" y="70" text-anchor="middle" font-size="8" fill="#94a3b8">📄 Payslip × 1</text>
+          <text x="75" y="83" text-anchor="middle" font-size="8" fill="#94a3b8">🏦 Bank Stmt × 3</text>
+          <text x="75" y="96" text-anchor="middle" font-size="8" fill="#94a3b8">🏠 Property Deed × 1</text>
+          <text x="75" y="109" text-anchor="middle" font-size="8" fill="#94a3b8">🪪 CCCD × 1</text>
+
+          <!-- Parallel: Document Intel + Credit -->
+          <line x1="140" y1="78" x2="178" y2="55" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrMM)"/>
+          <line x1="140" y1="78" x2="178" y2="115" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrMM)"/>
+
+          <!-- Doc Intel track -->
+          <rect x="180" y="38" width="150" height="40" fill="#075985" rx="8"/>
+          <text x="255" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#e0f2fe">Document Intelligence</text>
+          <text x="255" y="68" text-anchor="middle" font-size="8" fill="#7dd3fc">Extract + Classify + Validate</text>
+
+          <!-- Credit track -->
+          <rect x="180" y="98" width="150" height="40" fill="#312e81" rx="8"/>
+          <text x="255" y="115" text-anchor="middle" font-size="9" font-weight="700" fill="#e0e7ff">Credit Assessment</text>
+          <text x="255" y="128" text-anchor="middle" font-size="8" fill="#a5b4fc">CIC + Compliance + Income API</text>
+
+          <line x1="330" y1="58" x2="378" y2="80" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrMM)"/>
+          <line x1="330" y1="118" x2="378" y2="100" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrMM)"/>
+
+          <!-- Cross-check -->
+          <rect x="380" y="60" width="130" height="50" fill="#065f46" rx="8"/>
+          <text x="445" y="80" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">Cross-Check Engine</text>
+          <text x="445" y="95" text-anchor="middle" font-size="8" fill="#6ee7b7">Document vs API data</text>
+          <text x="445" y="105" text-anchor="middle" font-size="7" fill="#6ee7b7">Income: doc=31.2M vs API=31.0M ✓</text>
+
+          <line x1="510" y1="85" x2="555" y2="85" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrMM)"/>
+
+          <!-- Quality score -->
+          <rect x="557" y="60" width="110" height="50" fill="#1e293b" rx="8" stroke="#0ea5e9"/>
+          <text x="612" y="78" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Quality Score</text>
+          <text x="612" y="92" text-anchor="middle" font-size="8" fill="#0ea5e9">Avg confidence</text>
+          <text x="612" y="105" text-anchor="middle" font-size="8" fill="#0ea5e9">0.94 → OK ✓</text>
+
+          <line x1="667" y1="85" x2="705" y2="85" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arrMM)"/>
+
+          <!-- Final decision -->
+          <rect x="707" y="55" width="45" height="60" fill="#16a34a" rx="8"/>
+          <text x="729" y="78" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">PASS</text>
+          <text x="729" y="93" text-anchor="middle" font-size="8" fill="#d1fae5">All docs</text>
+          <text x="729" y="106" text-anchor="middle" font-size="8" fill="#d1fae5">verified</text>
+
+          <!-- Time & stats -->
+          <rect x="10" y="140" width="740" height="58" fill="#1e293b" rx="8"/>
+          <text x="380" y="158" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">LoanBot v3.3 Document Processing Performance — FC-2024-004</text>
+          <text x="30" y="174" font-size="8" fill="#94a3b8">⏱ Total time: 90s (parallel) vs 3–5 days (manual)</text>
+          <text x="30" y="186" font-size="8" fill="#94a3b8">📄 6 documents, 15 fields extracted each, avg confidence: 0.94</text>
+          <text x="290" y="174" font-size="8" fill="#94a3b8">💰 Cost: $0.18/application (6 Claude Vision calls)</text>
+          <text x="290" y="186" font-size="8" fill="#94a3b8">✅ vs manual: 350,000 VNĐ/hồ sơ → savings 98.3%</text>
+          <text x="540" y="174" font-size="8" fill="#94a3b8">🎯 Auto-decision: 78% cases</text>
+          <text x="540" y="186" font-size="8" fill="#94a3b8">👤 HITL triggered: 22% cases</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Multi-Modal Pipeline — Parallel document intelligence + credit assessment → cross-check → quality score → decision. 90 giây vs 3–5 ngày manual</div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 17</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m17-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m17-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m17-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Multi-Modal AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model xử lý nhiều modalities: text, image, document, audio. Claude Vision = text + image.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Intelligence</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI-powered document processing: classify → extract → validate → cross-check. Beyond simple OCR.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Vision API</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude API endpoint cho image understanding. Accepts base64 or URL images in messages.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">OCR vs Visual Understanding</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">OCR = text extraction only. Visual Understanding = layout + context + reasoning → structured data.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extraction Confidence</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Score 0.0–1.0 cho mỗi extracted field. ≥0.95 = auto accept; 0.80–0.95 = flag; &lt;0.80 = HITL.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Classifier</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động nhận biết loại document: payslip, bank statement, property deed, CCCD, tax cert.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Collateral Verification Chain</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">4 links: Identity + Encumbrance + Address match + Area match. All must pass for secured loan.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Encumbrance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lien/mortgage/legal restriction on property title. Existing encumbrance → cannot use as collateral.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Tampering</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chỉnh sửa document. Signals: font inconsistency, unrealistic numbers, metadata mismatch.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Income Discrepancy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">|doc_income - declared_income| / declared_income. &lt;10% = verified; ≥20% = red flag.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cross-Check Engine</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Compare document-extracted data vs API data vs declared data. Find inconsistencies.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Overdraft Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số lần số dư âm trong bank statement. &gt;2 lần/năm = risk signal → flag trong assessment.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Income Regularity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern of income deposits: regular (monthly salary), irregular (freelance), volatile (>40% variance).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Completeness</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Check xem đủ required documents chưa. Missing CCCD = cannot process. Missing bank stmt = flag.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Quality Score</td><td style="padding:8px 12px;">Aggregate confidence across all documents. &lt;0.80 overall → HITL mandatory.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module16/index.html" class="btn btn-outline">← Module 16: Prompt Engineering</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 17 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

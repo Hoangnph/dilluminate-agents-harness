@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Module 13: Agent Orchestration Patterns</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m13-primary: #065f46; --m13-accent: #10b981; --m13-light: #ecfdf5; --m13-border: #6ee7b7; }
+    .quiz-header { background: linear-gradient(135deg, #022c22, #065f46, #10b981); }
+    .quiz-header h1, .quiz-header p { color: #d1fae5; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-page">
+  <div class="quiz-header">
+    <span class="module-tag">MODULE 13 · QUIZ</span>
+    <h1>🏗️ Orchestration Patterns Quiz</h1>
+    <p>15 câu hỏi — Bao phủ Fan-Out/Fan-In, Map-Reduce, Saga, Dynamic Routing</p>
+  </div>
+
+  <div class="quiz-container">
+    <div class="quiz-progress">
+      <div class="progress-text">Câu <span id="currentQ">1</span> / 15</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:6.67%"></div></div>
+    </div>
+
+    <div id="quizContent"></div>
+
+    <div class="quiz-nav">
+      <button id="prevBtn" class="btn btn-outline" onclick="prevQuestion()" disabled>← Trước</button>
+      <button id="nextBtn" class="btn btn-primary" onclick="nextQuestion()" disabled>Tiếp theo →</button>
+    </div>
+
+    <div id="quizResult" class="quiz-result" style="display:none;"></div>
+  </div>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+<script>
+const questions = [
+  {
+    q: "LoanBot v3.0 dùng sequential orchestration: CreditAgent (2.1s) → IncomeAgent (2.0s) → FraudAgent (2.2s) → RiskAgent (1.5s). Nếu chuyển 3 agent đầu sang Fan-Out, total latency mới là bao nhiêu?",
+    opts: ["7.8s (không đổi)", "3.7s", "6.3s", "4.2s"],
+    correct: 1,
+    explanation: "Fan-Out chạy CreditAgent, IncomeAgent, FraudAgent song song. Latency = max(2.1, 2.0, 2.2) = 2.2s. Sau đó RiskAgent: 2.2 + 1.5 = 3.7s. Giảm 52% so với sequential 7.8s. Sequential: sum(2.1+2.0+2.2+1.5)=7.8s, không phải 6.3s hay 4.2s."
+  },
+  {
+    q: "Trong LoanBot dependency graph, ComplianceAgent KHÔNG thể chạy parallel với CreditAgent vì lý do gì?",
+    opts: ["ComplianceAgent chậm hơn CreditAgent", "ComplianceAgent cần output của RiskAgent để biết verdict trước khi verify policy", "ComplianceAgent và CreditAgent dùng chung database", "Anthropic API chỉ cho phép 1 concurrent call"],
+    correct: 1,
+    explanation: "ComplianceAgent cần RiskAgent output (APPROVE/REJECT recommendation) để apply đúng policy. Trong DAG: RiskAgent → ComplianceAgent (có cạnh). CreditAgent → RiskAgent → ComplianceAgent — có dependency transitive. ComplianceAgent không thể chạy song song với CreditAgent vì phải đợi RiskAgent finish. Lý do 3 và 4 sai hoàn toàn."
+  },
+  {
+    q: "asyncio.gather(*tasks, return_exceptions=True) — tham số return_exceptions=True có tác dụng gì trong Fan-Out?",
+    opts: ["Tăng tốc độ gather", "Không raise exception khi một task fail — trả về exception object trong result list, cho phép fan_in xử lý partial failures", "Bỏ qua tất cả exceptions", "Tự động retry failed tasks"],
+    correct: 1,
+    explanation: "return_exceptions=True làm gather không raise khi individual task fail. Thay vào đó, exception object được trả về trong list tại index tương ứng. Fan-in có thể kiểm tra isinstance(r, Exception) để detect failures và áp dụng strategy (all_required vs best_effort). Nếu không có tham số này, gather sẽ raise ngay khi task đầu tiên fail, mất kết quả của các tasks khác."
+  },
+  {
+    q: "FinTech Corp có 50.000 hồ sơ/tháng. Mỗi hồ sơ fan-out 3 agents = bao nhiêu concurrent API calls? Tại sao đây là vấn đề?",
+    opts: ["50.000 calls — không vấn đề với cloud", "150.000 concurrent calls — Thundering Herd Problem, có thể vượt Anthropic rate limit", "3 calls — vì fan-out chỉ gửi 1 lần", "500 calls — vì có batching tự động"],
+    correct: 1,
+    explanation: "50.000 hồ sơ × 3 agents/hồ sơ = 150.000 concurrent API calls nếu tất cả đến cùng lúc. Đây là Thundering Herd Problem — Anthropic có rate limit theo RPM (requests per minute) và TPM (tokens per minute). Giải pháp: asyncio.Semaphore(50) giới hạn tối đa 50 concurrent requests, kết hợp exponential backoff khi gặp 429."
+  },
+  {
+    q: "Fan-In strategy 'all_required' khác với 'best_effort' như thế nào? Khi nào LoanBot nên dùng mỗi strategy?",
+    opts: ["all_required nhanh hơn best_effort", "all_required raise RuntimeError nếu bất kỳ agent nào fail; best_effort dùng available results. LoanBot dùng all_required cho Credit/Income/Fraud vì đều critical", "all_required chỉ lấy kết quả đầu tiên", "best_effort yêu cầu majority vote"],
+    correct: 1,
+    explanation: "all_required: nếu bất kỳ agent nào fail → raise RuntimeError với danh sách failed agents. Dùng khi tất cả kết quả đều bắt buộc — LoanBot Credit/Income/Fraud đều critical để risk assessment chính xác. best_effort: dùng available results, flag failures — phù hợp cho optional enrichment agents (e.g., marketing segment). Không nên dùng best_effort cho core underwriting agents."
+  },
+  {
+    q: "Map-Reduce pattern: 'Map' và 'Reduce' tương ứng với gì trong LoanBot batch processing?",
+    opts: ["Map = tổng hợp results; Reduce = xử lý từng hồ sơ", "Map = áp dụng LoanBot pipeline lên mỗi hồ sơ song song; Reduce = aggregate statistics (approve_count, total_value, risk_distribution) cho portfolio report", "Map = partition data; Reduce = distribute to workers", "Map = CreditAgent; Reduce = RiskAgent"],
+    correct: 1,
+    explanation: "Map: apply function lên mỗi item song song — LoanBot pipeline chạy trên 100 hồ sơ/batch worker. Reduce: aggregate tất cả kết quả thành portfolio report: approve_count, reject_count, total_approved_vnd, avg_risk_score, credit_bucket_distribution. PortfolioReducer.reduce() implements step này. Không phải Map=partition (partition là bước chuẩn bị trước Map)."
+  },
+  {
+    q: "LoanBot dùng Anthropic Batch API cho Map-Reduce. Lợi ích chính là gì, và tradeoff là gì?",
+    opts: ["Nhanh hơn 2× và không có tradeoff", "50% cost reduction so với real-time API; tradeoff là latency cao hơn (kết quả trong vài giờ, không real-time)", "Batch API không có giới hạn rate limit", "Batch API chỉ hoạt động với claude-haiku"],
+    correct: 1,
+    explanation: "Anthropic Batch API giảm 50% cost — $135/tháng thay vì $270 cho 50.000 hồ sơ. Tradeoff: không real-time, kết quả trả về trong 1-24 giờ (async). Phù hợp cho monthly portfolio report (không cần real-time) nhưng không phù hợp cho immediate loan decision (cần <10s). LoanBot strategy: real-time API cho individual decisions, Batch API cho monthly batch analytics."
+  },
+  {
+    q: "Saga Pattern giải quyết vấn đề gì mà ACID transaction không giải quyết được trong LoanBot disbursement?",
+    opts: ["Saga nhanh hơn ACID", "Saga cho phép distributed rollback qua nhiều independent services (CoreBanking, Treasury, Salesforce) mà không cần distributed lock — ACID transaction không work cross-service boundaries", "ACID transaction không support JSON", "Saga tự động retry failed steps"],
+    correct: 1,
+    explanation: "ACID transactions work trong một database. LoanBot disbursement span nhiều services: CoreBankingAgent (contract), TreasuryAgent (funds), SalesforceAgent (CRM). Không có single ACID transaction nào cover tất cả. Saga = chuỗi local transactions, mỗi cái có compensating transaction. Nếu bước 3 (DISBURSE) fail → compensate ngược: RELEASE_FUNDS (bước 2) → DELETE_CONTRACT (bước 1) → system restored to consistent state."
+  },
+  {
+    q: "Trong LoanBot Saga, NOTIFY_CUSTOMER (bước 5) fail vì customer phone unreachable. LoanBot có nên rollback toàn bộ saga (bao gồm hủy hợp đồng và hoàn tiền) không?",
+    opts: ["Có, mọi failure đều phải rollback", "Không — loan đã disbursed thành công; notification failure không ảnh hưởng financial state. Chỉ cần log và retry notification separately (idempotent)", "Có, để đảm bảo ACID compliance", "Không — vì không thể hủy loan sau khi disbursed"],
+    correct: 1,
+    explanation: "Không phải mọi failure đều cần full rollback. NOTIFY_CUSTOMER là best-effort step — failure chỉ nghĩa là customer chưa biết, không ảnh hưởng loan validity. Rollback loan sau disbursement tạo complexity lớn (reverse transfer, legal implications). Đúng strategy: log failure, retry notification với exponential backoff (idempotent bằng notification_id), alert loan officer nếu all retries fail. Saga compensation chỉ cho financial-critical steps."
+  },
+  {
+    q: "Choreography Saga khác Orchestration Saga như thế nào? LoanBot disbursement dùng loại nào và tại sao?",
+    opts: ["Choreography nhanh hơn, nên dùng", "Choreography: mỗi service tự biết step tiếp theo (event-driven). Orchestration: central coordinator chỉ đạo. LoanBot dùng Orchestration vì cần monitor/debug dễ dàng và rollback cần central control", "Không có sự khác biệt", "Choreography dùng event bus; Orchestration dùng REST"],
+    correct: 1,
+    explanation: "Choreography Saga: mỗi service publish event → service khác react. Loose coupling, distributed. Nhưng khó debug ('what step failed?'), khó rollback (ai trigger compensation?). Orchestration Saga: SagaOrchestrator central biết toàn bộ state, gọi từng step, xử lý failure, trigger compensations theo đúng thứ tự. LoanBot dùng Orchestration vì: 1) Cần audit trail rõ ràng (EU compliance), 2) Rollback phải deterministic, 3) Easier to monitor và alert."
+  },
+  {
+    q: "Dynamic Router của LoanBot v3.1 quyết định path nào dựa trên gì? Loan FC-2024-001 (score 720, amount 200M, clean history) đi path nào?",
+    opts: ["Dựa trên applicant name; FC-2024-001 đi Standard Path", "Dựa trên complexity_score(); FC-2024-001 (score > 720) đi Fast Path — chỉ CreditAgent → AutoApprove (1.5s)", "Dựa trên random routing; FC-2024-001 đi Full Path", "Dựa trên loan amount; FC-2024-001 đi Standard Path"],
+    correct: 1,
+    explanation: "complexity_score() combine: credit score, loan amount, fraud signals, income stability. FC-2024-001: credit score 720 (≥720 threshold), loan 200M (<500M), clean history, no fraud signals → low complexity → Fast Path. Fast Path: CreditAgent → AutoApprove trong 1.5s. Không cần FraudAgent hay IncomeAgent verification đầy đủ. Lợi ích: $0.002/app thay vì $0.006 (Standard) — 67% cost reduction cho simple cases."
+  },
+  {
+    q: "Dynamic Routing phân bố LoanBot: 25% Fast, 62% Standard, 13% Full. Tại sao không dùng Full Path cho mọi hồ sơ để đảm bảo chất lượng tối đa?",
+    opts: ["Vì Full Path không chính xác bằng Fast Path", "Over-engineering: FC-2024-001 với score 720 và history sạch không cần FraudAgent analysis. Full Path cho tất cả: $0.012/app × 50.000 = $600/tháng vs avg $0.0057 = $285/tháng. Cost 2× mà không cải thiện accuracy cho simple cases", "Vì API chỉ hỗ trợ Fast Path", "Vì Full Path bị giới hạn 13% bởi Anthropic"],
+    correct: 1,
+    explanation: "Right-sizing là nguyên tắc: dùng đủ resources cần thiết, không thừa. Simple cases (score 720+, clean history): Fast Path đủ accurate và rẻ 6× so với Full Path. Dùng Full Path cho tất cả = $600/tháng, gấp 2× avg $285/tháng. Ngoài cost, Full Path latency 6.8s vs Fast 1.5s → customer experience kém hơn không cần thiết. Quality không giảm vì routing logic ensures simple cases được identify chính xác."
+  },
+  {
+    q: "asyncio.Semaphore(50) được dùng trong FanOutOrchestrator để giải quyết vấn đề gì và hoạt động như thế nào?",
+    opts: ["Tăng tốc độ bằng cách tạo 50 threads", "Giới hạn concurrent API calls tối đa 50 tại một thời điểm — ngăn Thundering Herd Problem khi 50.000 hồ sơ đến đồng thời. Semaphore.acquire() block nếu đã có 50 pending; release() khi task done", "Cache kết quả của 50 agents gần nhất", "Retry 50 lần khi API fail"],
+    correct: 1,
+    explanation: "Semaphore là concurrency control primitive. asyncio.Semaphore(50) cho phép tối đa 50 coroutines giữ semaphore đồng thời. Pattern: async with semaphore: await call_api(). Nếu 60 coroutines cùng try acquire → 50 proceed, 10 wait. Khi một task release → waiting task acquire ngay. Kết hợp với exponential backoff cho 429 responses: nếu rate limited, sleep 2^n seconds trước khi retry. Không tạo threads (asyncio là single-threaded event loop)."
+  },
+  {
+    q: "PortfolioReducer.reduce() trả về risk_p95. Tại sao P95 (95th percentile) quan trọng hơn average risk_score cho portfolio risk management?",
+    opts: ["P95 luôn cao hơn average nên conservative hơn", "P95 capture tail risk — 5% hồ sơ rủi ro nhất. Average bị che khuất bởi nhiều hồ sơ tốt. Ban lãnh đạo cần biết tail behavior để stress test portfolio, không chỉ average performance", "P95 dễ tính hơn average", "Anthropic API trả về P95 tự động"],
+    correct: 1,
+    explanation: "Average risk = 0.34 có nghĩa 'thông thường ổn', nhưng ẩn tail risk. P95 = 0.78 nghĩa 5% hồ sơ (2.500/tháng) có risk cực cao. Portfolio stress test: nếu recession hits và tất cả P95 cases default → expected loss. Regulatory bodies (Basel III) yêu cầu banks monitor tail risk, không chỉ mean. Average deceives; percentiles reveal distribution shape. P95 cũng dùng cho capacity planning: design system để handle P95 load."
+  },
+  {
+    q: "FC-2024-004 (credit score 645, amount 450M VNĐ, fraud_probability 0.28, regulatory_flag=True) sẽ đi path nào trong Dynamic Router và được assign HITL level nào?",
+    opts: ["Fast Path, không cần HITL", "Full Path (complex: borderline score + regulatory flag), HITL Level 3 Credit Committee vì regulatory_flag triggers highest review level", "Standard Path, HITL Level 1 Loan Officer", "Full Path, HITL Level 2 Branch Manager vì amount < 500M"],
+    correct: 1,
+    explanation: "FC-2024-004 analysis: credit score 645 = borderline zone (560-680) → trigger T3, fraud_probability 0.28 < 0.30 (không trigger T2 fraud), amount 450M < 500M (không trigger T1), regulatory_flag=True → trigger T4 regulatory. Dynamic Router: borderline + regulatory = complex → Full Path (8 agents). HITL: regulatory_flag → Level 3 Credit Committee theo policy (T4 regulatory có thể override level). Nếu chỉ T3 thì Level 1; T4 regulatory elevates to L3."
+  }
+];
+
+let current = 0;
+let selected = new Array(15).fill(null);
+
+function renderQuestion() {
+  const q = questions[current];
+  document.getElementById('currentQ').textContent = current + 1;
+  document.getElementById('progressFill').style.width = ((current + 1) / 15 * 100) + '%';
+
+  const answered = selected[current] !== null;
+  let html = `<div class="question-card">
+    <div class="question-number">Câu ${current + 1} / 15</div>
+    <div class="question-text">${q.q}</div>
+    <div class="options">`;
+
+  q.opts.forEach((opt, i) => {
+    let cls = 'option-btn';
+    if (answered) {
+      if (i === q.correct) cls += ' correct';
+      else if (i === selected[current] && i !== q.correct) cls += ' incorrect';
+      else cls += ' disabled';
+    } else if (selected[current] === i) cls += ' selected';
+    html += `<button class="${cls}" onclick="selectOption(${i})" ${answered && i !== q.correct && i !== selected[current] ? 'disabled' : ''}>${opt}</button>`;
+  });
+
+  html += `</div>`;
+  if (answered) {
+    const isCorrect = selected[current] === q.correct;
+    html += `<div class="feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}">
+      <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng'}</strong>
+      <p>${q.explanation}</p>
+    </div>`;
+  }
+  html += `</div>`;
+  document.getElementById('quizContent').innerHTML = html;
+
+  document.getElementById('prevBtn').disabled = current === 0;
+  document.getElementById('nextBtn').disabled = !answered;
+  if (current === 14 && answered) {
+    document.getElementById('nextBtn').textContent = '🏆 Xem kết quả';
+    document.getElementById('nextBtn').onclick = showResult;
+  } else {
+    document.getElementById('nextBtn').textContent = 'Tiếp theo →';
+    document.getElementById('nextBtn').onclick = nextQuestion;
+  }
+}
+
+function selectOption(i) {
+  if (selected[current] !== null) return;
+  selected[current] = i;
+  renderQuestion();
+  document.getElementById('nextBtn').disabled = false;
+}
+
+function nextQuestion() {
+  if (current < 14) { current++; renderQuestion(); }
+}
+
+function prevQuestion() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+function showResult() {
+  const score = selected.filter((s, i) => s === questions[i].correct).length;
+  const pct = Math.round(score / 15 * 100);
+  let badge = pct >= 90 ? '🏆 Xuất sắc' : pct >= 75 ? '✅ Tốt' : pct >= 60 ? '📖 Cần ôn thêm' : '🔄 Học lại';
+  document.getElementById('quizContent').style.display = 'none';
+  document.querySelector('.quiz-nav').style.display = 'none';
+  const r = document.getElementById('quizResult');
+  r.style.display = 'block';
+  r.innerHTML = `<div class="result-card">
+    <div class="result-score">${score}/15</div>
+    <div class="result-pct">${pct}% — ${badge}</div>
+    <p>Bạn đã hoàn thành Module 13: Orchestration Patterns!</p>
+    <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="index.html" class="btn btn-outline">📖 Ôn lại bài giảng</a>
+      <a href="lab.ipynb" download class="btn btn-primary">🔬 Làm Lab Notebook</a>
+      <a href="../module14/index.html" class="btn btn-primary">Module 14 →</a>
+      <a href="../../index.html" class="btn btn-outline">🏠 Trang chủ</a>
+    </div>
+  </div>`;
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

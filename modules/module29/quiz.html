@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 29 — Agent Economics & ROI Analysis</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m29-primary:#14532d;--m29-accent:#4ade80;--m29-light:#f0fdf4;--m29-border:#86efac; }
+    .quiz-hero{background:linear-gradient(135deg,#052e16 0%,#14532d 60%,#4ade80 100%);padding:var(--space-12) var(--space-6);text-align:center;}
+    .quiz-hero-content h1{color:#f0fdf4;font-size:2rem;margin-bottom:var(--space-3);}
+    .quiz-hero-content p{color:#bbf7d0;font-size:1.1rem;}
+    .module-tag{display:inline-block;background:rgba(74,222,128,.2);color:#4ade80;border:1px solid #4ade80;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:700;letter-spacing:.08em;margin-bottom:var(--space-3);}
+    .quiz-stats{display:flex;gap:var(--space-4);justify-content:center;margin-top:var(--space-4);flex-wrap:wrap;}
+    .quiz-stats span{background:rgba(74,222,128,.15);color:#bbf7d0;padding:6px 16px;border-radius:20px;font-size:.85rem;}
+    .quiz-container{max-width:780px;margin:0 auto;padding:var(--space-8) var(--space-4);}
+    .quiz-progress{margin-bottom:var(--space-6);}
+    .quiz-progress-text{font-size:.85rem;color:var(--text-muted);margin-bottom:var(--space-2);text-align:right;}
+    .quiz-progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+    .quiz-progress-fill{height:100%;background:linear-gradient(90deg,#14532d,#4ade80);border-radius:3px;transition:width .4s ease;}
+    .question-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-4);box-shadow:var(--shadow-sm);}
+    .question-meta{display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-4);}
+    .question-number{background:var(--m29-light);color:var(--m29-primary);border:1px solid var(--m29-border);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;}
+    .question-difficulty{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px;}
+    .diff-easy{background:#dcfce7;color:#166534;}.diff-medium{background:#fef9c3;color:#854d0e;}.diff-hard{background:#fce7f3;color:#831843;}
+    .question-text{font-size:1rem;font-weight:600;line-height:1.6;color:var(--text-primary);margin-bottom:var(--space-4);}
+    .options-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--space-2);}
+    .option-btn{width:100%;text-align:left;padding:var(--space-3) var(--space-4);border:1.5px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);cursor:pointer;font-size:.9rem;line-height:1.5;transition:all .15s ease;color:var(--text-primary);}
+    .option-btn:hover:not(:disabled){border-color:var(--m29-accent);background:var(--m29-light);}
+    .option-btn.correct{border-color:#16a34a;background:#dcfce7;color:#166534;font-weight:600;}
+    .option-btn.wrong{border-color:#dc2626;background:#fef2f2;color:#991b1b;}
+    .feedback-box{margin-top:var(--space-4);padding:var(--space-4);border-radius:var(--radius-lg);font-size:.9rem;line-height:1.6;display:none;}
+    .feedback-box.correct-fb{background:#dcfce7;border:1px solid #86efac;color:#166534;}
+    .feedback-box.wrong-fb{background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;}
+    .next-btn{margin-top:var(--space-4);display:none;}
+    .quiz-result{text-align:center;padding:var(--space-8);}
+    .result-score{font-size:3rem;font-weight:800;color:var(--m29-primary);}
+    .result-label{font-size:1.1rem;color:var(--text-secondary);margin-bottom:var(--space-6);}
+    .result-breakdown{display:flex;gap:var(--space-4);justify-content:center;margin-bottom:var(--space-8);flex-wrap:wrap;}
+    .breakdown-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);min-width:120px;}
+    .breakdown-num{font-size:1.5rem;font-weight:700;}
+    .breakdown-desc{font-size:.8rem;color:var(--text-muted);}
+    .next-module-cta{background:linear-gradient(135deg,#14532d,#4ade80);color:white;border-radius:var(--radius-xl);padding:var(--space-6);margin-top:var(--space-6);}
+    .next-module-cta h3{color:white;margin-bottom:var(--space-2);}
+    .next-module-cta p{color:#bbf7d0;font-size:.9rem;margin-bottom:var(--space-4);}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">← Bài giảng</a><a href="../../index.html">Trang chủ</a></div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 29 · QUIZ</span>
+    <h1>💰 Agent Economics & ROI Analysis</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats"><span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span></div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="scoreDisplay"></div>
+    <div class="result-label" id="resultLabel"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-item"><div class="breakdown-num" id="correctCount" style="color:#16a34a;"></div><div class="breakdown-desc">Câu đúng</div></div>
+      <div class="breakdown-item"><div class="breakdown-num" id="wrongCount" style="color:#dc2626;"></div><div class="breakdown-desc">Câu sai</div></div>
+      <div class="breakdown-item"><div class="breakdown-num" id="scorePercent" style="color:#14532d;"></div><div class="breakdown-desc">Điểm số</div></div>
+    </div>
+    <div class="next-module-cta">
+      <h3>🎉 Hoàn thành Module 29!</h3>
+      <p>Bạn đã nắm vững ROI framework, token economics, scaling economics, business case construction, và value monitoring — toàn bộ toolset để justify và track AI investment trong môi trường enterprise.</p>
+      <a href="../module30/index.html" class="btn btn-primary" style="background:white;color:#14532d;">→ Module 30: Future of AI Agents</a>
+    </div>
+    <div style="margin-top:var(--space-4);">
+      <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn btn-outline" style="margin-left:8px;">📖 Ôn lại bài</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // L1: ROI Framework (Q1-Q3)
+  {
+    q: "FinTech Corp tiết kiệm 13.125 tỷ VNĐ/tháng nhân sự khi deploy LoanBot. Đây thuộc loại benefit nào trong ROI framework?",
+    opts: ["Speed Value — quyết định nhanh hơn tạo ra revenue", "Direct Cost Savings — giảm chi phí vận hành trực tiếp", "Error Reduction Value — accuracy improvement", "Compliance Value — tránh regulatory penalties"],
+    ans: 1, diff: "easy",
+    fb: "Đúng! 13.125 tỷ/tháng đến từ giảm từ 200 nhân viên xuống còn 25 — đây là Direct Cost Savings (Staff Cost Reduction). Trong ROI framework: Total Savings = Direct Cost Savings + Error Cost Reduction + Speed Value + Compliance Value. Direct Cost Savings thường là dễ quantify nhất và thường là largest component của business case. Speed Value (A) là gián tiếp — khách hàng happy = lower churn + higher NPS. Error Reduction (C) = 342 tỷ/tháng từ bad loan reduction."
+  },
+  {
+    q: "FinTech Corp đầu tư 2.3 tỷ VNĐ phát triển LoanBot, net savings 12.677 tỷ/tháng. Payback period là bao nhiêu?",
+    opts: ["Khoảng 5-6 ngày", "Khoảng 2-3 tuần", "Khoảng 1 tháng", "Khoảng 6 tháng"],
+    ans: 0, diff: "easy",
+    fb: "Đúng! Payback Period = Investment / Monthly Net Savings × 30 ngày = 2.3B / 12.677B × 30 ≈ 5.45 ngày ≈ 5-6 ngày. Đây là extraordinarily fast payback — trong thực tế, financial services AI thường có payback 3-12 tháng. Lý do FinTech Corp đặc biệt nhanh: error savings (342 tỷ/tháng) rất lớn do bad loan cost cao (180M VNĐ/case). Nếu chỉ tính staff savings (13.125 tỷ): payback = 2.3/13.125 × 30 = 5.3 ngày — vẫn rất nhanh."
+  },
+  {
+    q: "ROI formula là gì? Và khi nào ROI 3-năm có thể misleading?",
+    opts: ["ROI = Revenue / Cost. Không bao giờ misleading nếu data đúng", "ROI = Net Benefit / Investment × 100%. Misleading khi không tính time value of money", "ROI = Savings / Revenue. Misleading khi cả savings và revenue đều tăng", "ROI = NPV / WACC. Misleading khi discount rate sai"],
+    ans: 1, diff: "easy",
+    fb: "Đúng! ROI = (Net Benefit / Total Investment) × 100%. Misleading khi không dùng discounted cash flows (NPV): 12.677 tỷ nhận được năm 3 KHÔNG bằng 12.677 tỷ nhận được hôm nay — vì cost of capital (12% WACC ở Vietnam fintech). NPV adjusts for this. ROI thuần túy inflate số nếu bạn sum up undiscounted future savings. Khi present to CFO: dùng cả ROI (accessible) VÀ NPV (rigorous). Board thường ask NPV và IRR, không chỉ ROI."
+  },
+
+  // L2: Token Economics (Q4-Q6)
+  {
+    q: "LoanBot có 3 decision tiers. Tier 2 (STANDARD: 3-agent Sonnet debate) cost ~518 VNĐ/decision. Tier 1 (CLEAR: Haiku) cost ~54 VNĐ. Tại sao không dùng Tier 1 cho tất cả decisions?",
+    opts: ["Haiku không support tiếng Việt tốt như Sonnet", "Clear cases dùng Haiku, nhưng borderline cases cần reasoning quality cao hơn để tránh expensive errors", "Tier 2 có accuracy cao hơn Tier 1 cho mọi loại decision", "Tier 1 bị giới hạn về số API calls/minute"],
+    ans: 1, diff: "easy",
+    fb: "Đúng! Tier routing là cost-quality tradeoff: clear REJECT (score<500) hoặc clear APPROVE (score≥720, DTI≤0.35, emp≥24mo) → Haiku đủ accuracy, không cần debate. Borderline cases → nếu dùng Haiku: error rate cao hơn → Type I errors → 180M VNĐ/case loss. 518 VNĐ/case (Tier 2) vs potential 180.000.000 VNĐ error cost → Tier 2 rẻ hơn nhiều khi nhìn từ góc độ total expected cost. Unit economics: cost per correct decision, không chỉ cost per API call."
+  },
+  {
+    q: "TokenBudgetManager enforce max_cost_usd = $0.025 cho Tier 2 decisions. Tại sao cần hard cap này?",
+    opts: ["Để tuân thủ NHNN regulations về AI spending", "Ngăn chi phí vượt budget khi debate agents loop quá nhiều rounds hoặc prompt dài bất thường", "Haiku rẻ hơn Sonnet nên cần cap để đảm bảo dùng Haiku", "Hard cap không cần thiết nếu monitoring tốt"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Trong multi-agent debate (Delphi method): nếu không có convergence criteria chặt, debate có thể chạy nhiều rounds → cost tăng unbounded. Hard token budget prevent: (1) Accidental long prompts từ developer bug; (2) Adversarial prompts push debate vào infinite loop; (3) Scope creep khi agents call additional tools. $0.025 = 625 VNĐ/case → nếu actual cost exceed này, system truncates hoặc escalates to HUMAN_REVIEW. Budget enforcement là cost governance, không phải quality restriction."
+  },
+  {
+    q: "Weighted average cost-per-decision của LoanBot v4.0 là ~115 VNĐ. Cách tính này như thế nào với volume: Tier 1 40K, Tier 2 8.5K, Tier 3 1.5K cases?",
+    opts: ["(54+518+1150)/3 = 574 VNĐ (simple average)", "(54×40K + 518×8.5K + 1150×1.5K) / 50K ≈ 115 VNĐ (weighted average)", "Min(54, 518, 1150) = 54 VNĐ (best case)", "Max(54, 518, 1150) = 1150 VNĐ (worst case)"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Weighted average = (54×40.000 + 518×8.500 + 1.150×1.500) / 50.000 = (2.160.000 + 4.403.000 + 1.725.000) / 50.000 = 8.288.000 / 50.000 ≈ 165 VNĐ. (Con số thực tế ~115-165 tùy assumption, nhưng phương pháp là weighted average theo volume, không simple average). Điều này cho thấy tại sao routing strategy quan trọng: nếu classify 20% thêm vào Tier 1 thay vì Tier 2, cost giảm đáng kể. Optimization: tighten routing thresholds."
+  },
+
+  // L3: Scaling Economics (Q7-Q9)
+  {
+    q: "FinTech Corp muốn expand sang rural markets, dự kiến volume tăng thêm 15.000 hồ sơ/tháng. Với LoanBot, chi phí tăng thêm bao nhiêu?",
+    opts: ["~17.25 triệu VNĐ/tháng (15.000 × ~1.150 VNĐ/case Tier 3)", "~2.25 tỷ VNĐ/tháng (cần thêm infra)", "~1.73 triệu VNĐ/tháng (15.000 × 115 VNĐ weighted avg)", "Không tăng — LoanBot có unlimited capacity"],
+    ans: 2, diff: "easy",
+    fb: "Đúng! 15.000 cases × 115 VNĐ weighted average = 1.725.000 VNĐ ≈ 1.73 triệu/tháng (plus minor infra scaling). Đây là marginal cost của AI: gần bằng 0 relative to business value. Contrast với human: 15.000 cases / 250 cases/person = 60 người × 175M = 10.5 tỷ/tháng. AI vs Human cho 15K additional cases: 1.73 triệu vs 10.5 tỷ = 6.000× cheaper. Đây là reason rural expansion — previously impossible economically — becomes trivial với AI."
+  },
+  {
+    q: "Break-even point của LoanBot là ~6.250 hồ sơ/tháng. Điều này có nghĩa là gì?",
+    opts: ["Dưới 6.250 cases, LoanBot lãi; trên 6.250, LoanBot lỗ", "Dưới 6.250 cases, human team cheaper; trên 6.250, LoanBot cheaper", "6.250 là số cases để hoàn vốn đầu tư 2.3 tỷ", "6.250 là số cases tối đa Haiku có thể xử lý"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Break-even = volume tại đó total cost của LoanBot = total cost của human team cho cùng volume. Dưới break-even: fixed infra cost của AI (500M+/tháng) chưa được amortize đủ → human cheaper. Trên break-even (6.250 cases): AI's linear marginal cost (115 VNĐ/case) x volume < human step-wise cost. FinTech Corp ở 50.000 cases — well above break-even. New company with 1.000 cases/month nên evaluate carefully: có thể human là optimal choice trước, sau đó switch sang AI khi scale."
+  },
+  {
+    q: "Tại sao AI có 'economies of scale' mà human team không có?",
+    opts: ["AI không cần training, human cần onboarding time khi scale", "Fixed costs (infra, development) của AI được amortized qua nhiều cases — unit cost giảm khi volume tăng; human marginal cost gần như constant", "AI không có overtime, human có overtime cost khi workload peak", "API pricing giảm theo volume (volume discounts từ Anthropic)"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Economies of scale với AI: fixed costs (500M infra, 150M governance/tháng) là sunk — thêm 1.000 cases không tăng fixed costs. Unit cost = (Fixed + Variable) / Volume. Khi volume tăng 10×: (500M + Variable × 10) / (10 × cases). Fixed cost per unit = 500M / 10cases → giảm 10×. Human: marginal cost ~175.000 VNĐ/person/capacity — thêm volume → thêm người → linear. Volume discounts (D) là một small factor nhưng không phải primary driver. Overtime (C) là secondary effect."
+  },
+
+  // L4: Business Case (Q10-Q12)
+  {
+    q: "CFO yêu cầu NPV analysis thay vì chỉ ROI. Tại sao NPV chính xác hơn ROI cho multi-year AI investment?",
+    opts: ["NPV dễ tính hơn ROI cho multi-year projects", "NPV tính time value of money — 12.677 tỷ năm 3 không bằng 12.677 tỷ hôm nay do cost of capital", "NPV bao gồm cả risk premium, ROI không có", "ROI không thể apply cho technology investments"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Time Value of Money: 12.677 tỷ nhận được 3 năm nữa, discounted at 12% WACC = 12.677 / (1.12)³ = 9.02 tỷ present value. NPV sum up tất cả discounted cash flows — cho phép compare apples-to-apples across years. ROI thuần túy ignore này và may overstate 3-year returns. CFO ask NPV vì: (1) Allows comparison với alternative investments; (2) Accounts for cost of capital; (3) Industry standard cho capital allocation. Risk premium (C) là separate — thường baked into discount rate."
+  },
+  {
+    q: "Trong sensitivity analysis của LoanBot business case, assumption nào CRITICAL nhất (khi thay đổi làm break case)?",
+    opts: ["API pricing tăng gấp đôi (API cost là nhỏ relative to total)", "Error savings (Type I reduction) bị eliminate hoàn toàn", "Infrastructure cost tăng 50% (500M → 750M/tháng)", "LoanBot processing time tăng từ 5 phút lên 15 phút"],
+    ans: 1, diff: "hard",
+    fb: "Đúng! Error savings (342 tỷ/tháng) là largest benefit component — lớn hơn staff savings (13.125 tỷ). Nếu accuracy không improve: mất 342 tỷ/tháng → total monthly benefit = 13.125B + 2B (speed) + 0.8B (compliance) = 15.925B. Total cost = 5.9B. Net = 10B — vẫn positive! Nhưng ROI drops significantly. API cost tăng gấp đôi (A): từ 340M → 680M/tháng — immaterial relative to 15B savings. Infra +50% (C): từ 500M → 750M — still immaterial. Processing time (D) affects Speed Value nhưng small component. Error savings là the critical assumption."
+  },
+  {
+    q: "CFO hỏi về 'intangible benefits' của LoanBot. Loại nào KHÓ QUANTIFY nhất nhưng potentially LARGEST?",
+    opts: ["Staff cost reduction — dễ tính từ headcount và salary data", "Speed advantage — khách hàng có thể chấp nhận mức lãi suất thấp hơn 0.5% do convenience, tạo ra competitive moat", "API cost savings vs legacy software", "Reduction in paper-based processes"],
+    ans: 1, diff: "hard",
+    fb: "Đúng! 'Speed as competitive moat' là intangible benefit khó nhất để quantify nhưng potentially largest. Reasoning: Nếu FinTech Corp phê duyệt trong 5 phút (vs 3 ngày từ competitors) → customers value this convenience → willing to accept 0.5% lower interest rate → FinTech Corp có thể charge higher interest WHILE being competitive. Với 50.000 loans × 400M average × 0.5% annual = 1 tỷ VNĐ/year revenue premium. Khó quantify vì requires: customer WTP research, price elasticity studies, competitive analysis. Staff savings (A) là tangible và easiest. API savings (C) là trivial."
+  },
+
+  // L5: Value Monitoring (Q13-Q15)
+  {
+    q: "Value Dashboard của FinTech Corp có 2 loại KPI: Leading và Lagging. Tại sao cần CẢ HAI?",
+    opts: ["Chỉ cần Leading — Lagging là redundant", "Leading predict future outcomes (real-time intervention); Lagging confirm actual business results (accountability). Cần cả hai để predict và verify", "Chỉ cần Lagging — Leading indicators có thể false alarms", "Leading cho technical team, Lagging cho business — hai teams không cần communicate"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Leading và Lagging có complementary roles: Leading (PSI drift, Type I error rate, confidence): real-time → alert sớm → intervene trước khi business impact. Risk: có false alarms nếu threshold quá sensitive. Lagging (default rate, monthly savings): confirms actual outcome → validates leading indicators, provides accountability to board. Problem với chỉ Lagging: 3-month lag → phát hiện problem quá muộn để intervene. Problem với chỉ Leading: có thể over-optimize on proxy metrics mà miss actual business outcomes. Framework: DETECT via leading, CONFIRM via lagging."
+  },
+  {
+    q: "Value Erosion được phát hiện khi Decision Confidence P50 giảm từ 0.78 xuống 0.68, và Type I Error Rate tăng từ 8.2% lên 11.4%. Nguyên nhân có thể là gì, và action tiếp theo?",
+    opts: ["API outage — restart services", "Model drift — borrower population thay đổi, cần trigger M27 self-improvement cycle với PSI check", "Database corruption — restore from backup", "Network latency — optimize infra"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Confidence drop + Type I increase = classic model drift signals. Confidence P50 từ 0.78 → 0.68: model increasingly uncertain. Type I 8.2%→11.4%: đang approve bad loans nhiều hơn. Diagnosis: PSI (Population Stability Index) drift — borrower population thay đổi khác với training distribution. Action: (1) Compute PSI → confirm >0.25 threshold; (2) Trigger M27 self-improvement cycle: collect ground truth → segment errors → grid search thresholds → retrain if needed; (3) Shadow mode → validate before full deploy. Không phải API/DB issue — những đó produce errors, không phải gradual accuracy decline."
+  },
+  {
+    q: "FinTech Corp deploy 3 improvements cùng lúc: (1) Threshold optimization, (2) Persona rebalancing, (3) New fairness constraints. Type I error giảm từ 18% xuống 8.2%. Làm thế nào để attribute credit đúng cho từng improvement?",
+    opts: ["Chia đều: mỗi improvement được 1/3 credit", "A/B test từng improvement riêng biệt (sequential deployment), measure isolated impact của mỗi change", "Chỉ attribute cho improvement cuối cùng deploy (most recent = most impact)", "Không thể attribute — chấp nhận combined effect là sufficient"],
+    ans: 1, diff: "hard",
+    fb: "Đúng! Value Attribution requires isolation: deploy từng improvement riêng biệt trong A/B test framework, measure isolated delta. Ví dụ: (1) Threshold optimization alone (control = old threshold): 18%→13.5% (delta = 4.5pp). (2) Persona rebalancing on top of threshold: 13.5%→10.2% (delta = 3.3pp). (3) Fairness constraints: 10.2%→8.2% (delta = 2pp). Attribution clear và defensible. Chia đều (A) là wrong và may misallocate engineering resources. Chỉ attribute recent (C) creates perverse incentive to deploy last. 'Good enough combined' (D) works for ops but fails for governance and future investment decisions."
+  }
+];
+
+let currentIndex = 0, score = 0;
+let answered = Array(questions.length).fill(false);
+
+function renderQuestion(idx) {
+  const q = questions[idx];
+  document.getElementById('currentQ').textContent = idx + 1;
+  document.getElementById('progressFill').style.width = `${((idx+1)/questions.length)*100}%`;
+  document.getElementById('quizArea').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta">
+        <div class="question-number">${idx+1}</div>
+        <span class="question-difficulty diff-${q.diff}">${q.diff==='easy'?'Dễ':q.diff==='medium'?'Trung bình':'Khó'}</span>
+      </div>
+      <div class="question-text">${q.q}</div>
+      <ul class="options-list">
+        ${q.opts.map((opt,i)=>`<li><button class="option-btn" onclick="selectAnswer(${i},${q.ans},this)">${String.fromCharCode(65+i)}. ${opt}</button></li>`).join('')}
+      </ul>
+      <div class="feedback-box" id="fb${idx}"></div>
+      <div class="next-btn" id="next${idx}">
+        <button class="btn btn-primary" onclick="nextQuestion()">${idx<questions.length-1?'Câu tiếp theo →':'Xem kết quả'}</button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(chosen,correct,btn) {
+  if(answered[currentIndex]) return;
+  answered[currentIndex] = true;
+  btn.closest('.question-card').querySelectorAll('.option-btn').forEach((b,i)=>{
+    b.disabled=true;
+    if(i===correct) b.classList.add('correct');
+    else if(i===chosen&&chosen!==correct) b.classList.add('wrong');
+  });
+  const isCorrect = chosen===correct;
+  if(isCorrect) score++;
+  const fb = document.getElementById(`fb${currentIndex}`);
+  fb.className=`feedback-box ${isCorrect?'correct-fb':'wrong-fb'}`;
+  fb.innerHTML=`<strong>${isCorrect?'✅ Chính xác!':`❌ Chưa đúng. Đáp án: ${String.fromCharCode(65+correct)}.`}</strong><br><br>${questions[currentIndex].fb}`;
+  fb.style.display='block';
+  document.getElementById(`next${currentIndex}`).style.display='block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if(currentIndex>=questions.length) showResult(); else renderQuestion(currentIndex);
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display='none';
+  document.getElementById('progressFill').closest('.quiz-progress').style.display='none';
+  const pct=Math.round((score/questions.length)*100);
+  const r=document.getElementById('resultArea');
+  r.style.display='block';
+  document.getElementById('scoreDisplay').textContent=`${score}/${questions.length}`;
+  document.getElementById('correctCount').textContent=score;
+  document.getElementById('wrongCount').textContent=questions.length-score;
+  document.getElementById('scorePercent').textContent=`${pct}%`;
+  const labels=[[12,'🏆 Xuất sắc! Bạn đã master Agent Economics.'],[9,'👍 Tốt! Nắm vững core ROI concepts.'],[6,'📖 Ôn lại Token Economics và Scaling.'],[0,'💪 Cần học lại từ đầu module.']];
+  document.getElementById('resultLabel').textContent=labels.find(([t])=>score>=t)[1];
+}
+
+function restartQuiz() {
+  currentIndex=0;score=0;answered=Array(questions.length).fill(false);
+  document.getElementById('resultArea').style.display='none';
+  document.getElementById('quizArea').style.display='block';
+  document.getElementById('progressFill').closest('.quiz-progress').style.display='block';
+  renderQuestion(0);
+}
+
+renderQuestion(0);
+</script>
+</body>
+</html>

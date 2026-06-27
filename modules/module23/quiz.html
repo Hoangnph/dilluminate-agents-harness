@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 23 — Agent Reasoning & Planning</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m23-primary: #134e4a; --m23-accent: #2dd4bf; --m23-light: #f0fdfa; --m23-border: #99f6e4; }
+    .quiz-hero { background: linear-gradient(135deg, #042f2e 0%, #134e4a 55%, #2dd4bf 100%); }
+    .module-tag { background: rgba(45,212,191,.2); color: #99f6e4; border: 1px solid #2dd4bf; padding: 4px 12px; border-radius: 20px; font-size: .75rem; font-weight: 700; letter-spacing: .08em; display: inline-block; margin-bottom: var(--space-4); }
+    .quiz-hero-content { max-width: 700px; margin: 0 auto; padding: var(--space-12) var(--space-6); text-align: center; }
+    .quiz-hero-content h1 { font-size: 2rem; color: #f0fdfa; margin-bottom: var(--space-3); }
+    .quiz-hero-content p { color: #99f6e4; font-size: 1.05rem; }
+    .quiz-stats { display: flex; gap: var(--space-4); justify-content: center; margin-top: var(--space-4); }
+    .quiz-stats span { background: rgba(45,212,191,.15); color: #99f6e4; padding: 4px 14px; border-radius: 20px; font-size: .8rem; font-weight: 600; border: 1px solid rgba(45,212,191,.35); }
+    .quiz-container { max-width: 760px; margin: var(--space-8) auto; padding: 0 var(--space-4); }
+    .quiz-progress { margin-bottom: var(--space-6); }
+    .quiz-progress-text { font-size: .875rem; color: var(--text-secondary); margin-bottom: var(--space-2); font-weight: 600; }
+    .quiz-progress-bar { height: 6px; background: var(--border); border-radius: 9999px; overflow: hidden; }
+    .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #134e4a, #2dd4bf); border-radius: 9999px; transition: width .4s ease; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-4); }
+    .question-meta { font-size: .75rem; color: var(--text-muted); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: var(--space-3); }
+    .question-text { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-6); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-3); }
+    .option-btn { background: var(--bg); border: 2px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); text-align: left; cursor: pointer; font-size: .925rem; color: var(--text-primary); transition: all .18s ease; line-height: 1.5; }
+    .option-btn:hover:not(:disabled) { border-color: #2dd4bf; background: var(--m23-light); }
+    .option-btn.correct { border-color: #16a34a !important; background: #f0fdf4 !important; color: #166534 !important; font-weight: 600; }
+    .option-btn.wrong { border-color: #dc2626 !important; background: #fef2f2 !important; color: #991b1b !important; }
+    .option-btn:disabled { cursor: default; }
+    .feedback-box { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); border-left: 4px solid; display: none; font-size: .9rem; line-height: 1.65; }
+    .feedback-box.show { display: block; }
+    .feedback-box.correct-fb { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+    .feedback-box.wrong-fb { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+    .next-btn { display: none; margin-top: var(--space-5); padding: var(--space-3) var(--space-8); background: linear-gradient(135deg,#134e4a,#2dd4bf); color: white; border: none; border-radius: var(--radius-lg); font-size: .95rem; font-weight: 700; cursor: pointer; }
+    .next-btn.show { display: block; }
+    .quiz-result { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-10); text-align: center; }
+    .result-score { font-size: 3rem; font-weight: 800; color: #134e4a; }
+    .result-label { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .result-actions { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; margin-top: var(--space-6); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">← Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 23 · QUIZ</span>
+    <h1>📝 Agent Reasoning & Planning</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="finalScore"></div>
+    <div class="result-label" id="finalLabel"></div>
+    <p id="finalMsg" style="color:var(--text-secondary);max-width:500px;margin:0 auto var(--space-4);"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">← Xem lại bài giảng</a>
+      <button onclick="restartQuiz()" class="btn btn-outline">🔄 Làm lại quiz</button>
+      <a href="../module24/index.html" class="btn btn-primary">Module 24: Epistemics →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // EASY (5)
+  {
+    level:"Dễ", lesson:"L1",
+    q:"Tại sao Chain-of-Thought (CoT) cải thiện accuracy của LoanBot trên borderline cases (từ 73% lên 89%)?",
+    opts:["CoT dùng nhiều tokens hơn nên model 'cẩn thận' hơn","CoT tạo intermediate reasoning states buộc model xem xét từng factor trước khi kết luận","CoT kết nối LoanBot với external databases","CoT reduce hallucination bằng cách giảm temperature"],
+    correct:1,
+    explanation:"✅ CoT tạo intermediate reasoning states trong activation space — model phải viết ra 'Credit Score: 638 — borderline ⚠️, DTI: 0.41 — OK ✓, Employment: 14m — acceptable ✓...' buộc model xem xét tất cả factors thay vì pattern-match trực tiếp từ input → output. Không phải vì nhiều tokens hay temperature — đó là side effects, không phải cơ chế. CoT không connect external databases — đó là ReAct."
+  },
+  {
+    level:"Dễ", lesson:"L1",
+    q:"Trong 3 loại CoT (Zero-shot, Few-shot, Auto-CoT), loại nào phù hợp nhất cho LoanBot production và tại sao?",
+    opts:["Zero-shot — không tốn extra tokens","Few-shot CoT với 2-3 worked examples — đảm bảo model check đúng factors theo đúng thứ tự","Auto-CoT — tự động và không cần manual curation","Zero-shot tốt hơn vì model tự quyết định reasoning structure phù hợp nhất"],
+    correct:1,
+    explanation:"✅ Few-shot CoT tốt nhất cho LoanBot vì: (1) Loan assessment có structure cố định — cần check credit score, DTI, employment, CIC theo thứ tự nhất định; (2) 2-3 examples với reasoning chain đảm bảo model không miss factors; (3) Consistent format → dễ parse JSON output sau. Zero-shot: model tự quyết định structure → đôi khi miss CIC check. Auto-CoT: tốt để scale nhưng cần infrastructure; Few-shot là baseline tốt nhất để bắt đầu."
+  },
+  {
+    level:"Dễ", lesson:"L2",
+    q:"ReAct khác CoT ở điểm gì cơ bản nhất?",
+    opts:["ReAct dùng nhiều tokens hơn CoT","ReAct xen kẽ Thought→Action→Observation trong loop, có thể gọi external tools giữa các bước reasoning","ReAct chỉ dùng được với Anthropic models","ReAct không cần structured output"],
+    correct:1,
+    explanation:"✅ Khác biệt cốt lõi: CoT = reasoning thuần túy trong một pass (không call tools). ReAct = interleave Thought (lý luận) → Action (gọi tool/API) → Observation (đọc kết quả) → Thought (cập nhật) → ... cho đến khi có đủ info. LoanBot với ReAct có thể: Thought 'cần CIC' → Action call_cic_api() → Observation nhận kết quả → Thought 'CIC tốt, approve'. Không thể làm với pure CoT vì CoT không có tool execution."
+  },
+  {
+    level:"Dễ", lesson:"L3",
+    q:"Tree-of-Thought phù hợp nhất khi nào với LoanBot?",
+    opts:["Khi cần xử lý nhanh 50,000 hồ sơ/tháng","Khi hồ sơ có conflicting signals (VD: credit score tốt nhưng employment mới 3 tháng)","Khi cần output JSON chuẩn","Khi loan amount < 100M VNĐ"],
+    correct:1,
+    explanation:"✅ ToT dùng khi có conflicting signals cần explore nhiều reasoning paths. Trong ví dụ: Score 655 (APPROVE signal) + Employment 3 tháng (REJECT signal) — không rõ kết quả nào đúng. ToT generate Branch A (Conservative→REJECT), Branch B (Moderate→REVIEW), Branch C (Progressive→APPROVE), evaluate từng branch theo policy fit, chọn tốt nhất. Không dùng ToT cho bulk processing (tốn 3-5x tokens) hay clear-cut cases."
+  },
+  {
+    level:"Dễ", lesson:"L5",
+    q:"Constitutional AI trong ngữ cảnh LoanBot self-reflection là gì?",
+    opts:["Một framework pháp lý để tuân thủ luật Việt Nam","Critique quyết định dựa trên explicit principles (ví dụ: 'không phân biệt địa lý', 'phải cite regulation')","Một loại constitutional document cho FinTech Corp","Training technique để model tránh hallucination"],
+    correct:1,
+    explanation:"✅ Constitutional AI (Anthropic) = critique model output theo explicit written principles, sau đó revise nếu vi phạm. Với LoanBot: 5 principles gồm 'không discriminate theo province', 'phải cite regulation', 'confidence phải phù hợp với evidence', 'mention tất cả negative factors', 'REVIEW phải specify tài liệu cần'. Model tự critique decision của mình theo 5 rules này → revise nếu FAIL. Không liên quan đến constitutional law hay Hiến pháp Việt Nam."
+  },
+
+  // MEDIUM (7)
+  {
+    level:"Trung bình", lesson:"L1",
+    q:"LoanBot xử lý 50,000 hồ sơ/tháng. CoT few-shot thêm 500 tokens/request (~$0.003). Chiến lược nào cost-effective nhất?",
+    opts:["Áp dụng CoT cho tất cả 50K — không risk bỏ sót borderline case","Chỉ áp dụng CoT cho 12% borderline (6K hồ sơ) → tiết kiệm 88% CoT cost","Không dùng CoT — direct decision đủ rồi","Dùng Auto-CoT cho tất cả để tự động optimize"],
+    correct:1,
+    explanation:"✅ Optimal strategy: routing trước, CoT sau. 88% clear-cut cases (score >700 hoặc <500) → direct decision với >99% accuracy, không cần CoT. Chỉ 12% borderline (score 580-680, DTI 0.38-0.45) → áp dụng CoT. Cost: 6,000 × $0.003 = $18/tháng CoT cost thêm. So với $150/tháng nếu áp dụng tất cả 50K → tiết kiệm 88%. Implement: classifier bước 1 (nhanh, không CoT) → route → CoT nếu borderline. Accuracy gain từ CoT chỉ cần thiết trên borderline cases — clear cases đã correct rồi."
+  },
+  {
+    level:"Trung bình", lesson:"L2",
+    q:"Trong ReAct loop của LoanBot, khi nào nên exit loop và return final answer?",
+    opts:["Sau đúng 4 iterations — luôn cố định","Sau max iterations hoặc khi model không call thêm tools (end_turn)","Sau khi gọi tất cả tools ít nhất một lần","Khi confidence > 0.5"],
+    correct:1,
+    explanation:"✅ Exit conditions đúng: (1) Model không gọi thêm tools (stop_reason == 'end_turn') = model đã có đủ information để kết luận; (2) max_iterations đạt giới hạn (safety cap, thường 4). Không exit sau đúng 4 iterations nếu model dừng sớm hơn — sẽ gọi thêm iterations không cần thiết. Không cần gọi tất cả tools — model tự quyết định tool nào cần. Confidence > 0.5 không phải exit condition — model không emit confidence liên tục trong loop. Kết hợp hai conditions: exit khi tự nhiên hoặc khi hit hard limit."
+  },
+  {
+    level:"Trung bình", lesson:"L3",
+    q:"Beam Search trong ToT hoạt động như thế nào và tại sao giảm computation?",
+    opts:["Beam Search tìm kiếm tất cả branches nhưng parallel — không giảm computation","Beam Search giữ top-k branches tốt nhất ở mỗi depth → complexity O(k×d) thay vì O(b^d)","Beam Search chỉ explore branch đầu tiên → không đảm bảo tìm được best answer","Beam Search dùng gradient descent để optimize reasoning path"],
+    correct:1,
+    explanation:"✅ Full ToT: mỗi depth generate b=3 branches, depth=3 → 3^3=27 branches cần evaluate. Beam Search với k=2: depth 1 generate 3, keep 2 best; depth 2 mỗi branch generate 3 (6 total), keep 2 best; depth 3 tương tự → tổng evaluations = 3+6+6 = 15 thay vì 3+9+27=39. Complexity O(k×b×d) vs O(b^d). Trade-off: có thể miss globally optimal path nếu nó đi qua locally suboptimal step. Với k=2, b=3, d=3: tiết kiệm ~60% evaluations."
+  },
+  {
+    level:"Trung bình", lesson:"L4",
+    q:"Plan Step S3 (Verify Employment) có failure_strategy='skip'. Sau khi S3 fail, S4 (Income Verification) có depends_on=['S2','S3']. Điều gì xảy ra với S4 và S_final?",
+    opts:["S4 chạy bình thường vì S2 passed — S3 chỉ là optional","S4 bị SKIPPED vì S3 FAILED (không COMPLETED) → S_final cũng bị SKIPPED → result: REVIEW","S4 tự replan bằng cách bỏ dependency S3","S4 fail với lỗi dependency missing"],
+    correct:1,
+    explanation:"✅ Dependency logic: S4 requires ALL deps COMPLETED. S3 FAILED ≠ COMPLETED → deps_ok = False → S4 bị SKIPPED. S_final depends_on tất cả steps kể cả S4 (SKIPPED) → S_final cũng bị SKIPPED. Execute_plan trả về fallback {'decision': 'REVIEW', 'reason': 'Plan incomplete'}. Đây là correct behavior — loan lớn thiếu employment verification không nên AUTO-APPROVE. Design lesson: failure_strategy='skip' không có nghĩa là 'ignore' — nó có thể cascade SKIP downstream steps. Với S3 critical như vậy, nên dùng failure_strategy='escalate' để trigger human review thay vì silent REVIEW fallback."
+  },
+  {
+    level:"Trung bình", lesson:"L1-L2",
+    q:"LoanBot với CoT few-shot đưa ra APPROVE cho case (Score 638, DTI 0.41, Employment 14m). Quyết định có vẻ đúng nhưng team muốn verify. Công cụ nào phù hợp nhất để audit reasoning?",
+    opts:["Chạy lại với zero-shot CoT và compare outputs","Xem ReAct trace — logs tất cả Thought/Action/Observation steps","Check model confidence score — nếu >0.9 thì đáng tin","Dùng ToT và check xem branch nào win"],
+    correct:1,
+    explanation:"✅ ReAct trace là audit tool tốt nhất vì: (1) Log đầy đủ từng Thought (lý luận tại mỗi bước), Action (tool gọi gì), Observation (kết quả gì); (2) Có thể verify: LoanBot có check CIC không? Blacklist check passed không? Reasoning có consistent với factors không? (3) Human auditor có thể follow exact decision path. CoT few-shot cũng có reasoning chain nhưng không interactive — không biết tool results cụ thể. Confidence score không đủ — model có thể confident nhưng sai. ToT sẽ give different answer, không verify existing decision."
+  },
+  {
+    level:"Trung bình", lesson:"L5",
+    q:"Self-Reflection Constitutional AI phát hiện quyết định LoanBot vi phạm principle #4 ('Explanation phải mention tất cả negative factors'). Decision ban đầu là APPROVE (confidence 0.91) với explanation chỉ nêu positives. Điều gì xảy ra?",
+    opts:["Quyết định bị đổi thành REJECT tự động","Model revise explanation để include negative factors, nhưng decision (APPROVE) có thể giữ nguyên nếu logic vẫn valid","Model escalate đến human reviewer vì vi phạm principle","Model discard quyết định và chạy lại từ đầu"],
+    correct:1,
+    explanation:"✅ Constitutional AI critique không nhất thiết đổi decision — nó identify và fix specific issues. Vi phạm principle #4 (missing negative factors) → revised_decision: giữ APPROVE nhưng cập nhật explanation: 'Credit Score 638 — borderline nhưng trong ngưỡng (580-650) ⚠️, DTI 0.41 — borderline (≤0.42 OK) ⚠️, Employment 14 tháng — acceptable (≥12m) ✓, CIC không có nợ xấu ✓. Tổng thể: APPROVE với điều kiện theo dõi 6 tháng đầu.' Decision vẫn là APPROVE nhưng explanation transparent hơn. Nếu critique phát hiện decision logic sai (không phải chỉ explanation) → mới revise decision."
+  },
+  {
+    level:"Trung bình", lesson:"L2-L3",
+    q:"LoanBot dùng ReAct để xử lý 1,000 borderline cases/ngày. Sau 2 tuần, team thấy 15% cases dùng đúng 4 iterations (max_iter=4). Đây là dấu hiệu gì và cần làm gì?",
+    opts:["Bình thường — 15% là acceptable cho complex cases","Agent bị stuck trong loop — tăng max_iter lên 8 để agent có thêm time","Investigate: check ReAct traces của 15% cases để tìm root cause (tool fails? loop không progress?)","Giảm max_iter xuống 2 để force agent decide faster"],
+    correct:2,
+    explanation:"✅ 15% cases hitting max_iter là warning signal cần investigate, không phải normal. Possibilities: (1) Tool fail liên tục → agent cứ retry cùng tool → waste iterations; (2) Agent cần thông tin không có trong available tools → kẹt loop; (3) Max_iter quá thấp cho genuinely complex cases → cần tăng. Investigation protocol: sample 50 traces từ 15% cases → phân loại: bao nhiêu loop do tool failures? Bao nhiêu do genuine complexity? Bao nhiêu do agent behavior? Fix theo root cause: tool failures → improve tool reliability; genuine complexity → tăng max_iter; agent behavior → update system prompt. Tăng max_iter blindly mà không investigate = treating symptom not cause."
+  },
+
+  // HARD (3)
+  {
+    level:"Khó", lesson:"L3-L4",
+    q:"LoanBot cần xử lý hồ sơ 800M VNĐ với 4 conflicting signals: (A) Credit Score 710 — tốt; (B) DTI 0.46 — vượt threshold 0.45; (C) Employment 60 tháng tại VNPT — rất ổn định; (D) Collateral 1.2 tỷ VNĐ bất động sản. Chọn reasoning strategy tối ưu:",
+    opts:["Direct decision — score 710 là đủ để approve","CoT few-shot — liệt kê 4 factors và kết luận","ToT + Planning — explore 3 branches AND execute plan với collateral appraisal step","ReAct — gọi CIC API và decide"],
+    correct:2,
+    explanation:"✅ ToT + Planning là tối ưu cho case này vì: (1) 4 conflicting signals (A=positive, B=negative exceed threshold, C=positive, D=positive nhưng cần appraisal) → ToT cần explore branches: Conservative (B=reject), Moderate (collateral compensates B), Progressive (A+C+D override B); (2) 800M VNĐ với collateral → Planning bắt buộc: S1 blacklist → S2 CIC → S3 verify employment (VNPT) → S4 income verify → S5 collateral_appraisal (bất động sản 1.2 tỷ cần chuyên gia định giá) → S_final. DTI 0.46 > 0.45 không auto-reject nếu có collateral đủ — TT39/2016 cho phép exception với sufficient collateral. Pure CoT sẽ miss collateral appraisal step. ReAct đơn thuần sẽ không explore branching logic."
+  },
+  {
+    level:"Khó", lesson:"L5",
+    q:"Team audit phát hiện: LoanBot self-reflection đang 'fix' decisions nhưng accuracy không tăng — thực ra giảm 1.2% trên clear-cut cases. Nguyên nhân có thể nhất là gì và fix như thế nào?",
+    opts:["Constitutional principles không đủ tốt — cần viết lại","Self-reflection gây overthinking trên clear-cut cases — model doubt đáp án đúng, revise thành sai","Model quá confident — cần lower temperature","Self-reflection cần thêm iterations mới hiệu quả"],
+    correct:1,
+    explanation:"✅ Đây là 'overthinking' — documented phenomenon trong LLM self-reflection. Trên clear-cut cases (score 720, DTI 0.25 → obvious APPROVE), CoT/self-reflection bắt buộc model xem xét lại → đôi khi model 'finds' problems không tồn tại → revise APPROVE thành REVIEW. Fix: áp dụng self-reflection CHỈ cho cases với initial confidence < 0.90. High-confidence clear-cut decisions: skip self-reflection. Pattern: self-reflection helps most when initial answer uncertain; hurts when initial answer already correct and high-confidence. Implementation: if initial_decision['confidence'] >= 0.90 → skip self-reflection step. Đây cũng là lý do tại sao CoT/ToT không nên áp dụng cho tất cả cases — overhead > benefit trên easy cases."
+  },
+  {
+    level:"Khó", lesson:"L2-L4",
+    q:"LoanBot ReAct + Planning đang xử lý complex case. Iteration 3: Thought 'cần verify employment tại VNPT' → Action call verify_employment(employer='VNPT') → Observation: {'error': 'employer_db_timeout', 'retry_after': 30}. Iteration 4: LoanBot gọi verify_employment lại → cùng timeout error. max_iter=4 → plan terminated. Hành động tốt nhất cho system design là:",
+    opts:["Tăng max_iter lên 6 để agent có thêm cơ hội retry","Implement circuit breaker: sau 2 failures của cùng tool trong cùng case → stop retrying, switch to failure_strategy","Cache verify_employment results để tránh repeated calls","Thay verify_employment bằng manual lookup trong planning step"],
+    correct:1,
+    explanation:"✅ Circuit breaker là solution đúng cho repeated tool failures. Pattern: (1) Tool fail lần 1 → log; (2) Tool fail lần 2 → trigger circuit breaker: mark tool as 'unavailable for this session'; (3) Áp dụng failure_strategy của step đó (escalate → human review). Lợi ích: không waste remaining iterations on guaranteed-fail tool; detect infrastructure issues early; force graceful degradation. Tăng max_iter sẽ chỉ waste thêm iterations trên tool đã fail. Cache không giúp nếu tool down (sẽ cache error). Manual lookup là last resort, không scalable. Implementation: trong execute_tool(), wrap với circuit breaker state per-session: failures_count[tool_name] += 1; if failures_count[tool_name] >= 2: raise CircuitBreakerOpen → catch trong execute_plan → apply failure_strategy."
+  }
+];
+
+let currentIdx = 0, score = 0, answered = false;
+
+function render() {
+  const q = questions[currentIdx];
+  document.getElementById('currentQ').textContent = currentIdx + 1;
+  document.getElementById('progressFill').style.width = ((currentIdx + 1) / 15 * 100) + '%';
+  const levelColor = q.level === 'Dễ' ? '#16a34a' : q.level === 'Trung bình' ? '#d97706' : '#dc2626';
+  document.getElementById('quizArea').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta" style="color:${levelColor}">● ${q.level} · ${q.lesson}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((o,i) => `<button class="option-btn" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+      </div>
+      <div class="feedback-box" id="feedbackBox"></div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">${currentIdx < 14 ? 'Câu tiếp theo →' : 'Xem kết quả 🎉'}</button>
+    </div>`;
+  answered = false;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentIdx];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(idx === q.correct ? 'correct' : 'wrong');
+  if (idx !== q.correct) btns[q.correct].classList.add('correct');
+  if (idx === q.correct) score++;
+  const fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box show ' + (idx === q.correct ? 'correct-fb' : 'wrong-fb');
+  fb.innerHTML = (idx === q.correct ? '<strong>✅ Chính xác!</strong> ' : '<strong>❌ Chưa đúng.</strong> ') + q.explanation;
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= 15) showResult();
+  else render();
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const ra = document.getElementById('resultArea');
+  ra.style.display = 'block';
+  const pct = Math.round(score/15*100);
+  document.getElementById('finalScore').textContent = score + '/15';
+  const labels = [[13,'🧠 Chuyên gia Reasoning'],[10,'✅ Nắm vững'],[7,'📚 Cần ôn thêm'],[0,'🔄 Xem lại bài']];
+  const [,lbl] = labels.find(([t]) => score >= t);
+  document.getElementById('finalLabel').textContent = lbl + ' (' + pct + '%)';
+  const msgs = {13:'Xuất sắc! Bạn hiểu sâu về CoT, ReAct, ToT và Planning. Sẵn sàng implement reasoning strategies cho LoanBot production.',10:'Tốt! Review thêm phần ToT beam search và circuit breaker pattern — đây là concepts nâng cao thường gặp trong interviews.',7:'Trung bình. Xem lại Bài 2 (ReAct) và Bài 4 (Planning) — đây là hai patterns quan trọng nhất cho production agents.',0:'Cần review lại module, bắt đầu từ CoT basics (Bài 1) rồi dần lên ReAct và ToT.'};
+  document.getElementById('finalMsg').textContent = Object.entries(msgs).reverse().find(([t]) => score >= Number(t))[1];
+}
+
+function restartQuiz() {
+  currentIdx = 0; score = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

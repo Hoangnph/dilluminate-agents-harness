@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 26 — Multi-Agent Debate & Consensus</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m26-primary: #701a75;
+      --m26-accent:  #e879f9;
+      --m26-light:   #fdf4ff;
+      --m26-border:  #d946ef;
+    }
+    .lesson-header { background: linear-gradient(135deg, #3b0764 0%, #701a75 55%, #e879f9 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fdf4ff; }
+    .lesson-header p { color: #f0abfc; }
+    .sidebar-nav a.active { background: var(--m26-light); border-left: 3px solid var(--m26-accent); color: var(--m26-primary); }
+    .sidebar-nav a:hover { color: var(--m26-primary); }
+
+    .debate-panel {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);
+      margin: var(--space-4) 0;
+    }
+    .agent-card {
+      border-radius: var(--radius-lg); padding: var(--space-3); font-size: .85rem;
+      border: 1px solid;
+    }
+    .agent-opt  { background: #f0fdf4; border-color: #86efac; }
+    .agent-pess { background: #fef2f2; border-color: #fca5a5; }
+    .agent-reg  { background: #f0f9ff; border-color: #7dd3fc; }
+    .agent-name { font-weight: 700; margin-bottom: 4px; font-size: .8rem; }
+    .agent-vote { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: .75rem; font-weight: 700; margin-top: 4px; }
+    .vote-approve { background: #16a34a; color: #fff; }
+    .vote-review  { background: #d97706; color: #fff; }
+    .vote-reject  { background: #dc2626; color: #fff; }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m26-light);color:var(--m26-primary);border-color:var(--m26-border);">MODULE 26</div>
+    <div class="sidebar-title">Multi-Agent Debate & Consensus</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Tại Sao Debate?</a>
+      <a href="#lesson2">L2. Consensus Mechanisms</a>
+      <a href="#lesson3">L3. Devil's Advocate Pattern</a>
+      <a href="#lesson4">L4. Agent Specialization</a>
+      <a href="#lesson5">L5. Arbitration & Meta-Agent</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m26-accent);">📝 Quiz Module 26</a>
+      <a href="lab.ipynb" download style="color:var(--m26-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module25/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 25: Scale</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 26 · Tuần 73–75</span>
+      <h1>🗣️ Multi-Agent Debate & Consensus</h1>
+      <p>LoanBot v3.8 đang sai trên 12% borderline cases (score 580–680). Thay vì fine-tune một mình, FinTech Corp tổ chức <em>panel tranh luận</em>: OptimistAgent, PessimistAgent, và RegulatorAgent cùng xem xét hồ sơ — rồi một Meta-Arbitrator tổng hợp. Accuracy tăng từ 78% → 91% trên borderline cases.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🗣️ Collective Intelligence</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Tại Sao Debate? — Wisdom of Crowds cho LoanBot</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao single LLM agent mắc systematic biases trên borderline cases</li>
+          <li>Áp dụng "Wisdom of Crowds" principle: independent diverse agents &gt; single expert</li>
+          <li>Phân biệt đúng khi nào debate có ích (high uncertainty) vs gây overhead vô ích (clear cases)</li>
+          <li>Đo lường improvement: accuracy, calibration, và coverage của debate system</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Hội Đồng Thẩm Định Vay vs Thẩm Định Viên Đơn Lẻ</div>
+        <p>Ngân hàng truyền thống: khoản vay &gt;2 tỷ VNĐ phải qua hội đồng gồm Credit Officer, Risk Manager, và Compliance Officer — mỗi người nhìn từ góc độ khác nhau. Không phải vì một người không đủ giỏi, mà vì <strong>systematic blind spots</strong>: Credit Officer có thể quá optimistic về growth potential; Risk Manager có thể quá conservative; chỉ khi ba góc nhìn va chạm mới lộ ra những điểm mù. LoanBot panel hoạt động theo cùng nguyên tắc — không phải democratic voting mà là structured deliberation.</p>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FC-2024-004 Borderline Case</div>
+        <p><strong>Hồ sơ:</strong> Score 645, DTI 0.42, Income 28M/tháng, Employment 8 tháng, Loan 400M — Mua xe ô tô kinh doanh.</p>
+
+        <div class="debate-panel">
+          <div class="agent-card agent-opt">
+            <div class="agent-name" style="color:#166534;">🟢 OptimistAgent</div>
+            <p style="margin:0;font-size:.8rem;">"Employment ngắn nhưng income tốt. Mục đích vay productive (xe kinh doanh). Score 645 trong vùng có thể."</p>
+            <span class="agent-vote vote-approve">APPROVE</span>
+          </div>
+          <div class="agent-card agent-pess">
+            <div class="agent-name" style="color:#991b1b;">🔴 PessimistAgent</div>
+            <p style="margin:0;font-size:.8rem;">"8 tháng employment quá ngắn — chưa qua probation. DTI 0.42 gần ceiling 0.45. Score 645 là minimum acceptable."</p>
+            <span class="agent-vote vote-review">REVIEW</span>
+          </div>
+          <div class="agent-card agent-reg">
+            <div class="agent-name" style="color:#0c4a6e;">🔵 RegulatorAgent</div>
+            <p style="margin:0;font-size:.8rem;">"Loan purpose hợp lệ. Employment < 12 tháng cần require collateral per TT39/2016 Điều 9 clause 2."</p>
+            <span class="agent-vote vote-review">REVIEW + COLLATERAL</span>
+          </div>
+        </div>
+        <p style="font-size:.875rem;margin-top:var(--space-2);"><strong>Meta-Arbitrator:</strong> 2/3 votes là REVIEW (hoặc variant of REVIEW) → decision = REVIEW với note "Yêu cầu bổ sung: hợp đồng kinh doanh + 1 tài sản thế chấp."</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Condorcet Jury Theorem</div>
+        <div class="formula-text">P(panel correct) = 1 − (1−p)^n với p &gt; 0.5, n = số agents</div>
+        <div class="formula-desc">Nếu mỗi agent có P(correct) = 0.70 (p&gt;0.5) và 3 agents (n=3): P(majority correct) = 1 − (1−0.70)^3 = 1 − 0.027 = 0.973. Với 5 agents: P = 0.993. Điều kiện: agents phải INDEPENDENT và mỗi agent phải có p&gt;0.5.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Debate Trigger Logic — Chỉ debate khi cần)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Tuple
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">DebateRoutingDecision</span>:
+    use_debate: <span class="code-type">bool</span>
+    reason: <span class="code-type">str</span>
+    n_agents: <span class="code-type">int</span>  <span class="code-comment"># 0 for no debate, 3 or 5 for panels</span>
+
+<span class="code-keyword">def</span> <span class="code-function">should_use_debate</span>(
+    credit_score: <span class="code-type">int</span>,
+    dti_ratio: float,
+    loan_amount_vnd: <span class="code-type">int</span>,
+    employment_months: <span class="code-type">int</span>
+) -> DebateRoutingDecision:
+    <span class="code-comment">"""Route to debate panel only for genuinely ambiguous cases."""</span>
+
+    <span class="code-comment"># Clear REJECT — no debate needed</span>
+    <span class="code-keyword">if</span> credit_score < <span class="code-number">500</span> <span class="code-keyword">or</span> dti_ratio > <span class="code-number">0.55</span>:
+        <span class="code-keyword">return</span> <span class="code-function">DebateRoutingDecision</span>(<span class="code-keyword">False</span>, <span class="code-string">"Clear reject criteria"</span>, <span class="code-number">0</span>)
+
+    <span class="code-comment"># Clear APPROVE — no debate needed</span>
+    <span class="code-keyword">if</span> credit_score >= <span class="code-number">720</span> <span class="code-keyword">and</span> dti_ratio <= <span class="code-number">0.35</span> <span class="code-keyword">and</span> employment_months >= <span class="code-number">24</span>:
+        <span class="code-keyword">return</span> <span class="code-function">DebateRoutingDecision</span>(<span class="code-keyword">False</span>, <span class="code-string">"Clear approve criteria"</span>, <span class="code-number">0</span>)
+
+    <span class="code-comment"># High-value borderline → full 5-agent panel</span>
+    <span class="code-keyword">if</span> loan_amount_vnd > <span class="code-number">2_000_000_000</span> <span class="code-keyword">and</span> <span class="code-number">580</span> <= credit_score <= <span class="code-number">700</span>:
+        <span class="code-keyword">return</span> <span class="code-function">DebateRoutingDecision</span>(<span class="code-keyword">True</span>, <span class="code-string">"High-value borderline — full panel"</span>, <span class="code-number">5</span>)
+
+    <span class="code-comment"># Standard borderline → 3-agent panel</span>
+    <span class="code-keyword">if</span> <span class="code-number">580</span> <= credit_score <= <span class="code-number">680</span> <span class="code-keyword">or</span> (<span class="code-number">0.38</span> <= dti_ratio <= <span class="code-number">0.45</span>):
+        <span class="code-keyword">return</span> <span class="code-function">DebateRoutingDecision</span>(<span class="code-keyword">True</span>, <span class="code-string">"Standard borderline zone"</span>, <span class="code-number">3</span>)
+
+    <span class="code-comment"># Short employment flag → 3-agent with RegulatorAgent emphasis</span>
+    <span class="code-keyword">if</span> employment_months < <span class="code-number">12</span>:
+        <span class="code-keyword">return</span> <span class="code-function">DebateRoutingDecision</span>(<span class="code-keyword">True</span>, <span class="code-string">"Short employment requires regulatory check"</span>, <span class="code-number">3</span>)
+
+    <span class="code-keyword">return</span> <span class="code-function">DebateRoutingDecision</span>(<span class="code-keyword">False</span>, <span class="code-string">"Sufficient signal for direct decision"</span>, <span class="code-number">0</span>)
+
+<span class="code-comment"># Test routing decisions</span>
+<span class="code-keyword">for</span> case <span class="code-keyword">in</span> [
+    (<span class="code-number">720</span>, <span class="code-number">0.30</span>, <span class="code-number">500_000_000</span>, <span class="code-number">36</span>),   <span class="code-comment"># Clear approve</span>
+    (<span class="code-number">645</span>, <span class="code-number">0.42</span>, <span class="code-number">400_000_000</span>, <span class="code-number">8</span>),    <span class="code-comment"># Borderline → 3 agents</span>
+    (<span class="code-number">620</span>, <span class="code-number">0.41</span>, <span class="code-number">2_500_000_000</span>, <span class="code-number">18</span>),  <span class="code-comment"># High-value borderline → 5 agents</span>
+    (<span class="code-number">420</span>, <span class="code-number">0.65</span>, <span class="code-number">200_000_000</span>, <span class="code-number">24</span>),   <span class="code-comment"># Clear reject</span>
+]:
+    r = <span class="code-function">should_use_debate</span>(*case)
+    <span class="code-function">print</span>(<span class="code-string">f"Score {case[0]}, DTI {case[1]}: debate={r.use_debate}, agents={r.n_agents} ({r.reason})"</span>)</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Consensus Mechanisms — Từ Majority Vote đến Weighted Delphi</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement 4 consensus mechanisms: majority vote, weighted vote, Borda count, Delphi</li>
+          <li>Biết khi nào simple majority đủ vs khi cần weighted/Delphi approach</li>
+          <li>Handle ties và deadlocks trong agent panel</li>
+          <li>Đo diversity: nếu tất cả agents đồng ý ngay → diversity thấp, debate vô ích</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: 4 Consensus Mechanisms</div>
+        <p><strong>1. Majority Vote</strong>: quyết định nào có nhiều phiếu nhất. Simple, fast, fair. Vấn đề: không phân biệt confidence. <strong>2. Weighted Vote</strong>: agent có track record tốt hơn có weight cao hơn — RegulatorAgent weight 1.5 cho compliance queries. <strong>3. Borda Count</strong>: mỗi agent rank tất cả options (APPROVE=2, REVIEW=1, REJECT=0), sum ranks → option có tổng cao nhất win. Tốt hơn binary vote. <strong>4. Delphi Method</strong>: agents debate nhiều rounds — sau mỗi round, xem lại positions của nhau và có thể thay đổi → tốt nhất cho complex cases nhưng latency cao (3-5 rounds × API calls).</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>4 Consensus Mechanisms so sánh: Majority Vote, Weighted Vote, Borda Count, Delphi — cùng input FC-2024-004</title>
+          <defs>
+            <marker id="arr26" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#e879f9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#3b0764" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf4ff">Consensus Mechanisms — FC-2024-004 (Score 645, DTI 0.42, Emp 8mo)</text>
+
+          <!-- Agent Votes (left) -->
+          <rect x="12" y="38" width="150" height="130" fill="#701a75" rx="8" stroke="#e879f9" stroke-width="1.5"/>
+          <text x="87" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#fdf4ff">Agent Votes</text>
+          <text x="87" y="75" text-anchor="middle" font-size="9" fill="#86efac">🟢 Optimist → APPROVE</text>
+          <text x="87" y="92" text-anchor="middle" font-size="9" fill="#fca5a5">🔴 Pessimist → REVIEW</text>
+          <text x="87" y="109" text-anchor="middle" font-size="9" fill="#7dd3fc">🔵 Regulator → REVIEW</text>
+          <text x="87" y="130" text-anchor="middle" font-size="8" fill="#f0abfc">Weights: Opt=1.0</text>
+          <text x="87" y="143" text-anchor="middle" font-size="8" fill="#f0abfc">Pess=1.2  Reg=1.5</text>
+          <text x="87" y="156" text-anchor="middle" font-size="8" fill="#f0abfc">Borda: Opt(2,1,0) Pess(1,2,0) Reg(0,2,1)</text>
+
+          <line x1="162" y1="103" x2="180" y2="78" stroke="#e879f9" stroke-width="1.5" marker-end="url(#arr26)"/>
+          <line x1="162" y1="103" x2="180" y2="110" stroke="#e879f9" stroke-width="1.5" marker-end="url(#arr26)"/>
+          <line x1="162" y1="103" x2="180" y2="143" stroke="#e879f9" stroke-width="1.5" marker-end="url(#arr26)"/>
+          <line x1="162" y1="103" x2="180" y2="175" stroke="#e879f9" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr26)"/>
+
+          <!-- Mechanism boxes -->
+          <rect x="183" y="35" width="130" height="60" fill="#4a044e" rx="8" stroke="#a21caf" stroke-width="1.5"/>
+          <text x="248" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf4ff">① Majority Vote</text>
+          <text x="248" y="71" text-anchor="middle" font-size="8" fill="#f0abfc">APPROVE: 1 vote</text>
+          <text x="248" y="83" text-anchor="middle" font-size="8" fill="#fbbf24">REVIEW: 2 votes → WIN</text>
+
+          <rect x="183" y="103" width="130" height="60" fill="#4a044e" rx="8" stroke="#a21caf" stroke-width="1.5"/>
+          <text x="248" y="124" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf4ff">② Weighted Vote</text>
+          <text x="248" y="139" text-anchor="middle" font-size="8" fill="#f0abfc">APPROVE: 1.0</text>
+          <text x="248" y="151" text-anchor="middle" font-size="8" fill="#fbbf24">REVIEW: 1.2+1.5=2.7 → WIN</text>
+
+          <rect x="338" y="35" width="130" height="60" fill="#4a044e" rx="8" stroke="#a21caf" stroke-width="1.5"/>
+          <text x="403" y="56" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf4ff">③ Borda Count</text>
+          <text x="403" y="71" text-anchor="middle" font-size="8" fill="#f0abfc">APPROVE: 2+1+0=3</text>
+          <text x="403" y="83" text-anchor="middle" font-size="8" fill="#fbbf24">REVIEW: 1+2+2=5 → WIN</text>
+
+          <rect x="338" y="103" width="130" height="60" fill="#4a044e" rx="8" stroke="#a21caf" stroke-width="1.5"/>
+          <text x="403" y="124" text-anchor="middle" font-size="9" font-weight="700" fill="#fdf4ff">④ Delphi Round 2</text>
+          <text x="403" y="139" text-anchor="middle" font-size="8" fill="#f0abfc">After Reg cites TT39:</text>
+          <text x="403" y="151" text-anchor="middle" font-size="8" fill="#fbbf24">Optimist → REVIEW (revised)</text>
+
+          <!-- All → REVIEW output -->
+          <rect x="493" y="68" width="130" height="55" fill="#166534" rx="8" stroke="#4ade80" stroke-width="2"/>
+          <text x="558" y="90" text-anchor="middle" font-size="11" font-weight="700" fill="#f0fdf4">✅ CONSENSUS</text>
+          <text x="558" y="107" text-anchor="middle" font-size="10" font-weight="700" fill="#86efac">REVIEW</text>
+          <text x="558" y="118" text-anchor="middle" font-size="8" fill="#bbf7d0">+ yêu cầu collateral</text>
+
+          <line x1="313" y1="65" x2="493" y2="90" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr26)"/>
+          <line x1="313" y1="133" x2="493" y2="95" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr26)"/>
+          <line x1="468" y1="65" x2="493" y2="88" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr26)"/>
+          <line x1="468" y1="133" x2="493" y2="103" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arr26)"/>
+
+          <text x="700" y="100" text-anchor="middle" font-size="8" fill="#f0abfc">All 4 mechanisms</text>
+          <text x="700" y="113" text-anchor="middle" font-size="8" fill="#f0abfc">agree → high</text>
+          <text x="700" y="126" text-anchor="middle" font-size="8" fill="#f0abfc">confidence result</text>
+        </svg>
+        <div class="diagram-title">Hình 1: 4 consensus mechanisms áp dụng cho FC-2024-004. Majority Vote (2/3 REVIEW), Weighted Vote (2.7 vs 1.0), Borda Count (5 vs 3), Delphi Round 2 (Optimist revised → REVIEW). Tất cả 4 mechanisms đồng thuận REVIEW → confidence cao.</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">3 agents vote: OptimistAgent APPROVE, PessimistAgent REJECT, RegulatorAgent APPROVE. Majority vote = APPROVE (2/3). Nhưng RegulatorAgent raise vấn đề: "loan purpose chưa rõ ràng — cần verify theo TT39". Kết quả majority (APPROVE) có nên deliver không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> KHÔNG deliver ngay dù majority là APPROVE. Lý do: RegulatorAgent raise "compliance flag" — trong domain tín dụng, regulatory concerns luôn có veto priority. Đây là "weighted veto": một agent với regulatory mandate có quyền block decision cho đến khi concern được address. Implementation: check nếu RegulatorAgent flag compliance issue → escalate to REVIEW regardless of majority. Deliver APPROVE chỉ khi RegulatorAgent confirm compliant. Điều này khác với simple majority vote — trong high-stakes domains, không phải tất cả votes đều equal.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Devil's Advocate Pattern — Tranh Luận Có Cấu Trúc</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement Devil's Advocate Agent: chủ động tìm lý do để phản đối quyết định draft</li>
+          <li>Thiết kế structured debate protocol: claim → challenge → rebuttal → synthesis</li>
+          <li>Biết khi nào nên dừng debate: convergence criteria hoặc max rounds</li>
+          <li>Tránh "sycophancy collapse": không để agents đồng ý chỉ vì peer pressure</li>
+        </ul>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Anti-Pattern: Echo Chamber Debate</div>
+        <p>Nếu tất cả agents được prompt với cùng system prompt và cùng few-shot examples → chúng sẽ tend to agree. Debate trở thành theater, không add value. <strong>Prevention</strong>: (1) Diversify agent personas với different risk tolerances. (2) Prohibit agents from seeing each other's votes before stating own position. (3) Require each agent to find at least 1 counterargument. (4) Devil's Advocate agent được assigned explicitly để disagree — bất kể position của chính nó là gì.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Devil's Advocate Agent — Structured Challenge)</span>
+        <pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">DebateRound</span>:
+    round_num: <span class="code-type">int</span>
+    draft_decision: <span class="code-type">str</span>
+    devil_challenge: <span class="code-type">str</span>
+    rebuttals: List[<span class="code-type">str</span>]
+    revised_decision: <span class="code-type">str</span>
+    decision_changed: <span class="code-type">bool</span>
+
+<span class="code-keyword">async def</span> <span class="code-function">devil_advocate_round</span>(
+    client: anthropic.Anthropic,
+    application: dict,
+    draft_decision: <span class="code-type">str</span>,
+    draft_reasoning: <span class="code-type">str</span>,
+    round_num: <span class="code-type">int</span> = <span class="code-number">1</span>
+) -> DebateRound:
+    <span class="code-comment">"""Devil's Advocate challenges the draft decision to stress-test it."""</span>
+
+    <span class="code-comment"># Step 1: Devil's Advocate generates challenges</span>
+    da_prompt = <span class="code-string">f"""Bạn là Devil's Advocate cho quyết định tín dụng.
+Draft decision: {draft_decision}
+Reasoning: {draft_reasoning}
+Application: Score={application['credit_score']}, DTI={application['dti_ratio']}, Emp={application['employment_months']}mo
+
+Nhiệm vụ: Tìm 2-3 lý do MẠNH NHẤT để phản đối quyết định này.
+Không đồng ý vì礼貌 — chỉ đưa ra challenges có cơ sở thực sự.
+Format: CHALLENGE_1: ... | CHALLENGE_2: ... | CHALLENGE_3: ..."""</span>
+
+    challenge_resp = client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="code-number">400</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: da_prompt}]
+    )
+    challenge = challenge_resp.content[<span class="code-number">0</span>].text
+
+    <span class="code-comment"># Step 2: Original agent rebuts the challenges</span>
+    rebuttal_prompt = <span class="code-string">f"""Bạn đã propose decision: {draft_decision}.
+Devil's Advocate challenges: {challenge}
+
+Rebuttal: Giải thích tại sao decision vẫn đúng (hoặc revise nếu challenge có giá trị).
+Format: REBUTTAL: ... | REVISED_DECISION: {draft_decision} (hoặc APPROVE/REVIEW/REJECT nếu thay đổi)"""</span>
+
+    rebuttal_resp = client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="code-number">300</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: rebuttal_prompt}]
+    )
+    rebuttal_text = rebuttal_resp.content[<span class="code-number">0</span>].text
+
+    <span class="code-comment"># Extract revised decision from rebuttal</span>
+    revised = draft_decision
+    <span class="code-keyword">for</span> decision <span class="code-keyword">in</span> [<span class="code-string">"APPROVE"</span>, <span class="code-string">"REVIEW"</span>, <span class="code-string">"REJECT"</span>]:
+        <span class="code-keyword">if</span> <span class="code-string">f"REVISED_DECISION: {decision}"</span> <span class="code-keyword">in</span> rebuttal_text:
+            revised = decision
+            <span class="code-keyword">break</span>
+
+    <span class="code-keyword">return</span> <span class="code-function">DebateRound</span>(
+        round_num=round_num,
+        draft_decision=draft_decision,
+        devil_challenge=challenge,
+        rebuttals=[rebuttal_text],
+        revised_decision=revised,
+        decision_changed=(revised != draft_decision)
+    )
+
+<span class="code-comment"># Convergence check</span>
+<span class="code-keyword">def</span> <span class="code-function">debate_converged</span>(rounds: List[DebateRound]) -> <span class="code-type">bool</span>:
+    <span class="code-comment">"""Stop debate if: no change in last 2 rounds, or max 3 rounds reached."""</span>
+    <span class="code-keyword">if</span> <span class="code-function">len</span>(rounds) >= <span class="code-number">3</span>: <span class="code-keyword">return</span> <span class="code-keyword">True</span>
+    <span class="code-keyword">if</span> <span class="code-function">len</span>(rounds) >= <span class="code-number">2</span> <span class="code-keyword">and</span> <span class="code-keyword">not</span> rounds[-<span class="code-number">1</span>].decision_changed <span class="code-keyword">and</span> <span class="code-keyword">not</span> rounds[-<span class="code-number">2</span>].decision_changed:
+        <span class="code-keyword">return</span> <span class="code-keyword">True</span>  <span class="code-comment"># Stable for 2 consecutive rounds</span>
+    <span class="code-keyword">return</span> <span class="code-keyword">False</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Agent Specialization — Persona Design cho Loan Panel</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế 5 specialized agent personas cho FinTech Corp loan panel</li>
+          <li>Hiểu cách system prompt định hình risk tolerance và decision bias của agent</li>
+          <li>Calibrate agents để họ có diversity nhưng không quá extreme</li>
+          <li>Track agent track record: ai đúng nhiều nhất trên từng loại case?</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Persona-Based Specialization</div>
+        <p>Mỗi agent trong panel được assign một <strong>persona system prompt</strong> định hình world-view của nó. <strong>OptimistAgent</strong>: "Ưu tiên phê duyệt hồ sơ có tiềm năng tăng trưởng. False negative (từ chối người đáng vay) costly hơn false positive." <strong>PessimistAgent</strong>: "Ưu tiên bảo vệ vốn của ngân hàng. False positive (approve người không trả được) costly hơn false negative." <strong>RegulatorAgent</strong>: "Chỉ approve nếu 100% compliant với TT39/2016 và internal policy. Không có exception." Diversity của personas → diversity của reasoning paths → better collective accuracy.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>5 Agent Personas với risk tolerance spectrum: Optimist → Balanced → Pessimist → Regulator → Auditor</title>
+          <defs>
+            <marker id="arr26p" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#e879f9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#3b0764" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fdf4ff">5-Agent Loan Panel — Risk Tolerance Spectrum</text>
+
+          <!-- Risk spectrum bar -->
+          <defs>
+            <linearGradient id="riskGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#16a34a;stop-opacity:1"/>
+              <stop offset="50%" style="stop-color:#d97706;stop-opacity:1"/>
+              <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1"/>
+            </linearGradient>
+          </defs>
+          <rect x="50" y="35" width="660" height="8" fill="url(#riskGrad)" rx="4"/>
+          <text x="50" y="52" text-anchor="middle" font-size="8" fill="#86efac">Risk-Tolerant</text>
+          <text x="710" y="52" text-anchor="middle" font-size="8" fill="#fca5a5">Risk-Averse</text>
+
+          <!-- Agent 1: Optimist -->
+          <rect x="25" y="62" width="130" height="115" fill="#14532d" rx="8" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="90" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#f0fdf4">🟢 OptimistAgent</text>
+          <text x="90" y="97" text-anchor="middle" font-size="8" fill="#86efac">Weight: 1.0</text>
+          <text x="90" y="112" text-anchor="middle" font-size="8" fill="#bbf7d0">Focus: Growth</text>
+          <text x="90" y="127" text-anchor="middle" font-size="8" fill="#bbf7d0">potential &amp; income</text>
+          <text x="90" y="142" text-anchor="middle" font-size="8" fill="#bbf7d0">Threshold: 600</text>
+          <text x="90" y="157" text-anchor="middle" font-size="8" fill="#86efac">Bias: ↓ False neg</text>
+          <line x1="90" y1="44" x2="90" y2="62" stroke="#4ade80" stroke-width="1.5"/>
+
+          <!-- Agent 2: Balanced -->
+          <rect x="167" y="62" width="130" height="115" fill="#1e3a5f" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="232" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#f0f9ff">⚪ BalancedAgent</text>
+          <text x="232" y="97" text-anchor="middle" font-size="8" fill="#7dd3fc">Weight: 1.2</text>
+          <text x="232" y="112" text-anchor="middle" font-size="8" fill="#bae6fd">Focus: Policy</text>
+          <text x="232" y="127" text-anchor="middle" font-size="8" fill="#bae6fd">adherence, all</text>
+          <text x="232" y="142" text-anchor="middle" font-size="8" fill="#bae6fd">Threshold: 640</text>
+          <text x="232" y="157" text-anchor="middle" font-size="8" fill="#7dd3fc">Bias: Neutral</text>
+          <line x1="232" y1="44" x2="232" y2="62" stroke="#38bdf8" stroke-width="1.5"/>
+
+          <!-- Agent 3: Pessimist -->
+          <rect x="309" y="62" width="130" height="115" fill="#7f1d1d" rx="8" stroke="#f87171" stroke-width="1.5"/>
+          <text x="374" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#fff7ed">🔴 PessimistAgent</text>
+          <text x="374" y="97" text-anchor="middle" font-size="8" fill="#fca5a5">Weight: 1.2</text>
+          <text x="374" y="112" text-anchor="middle" font-size="8" fill="#fecaca">Focus: Default</text>
+          <text x="374" y="127" text-anchor="middle" font-size="8" fill="#fecaca">risk, DTI, debt</text>
+          <text x="374" y="142" text-anchor="middle" font-size="8" fill="#fecaca">Threshold: 670</text>
+          <text x="374" y="157" text-anchor="middle" font-size="8" fill="#fca5a5">Bias: ↓ False pos</text>
+          <line x1="374" y1="44" x2="374" y2="62" stroke="#f87171" stroke-width="1.5"/>
+
+          <!-- Agent 4: Regulator -->
+          <rect x="451" y="62" width="130" height="115" fill="#0c4a6e" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="516" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#f0f9ff">🔵 RegulatorAgent</text>
+          <text x="516" y="97" text-anchor="middle" font-size="8" fill="#7dd3fc">Weight: 1.5</text>
+          <text x="516" y="112" text-anchor="middle" font-size="8" fill="#bae6fd">Focus: TT39,</text>
+          <text x="516" y="127" text-anchor="middle" font-size="8" fill="#bae6fd">internal policy</text>
+          <text x="516" y="142" text-anchor="middle" font-size="8" fill="#bae6fd">Veto: compliance</text>
+          <text x="516" y="157" text-anchor="middle" font-size="8" fill="#7dd3fc">Bias: Compliance</text>
+          <line x1="516" y1="44" x2="516" y2="62" stroke="#7dd3fc" stroke-width="1.5"/>
+
+          <!-- Agent 5: Auditor -->
+          <rect x="593" y="62" width="142" height="115" fill="#292524" rx="8" stroke="#a3a3a3" stroke-width="1.5"/>
+          <text x="664" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#fafafa">⚫ AuditorAgent</text>
+          <text x="664" y="97" text-anchor="middle" font-size="8" fill="#d4d4d4">Weight: 1.0</text>
+          <text x="664" y="112" text-anchor="middle" font-size="8" fill="#a3a3a3">Focus: Audit</text>
+          <text x="664" y="127" text-anchor="middle" font-size="8" fill="#a3a3a3">trail, documentation</text>
+          <text x="664" y="142" text-anchor="middle" font-size="8" fill="#a3a3a3">completeness</text>
+          <text x="664" y="157" text-anchor="middle" font-size="8" fill="#d4d4d4">Bias: Process</text>
+          <line x1="664" y1="44" x2="664" y2="62" stroke="#a3a3a3" stroke-width="1.5"/>
+
+          <text x="380" y="185" text-anchor="middle" font-size="8" fill="#f0abfc">3-agent panel: Optimist + Pessimist + Regulator | 5-agent panel: all five | High-value cases always use 5-agent</text>
+        </svg>
+        <div class="diagram-title">Hình 2: 5-agent loan panel với risk tolerance spectrum. RegulatorAgent có weight cao nhất (1.5) và compliance veto power. 3-agent panel cho standard borderline; 5-agent panel cho high-value (&gt;2B VNĐ) hoặc complex cases.</div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Arbitration & Meta-Agent — Người Phân Xử Cuối Cùng</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế Meta-Arbitrator: tổng hợp debate transcript → final decision có explanation</li>
+          <li>Handle deadlock: khi panel split 2-2 hoặc 3-2 với strong minority view</li>
+          <li>Implement audit trail cho toàn bộ debate — đáp ứng regulatory audit requirements</li>
+          <li>Measure và improve panel quality: track per-agent accuracy, diversity, và calibration</li>
+        </ul>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Meta-Arbitrator ≠ Aggregator</div>
+        <p>Meta-Arbitrator không chỉ đếm phiếu — nó đọc reasoning của mỗi agent và đưa ra independent judgment về <em>chất lượng</em> của các arguments. Ví dụ: Optimist có 2 điểm mạnh nhưng ignore 1 red flag quan trọng; Pessimist có 1 điểm mạnh nhưng reasoning circle. Meta-Arbitrator nhận ra Pessimist's core argument là stronger dù Optimist có nhiều points hơn. Điều này tương tự như judge trong tòa án — không đếm số nhân chứng mà đánh giá credibility và relevance của evidence.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Meta-Arbitrator — Synthesis + Audit Trail)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict
+<span class="code-keyword">import</span> anthropic
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">AgentVote</span>:
+    agent_name: <span class="code-type">str</span>
+    vote: <span class="code-type">str</span>          <span class="code-comment"># APPROVE / REVIEW / REJECT</span>
+    confidence: float
+    reasoning: <span class="code-type">str</span>
+    weight: float = <span class="code-number">1.0</span>
+    compliance_flag: <span class="code-type">bool</span> = <span class="code-keyword">False</span>  <span class="code-comment"># regulatory veto flag</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">PanelDecision</span>:
+    final_decision: <span class="code-type">str</span>
+    consensus_method: <span class="code-type">str</span>
+    confidence: float
+    explanation: <span class="code-type">str</span>
+    conditions: List[<span class="code-type">str</span>]           <span class="code-comment"># e.g., ["Require collateral", "Re-verify income"]</span>
+    dissent_summary: <span class="code-type">str</span>          <span class="code-comment"># minority position summary for audit</span>
+    audit_trail: List[dict]       <span class="code-comment"># full debate log</span>
+
+<span class="code-keyword">async def</span> <span class="code-function">meta_arbitrate</span>(
+    client: anthropic.Anthropic,
+    application: dict,
+    votes: List[AgentVote]
+) -> PanelDecision:
+    <span class="code-comment">"""Meta-Arbitrator synthesizes panel votes into final decision."""</span>
+
+    <span class="code-comment"># Check regulatory veto first</span>
+    compliance_flags = [v <span class="code-keyword">for</span> v <span class="code-keyword">in</span> votes <span class="code-keyword">if</span> v.compliance_flag]
+    <span class="code-keyword">if</span> compliance_flags:
+        <span class="code-keyword">return</span> <span class="code-function">PanelDecision</span>(
+            final_decision=<span class="code-string">"REVIEW"</span>,
+            consensus_method=<span class="code-string">"regulatory_veto"</span>,
+            confidence=<span class="code-number">0.99</span>,
+            explanation=<span class="code-string">f"Compliance flag raised by {compliance_flags[0].agent_name}: {compliance_flags[0].reasoning}"</span>,
+            conditions=[<span class="code-string">"Resolve compliance flag before proceeding"</span>],
+            dissent_summary=<span class="code-string">"N/A — regulatory veto overrides panel vote"</span>,
+            audit_trail=[{<span class="code-string">"agent"</span>: v.agent_name, <span class="code-string">"vote"</span>: v.vote, <span class="code-string">"reasoning"</span>: v.reasoning} <span class="code-keyword">for</span> v <span class="code-keyword">in</span> votes]
+        )
+
+    <span class="code-comment"># Weighted vote tallying</span>
+    vote_weights: Dict[<span class="code-type">str</span>, float] = {}
+    <span class="code-keyword">for</span> v <span class="code-keyword">in</span> votes:
+        vote_weights[v.vote] = vote_weights.<span class="code-function">get</span>(v.vote, <span class="code-number">0</span>) + v.weight * v.confidence
+
+    majority = <span class="code-function">max</span>(vote_weights, key=vote_weights.<span class="code-function">get</span>)
+    total_weight = <span class="code-function">sum</span>(vote_weights.<span class="code-function">values</span>())
+    panel_confidence = vote_weights[majority] / total_weight
+
+    <span class="code-comment"># Build synthesis prompt for explanation</span>
+    vote_summary = <span class="code-string">"\n"</span>.<span class="code-function">join</span>([<span class="code-string">f"{v.agent_name} ({v.weight}w): {v.vote} — {v.reasoning[:100]}"</span> <span class="code-keyword">for</span> v <span class="code-keyword">in</span> votes])
+    synthesis_resp = client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="code-number">400</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>:
+            <span class="code-string">f"Panel voted {majority}. Synthesize in 1-2 sentences why, given:\n{vote_summary}\nAlso list conditions if REVIEW."</span>}]
+    )
+
+    dissent = [v <span class="code-keyword">for</span> v <span class="code-keyword">in</span> votes <span class="code-keyword">if</span> v.vote != majority]
+    <span class="code-keyword">return</span> <span class="code-function">PanelDecision</span>(
+        final_decision=majority,
+        consensus_method=<span class="code-string">"weighted_vote"</span>,
+        confidence=<span class="code-function">round</span>(panel_confidence, <span class="code-number">3</span>),
+        explanation=synthesis_resp.content[<span class="code-number">0</span>].text,
+        conditions=[<span class="code-string">"Verify income source"</span>, <span class="code-string">"Require 1 collateral asset"</span>] <span class="code-keyword">if</span> majority == <span class="code-string">"REVIEW"</span> <span class="code-keyword">else</span> [],
+        dissent_summary=<span class="code-string">", "</span>.<span class="code-function">join</span>([<span class="code-string">f"{d.agent_name}: {d.vote}"</span> <span class="code-keyword">for</span> d <span class="code-keyword">in</span> dissent]),
+        audit_trail=[{<span class="code-string">"agent"</span>: v.agent_name, <span class="code-string">"vote"</span>: v.vote, <span class="code-string">"weight"</span>: v.weight, <span class="code-string">"conf"</span>: v.confidence} <span class="code-keyword">for</span> v <span class="code-keyword">in</span> votes]
+    )</code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Tracking Panel Quality Over Time
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Sau khi deploy panel, track metrics để improve:</p>
+          <ul style="font-size:.875rem;">
+            <li><strong>Per-agent accuracy</strong>: mỗi tuần, so sánh agent's vote với ground truth (30-day loan outcome). Agent nào consistently sai → giảm weight hoặc update persona prompt.</li>
+            <li><strong>Diversity index</strong>: entropy của vote distribution. Nếu 5 agents consistently agree 5/5 → panel quá homogeneous → add adversarial agent hoặc diversify personas.</li>
+            <li><strong>Debate utilization</strong>: % cases trigger debate (target: 15-20% — chỉ genuine borderlines). Nếu &gt;30% → routing quá sensitive; &lt;10% → missing edge cases.</li>
+            <li><strong>Reversal rate</strong>: % cases where meta-arbitrator overrules majority. Nếu &gt;20% → majority vote is poorly calibrated hoặc arbitrator bias cần investigate.</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <h2>📚 Glossary Module 26</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m26-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m26-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m26-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Multi-Agent Debate</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Nhiều LLM agents với diverse personas cùng analyze một case rồi reach consensus — better accuracy trên ambiguous cases.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Condorcet Jury Theorem</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">P(panel correct) tăng khi thêm agents, nếu mỗi agent p&gt;0.5 và independent. Foundation toán học của debate system.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Majority Vote</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Consensus mechanism đơn giản nhất: decision với nhiều votes nhất win. Không phân biệt confidence hay weight.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Weighted Vote</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mỗi agent vote có weight khác nhau — RegulatorAgent weight 1.5 vì domain expertise trong compliance.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Borda Count</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mỗi agent rank tất cả options, sum ranks → option có tổng cao nhất win. Tốt hơn binary vote cho 3+ options.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Delphi Method</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Iterative debate: nhiều rounds, sau mỗi round agents xem reasoning của nhau và revise — high latency nhưng high quality.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Devil's Advocate</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent được assign nhiệm vụ explicitly challenge draft decision — ngăn echo chamber và force stress-testing arguments.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Echo Chamber</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anti-pattern: tất cả agents trong panel agree vì homogeneous prompts — debate là theater, không add value.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sycophancy Collapse</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent thay đổi position vì peer pressure từ agents khác, không phải vì argument chất lượng cao hơn.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compliance Veto</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RegulatorAgent có quyền block decision bất kể majority vote nếu có regulatory violation — veto overrides democracy.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Meta-Arbitrator</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent tổng hợp debate transcript và votes → final decision với explanation. Đánh giá quality of arguments, không chỉ count votes.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agent Persona</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">System prompt định hình world-view và risk tolerance của agent — Optimist vs Pessimist vs Regulator vs Auditor.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Convergence Criteria</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Điều kiện dừng debate: no change in last 2 rounds, OR max_rounds reached, OR unanimous consensus.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Diversity Index</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Entropy của vote distribution trong panel. Thấp → homogeneous → echo chamber risk. Target: &gt;0.5 entropy.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Wisdom of Crowds</td><td style="padding:8px 12px;">Principle: tổng hợp independent diverse judgments thường outperforms single expert — nền tảng của multi-agent systems.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module25/index.html" class="btn btn-outline">← Module 25: Scale</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 26 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

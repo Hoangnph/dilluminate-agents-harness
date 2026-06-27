@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 13 — Agent Orchestration Patterns & Advanced Architectures</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m13-primary: #065f46;
+      --m13-accent:  #10b981;
+      --m13-light:   #ecfdf5;
+      --m13-border:  #6ee7b7;
+    }
+    .lesson-header { background: linear-gradient(135deg, #022c22 0%, #065f46 50%, #10b981 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #d1fae5; }
+    .lesson-header p { color: #a7f3d0; }
+    .sidebar-nav a.active { background: var(--m13-light); border-left: 3px solid var(--m13-accent); color: var(--m13-primary); }
+    .sidebar-nav a:hover { color: var(--m13-primary); }
+
+    .pattern-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin: var(--space-5) 0;
+    }
+    .pattern-card {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid; text-align: center;
+    }
+    .pattern-card.sequential { background: #eff6ff; border-color: #93c5fd; }
+    .pattern-card.parallel   { background: #ecfdf5; border-color: #6ee7b7; }
+    .pattern-card.event      { background: #fdf4ff; border-color: #d8b4fe; }
+    .pattern-card .icon { font-size: 1.8rem; margin-bottom: var(--space-2); }
+    .pattern-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: var(--space-2); }
+    .pattern-card p  { font-size: .8rem; color: var(--text-muted); margin: 0; }
+
+    .latency-compare {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin: var(--space-5) 0;
+    }
+    .latency-box {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid;
+    }
+    .latency-box.before { background: #fef2f2; border-color: #fca5a5; }
+    .latency-box.after  { background: #ecfdf5; border-color: #6ee7b7; }
+    .latency-box h4 { font-size: .9rem; font-weight: 700; margin-bottom: var(--space-3); }
+    .latency-step { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 6px; font-size: .85rem; }
+    .latency-bar { height: 8px; border-radius: 4px; }
+    .latency-val { font-weight: 700; width: 45px; text-align: right; font-size: .8rem; }
+
+    .saga-step {
+      display: flex; align-items: flex-start; gap: var(--space-4);
+      padding: var(--space-4); border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3); border: 1px solid;
+    }
+    .saga-step.normal  { background: #ecfdf5; border-color: #6ee7b7; }
+    .saga-step.comp    { background: #fff1f2; border-color: #fda4af; }
+    .saga-step .step-icon { font-size: 1.4rem; min-width: 2rem; }
+    .saga-step .step-name { font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
+    .saga-step .step-desc { font-size: .85rem; color: var(--text-muted); margin: 0; }
+    .saga-step .comp-label { font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); margin-left: auto; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m13-light);color:var(--m13-primary);border-color:var(--m13-border);">MODULE 13</div>
+    <div class="sidebar-title">Orchestration Patterns</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Orchestration Taxonomy</a>
+      <a href="#lesson2">L2. Fan-Out / Fan-In Pattern</a>
+      <a href="#lesson3">L3. Map-Reduce cho Agent Fleets</a>
+      <a href="#lesson4">L4. Saga Pattern — Distributed Agents</a>
+      <a href="#lesson5">L5. Dynamic Routing & Reactive</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m13-accent);">📝 Quiz Module 13</a>
+      <a href="lab.ipynb" download style="color:var(--m13-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module12/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 12: Evaluation</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 13 · Tuần 34–36</span>
+      <h1>🏗️ Agent Orchestration Patterns & Advanced Architectures</h1>
+      <p>Cách sắp xếp và điều phối nhiều agents để đạt throughput cao, fault tolerance tốt, và cost tối ưu. LoanBot v3.1 sẽ xử lý 50.000 hồ sơ/tháng nhanh gấp đôi nhờ Fan-Out/Fan-In.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🏗️ Advanced patterns</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Orchestration Taxonomy — Phân Loại Các Mô Hình Điều Phối</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt 3 paradigm: Sequential, Parallel, Event-Driven</li>
+          <li>Chọn pattern phù hợp với từng loại task trong LoanBot</li>
+          <li>Hiểu trade-offs: latency vs cost vs complexity</li>
+          <li>Nhận biết khi nào sequential đủ và khi nào cần parallel</li>
+        </ul>
+      </div>
+
+      <p>LoanBot v3.0 dùng <strong>sequential orchestration</strong> — agents chạy lần lượt: CreditAgent → IncomeAgent → FraudAgent → RiskAgent → ComplianceAgent → ReportAgent. Tổng latency = tổng thời gian các agent. Trong Module 13, ta sẽ xem cách restructure để đạt hiệu quả cao hơn.</p>
+
+      <div class="pattern-grid">
+        <div class="pattern-card sequential">
+          <div class="icon">➡️</div>
+          <h4>Sequential Pipeline</h4>
+          <p>A → B → C. Output A là input B. Đơn giản, dễ debug. Latency = sum(latencies). Dùng khi: mỗi bước phụ thuộc vào bước trước.</p>
+        </div>
+        <div class="pattern-card parallel">
+          <div class="icon">🔀</div>
+          <h4>Fan-Out / Fan-In (Parallel)</h4>
+          <p>Nhiều agents chạy đồng thời. Latency = max(latencies). Dùng khi: agents độc lập nhau, cần tốc độ.</p>
+        </div>
+        <div class="pattern-card event">
+          <div class="icon">📡</div>
+          <h4>Event-Driven (Reactive)</h4>
+          <p>Agents react to events, không cần coordinator trung tâm. Loose coupling, asynchronous. Dùng khi: complex workflows, many producers/consumers.</p>
+        </div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Dependency Graph</div>
+        <p>Để chọn orchestration pattern, vẽ <strong>dependency graph</strong> — directed acyclic graph (DAG) thể hiện agent nào phụ thuộc vào output của agent nào. Nếu A và B không có cạnh nối → có thể chạy parallel. Chỉ A → B (B cần A) → phải sequential. Trong LoanBot: CreditAgent, IncomeAgent, FraudAgent đều độc lập nhau → Fan-Out. RiskAgent cần cả 3 → chạy sau Fan-In.</p>
+      </div>
+
+      <h3>1.1 LoanBot Dependency Graph</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot v3.1 Agent Dependency Graph — DAG showing which agents can run in parallel</title>
+          <defs>
+            <marker id="arrDep" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#10b981"/>
+            </marker>
+          </defs>
+          <rect width="760" height="280" fill="#022c22" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#d1fae5">LoanBot v3.1 — Agent Dependency Graph (DAG)</text>
+
+          <!-- Input -->
+          <ellipse cx="80" cy="140" rx="60" ry="24" fill="#10b981"/>
+          <text x="80" y="136" text-anchor="middle" font-size="10" font-weight="700" fill="#022c22">Loan</text>
+          <text x="80" y="150" text-anchor="middle" font-size="9" fill="#022c22">Application</text>
+
+          <!-- Fan-out agents (independent) -->
+          <rect x="180" y="60" width="110" height="40" fill="#0d9488" rx="8"/>
+          <text x="235" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">CreditAgent</text>
+          <text x="235" y="90" text-anchor="middle" font-size="8" fill="#ccfbf1">score, DTI, history</text>
+
+          <rect x="180" y="120" width="110" height="40" fill="#0369a1" rx="8"/>
+          <text x="235" y="136" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">IncomeAgent</text>
+          <text x="235" y="150" text-anchor="middle" font-size="8" fill="#bae6fd">income verification</text>
+
+          <rect x="180" y="180" width="110" height="40" fill="#7c3aed" rx="8"/>
+          <text x="235" y="196" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">FraudAgent</text>
+          <text x="235" y="210" text-anchor="middle" font-size="8" fill="#ede9fe">fraud probability</text>
+
+          <!-- Arrows: Input → Fan-out -->
+          <line x1="140" y1="128" x2="178" y2="80" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+          <line x1="140" y1="140" x2="178" y2="140" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+          <line x1="140" y1="152" x2="178" y2="200" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+
+          <!-- Fan-in: RiskAgent -->
+          <rect x="360" y="110" width="110" height="60" fill="#065f46" rx="8" stroke="#10b981" stroke-width="2"/>
+          <text x="415" y="132" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">RiskAgent</text>
+          <text x="415" y="146" text-anchor="middle" font-size="8" fill="#a7f3d0">aggregates all 3</text>
+          <text x="415" y="160" text-anchor="middle" font-size="8" fill="#a7f3d0">recommendation</text>
+
+          <line x1="290" y1="80"  x2="358" y2="128" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+          <line x1="290" y1="140" x2="358" y2="140" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+          <line x1="290" y1="200" x2="358" y2="152" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+
+          <!-- Sequential: ComplianceAgent, ReportAgent -->
+          <rect x="530" y="60" width="110" height="40" fill="#92400e" rx="8"/>
+          <text x="585" y="76" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">ComplianceAgent</text>
+          <text x="585" y="90" text-anchor="middle" font-size="8" fill="#fde68a">policy check</text>
+
+          <rect x="530" y="180" width="110" height="40" fill="#334155" rx="8"/>
+          <text x="585" y="196" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">ReportAgent</text>
+          <text x="585" y="210" text-anchor="middle" font-size="8" fill="#cbd5e1">final report</text>
+
+          <line x1="470" y1="128" x2="528" y2="80" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+          <line x1="470" y1="152" x2="528" y2="190" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+
+          <!-- Output -->
+          <rect x="530" y="120" width="110" height="40" fill="#9f1239" rx="8"/>
+          <text x="585" y="136" text-anchor="middle" font-size="10" font-weight="700" fill="#ffe4e6">HITL / Auto</text>
+          <text x="585" y="150" text-anchor="middle" font-size="8" fill="#fecdd3">decision</text>
+
+          <line x1="590" y1="100" x2="590" y2="118" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+          <line x1="590" y1="160" x2="590" y2="178" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDep)"/>
+
+          <!-- Annotation box -->
+          <rect x="160" y="240" width="260" height="30" fill="#065f46" rx="6"/>
+          <text x="290" y="259" text-anchor="middle" font-size="9" fill="#d1fae5">⚡ Parallel zone: Credit + Income + Fraud → 2.1s instead of 6.3s</text>
+
+          <rect x="430" y="240" width="200" height="30" fill="#334155" rx="6"/>
+          <text x="530" y="259" text-anchor="middle" font-size="9" fill="#e2e8f0">Sequential: Risk → Compliance + Report</text>
+        </svg>
+        <div class="diagram-title">Hình 1: LoanBot v3.1 DAG — Credit/Income/Fraud agents có thể chạy parallel (không có dependency); RiskAgent cần cả 3 kết quả nên chạy sau fan-in</div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Latency: Sequential vs Fan-Out</div>
+        <div class="formula-text">Sequential: 2.1s + 2.0s + 2.2s + 1.5s = 7.8s | Fan-Out: max(2.1, 2.0, 2.2) + 1.5s = 3.7s</div>
+        <div class="formula-desc">LoanBot v3.1 giảm 52% latency bằng cách chạy 3 independent agents song song. P95 từ 12.4s → 6.8s.</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">ComplianceAgent có thể chạy song song với FraudAgent không? Hãy trace qua dependency graph để trả lời.</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Không. ComplianceAgent cần RiskAgent output (recommendation) để verify policy compliance — vì compliance check phụ thuộc vào verdict của RiskAgent. Trong DAG: RiskAgent → ComplianceAgent (có cạnh). FraudAgent và ComplianceAgent không có cạnh trực tiếp, nhưng cả hai đều có path đến qua RiskAgent → không thể fan-out. Chi tiết: nếu ComplianceAgent cần biết "là APPROVE hay REJECT" để áp đúng policy → phụ thuộc RiskAgent.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Fan-Out / Fan-In Pattern — Parallel Agent Execution</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement Fan-Out với asyncio để chạy agents đồng thời</li>
+          <li>Thiết kế Fan-In aggregation strategies (first-wins, all-required, majority)</li>
+          <li>Xử lý partial failures trong parallel execution</li>
+          <li>Đo lường speedup thực tế của LoanBot v3.1</li>
+        </ul>
+      </div>
+
+      <h3>2.1 Latency Comparison: Sequential vs Fan-Out</h3>
+
+      <div class="latency-compare">
+        <div class="latency-box before">
+          <h4 style="color:#dc2626;">🐢 LoanBot v3.0 — Sequential (7.8s)</h4>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">CreditAgent</span>
+            <div class="latency-bar" style="width:27%;background:#fca5a5;"></div>
+            <span class="latency-val" style="color:#dc2626;">2.1s</span>
+          </div>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">IncomeAgent</span>
+            <div class="latency-bar" style="width:26%;background:#fca5a5;"></div>
+            <span class="latency-val" style="color:#dc2626;">2.0s</span>
+          </div>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">FraudAgent</span>
+            <div class="latency-bar" style="width:28%;background:#fca5a5;"></div>
+            <span class="latency-val" style="color:#dc2626;">2.2s</span>
+          </div>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">RiskAgent</span>
+            <div class="latency-bar" style="width:19%;background:#fca5a5;"></div>
+            <span class="latency-val" style="color:#dc2626;">1.5s</span>
+          </div>
+          <div style="border-top:1px solid #fca5a5;margin-top:8px;padding-top:8px;font-weight:700;color:#dc2626;font-size:.9rem;">Total: 7.8s</div>
+        </div>
+        <div class="latency-box after">
+          <h4 style="color:#065f46;">⚡ LoanBot v3.1 — Fan-Out (3.7s)</h4>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">Credit + Income</span>
+            <div class="latency-bar" style="width:59%;background:#6ee7b7;"></div>
+            <span class="latency-val" style="color:#065f46;">2.2s ↓</span>
+          </div>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">+ Fraud (parallel)</span>
+            <div class="latency-bar" style="width:0%;background:#6ee7b7;"></div>
+            <span class="latency-val" style="color:#6b7280;">same</span>
+          </div>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">Fan-In wait</span>
+            <div class="latency-bar" style="width:5%;background:#a7f3d0;"></div>
+            <span class="latency-val" style="color:#065f46;">0s</span>
+          </div>
+          <div class="latency-step">
+            <span style="width:120px;font-size:.8rem;">RiskAgent</span>
+            <div class="latency-bar" style="width:41%;background:#6ee7b7;"></div>
+            <span class="latency-val" style="color:#065f46;">1.5s</span>
+          </div>
+          <div style="border-top:1px solid #6ee7b7;margin-top:8px;padding-top:8px;font-weight:700;color:#065f46;font-size:.9rem;">Total: 3.7s ↓ 52%</div>
+        </div>
+      </div>
+
+      <h3>2.2 Fan-Out Implementation với asyncio</h3>
+
+      <div class="code-block">
+        <span class="code-label">Python (async)</span>
+        <pre><code><span class="code-keyword">import</span> asyncio
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict, Any, Optional
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">AgentResult</span>:
+    agent_name: <span class="code-type">str</span>
+    output: Dict
+    latency_ms: <span class="code-type">int</span>
+    success: <span class="code-type">bool</span>
+    error: Optional[<span class="code-type">str</span>] = <span class="code-keyword">None</span>
+
+<span class="code-keyword">class</span> <span class="code-function">FanOutOrchestrator</span>:
+    <span class="code-comment">"""Fan-Out/Fan-In orchestrator cho LoanBot v3.1."""</span>
+
+    <span class="code-keyword">async def</span> <span class="code-function">fan_out</span>(self, agents: List[dict],
+                          loan_data: Dict,
+                          timeout_s: <span class="code-type">float</span> = <span class="code-number">5.0</span>) -> List[AgentResult]:
+        <span class="code-comment"># Chạy tất cả agents đồng thời với timeout</span>
+        tasks = [
+            asyncio.<span class="code-function">wait_for</span>(
+                self.<span class="code-function">_call_agent</span>(agent, loan_data),
+                timeout=timeout_s
+            )
+            <span class="code-keyword">for</span> agent <span class="code-keyword">in</span> agents
+        ]
+        <span class="code-comment"># gather(return_exceptions=True) → không raise, trả về exception object</span>
+        raw = <span class="code-keyword">await</span> asyncio.<span class="code-function">gather</span>(*tasks, return_exceptions=<span class="code-keyword">True</span>)
+        results = []
+        <span class="code-keyword">for</span> agent, r <span class="code-keyword">in</span> zip(agents, raw):
+            <span class="code-keyword">if</span> isinstance(r, Exception):
+                results.append(AgentResult(
+                    agent_name=agent[<span class="code-string">'name'</span>], output={},
+                    latency_ms=<span class="code-number">0</span>, success=<span class="code-keyword">False</span>,
+                    error=<span class="code-type">str</span>(r)
+                ))
+            <span class="code-keyword">else</span>:
+                results.append(r)
+        <span class="code-keyword">return</span> results
+
+    <span class="code-keyword">def</span> <span class="code-function">fan_in</span>(self, results: List[AgentResult],
+                strategy: <span class="code-type">str</span> = <span class="code-string">"all_required"</span>) -> Dict:
+        <span class="code-comment"># all_required: mọi agent phải thành công</span>
+        <span class="code-comment"># best_effort:  dùng available results, flag failures</span>
+        failures = [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> <span class="code-keyword">not</span> r.success]
+        <span class="code-keyword">if</span> strategy == <span class="code-string">"all_required"</span> <span class="code-keyword">and</span> failures:
+            failed_names = [r.agent_name <span class="code-keyword">for</span> r <span class="code-keyword">in</span> failures]
+            <span class="code-keyword">raise</span> <span class="code-function">RuntimeError</span>(f<span class="code-string">"Critical agents failed: {failed_names}"</span>)
+        <span class="code-keyword">return</span> {r.agent_name: r.output <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> r.success}
+
+    <span class="code-keyword">async def</span> <span class="code-function">run_pipeline</span>(self, loan_data: Dict) -> Dict:
+        <span class="code-comment"># Stage 1: Fan-Out (parallel)</span>
+        parallel_agents = [
+            {<span class="code-string">'name'</span>: <span class="code-string">'CreditAgent'</span>, <span class="code-string">'fn'</span>: credit_agent_fn},
+            {<span class="code-string">'name'</span>: <span class="code-string">'IncomeAgent'</span>, <span class="code-string">'fn'</span>: income_agent_fn},
+            {<span class="code-string">'name'</span>: <span class="code-string">'FraudAgent'</span>,  <span class="code-string">'fn'</span>: fraud_agent_fn},
+        ]
+        parallel_results = <span class="code-keyword">await</span> self.<span class="code-function">fan_out</span>(parallel_agents, loan_data)
+        aggregated       = self.<span class="code-function">fan_in</span>(parallel_results, strategy=<span class="code-string">"all_required"</span>)
+        <span class="code-comment"># Stage 2: Sequential (RiskAgent cần aggregated)</span>
+        risk_result = <span class="code-keyword">await</span> risk_agent_fn({**loan_data, **aggregated})
+        <span class="code-keyword">return</span> {<span class="code-string">"aggregated"</span>: aggregated, <span class="code-string">"risk"</span>: risk_result}</code></pre>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Thundering Herd Problem</div>
+        <p>Khi 50.000 hồ sơ đến cùng lúc, mỗi hồ sơ fan-out 3 agents = 150.000 concurrent API calls → Anthropic rate limit. Giải pháp: <strong>Semaphore</strong> giới hạn concurrent calls (e.g., <code>asyncio.Semaphore(50)</code> = tối đa 50 concurrent requests), kết hợp <strong>exponential backoff</strong> khi gặp 429 (rate limit).</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Map-Reduce cho Agent Fleets — Batch Processing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Áp dụng Map-Reduce pattern để xử lý 50.000 hồ sơ/tháng</li>
+          <li>Thiết kế partitioning strategy phù hợp với LoanBot</li>
+          <li>Implement reducer aggregation cho portfolio-level analytics</li>
+          <li>Kết hợp Anthropic Batch API (50% off) với Map-Reduce</li>
+        </ul>
+      </div>
+
+      <p><strong>Map-Reduce</strong> là pattern xử lý large-scale data: <em>Map</em> = áp dụng function lên mỗi item song song; <em>Reduce</em> = tổng hợp kết quả. Với LoanBot và 50.000 hồ sơ/tháng, Map-Reduce + Batch API = cách tiết kiệm nhất.</p>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Dây chuyền nhà máy vs phòng thống kê</div>
+        <p>Map là dây chuyền nhà máy — mỗi công nhân (agent) xử lý một sản phẩm (hồ sơ) độc lập song song. Reduce là phòng thống kê — tổng hợp tất cả kết quả: có bao nhiêu APPROVE, tổng value, risk distribution. FinTech Corp dùng Map-Reduce cho <strong>monthly portfolio report</strong>: map = evaluate từng hồ sơ, reduce = aggregate statistics cho ban lãnh đạo.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg">
+          <title>Map-Reduce Pattern cho LoanBot Batch Processing</title>
+          <defs>
+            <marker id="arrMR" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#10b981"/>
+            </marker>
+          </defs>
+          <rect width="760" height="240" fill="#022c22" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#d1fae5">Map-Reduce — LoanBot Batch Processing (50.000 hồ sơ/tháng)</text>
+
+          <!-- Input -->
+          <rect x="20" y="80" width="110" height="80" fill="#065f46" rx="8" stroke="#10b981" stroke-width="1.5"/>
+          <text x="75" y="108" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">50,000</text>
+          <text x="75" y="122" text-anchor="middle" font-size="9" fill="#a7f3d0">Loan Apps</text>
+          <text x="75" y="136" text-anchor="middle" font-size="8" fill="#6ee7b7">Partitioned into</text>
+          <text x="75" y="148" text-anchor="middle" font-size="8" fill="#6ee7b7">500 batches × 100</text>
+
+          <!-- Partition -->
+          <line x1="130" y1="120" x2="178" y2="70"  stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+          <line x1="130" y1="120" x2="178" y2="120" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+          <line x1="130" y1="120" x2="178" y2="170" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+
+          <!-- Map workers -->
+          <rect x="180" y="50" width="130" height="40" fill="#0d9488" rx="8"/>
+          <text x="245" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Batch Worker 1</text>
+          <text x="245" y="80" text-anchor="middle" font-size="8" fill="#ccfbf1">100 apps × LoanBot pipeline</text>
+
+          <rect x="180" y="100" width="130" height="40" fill="#0d9488" rx="8"/>
+          <text x="245" y="116" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Batch Worker 2</text>
+          <text x="245" y="130" text-anchor="middle" font-size="8" fill="#ccfbf1">100 apps × LoanBot pipeline</text>
+
+          <rect x="180" y="150" width="130" height="40" fill="#0d9488" rx="8"/>
+          <text x="245" y="166" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Batch Worker N</text>
+          <text x="245" y="180" text-anchor="middle" font-size="8" fill="#ccfbf1">100 apps × LoanBot pipeline</text>
+
+          <text x="245" y="215" text-anchor="middle" font-size="8" fill="#6ee7b7">... 500 workers total ...</text>
+
+          <!-- Arrows Map → Reduce -->
+          <line x1="310" y1="70"  x2="398" y2="108" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+          <line x1="310" y1="120" x2="398" y2="120" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+          <line x1="310" y1="170" x2="398" y2="132" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+
+          <!-- Reducer -->
+          <rect x="400" y="80" width="130" height="80" fill="#92400e" rx="8" stroke="#d97706" stroke-width="1.5"/>
+          <text x="465" y="105" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Reducer</text>
+          <text x="465" y="119" text-anchor="middle" font-size="8" fill="#fde68a">aggregate: approve_count</text>
+          <text x="465" y="131" text-anchor="middle" font-size="8" fill="#fde68a">total_value, risk_buckets</text>
+          <text x="465" y="143" text-anchor="middle" font-size="8" fill="#fde68a">segment_breakdown</text>
+
+          <line x1="530" y1="120" x2="598" y2="120" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrMR)"/>
+
+          <!-- Output -->
+          <rect x="600" y="80" width="140" height="80" fill="#334155" rx="8"/>
+          <text x="670" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#e2e8f0">Portfolio Report</text>
+          <text x="670" y="114" text-anchor="middle" font-size="8" fill="#94a3b8">Approve: 31,200 (62%)</text>
+          <text x="670" y="126" text-anchor="middle" font-size="8" fill="#94a3b8">Reject: 18,800 (38%)</text>
+          <text x="670" y="138" text-anchor="middle" font-size="8" fill="#94a3b8">HITL: 150 (0.3%)</text>
+          <text x="670" y="150" text-anchor="middle" font-size="8" fill="#94a3b8">Avg risk score: 0.34</text>
+
+          <!-- Batch API note -->
+          <rect x="140" y="195" width="310" height="30" fill="#065f46" rx="6" stroke="#10b981"/>
+          <text x="295" y="214" text-anchor="middle" font-size="9" fill="#d1fae5">💰 Dùng Anthropic Batch API (50% off) → $135/tháng thay vì $270</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Map-Reduce Pattern — 50.000 hồ sơ partitioned thành 500 batches × 100; reducer tổng hợp portfolio report</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict
+<span class="code-keyword">import</span> statistics
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">PortfolioReducer</span>:
+    <span class="code-comment">"""Reducer: tổng hợp 50.000 LoanBot results thành portfolio report."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">reduce</span>(self, results: List[Dict]) -> Dict:
+        total = len(results)
+        approved = [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> r[<span class="code-string">'decision'</span>] == <span class="code-string">'APPROVE'</span>]
+        rejected = [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> r[<span class="code-string">'decision'</span>] == <span class="code-string">'REJECT'</span>]
+        hitl     = [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> r.get(<span class="code-string">'hitl_required'</span>)]
+
+        approved_value = sum(r[<span class="code-string">'loan_amount_vnd'</span>] <span class="code-keyword">for</span> r <span class="code-keyword">in</span> approved)
+        risk_scores    = [r[<span class="code-string">'risk_score'</span>] <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> <span class="code-string">'risk_score'</span> <span class="code-keyword">in</span> r]
+
+        <span class="code-comment"># Segment breakdown by credit score bucket</span>
+        buckets = {<span class="code-string">'high(720+)'</span>: <span class="code-number">0</span>, <span class="code-string">'medium(560-719)'</span>: <span class="code-number">0</span>, <span class="code-string">'low(&lt;560)'</span>: <span class="code-number">0</span>}
+        <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results:
+            s = r.get(<span class="code-string">'credit_score'</span>, <span class="code-number">600</span>)
+            <span class="code-keyword">if</span>   s >= <span class="code-number">720</span>: buckets[<span class="code-string">'high(720+)'</span>]       += <span class="code-number">1</span>
+            <span class="code-keyword">elif</span> s >= <span class="code-number">560</span>: buckets[<span class="code-string">'medium(560-719)'</span>]  += <span class="code-number">1</span>
+            <span class="code-keyword">else</span>:           buckets[<span class="code-string">'low(&lt;560)'</span>]         += <span class="code-number">1</span>
+
+        <span class="code-keyword">return</span> {
+            <span class="code-string">'total_applications'</span>: total,
+            <span class="code-string">'approved_count'</span>:     len(approved),
+            <span class="code-string">'approve_rate'</span>:       len(approved) / total,
+            <span class="code-string">'total_approved_vnd'</span>: approved_value,
+            <span class="code-string">'hitl_count'</span>:         len(hitl),
+            <span class="code-string">'avg_risk_score'</span>:     statistics.mean(risk_scores) <span class="code-keyword">if</span> risk_scores <span class="code-keyword">else</span> <span class="code-number">0</span>,
+            <span class="code-string">'risk_p95'</span>:           sorted(risk_scores)[int(len(risk_scores)*<span class="code-number">0.95</span>)] <span class="code-keyword">if</span> risk_scores <span class="code-keyword">else</span> <span class="code-number">0</span>,
+            <span class="code-string">'credit_buckets'</span>:     buckets,
+        }</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Saga Pattern — Distributed Transactions cho Multi-Agent</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao cần Saga Pattern trong multi-agent loan disbursement</li>
+          <li>Thiết kế compensating transactions cho mỗi bước</li>
+          <li>Implement SagaOrchestrator với rollback capability</li>
+          <li>Phân biệt Choreography Saga vs Orchestration Saga</li>
+        </ul>
+      </div>
+
+      <p>Khi loan được APPROVE, LoanBot cần thực hiện chuỗi actions: tạo hợp đồng → giải ngân → cập nhật CRM → gửi thông báo. Nếu bước giải ngân fail sau khi đã tạo hợp đồng → cần <strong>rollback</strong> để không có inconsistent state. Đây là vấn đề distributed transaction.</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Saga Pattern</div>
+        <p>Saga = chuỗi local transactions, mỗi transaction cập nhật một service. Nếu một bước fail, Saga thực thi <strong>compensating transactions</strong> (undo) cho tất cả các bước trước đó. Khác với ACID transaction (all-or-nothing trong một database), Saga work với distributed services mà không cần distributed lock.</p>
+      </div>
+
+      <h3>4.1 LoanBot Disbursement Saga</h3>
+
+      <div class="saga-step normal">
+        <div class="step-icon">1️⃣</div>
+        <div>
+          <div class="step-name">CREATE_CONTRACT → CoreBankingAgent</div>
+          <div class="step-desc">Tạo hợp đồng vay với điều khoản đã được ComplianceAgent verify. Contract ID: LN-2026-001.</div>
+        </div>
+        <div class="comp-label" style="background:#dcfce7;color:#15803d;">Compensate: DELETE_CONTRACT</div>
+      </div>
+      <div class="saga-step normal">
+        <div class="step-icon">2️⃣</div>
+        <div>
+          <div class="step-name">RESERVE_FUNDS → TreasuryAgent</div>
+          <div class="step-desc">Reserve 300M VNĐ trong tài khoản treasury, earmark cho contract LN-2026-001.</div>
+        </div>
+        <div class="comp-label" style="background:#dcfce7;color:#15803d;">Compensate: RELEASE_FUNDS</div>
+      </div>
+      <div class="saga-step normal">
+        <div class="step-icon">3️⃣</div>
+        <div>
+          <div class="step-name">DISBURSE_LOAN → CoreBankingAgent</div>
+          <div class="step-desc">Transfer 300M VNĐ vào tài khoản Nguyễn Văn D. Tạo repayment schedule.</div>
+        </div>
+        <div class="comp-label" style="background:#dcfce7;color:#15803d;">Compensate: REVERSE_TRANSFER</div>
+      </div>
+      <div class="saga-step normal">
+        <div class="step-icon">4️⃣</div>
+        <div>
+          <div class="step-name">UPDATE_CRM → SalesforceAgent</div>
+          <div class="step-desc">Update Salesforce: Opportunity CLOSED_WON, loan_id = LN-2026-001, amount = 300M VNĐ.</div>
+        </div>
+        <div class="comp-label" style="background:#dcfce7;color:#15803d;">Compensate: REVERT_CRM</div>
+      </div>
+      <div class="saga-step comp">
+        <div class="step-icon">5️⃣</div>
+        <div>
+          <div class="step-name">NOTIFY_CUSTOMER → NotificationAgent ← FAIL example</div>
+          <div class="step-desc">SMS/email fail (customer phone unreachable) → nhưng loan đã disbursed → KHÔNG rollback (notification failure không ảnh hưởng financial state). Log và retry separately.</div>
+        </div>
+        <div class="comp-label" style="background:#fee2e2;color:#991b1b;">Idempotent retry</div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Saga Rollback — khi DISBURSE_LOAN fail, compensate bước 1 và 2</title>
+          <defs>
+            <marker id="arrSaga" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#10b981"/>
+            </marker>
+            <marker id="arrComp" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#e2e8f0">Saga Rollback Sequence — DISBURSE_LOAN fails</text>
+
+          <!-- Forward steps -->
+          <rect x="15"  y="45" width="110" height="35" fill="#15803d" rx="6"/>
+          <text x="70"  y="59" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">✅ CREATE</text>
+          <text x="70"  y="73" text-anchor="middle" font-size="8" fill="#bbf7d0">CONTRACT</text>
+
+          <rect x="145" y="45" width="110" height="35" fill="#15803d" rx="6"/>
+          <text x="200" y="59" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">✅ RESERVE</text>
+          <text x="200" y="73" text-anchor="middle" font-size="8" fill="#bbf7d0">FUNDS</text>
+
+          <rect x="275" y="45" width="110" height="35" fill="#dc2626" rx="6"/>
+          <text x="330" y="59" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">❌ DISBURSE</text>
+          <text x="330" y="73" text-anchor="middle" font-size="8" fill="#fca5a5">FAIL: timeout</text>
+
+          <!-- Forward arrows -->
+          <line x1="125" y1="62" x2="143" y2="62" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrSaga)"/>
+          <line x1="255" y1="62" x2="273" y2="62" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrSaga)"/>
+
+          <!-- Rollback box -->
+          <rect x="350" y="45" width="130" height="35" fill="#7c3aed" rx="6"/>
+          <text x="415" y="59" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">🔄 Saga Rollback</text>
+          <text x="415" y="73" text-anchor="middle" font-size="8" fill="#e9d5ff">compensate in reverse</text>
+          <line x1="385" y1="62" x2="352" y2="62" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrComp)"/>
+
+          <!-- Compensating transactions -->
+          <rect x="490" y="100" width="120" height="35" fill="#334155" rx="6" stroke="#f87171" stroke-width="1.5"/>
+          <text x="550" y="114" text-anchor="middle" font-size="9" font-weight="700" fill="#f87171">↩ RELEASE_FUNDS</text>
+          <text x="550" y="128" text-anchor="middle" font-size="8" fill="#94a3b8">compensation step 2</text>
+
+          <rect x="350" y="100" width="120" height="35" fill="#334155" rx="6" stroke="#f87171" stroke-width="1.5"/>
+          <text x="410" y="114" text-anchor="middle" font-size="9" font-weight="700" fill="#f87171">↩ DELETE_CONTRACT</text>
+          <text x="410" y="128" text-anchor="middle" font-size="8" fill="#94a3b8">compensation step 1</text>
+
+          <line x1="415" y1="80" x2="550" y2="98" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrComp)"/>
+          <line x1="550" y1="135" x2="430" y2="135" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrComp)"/>
+
+          <!-- Status -->
+          <rect x="20" y="150" width="720" height="35" fill="#1e293b" rx="8"/>
+          <text x="380" y="165" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Result: System restored to consistent state · No orphaned contract · No frozen funds</text>
+          <text x="380" y="179" text-anchor="middle" font-size="8" fill="#64748b">Alert sent to loan officer → manual investigation → retry DISBURSE_LOAN with fresh timeout</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Saga Rollback — khi DISBURSE_LOAN fail, SagaOrchestrator tự động chạy compensating transactions ngược lại</div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Dynamic Routing & Reactive Orchestration</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế Dynamic Router dựa trên loan characteristics</li>
+          <li>Implement capability-based agent discovery</li>
+          <li>Xây dựng event-driven orchestration với pub/sub</li>
+          <li>Kết hợp tất cả patterns vào LoanBot v3.1 production architecture</li>
+        </ul>
+      </div>
+
+      <p>Dynamic Routing là khi orchestrator quyết định <em>routing tại runtime</em> dựa trên content của request — không phải hard-coded flow. LoanBot v3.1 có Dynamic Router: hồ sơ đơn giản → fast path (3 agents), hồ sơ phức tạp → full path (8 agents).</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Routing là Optimization</div>
+        <p>Không phải mọi hồ sơ cần đủ 8 agents. FC-2024-001 (score 720, loan 200M, clean history) → FraudAgent cần chạy không? CreditAgent đủ tốt để approve trong 1.5 giây. Dynamic Router = <strong>right-sizing</strong> agent pipeline theo complexity, giảm cost 40% cho simple cases mà không giảm quality.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot v3.1 Dynamic Router — Fast Path vs Standard Path vs Full Path</title>
+          <defs>
+            <marker id="arrDR" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#10b981"/>
+            </marker>
+          </defs>
+          <rect width="760" height="250" fill="#022c22" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#d1fae5">LoanBot v3.1 Dynamic Router — 3 Execution Paths</text>
+
+          <!-- Router -->
+          <rect x="60" y="95" width="120" height="60" fill="#065f46" rx="8" stroke="#10b981" stroke-width="2"/>
+          <text x="120" y="118" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">Dynamic</text>
+          <text x="120" y="132" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">Router</text>
+          <text x="120" y="146" text-anchor="middle" font-size="8" fill="#6ee7b7">complexity_score()</text>
+
+          <!-- Fast path (score > 720, loan < 200M, clean) -->
+          <line x1="180" y1="108" x2="248" y2="78" stroke="#10b981" stroke-width="2" marker-end="url(#arrDR)"/>
+          <text x="208" y="82" text-anchor="middle" font-size="8" fill="#6ee7b7">score &gt; 720</text>
+          <rect x="250" y="55" width="160" height="46" fill="#15803d" rx="8"/>
+          <text x="330" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">⚡ Fast Path</text>
+          <text x="330" y="86" text-anchor="middle" font-size="8" fill="#bbf7d0">CreditAgent → AutoApprove (1.5s)</text>
+
+          <!-- Standard path (most cases) -->
+          <line x1="180" y1="125" x2="248" y2="125" stroke="#10b981" stroke-width="2" marker-end="url(#arrDR)"/>
+          <text x="208" y="118" text-anchor="middle" font-size="8" fill="#6ee7b7">standard</text>
+          <rect x="250" y="103" width="160" height="46" fill="#065f46" rx="8" stroke="#10b981"/>
+          <text x="330" y="120" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">📊 Standard Path</text>
+          <text x="330" y="134" text-anchor="middle" font-size="8" fill="#a7f3d0">Fan-Out(3) + Risk + Compliance (3.7s)</text>
+
+          <!-- Full path (complex, high amount, fraud signal) -->
+          <line x1="180" y1="142" x2="248" y2="172" stroke="#10b981" stroke-width="2" marker-end="url(#arrDR)"/>
+          <text x="208" y="168" text-anchor="middle" font-size="8" fill="#6ee7b7">complex</text>
+          <rect x="250" y="151" width="160" height="46" fill="#7c3aed" rx="8"/>
+          <text x="330" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">🔍 Full Path</text>
+          <text x="330" y="182" text-anchor="middle" font-size="8" fill="#e9d5ff">All 8 agents + HITL (6.8s)</text>
+
+          <!-- Results -->
+          <line x1="410" y1="78"  x2="538" y2="120" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDR)"/>
+          <line x1="410" y1="125" x2="538" y2="125" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDR)"/>
+          <line x1="410" y1="172" x2="538" y2="130" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrDR)"/>
+
+          <rect x="540" y="90" width="195" height="80" fill="#1e293b" rx="8" stroke="#334155"/>
+          <text x="637" y="110" text-anchor="middle" font-size="10" font-weight="700" fill="#e2e8f0">Routing Distribution</text>
+          <text x="637" y="126" text-anchor="middle" font-size="9" fill="#94a3b8">Fast Path:     25% (12,500/mo)</text>
+          <text x="637" y="140" text-anchor="middle" font-size="9" fill="#94a3b8">Standard Path: 62% (31,000/mo)</text>
+          <text x="637" y="154" text-anchor="middle" font-size="9" fill="#94a3b8">Full Path:     13%  (6,500/mo)</text>
+
+          <!-- Cost annotation -->
+          <rect x="60" y="205" width="640" height="30" fill="#065f46" rx="6" stroke="#10b981"/>
+          <text x="380" y="224" text-anchor="middle" font-size="9" fill="#d1fae5">💰 Cost reduction: Fast path $0.002/app vs Standard $0.006 vs Full $0.012 → avg $0.0057/app (vs uniform $0.006)</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Dynamic Router — complexity_score() quyết định Fast/Standard/Full path; 25% apps chạy fast path với cost $0.002</div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 13</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m13-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m13-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m13-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cách sắp xếp và điều phối nhiều agents: Sequential, Parallel (Fan-Out), Event-Driven.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">DAG (Directed Acyclic Graph)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dependency graph cho agents — edges cho biết agent nào phụ thuộc vào agent nào.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fan-Out</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gửi một request đến nhiều agents để chạy đồng thời.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fan-In</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thu thập và aggregate kết quả từ nhiều agents parallel.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Aggregation Strategy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cách combine parallel results: all_required (tất cả phải success), best_effort (dùng available).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Thundering Herd</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi nhiều requests đồng thời fan-out → quá nhiều concurrent API calls → rate limit. Fix: Semaphore.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Map-Reduce</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Map: apply function parallel trên mỗi item; Reduce: aggregate tất cả kết quả.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Partition</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chia dataset lớn thành nhiều chunks nhỏ để xử lý song song.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Saga Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chuỗi local transactions với compensating transactions cho mỗi bước — distributed rollback.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compensating Transaction</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hành động undo một bước trong Saga khi rollback cần thiết.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Choreography Saga</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mỗi service biết cần làm gì tiếp theo — không có central orchestrator. Loose coupling.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration Saga</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Central SagaOrchestrator chỉ đạo mỗi bước — easier to monitor, single point of control.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Dynamic Routing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Router quyết định execution path tại runtime dựa trên request content.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semaphore</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Concurrency control: giới hạn số lượng goroutines/coroutines chạy đồng thời.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Idempotent</td><td style="padding:8px 12px;">Gọi nhiều lần = cùng kết quả như gọi 1 lần — critical cho retry logic trong Saga.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module12/index.html" class="btn btn-outline">← Module 12: Evaluation</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 13 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

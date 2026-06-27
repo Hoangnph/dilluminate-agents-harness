@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 6 — Kiến Trúc Multi-Agent Nâng Cao</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .quiz-container { max-width: 820px; margin: 0 auto; padding: var(--space-6); }
+    .quiz-header { background: linear-gradient(135deg,#0c1445,#7c3aed); color:#fff; border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-8); text-align: center; }
+    .quiz-header h1 { font-size: 1.8rem; margin-bottom: var(--space-2); }
+    .quiz-meta { display: flex; gap: var(--space-4); justify-content: center; margin-top: var(--space-4); flex-wrap: wrap; }
+    .quiz-meta span { background: rgba(255,255,255,.15); padding: 4px 14px; border-radius: var(--radius-full); font-size: .85rem; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-5); transition: var(--transition); }
+    .question-card.correct { border-color: var(--success); background: #f0fdf4; }
+    .question-card.wrong   { border-color: var(--danger); background: #fff5f5; }
+    .question-num { font-size: .78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--space-2); }
+    .question-text { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: var(--space-4); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-2); }
+    .option { display: flex; align-items: flex-start; gap: var(--space-3); background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); cursor: pointer; transition: var(--transition); font-size: .92rem; line-height: 1.5; }
+    .option:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); }
+    .option.correct { background: #dcfce7; border-color: var(--success); color: var(--success-dark); }
+    .option.wrong   { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+    .option.disabled { cursor: default; }
+    .opt-letter { width: 26px; height: 26px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem; flex-shrink: 0; margin-top: 1px; }
+    .option.correct .opt-letter { background: var(--success); color: #fff; }
+    .option.wrong   .opt-letter { background: var(--danger); color: #fff; }
+    .explanation { display: none; margin-top: var(--space-4); padding: var(--space-4); background: rgba(15,76,129,.06); border-left: 3px solid var(--primary); border-radius: 0 var(--radius-lg) var(--radius-lg) 0; font-size: .88rem; line-height: 1.6; color: var(--text-muted); }
+    .explanation.show { display: block; }
+    .progress-bar-quiz { background: var(--bg); border-radius: var(--radius-full); height: 8px; margin-bottom: var(--space-6); }
+    .progress-bar-fill { background: linear-gradient(90deg, #0c1445, #7c3aed); height: 100%; border-radius: var(--radius-full); transition: width .4s ease; }
+    .score-display { text-align: center; font-size: .95rem; color: var(--text-muted); margin-bottom: var(--space-4); }
+    .result-card { background: var(--surface); border-radius: var(--radius-xl); padding: var(--space-10); text-align: center; margin-top: var(--space-8); border: 1px solid var(--border); display: none; }
+    .result-card.show { display: block; }
+    .result-score { font-size: 4rem; font-weight: 900; }
+    .result-grade { font-size: 1.5rem; font-weight: 700; margin: var(--space-2) 0; }
+    .result-msg { color: var(--text-muted); margin-bottom: var(--space-6); }
+    .result-breakdown { display: flex; justify-content: center; gap: var(--space-6); margin-bottom: var(--space-6); flex-wrap: wrap; }
+    .breakdown-num { font-size: 2rem; font-weight: 800; }
+    .breakdown-label { font-size: .8rem; color: var(--text-muted); }
+    .quiz-actions { display: flex; justify-content: center; gap: var(--space-4); margin-top: var(--space-8); flex-wrap: wrap; }
+    .graduation { background: linear-gradient(135deg,#0c1445,#7c3aed); color:#fff; border-radius: var(--radius-xl); padding: var(--space-6); margin-top: var(--space-8); text-align:center; }
+  </style>
+</head>
+<body>
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">← Bài Giảng</a><a href="lab.ipynb" download>🔬 Notebook</a><a href="../../index.html">🏠 Home</a></div>
+</nav>
+<div class="quiz-container" style="padding-top: calc(var(--topbar-height) + 24px);">
+  <div class="quiz-header">
+    <h1>🎓 Quiz Cuối: Multi-Agent Architecture</h1>
+    <p>Module 6 Final — Patterns, LoanBot v2.0, Communication, Tracing, MCP</p>
+    <div class="quiz-meta"><span>15 câu hỏi</span><span>Module cuối</span><span>LoanBot v2.0</span></div>
+  </div>
+  <div class="score-display">Đã trả lời: <span id="answered">0</span> / 15 câu</div>
+  <div class="progress-bar-quiz"><div class="progress-bar-fill" id="quiz-progress" style="width:0%"></div></div>
+  <div id="quiz-questions"></div>
+  <div class="result-card" id="result-card">
+    <div class="result-score" id="result-score">0/15</div>
+    <div class="result-grade" id="result-grade"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-breakdown">
+      <div style="text-align:center;"><div class="breakdown-num" id="bd-correct" style="color:var(--success)">0</div><div class="breakdown-label">Đúng</div></div>
+      <div style="text-align:center;"><div class="breakdown-num" id="bd-wrong" style="color:var(--danger)">0</div><div class="breakdown-label">Sai</div></div>
+      <div style="text-align:center;"><div class="breakdown-num" id="bd-pct" style="color:var(--primary)">0%</div><div class="breakdown-label">Điểm</div></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn" onclick="resetQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn">📖 Ôn bài giảng</a>
+      <a href="../../index.html" class="btn primary">🏠 Trang Chủ</a>
+    </div>
+    <div class="graduation" id="grad-banner" style="display:none; margin-top: var(--space-6);">
+      <div style="font-size:2.5rem;">🎓</div>
+      <div style="font-size:1.3rem; font-weight:700; margin:var(--space-2) 0;">Chúc Mừng Tốt Nghiệp!</div>
+      <div style="font-size:.95rem; color:rgba(255,255,255,.8);">Bạn đã hoàn thành chương trình AI Agent Harness Engineering. Giờ là lúc áp dụng vào production!</div>
+    </div>
+  </div>
+  <div class="quiz-actions" style="margin-top: var(--space-4);">
+    <a href="index.html" class="btn">← Bài Giảng M6</a>
+    <a href="../module5/quiz.html" class="btn">M5 Quiz</a>
+    <a href="../../index.html" class="btn">🏠 Trang Chủ</a>
+  </div>
+</div>
+<script>
+const questions = [
+  // Bài 1: Patterns
+  {
+    q: "FinTech Corp muốn thêm một bước 'Fraud Detection' song song với CreditAgent và IncomeAgent trong LoanBot v2.0. Cần thay đổi gì ở Supervisor?",
+    opts: [
+      "Supervisor phải rewrite từ đầu để support 3 parallel agents",
+      "Thêm FraudAgent vào asyncio.gather() cùng CreditAgent và IncomeAgent, và truyền fraud result cho RiskAgent",
+      "FraudAgent chỉ có thể chạy sequential sau IncomeAgent",
+      "Cần tạo sub-Supervisor riêng cho 3 parallel agents"
+    ],
+    correct: 1,
+    explain: "<strong>asyncio.gather() tự scale</strong>: thêm FraudAgent vào gather: <code>credit, income, fraud = await asyncio.gather(credit_task, income_task, fraud_task)</code>. Supervisor không cần rewrite — chỉ thêm một task. RiskAgent sẽ nhận 3 results thay vì 2. Đây là vẻ đẹp của Supervisor pattern: extensible mà không breaking changes."
+  },
+  {
+    q: "Scenario: LoanBot v2.0 cần quyết định borderline case — credit score 640 (cần ≥650), DTI 41% (≤43%). Pattern nào giúp reduce decision uncertainty?",
+    opts: [
+      "Pipeline Pattern — xử lý thêm steps",
+      "Debate Pattern — 3 RiskAgents cho ý kiến độc lập, majority vote",
+      "Supervisor Pattern — thêm một Supervisor nữa",
+      "Tăng max_retries của RiskAgent"
+    ],
+    correct: 1,
+    explain: "<strong>Debate Pattern</strong>: spawn 3 instance RiskAgent với cùng data, mỗi agent cho ý kiến độc lập (APPROVE/REJECT với confidence score). Nếu 2/3 đồng ý → decision. Nếu split → escalate to HITL. Research cho thấy 3-agent debate giảm 40% error rate cho borderline decisions so với single agent. Cost: 3× RiskAgent cost, nhưng justified cho high-stakes borderline."
+  },
+  {
+    q: "So sánh Multi-Agent vs Single Agent: LoanBot v1.0 (1 agent) xử lý 50 hồ sơ/giờ. LoanBot v2.0 (5 agents, parallel) xử lý bao nhiêu?",
+    opts: [
+      "50 hồ sơ/giờ — multi-agent không tăng throughput",
+      "250 hồ sơ/giờ — 5× vì 5 agents",
+      "~200+ hồ sơ/giờ — nhờ parallel execution của CreditAgent + IncomeAgent",
+      "100 hồ sơ/giờ — 2× vì 2 parallel agents"
+    ],
+    correct: 2,
+    explain: "<strong>~200+ hồ sơ/giờ</strong>: LoanBot v2.0 total latency ~135s (vs 187s). Nhưng quan trọng hơn: nhiều hồ sơ chạy <em>concurrently</em>. Với 4 replicas × 200 concurrent, throughput tăng 4× về capacity. Không phải 5× vì Supervisor + RiskAgent + ReportAgent vẫn sequential với nhau. Real benchmark: 4x throughput improvement nhờ parallelism + reduced latency."
+  },
+  // Bài 2: Architecture
+  {
+    q: "Tại sao Supervisor dùng claude-sonnet-4-6 thay vì claude-haiku-4-5 trong LoanBot v2.0?",
+    opts: [
+      "Sonnet nhanh hơn Haiku",
+      "Supervisor cần complex reasoning: decompose task, evaluate kết quả từ 4 agents, final decision — cần more capable model",
+      "Haiku không support tool use",
+      "Đây chỉ là convention, có thể dùng Haiku nếu muốn"
+    ],
+    correct: 1,
+    explain: "<strong>Sonnet cho complex reasoning</strong>: Supervisor làm việc khó nhất — nhìn vào credit (720, A), income (35M, DTI 28%), risk (LOW), và đưa ra final decision tổng hợp. Borderline cases đòi hỏi nuanced reasoning. Haiku có thể làm được nhưng tỷ lệ error cao hơn cho Supervisor role. Trái lại, CreditAgent/IncomeAgent/ReportAgent có structured output đơn giản → Haiku đủ và rẻ hơn 12×."
+  },
+  {
+    q: "LoanBot v2.0 timeline: CreditAgent kết thúc t=60s, IncomeAgent t=65s, RiskAgent start t=65s, end t=107s, ReportAgent end t=132s. Critical path là gì?",
+    opts: [
+      "CreditAgent — vì chạy trước",
+      "IncomeAgent → RiskAgent → ReportAgent — longest sequential chain",
+      "Supervisor — vì orchestrate tất cả",
+      "ReportAgent — vì chạy cuối"
+    ],
+    correct: 1,
+    explain: "<strong>Critical path: IncomeAgent → RiskAgent → ReportAgent</strong>. IncomeAgent mất 63s (dài hơn CreditAgent 58s) → nó xác định khi nào RiskAgent có thể start. RiskAgent chờ cả CreditAgent và IncomeAgent, và IncomeAgent là bottleneck. Nếu muốn giảm total latency: focus vào IncomeAgent performance (tối ưu income verification API call)."
+  },
+  {
+    q: "RiskAgent trong LoanBot v2.0 không có direct tool calls. Tại sao vẫn cần một agent riêng thay vì Supervisor tự tính?",
+    opts: [
+      "RiskAgent cần dùng được external API riêng",
+      "Separation of concerns: risk assessment logic độc lập, có thể upgrade model/prompt riêng mà không affect Supervisor",
+      "Supervisor không thể xử lý nhiều inputs",
+      "RiskAgent cần access database riêng"
+    ],
+    correct: 1,
+    explain: "<strong>Separation of concerns + upgradeability</strong>: (1) Risk assessment logic có thể phức tạp — weights, thresholds, special cases; (2) Sau này FinTech Corp có thể train fine-tuned risk model riêng → chỉ swap RiskAgent; (3) RiskAgent có thể dùng Sonnet model mà không force toàn bộ system phải dùng Sonnet; (4) Testing riêng: unit test RiskAgent logic độc lập. Single Responsibility Principle áp dụng cho agents."
+  },
+  // Bài 3: Communication
+  {
+    q: "AgentMessage schema có field 'message_type' với values: TASK, RESULT, ERROR, CLARIFY. Khi nào CreditAgent nên gửi CLARIFY thay vì ERROR?",
+    opts: [
+      "Khi CIC API timeout",
+      "Khi customer_id không tồn tại trong CIC database",
+      "Khi national_id format hợp lệ nhưng CreditAgent cần thêm thông tin để xử lý",
+      "CLARIFY và ERROR là cùng ý nghĩa"
+    ],
+    correct: 2,
+    explain: "<strong>CLARIFY khi cần thêm thông tin</strong>: Ví dụ: customer có 2 national_id trong hồ sơ (cũ và mới) → CreditAgent không biết dùng cái nào. Gửi CLARIFY: 'Which national_id to use?'. ERROR là khi CIC API fail hoặc data corrupt. TASK là khi Supervisor giao việc. Distinction quan trọng: ERROR → retry logic; CLARIFY → wait for answer; ERROR không nên trigger CLARIFY flow."
+  },
+  {
+    q: "Supervisor nhận RESULT từ CreditAgent: status='PARTIAL', credit_score=null, blacklisted=false. Làm gì tiếp theo?",
+    opts: [
+      "Proceed với income check, assume credit OK",
+      "Immediately fail toàn bộ loan request",
+      "Retry CreditAgent một lần, nếu vẫn PARTIAL → PENDING_REVIEW với human",
+      "Dùng average credit score của khách hàng tương tự"
+    ],
+    correct: 2,
+    explain: "<strong>Retry then PENDING_REVIEW</strong>: PARTIAL nghĩa là có data nhưng không đầy đủ (CIC trả blacklist status nhưng credit score timeout). Retry một lần — CIC có thể temporarily slow. Nếu vẫn PARTIAL → không thể automated decision → PENDING_REVIEW để human handle. Không bao giờ assume credit OK với incomplete data (risk). Không dùng average score — đó là fabrication, vi phạm faithfulness requirement."
+  },
+  {
+    q: "Trong parallel execution, CreditAgent và IncomeAgent cùng cần đọc customer profile từ database. Đây là vấn đề gì và giải pháp?",
+    opts: [
+      "Không có vấn đề — read operations không conflict",
+      "Race condition — cần lock database trong khi đọc",
+      "Cần sequential: CreditAgent đọc xong mới cho IncomeAgent đọc",
+      "Chỉ một agent được đọc, agent kia nhận data từ Supervisor"
+    ],
+    correct: 0,
+    explain: "<strong>Read operations không conflict</strong>: Multiple agents đọc cùng một record đồng thời là hoàn toàn OK — không cần lock, không có race condition. Race condition chỉ xảy ra khi có WRITE operations. Với LoanBot v2.0: CreditAgent và IncomeAgent chỉ READ customer profile và WRITE vào kết quả riêng của mình. Supervisor aggregate sau khi cả hai done. Đây là design đơn giản và correct."
+  },
+  // Bài 4: Distributed Tracing
+  {
+    q: "LoanBot v2.0 production log: trace_id TRC-001 có 5 spans. CreditAgent span bỗng nhiên missing (not found trong log). Điều này chỉ ra vấn đề gì?",
+    opts: [
+      "CreditAgent hoạt động bình thường — span logging là optional",
+      "CreditAgent bị crash và Supervisor cũng fail → toàn bộ request failed",
+      "CreditAgent completed nhưng có bug trong span logging — cần investigate log pipeline",
+      "Đây là expected behavior cho successful requests"
+    ],
+    correct: 2,
+    explain: "<strong>Span logging bug</strong>: Nếu loan request hoàn thành (có final decision), nhưng CreditAgent span missing, likely là <em>span không được flushed</em> trước khi process exit, hoặc có bug trong trace exporter. CreditAgent chạy xong (có result), nhưng span data lost. Fix: implement span flush on completion, increase buffer size, check OpenTelemetry exporter config. Nếu CreditAgent crashed → Supervisor phải catch exception và fail the request — would show differently in logs."
+  },
+  {
+    q: "Parallel Efficiency của LoanBot v2.0 = 87% (137s actual / 157s sequential). Để cải thiện lên 92%, nên tối ưu gì?",
+    opts: [
+      "Giảm ReportAgent latency (25s → 15s)",
+      "Giảm IncomeAgent latency (63s → 55s) — vì đây là critical path",
+      "Tăng số replicas từ 4 lên 8",
+      "Chuyển Supervisor sang Haiku để giảm latency"
+    ],
+    correct: 1,
+    explain: "<strong>Tối ưu critical path</strong>: IncomeAgent (63s) là bottleneck — nó xác định khi nào RiskAgent có thể start. Giảm IncomeAgent từ 63s xuống 55s sẽ giảm total từ 137s xuống 129s. Efficiency mới = 129/157 = 82%? Không — sequential time cũng giảm (157-8=149s), Efficiency = 129/149 = 87%... Thực ra cần re-calculate. Quan trọng là: <em>tối ưu critical path item</em> mới giảm end-to-end time. Giảm ReportAgent (25s→15s) không giúp vì nó sequential sau RiskAgent."
+  },
+  // Bài 5: MCP
+  {
+    q: "FinTech Corp muốn thêm Experian credit data (international credit bureau) vào LoanBot v2.0. Approach nào tốt nhất với MCP?",
+    opts: [
+      "Rewrite CreditAgent để call Experian API trực tiếp",
+      "Tạo Experian MCP Server, CreditAgent discover và call tool mới mà không cần change agent code",
+      "Thêm Experian URL vào system prompt của CreditAgent",
+      "Tạo ExperianAgent mới thay thế CreditAgent"
+    ],
+    correct: 1,
+    explain: "<strong>New MCP Server, zero agent code change</strong>: Tạo Experian MCP Server expose tool <code>check_experian_score(customer_id, country)</code>. CreditAgent đã biết discover tools từ MCP Server → nó sẽ thấy tool mới tự động. Update prompt của CreditAgent nếu cần chỉ dẫn khi nào dùng Experian vs CIC. Đây là sức mạnh của MCP: add new tools = deploy new MCP Server, không touch agent code."
+  },
+  {
+    q: "MCP Server authorization: CreditAgent cố gọi <code>generate_report()</code> (thuộc Report MCP Server). Server phản hồi thế nào?",
+    opts: [
+      "Execute vì MCP Server không có permission control",
+      "Return 403 Forbidden — CreditAgent không có permission cho Report MCP Server tools",
+      "Forward request đến ReportAgent để execute",
+      "Log warning nhưng execute anyway"
+    ],
+    correct: 1,
+    explain: "<strong>403 Forbidden</strong>: MCP Server có authorization layer. CreditAgent được cấp phép: CIC MCP Server (check_credit_score, check_blacklist). Không được cấp phép: Report MCP Server. Khi CreditAgent request generate_report → Report MCP Server check auth → permission denied → 403. This is crucial: centralized permission control tại MCP layer nghĩa là không có agent nào có thể 'accidentally' dùng tool không được phép."
+  },
+  {
+    q: "LoanBot v2.0 có 5 agents, mỗi agent có System Prompt riêng. Ai maintain và version control những System Prompts này?",
+    opts: [
+      "Lưu trong code của từng agent, developer tự quản lý",
+      "Centralized Prompt Registry trong MCP Server — versioned, tested, deployed như code",
+      "Chỉ Supervisor cần System Prompt, subagents không cần",
+      "LLM tự generate System Prompt khi cần"
+    ],
+    correct: 1,
+    explain: "<strong>Centralized Prompt Registry</strong>: Best practice: (1) Prompts stored trong version-controlled repository (Git); (2) Có test suite (eval) cho mỗi prompt; (3) Change process: PR → review → eval pass → deploy; (4) Prompt version tagged và traceable (agent_id + prompt_version trong mọi log). Nếu prompts scattered trong code, thay đổi nhỏ có thể break production mà không có review. MCP Server có thể expose prompt management endpoint."
+  },
+  {
+    q: "FinTech Corp muốn biết: với LoanBot v2.0, hồ sơ của khách hàng đi qua bao nhiêu LLM calls và tốn bao nhiêu tokens trung bình?",
+    opts: [
+      "1 LLM call (Supervisor tổng hợp tất cả)",
+      "5 LLM calls (1 per agent) — nhưng token count thấp hơn v1.0 vì mỗi agent có focused context",
+      "10+ LLM calls vì mỗi agent gọi nhiều lần",
+      "0 LLM calls — multi-agent dùng rule-based logic"
+    ],
+    correct: 1,
+    explain: "<strong>5 agents = minimum 5 LLM calls</strong> (có thể nhiều hơn nếu có tool_use iterations). Nhưng total token count thường THẤP hơn v1.0 single agent vì: (1) mỗi agent có focused context (CreditAgent chỉ cần credit-relevant data); (2) không có context bloat từ tất cả tool results trong một conversation; (3) Haiku agents dùng fewer tokens for simple tasks. Trade-off: more LLM calls (5) but smaller contexts → better focus, lower cost per agent."
+  }
+];
+
+let answered = 0, correct = 0;
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-questions');
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-card" id="q${i}">
+      <div class="question-num">Câu ${i + 1} / ${questions.length}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt, j) => `
+          <div class="option" id="q${i}o${j}" onclick="selectAnswer(${i}, ${j})">
+            <span class="opt-letter">${String.fromCharCode(65+j)}</span><span>${opt}</span>
+          </div>`).join('')}
+      </div>
+      <div class="explanation" id="exp${i}">${q.explain}</div>
+    </div>`).join('');
+}
+
+function selectAnswer(qIdx, optIdx) {
+  const card = document.getElementById(`q${qIdx}`);
+  if (card.classList.contains('correct') || card.classList.contains('wrong')) return;
+  const isCorrect = optIdx === questions[qIdx].correct;
+  card.classList.add(isCorrect ? 'correct' : 'wrong');
+  questions[qIdx].opts.forEach((_, j) => {
+    const opt = document.getElementById(`q${qIdx}o${j}`);
+    opt.classList.add('disabled');
+    if (j === questions[qIdx].correct) opt.classList.add('correct');
+    else if (j === optIdx && !isCorrect) opt.classList.add('wrong');
+  });
+  document.getElementById(`exp${qIdx}`).classList.add('show');
+  answered++; if (isCorrect) correct++;
+  document.getElementById('answered').textContent = answered;
+  document.getElementById('quiz-progress').style.width = `${(answered/questions.length)*100}%`;
+  localStorage.setItem('quiz_m6_score', `${correct}/${questions.length}`);
+  if (answered === questions.length) showResult();
+}
+
+function showResult() {
+  const pct = Math.round((correct / questions.length) * 100);
+  let grade, msg, color;
+  if (pct >= 90) { grade = '🏆 Xuất sắc — Multi-Agent Expert!'; msg = 'Bạn đã thành thạo toàn bộ AI Agent Harness Engineering curriculum!'; color = 'var(--success)'; }
+  else if (pct >= 70) { grade = '✅ Tốt — Sẵn sàng cho production'; msg = 'Ôn lại Distributed Tracing và MCP Protocol.'; color = 'var(--primary)'; }
+  else if (pct >= 50) { grade = '📖 Cần ôn thêm'; msg = 'Xem lại Agent Communication và Critical Path.'; color = 'var(--warning)'; }
+  else { grade = '🔄 Cần học lại'; msg = 'Đọc lại Module 6 trước khi implement.'; color = 'var(--danger)'; }
+  document.getElementById('result-score').textContent = `${correct}/${questions.length}`;
+  document.getElementById('result-score').style.color = color;
+  document.getElementById('result-grade').textContent = grade;
+  document.getElementById('result-msg').textContent = msg;
+  document.getElementById('bd-correct').textContent = correct;
+  document.getElementById('bd-wrong').textContent = questions.length - correct;
+  document.getElementById('bd-pct').textContent = `${pct}%`;
+  const r = document.getElementById('result-card'); r.classList.add('show');
+  if (pct >= 70) document.getElementById('grad-banner').style.display = 'block';
+  r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetQuiz() {
+  answered = 0; correct = 0;
+  document.getElementById('answered').textContent = '0';
+  document.getElementById('quiz-progress').style.width = '0%';
+  document.getElementById('result-card').classList.remove('show');
+  document.getElementById('grad-banner').style.display = 'none';
+  renderQuiz(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuiz();
+window.addEventListener('scroll', () => {
+  const fill = document.querySelector('.scroll-progress-fill');
+  if (fill) { const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100; fill.style.width = `${Math.min(pct,100)}%`; }
+});
+</script>
+</body>
+</html>

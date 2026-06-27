@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 8 — AgentOps & Production Observability | AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    /* ── Module 8 custom: dark teal / emerald theme */
+    :root { --m8-primary: #0d9488; --m8-dark: #115e59; --m8-light: #ccfbf1; --m8-accent: #f59e0b; }
+
+    .lesson-header { background: linear-gradient(135deg, #0d9488 0%, #0f766e 50%, #115e59 100%); }
+    .lesson-header h2, .lesson-header p { color: #fff; }
+    .lesson-header .lesson-num { background: rgba(255,255,255,.18); }
+
+    /* Observability-specific components */
+    .signal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin: var(--space-6) 0; }
+    .signal-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); text-align: center; }
+    .signal-card .signal-icon { font-size: 2rem; display: block; margin-bottom: var(--space-2); }
+    .signal-card h4 { color: var(--primary-dark); font-size: .9rem; margin-bottom: var(--space-1); }
+    .signal-card p { font-size: .8rem; color: var(--text-muted); margin: 0; }
+    .signal-card.latency { border-top: 3px solid #0d9488; }
+    .signal-card.traffic  { border-top: 3px solid #2563eb; }
+    .signal-card.errors   { border-top: 3px solid #dc2626; }
+    .signal-card.saturation { border-top: 3px solid #d97706; }
+
+    .slo-table { width: 100%; border-collapse: collapse; margin: var(--space-5) 0; }
+    .slo-table th { background: var(--m8-dark); color: #fff; padding: var(--space-3) var(--space-4); text-align: left; font-size: .85rem; }
+    .slo-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); font-size: .875rem; }
+    .slo-table tr:hover td { background: #f0fdfa; }
+    .slo-ok  { color: #059669; font-weight: 700; }
+    .slo-warn { color: #d97706; font-weight: 700; }
+    .slo-fail { color: #dc2626; font-weight: 700; }
+
+    .tool-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-5); margin: var(--space-6) 0; }
+    .tool-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-5); }
+    .tool-card .tool-logo { font-size: 1.5rem; font-weight: 800; margin-bottom: var(--space-2); }
+    .tool-card h4 { color: var(--primary-dark); margin-bottom: var(--space-2); }
+    .tool-card p { font-size: .875rem; color: var(--text-muted); }
+    .tool-card .tool-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: var(--space-3); }
+    .tool-card .tool-tag { background: var(--m8-light); color: var(--m8-dark); font-size: .72rem; padding: 2px 8px; border-radius: var(--radius-full); font-weight: 600; }
+
+    .trace-row { display: flex; align-items: center; gap: 0; margin: 2px 0; }
+    .trace-label { font-size: .78rem; font-weight: 600; color: #374151; min-width: 140px; }
+    .trace-bar-wrap { flex: 1; background: #f1f5f9; border-radius: 3px; height: 18px; position: relative; }
+    .trace-bar { height: 100%; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; font-size: .7rem; color: #fff; font-weight: 700; }
+    .trace-ms { font-size: .72rem; color: #6b7280; margin-left: var(--space-2); min-width: 50px; }
+
+    .alert-card { border-radius: var(--radius); padding: var(--space-4); margin: var(--space-3) 0; border-left: 4px solid; }
+    .alert-card.critical { background: #fef2f2; border-color: #dc2626; }
+    .alert-card.warning  { background: #fffbeb; border-color: #f59e0b; }
+    .alert-card.info     { background: #eff6ff; border-color: #3b82f6; }
+    .alert-card .alert-title { font-weight: 700; font-size: .875rem; margin-bottom: 2px; }
+    .alert-card .alert-body  { font-size: .825rem; color: var(--text-muted); }
+
+    @media (max-width: 700px) {
+      .signal-grid { grid-template-columns: repeat(2, 1fr); }
+      .tool-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="layout" style="margin-top: var(--topbar-height);">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Module 8</div>
+    <div class="sidebar-subtitle">AgentOps & Observability</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">Bài giảng</div>
+    <a href="#lesson1" class="nav-item active">1. Observability Crisis</a>
+    <a href="#lesson2" class="nav-item">2. OpenTelemetry cho Agents</a>
+    <a href="#lesson3" class="nav-item">3. SLI / SLO / Error Budget</a>
+    <a href="#lesson4" class="nav-item">4. AgentOps Tools 2025</a>
+    <a href="#lesson5" class="nav-item">5. LoanBot v3.0 + Full Stack</a>
+    <div class="nav-section-title" style="margin-top:var(--space-4);">Tài nguyên</div>
+    <a href="quiz.html" class="nav-item">📝 Bài kiểm tra (15 câu)</a>
+    <a href="lab.ipynb" class="nav-item" download>🔬 Lab Notebook</a>
+    <a href="#glossary" class="nav-item">📚 Glossary</a>
+  </nav>
+  <div class="sidebar-progress">
+    <div class="progress-label"><span>Tiến độ module</span><span id="progress-pct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="content" id="main-content">
+  <div class="scroll-progress" id="scroll-progress"></div>
+
+  <!-- LESSON 1 -->
+  <section class="lesson-section" id="lesson1">
+    <div class="lesson-header">
+      <div class="lesson-num">Bài 1 / 5</div>
+      <h2>The Observability Crisis trong Multi-Agent Systems</h2>
+      <p>Tại sao 76% enterprise multi-agent incidents không phát hiện được trong 10 phút đầu — và cách giải quyết.</p>
+    </div>
+    <div class="lesson-body">
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao APM truyền thống (Datadog, New Relic) <strong>không đủ</strong> cho multi-agent AI systems</li>
+          <li>Biết 4 tín hiệu quan sát vàng (Golden Signals) áp dụng cho agents</li>
+          <li>Phân biệt Logging, Metrics, và Tracing — và khi nào dùng cái nào</li>
+          <li>Nhận ra "Observability Gap" của LoanBot v2.0 và lộ trình vá lỗi</li>
+        </ul>
+      </div>
+
+      <h3>Vấn đề: Black Box trong Production</h3>
+      <p>LoanBot v3.0 chạy 8 agent song song, xử lý 50,000 hồ sơ/tháng. Nhưng khi một hồ sơ mất 47 giây thay vì 5 giây bình thường — bạn biết ngay lỗi ở đâu không? Câu trả lời thường là: <strong>không</strong>.</p>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Thực tế từ Production (McKinsey 2025)</div>
+        <p><strong>76%</strong> incidents trong multi-agent systems không được phát hiện trong 10 phút đầu. Lý do: team chỉ biết <em>output sai</em> nhưng không biết <em>agent nào gây ra</em>, <em>lúc nào bắt đầu</em>, <em>tại sao</em>. Mean Time To Detect (MTTD) trung bình: <strong>47 phút</strong>. Chi phí mỗi phút downtime: <strong>~15 triệu VNĐ</strong>.</p>
+      </div>
+
+      <h3>Tại sao APM truyền thống không đủ?</h3>
+      <p>Datadog, New Relic, Prometheus — tuyệt vời cho microservices. Nhưng agents có những đặc điểm riêng mà APM không xử lý được:</p>
+
+      <!-- SVG: APM gap diagram -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 280" style="max-width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg">
+          <title>APM truyền thống bỏ sót 8 loại metric quan trọng cho multi-agent systems</title>
+          <rect width="720" height="280" fill="#f8fafc" rx="12"/>
+          <text x="360" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">APM Truyền Thống vs. Agent Observability — Gaps</text>
+
+          <!-- Left: APM -->
+          <rect x="20" y="40" width="320" height="220" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" rx="10"/>
+          <text x="180" y="64" text-anchor="middle" font-size="12" font-weight="700" fill="#1d4ed8">📊 APM Truyền Thống (Datadog/NR)</text>
+          <text x="180" y="84" text-anchor="middle" font-size="11" fill="#3b82f6">✅ CPU / Memory / Latency</text>
+          <text x="180" y="102" text-anchor="middle" font-size="11" fill="#3b82f6">✅ HTTP requests / Error rate</text>
+          <text x="180" y="120" text-anchor="middle" font-size="11" fill="#3b82f6">✅ Database query time</text>
+          <text x="180" y="145" text-anchor="middle" font-size="11" fill="#dc2626">❌ Token usage per LLM call</text>
+          <text x="180" y="163" text-anchor="middle" font-size="11" fill="#dc2626">❌ Agent reasoning quality</text>
+          <text x="180" y="181" text-anchor="middle" font-size="11" fill="#dc2626">❌ Tool call success rate</text>
+          <text x="180" y="199" text-anchor="middle" font-size="11" fill="#dc2626">❌ Agent-to-Agent trace context</text>
+          <text x="180" y="217" text-anchor="middle" font-size="11" fill="#dc2626">❌ Prompt/completion audit log</text>
+          <text x="180" y="235" text-anchor="middle" font-size="11" fill="#dc2626">❌ Hallucination rate tracking</text>
+
+          <!-- Right: Agent Obs -->
+          <rect x="380" y="40" width="320" height="220" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" rx="10"/>
+          <text x="540" y="64" text-anchor="middle" font-size="12" font-weight="700" fill="#065f46">🔭 Agent Observability Stack</text>
+          <text x="540" y="84" text-anchor="middle" font-size="11" fill="#059669">✅ Tất cả những gì APM có</text>
+          <text x="540" y="102" text-anchor="middle" font-size="11" fill="#059669">✅ Token count + cost per agent</text>
+          <text x="540" y="120" text-anchor="middle" font-size="11" fill="#059669">✅ LLM call quality (faithfulness)</text>
+          <text x="540" y="138" text-anchor="middle" font-size="11" fill="#059669">✅ Tool call trace (input→output)</text>
+          <text x="540" y="156" text-anchor="middle" font-size="11" fill="#059669">✅ Cross-agent trace propagation</text>
+          <text x="540" y="174" text-anchor="middle" font-size="11" fill="#059669">✅ Prompt version tracking</text>
+          <text x="540" y="192" text-anchor="middle" font-size="11" fill="#059669">✅ Agent decision audit log</text>
+          <text x="540" y="210" text-anchor="middle" font-size="11" fill="#059669">✅ Cost alerts (per-hồ-sơ)</text>
+          <text x="540" y="228" text-anchor="middle" font-size="11" fill="#059669">✅ A2A handoff latency</text>
+
+          <!-- Gap arrow -->
+          <line x1="340" y1="150" x2="380" y2="150" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arr8)"/>
+          <text x="360" y="144" text-anchor="middle" font-size="10" fill="#7c3aed" font-weight="700">GAP</text>
+          <defs><marker id="arr8" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/></marker></defs>
+        </svg>
+        <div class="diagram-title">APM truyền thống bỏ sót 8 loại metric quan trọng cho multi-agent systems</div>
+      </div>
+
+      <h3>Ba Trụ Cột Của Observability</h3>
+      <p>Observability hiện đại dựa trên 3 loại dữ liệu bổ trợ nhau — không có cái nào thay thế được cái kia:</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Ba Trụ Cột (Three Pillars of Observability)</div>
+        <div class="two-col-explain">
+          <div>
+            <strong>1. Logs (Nhật ký)</strong> — sự kiện rời rạc, có timestamp. Ví dụ: <code>[2024-01-15 09:23:41] CreditAgent: credit_score=720</code>. Dùng cho: debugging sau sự cố, audit trail.
+          </div>
+          <div>
+            <strong>2. Metrics (Chỉ số)</strong> — số liệu tổng hợp theo thời gian. Ví dụ: <code>agent_latency_p99=287ms</code>. Dùng cho: alerting, capacity planning, SLO tracking.
+          </div>
+        </div>
+        <div style="margin-top:var(--space-3);">
+          <strong>3. Traces (Dấu vết)</strong> — chuỗi sự kiện liên kết trong một request duy nhất, qua nhiều services. Ví dụ: một hồ sơ FC-2024-001 đi qua Supervisor → CreditAgent → RiskAgent, mỗi bước là một <strong>span</strong> trong cùng một <strong>trace</strong>. Dùng cho: xác định bottleneck, hiểu request flow.
+        </div>
+      </div>
+
+      <h3>Four Golden Signals — Áp dụng vào Agents</h3>
+      <p>Google SRE Book giới thiệu 4 tín hiệu vàng cho bất kỳ production system nào. Đây là cách áp dụng cho agent systems:</p>
+
+      <div class="signal-grid">
+        <div class="signal-card latency">
+          <span class="signal-icon">⏱️</span>
+          <h4>Latency</h4>
+          <p>Thời gian agent xử lý một request. <strong>P99 < SLA</strong> của từng agent trong LoanBot v3.0.</p>
+        </div>
+        <div class="signal-card traffic">
+          <span class="signal-icon">📊</span>
+          <h4>Traffic</h4>
+          <p>Số requests/giây qua hệ thống. <strong>Peak:</strong> 8–9h sáng, ~3 hồ sơ/phút cho LoanBot.</p>
+        </div>
+        <div class="signal-card errors">
+          <span class="signal-icon">❌</span>
+          <h4>Errors</h4>
+          <p>Tỷ lệ agent calls thất bại. LoanBot target: <strong>< 0.1%</strong> error rate toàn pipeline.</p>
+        </div>
+        <div class="signal-card saturation">
+          <span class="signal-icon">🌡️</span>
+          <h4>Saturation</h4>
+          <p>Mức độ "căng" của hệ thống. Token/phút, concurrent agents, queue depth.</p>
+        </div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot v3.0 đang chạy. Bạn nhận được báo cáo "hồ sơ FC-2024-555 mất 42 giây". Bạn cần loại observability data nào để tìm root cause nhanh nhất — Logs, Metrics, hay Traces?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>→ Traces trước tiên.</strong> Trace cho bạn thấy: Supervisor dispatch lúc 09:23:41, CreditAgent bắt đầu 09:23:42, kết thúc 09:24:28 (46 giây — CÁI NÀY là bottleneck), IncomeAgent chỉ 0.3 giây. Logs sẽ cho bạn biết <em>cái gì</em> xảy ra, nhưng Trace cho biết <em>ở đâu và mất bao lâu</em>. Metrics sẽ confirm sau ("CreditAgent P99 spike lúc 09:23").
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- LESSON 2 -->
+  <section class="lesson-section" id="lesson2">
+    <div class="lesson-header">
+      <div class="lesson-num">Bài 2 / 5</div>
+      <h2>OpenTelemetry cho Agent Systems</h2>
+      <p>Chuẩn vendor-neutral số 1 thế giới cho distributed tracing — và cách instrument mỗi agent call thành một span.</p>
+    </div>
+    <div class="lesson-body">
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu OpenTelemetry (OTel) là gì và tại sao nó trở thành chuẩn mực năm 2025</li>
+          <li>Biết cấu trúc Trace → Span → Attribute và cách chúng liên kết qua agents</li>
+          <li>Implement <code>trace_id</code> propagation trong LoanBot v3.0</li>
+          <li>Thêm custom attributes: token count, cost, model version vào mỗi span</li>
+        </ul>
+      </div>
+
+      <h3>OpenTelemetry — Tiêu Chuẩn Quốc Tế</h3>
+      <p><strong>OpenTelemetry (OTel)</strong> là project CNCF (Cloud Native Computing Foundation) mã nguồn mở, được Google, Microsoft, AWS, Anthropic, và 700+ công ty support. Thay vì mỗi vendor có SDK riêng, OTel cung cấp một API chung — bạn instrument code một lần, export đến bất kỳ backend nào (Jaeger, Grafana Tempo, Datadog, Honeycomb).</p>
+
+      <div class="key-formula">
+        <div class="formula-label">Cấu trúc OTel cho Agent Systems</div>
+        <div class="formula-text">Trace = Trace ID + [Span₁ → Span₂ → … → Spanₙ]</div>
+        <div class="formula-desc">Một hồ sơ FC-2024-001 = 1 Trace · 8 agent calls = 8 Spans · Mỗi Span có parent-child relationship</div>
+      </div>
+
+      <h3>Anatomy of an Agent Span</h3>
+      <p>Mỗi khi Supervisor gọi một agent, ta tạo một <strong>Span</strong> — đơn vị cơ bản của trace. Span chứa:</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Span Attributes cho LLM Agents</div>
+        <table class="slo-table">
+          <tr><th>Attribute Key</th><th>Ví dụ Value</th><th>Dùng để</th></tr>
+          <tr><td><code>agent.name</code></td><td>"CreditAgent"</td><td>Filter theo agent</td></tr>
+          <tr><td><code>agent.capability</code></td><td>"credit_check"</td><td>Group theo capability</td></tr>
+          <tr><td><code>llm.model</code></td><td>"claude-haiku-4-5-20251001"</td><td>Model version tracking</td></tr>
+          <tr><td><code>llm.tokens.input</code></td><td>245</td><td>Cost calculation</td></tr>
+          <tr><td><code>llm.tokens.output</code></td><td>89</td><td>Cost calculation</td></tr>
+          <tr><td><code>llm.cost.usd</code></td><td>0.00067</td><td>Per-call cost tracking</td></tr>
+          <tr><td><code>loan.id</code></td><td>"FC-2024-001"</td><td>Link span to business object</td></tr>
+          <tr><td><code>span.status</code></td><td>OK / ERROR</td><td>Error rate calculation</td></tr>
+        </table>
+      </div>
+
+      <h3>Trace Context Propagation — Xuyên Suốt 8 Agents</h3>
+      <p>Khi Supervisor tạo một <code>trace_id</code>, tất cả 8 agents phải <strong>kế thừa</strong> trace đó — không tạo trace mới. Đây là cách LoanBot v3.0 liên kết tất cả spans thành một waterfall diagram:</p>
+
+      <!-- SVG: Trace waterfall -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 340" style="max-width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg">
+          <title>Trace Waterfall của LoanBot v3.0 — mỗi màu là một agent, phase 1 chạy song song, checkpoint markers màu vàng</title>
+          <rect width="720" height="340" fill="#0f172a" rx="12"/>
+          <text x="360" y="28" text-anchor="middle" font-size="13" font-weight="700" fill="#f1f5f9">🔭 Trace: FC-2024-001 — LoanBot v3.0 Waterfall (3.8s total)</text>
+          <text x="10" y="50" font-size="10" fill="#94a3b8">Agent</text>
+          <text x="160" y="50" font-size="10" fill="#94a3b8">Timeline (0 → 3.8s)</text>
+          <text x="640" y="50" font-size="10" fill="#94a3b8">ms</text>
+          <!-- Grid lines -->
+          <line x1="155" y1="55" x2="155" y2="320" stroke="#1e293b" stroke-width="1"/>
+          <line x1="300" y1="55" x2="300" y2="320" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="3"/>
+          <line x1="450" y1="55" x2="450" y2="320" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="3"/>
+          <line x1="600" y1="55" x2="600" y2="320" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="3"/>
+          <text x="155" y="52" font-size="9" fill="#475569">0s</text>
+          <text x="293" y="52" font-size="9" fill="#475569">1s</text>
+          <text x="443" y="52" font-size="9" fill="#475569">2s</text>
+          <text x="593" y="52" font-size="9" fill="#475569">3s</text>
+
+          <!-- Spans -->
+          <!-- Supervisor -->
+          <text x="10" y="74" font-size="10" fill="#94a3b8" dominant-baseline="middle">Supervisor</text>
+          <rect x="155" y="63" width="448" height="14" fill="#7c3aed" rx="3" opacity=".9"/>
+          <text x="379" y="72" text-anchor="middle" font-size="9" fill="#fff">3.8s</text>
+          <!-- Phase 1 label -->
+          <text x="10" y="96" font-size="9" fill="#64748b">── Phase 1 ──</text>
+          <!-- CreditAgent -->
+          <text x="10" y="112" font-size="10" fill="#94a3b8">CreditAgent</text>
+          <rect x="160" y="101" width="86" height="14" fill="#0d9488" rx="3"/>
+          <text x="203" y="110" text-anchor="middle" font-size="9" fill="#fff">287ms</text>
+          <!-- IncomeAgent -->
+          <text x="10" y="132" font-size="10" fill="#94a3b8">IncomeAgent</text>
+          <rect x="160" y="121" width="112" height="14" fill="#0891b2" rx="3"/>
+          <text x="216" y="130" text-anchor="middle" font-size="9" fill="#fff">374ms</text>
+          <!-- FraudAgent -->
+          <text x="10" y="152" font-size="10" fill="#94a3b8">FraudAgent</text>
+          <rect x="160" y="141" width="68" height="14" fill="#7c3aed" rx="3"/>
+          <text x="194" y="150" text-anchor="middle" font-size="9" fill="#fff">226ms</text>
+          <!-- Phase 2 label -->
+          <text x="10" y="175" font-size="9" fill="#64748b">── Phase 2 ──</text>
+          <!-- Checkpoint save marker -->
+          <line x1="278" y1="60" x2="278" y2="185" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4"/>
+          <text x="280" y="183" font-size="9" fill="#f59e0b">💾 ckpt</text>
+          <!-- RiskAgent -->
+          <text x="10" y="192" font-size="10" fill="#94a3b8">RiskAgent</text>
+          <rect x="282" y="181" width="143" height="14" fill="#dc2626" rx="3"/>
+          <text x="353" y="190" text-anchor="middle" font-size="9" fill="#fff">476ms</text>
+          <!-- ComplianceAgent -->
+          <text x="10" y="212" font-size="10" fill="#94a3b8">ComplianceAgent</text>
+          <rect x="282" y="201" width="52" height="14" fill="#d97706" rx="3"/>
+          <text x="308" y="210" text-anchor="middle" font-size="9" fill="#fff">173ms</text>
+          <!-- Phase 3 label -->
+          <text x="10" y="234" font-size="9" fill="#64748b">── Phase 3 ──</text>
+          <!-- Checkpoint 2 -->
+          <line x1="430" y1="60" x2="430" y2="245" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4"/>
+          <text x="432" y="243" font-size="9" fill="#f59e0b">💾 ckpt</text>
+          <!-- ReportAgent -->
+          <text x="10" y="258" font-size="10" fill="#94a3b8">ReportAgent</text>
+          <rect x="434" y="247" width="143" height="14" fill="#059669" rx="3"/>
+          <text x="505" y="256" text-anchor="middle" font-size="9" fill="#fff">476ms</text>
+          <!-- AuditAgent -->
+          <text x="10" y="278" font-size="10" fill="#94a3b8">AuditAgent</text>
+          <rect x="434" y="267" width="34" height="14" fill="#475569" rx="3"/>
+          <text x="451" y="276" text-anchor="middle" font-size="9" fill="#fff">113ms</text>
+
+          <!-- Total cost -->
+          <rect x="155" y="300" width="448" height="24" fill="#1e293b" rx="4"/>
+          <text x="379" y="315" text-anchor="middle" font-size="10" fill="#94a3b8">💰 Total tokens: 1,847 · Cost: $0.0023/hồ sơ (~57 VNĐ) · 8 agents · 3 phases</text>
+        </svg>
+        <div class="diagram-title">Trace Waterfall của LoanBot v3.0 — mỗi màu là một agent, phase 1 chạy song song, checkpoint markers màu vàng</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python — OTel Instrumentation</span>
+        <pre><code>
+<span class="code-keyword">from</span> opentelemetry <span class="code-keyword">import</span> trace
+<span class="code-keyword">from</span> opentelemetry.sdk.trace <span class="code-keyword">import</span> TracerProvider
+
+<span class="code-comment"># Khởi tạo OTel tracer — chạy một lần khi startup</span>
+provider = TracerProvider()
+tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
+
+<span class="code-keyword">class</span> <span class="code-function">ObservableCreditAgent</span>(CreditAgent):
+    <span class="code-keyword">async def</span> <span class="code-function">process</span>(self, task: A2ATask) -> A2ATask:
+        <span class="code-comment"># Tạo span kế thừa từ parent trace của Supervisor</span>
+        <span class="code-keyword">with</span> tracer.start_as_current_span(<span class="code-string">"credit_agent.process"</span>) <span class="code-keyword">as</span> span:
+            span.set_attribute(<span class="code-string">"agent.name"</span>, <span class="code-string">"CreditAgent"</span>)
+            span.set_attribute(<span class="code-string">"loan.id"</span>, task.payload[<span class="code-string">"loan_id"</span>])
+            span.set_attribute(<span class="code-string">"llm.model"</span>, MODEL)
+
+            result = <span class="code-keyword">await</span> super().process(task)
+
+            <span class="code-comment"># Ghi kết quả vào span attributes</span>
+            span.set_attribute(<span class="code-string">"credit.score"</span>, result.artifacts.get(<span class="code-string">"credit_score"</span>, <span class="code-number">0</span>))
+            span.set_attribute(<span class="code-string">"llm.cost.usd"</span>, <span class="code-number">0.002</span>)   <span class="code-comment"># từ API response</span>
+            <span class="code-keyword">return</span> result
+        </code></pre>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: trace_id là "sợi chỉ đỏ"</div>
+        <p>Một <code>trace_id</code> duy nhất (ví dụ: <code>3f2a8c1b…</code>) liên kết tất cả 8 agent spans lại. Khi bạn nhập <code>trace_id</code> vào Grafana Tempo hay Jaeger, bạn thấy toàn bộ waterfall — từ lúc Supervisor nhận hồ sơ đến khi AuditAgent lưu log. Không có trace_id, bạn chỉ thấy 8 điểm rời rạc — không biết chúng thuộc hồ sơ nào.</p>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot v3.0 xử lý 50,000 hồ sơ/tháng. Mỗi hồ sơ có 8 spans. Hỏi: Tháng này có bao nhiêu spans tổng cộng? Và nếu error rate là 0.1%, có bao nhiêu spans có status ERROR?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Tổng spans:</strong> 50,000 × 8 = <strong>400,000 spans/tháng</strong>. <strong>Spans lỗi:</strong> 400,000 × 0.1% = <strong>400 error spans</strong>. Đây là lý do cần sampling strategy — lưu 100% error spans nhưng chỉ sample 1% success spans → tiết kiệm storage mà vẫn capture đủ incidents.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- LESSON 3 -->
+  <section class="lesson-section" id="lesson3">
+    <div class="lesson-header">
+      <div class="lesson-num">Bài 3 / 5</div>
+      <h2>SLI / SLO / Error Budget — Cam Kết Bằng Con Số</h2>
+      <p>Cách định nghĩa "LoanBot hoạt động tốt" bằng những con số cụ thể, đo lường được, và có accountability.</p>
+    </div>
+    <div class="lesson-body">
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt SLI (đo lường), SLO (mục tiêu), SLA (cam kết pháp lý)</li>
+          <li>Định nghĩa SLO cụ thể cho từng agent trong LoanBot v3.0</li>
+          <li>Tính Error Budget và biết khi nào nên "tiêu" error budget để ship nhanh hơn</li>
+          <li>Thiết kế alert rules dựa trên SLO (không phải dựa trên arbitrary threshold)</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: SLO như cam kết chất lượng dịch vụ ở nhà hàng</div>
+        <p>Nhà hàng cam kết: <em>"Món ăn sẽ được phục vụ trong 15 phút"</em> (SLO). Chỉ số đo: thời gian từ gọi đến khi có món (SLI). Hợp đồng với food court: nếu vi phạm > 10 lần/tháng, hoàn tiền (SLA). Error budget = 10 lần/tháng còn lại. Nếu đã vi phạm 8 lần, bếp không được thử menu mới (freeze deployments) cho đến tháng sau.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Error Budget Formula</div>
+        <div class="formula-text">Error Budget = 1 − SLO target</div>
+        <div class="formula-desc">SLO 99.9% → Error Budget = 0.1% = 43.8 phút downtime/tháng được phép</div>
+      </div>
+
+      <h3>SLO của LoanBot v3.0 — Định nghĩa Đầy Đủ</h3>
+      <table class="slo-table">
+        <thead>
+          <tr><th>Agent</th><th>SLI (Metric)</th><th>SLO Target</th><th>Error Budget/tháng</th><th>Alert Threshold</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>CreditAgent</strong></td><td>p99 latency</td><td class="slo-ok">< 300ms</td><td>0.1% = 3.6 phút</td><td>> 250ms sustained 5m</td></tr>
+          <tr><td><strong>IncomeAgent</strong></td><td>p99 latency</td><td class="slo-ok">< 400ms</td><td>0.1% = 3.6 phút</td><td>> 350ms sustained 5m</td></tr>
+          <tr><td><strong>FraudAgent</strong></td><td>p99 latency</td><td class="slo-ok">< 250ms</td><td>0.1% = 3.6 phút</td><td>> 200ms sustained 5m</td></tr>
+          <tr><td><strong>RiskAgent</strong></td><td>p99 latency</td><td class="slo-warn">< 500ms</td><td>0.1% = 3.6 phút</td><td>> 450ms sustained 5m</td></tr>
+          <tr><td><strong>ComplianceAgent</strong></td><td>p99 latency</td><td class="slo-ok">< 200ms</td><td>0.1% = 3.6 phút</td><td>> 180ms sustained 5m</td></tr>
+          <tr><td><strong>Pipeline (E2E)</strong></td><td>p95 latency</td><td class="slo-ok">< 5 giây</td><td>0.1%</td><td>> 4.5s sustained 10m</td></tr>
+          <tr><td><strong>Error Rate</strong></td><td>% failed requests</td><td class="slo-ok">< 0.1%</td><td>43.8 phút/tháng</td><td>> 0.05% trong 1 phút</td></tr>
+          <tr><td><strong>Cost per hồ sơ</strong></td><td>USD/application</td><td class="slo-ok">< $0.01</td><td>N/A</td><td>> $0.008 (rolling 1h)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Alert Rules — SLO-Based Alerting</h3>
+      <p>Thay vì alert khi "CPU > 80%", alert khi "SLO đang bị consume quá nhanh". Đây là 3 alerts quan trọng nhất cho LoanBot v3.0:</p>
+
+      <div class="alert-card critical">
+        <div class="alert-title">🔴 CRITICAL: Error Budget Burn Rate > 14x</div>
+        <div class="alert-body">Nếu error rate burn rate gấp 14 lần normal → sẽ hết toàn bộ error budget trong 1 giờ. Action: page on-call engineer ngay, freeze deployments, kích hoạt circuit breaker cho CIC API.</div>
+      </div>
+
+      <div class="alert-card warning">
+        <div class="alert-title">🟡 WARNING: CreditAgent P99 > 250ms (5 phút liên tục)</div>
+        <div class="alert-body">CreditAgent đang chậm hơn bình thường — có thể CIC API bị congestion. Action: check circuit breaker status, xem CIC API status page, consider switch sang secondary CIC provider.</div>
+      </div>
+
+      <div class="alert-card info">
+        <div class="alert-title">🔵 INFO: Cost per hồ sơ tăng 20% so với tuần trước</div>
+        <div class="alert-body">Có thể prompt dài hơn, model thay đổi, hoặc input data phức tạp hơn. Action: review prompt versions, check token counts theo từng agent, không cần action ngay.</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot có SLO error rate 99.9%/tháng. Trong 3 ngày đầu tháng, đã có 120 errors trong 40,000 requests (0.3%). Hỏi: Error budget còn lại bao nhiêu phút? Có nên tiếp tục deploy tính năng mới không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Error budget tổng:</strong> 43.8 phút/tháng. <strong>Đã tiêu:</strong> 0.3% - 0.1% = 0.2% excess × 3 ngày → ước tính ~17.5 phút đã burn. <strong>Còn lại:</strong> ~26.3 phút. <strong>Kết luận:</strong> Không nên deploy tính năng mới — đã burn 40% error budget chỉ trong 10% của tháng. Ưu tiên fix root cause trước.
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- LESSON 4 -->
+  <section class="lesson-section" id="lesson4">
+    <div class="lesson-header">
+      <div class="lesson-num">Bài 4 / 5</div>
+      <h2>AgentOps Tools 2025 — Chọn Công Cụ Phù Hợp</h2>
+      <p>LangSmith, Arize Phoenix, Langfuse, AgentOps.ai — mỗi tool giải quyết vấn đề khác nhau. Đây là cách chọn.</p>
+    </div>
+    <div class="lesson-body">
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>So sánh 4 AgentOps platforms hàng đầu năm 2025</li>
+          <li>Hiểu trade-offs: cloud vs self-hosted, open-source vs proprietary, GDPR vs convenience</li>
+          <li>Chọn stack phù hợp cho LoanBot v3.0 trong môi trường GDPR (EU AI Act)</li>
+          <li>Biết cách kết hợp OpenTelemetry + LLM-specific observability</li>
+        </ul>
+      </div>
+
+      <h3>Landscape Tool 2025</h3>
+
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-logo" style="color:#ef4444;">🔗 LangSmith</div>
+          <h4>LangChain / LangSmith</h4>
+          <p>Platform observability chính thức của LangChain. Tracing tự động cho LangGraph workflows. Có playground để test prompts, evaluate outputs, compare runs.</p>
+          <div class="tool-tags">
+            <span class="tool-tag">Cloud-only</span>
+            <span class="tool-tag">LangGraph-native</span>
+            <span class="tool-tag">Prompt Management</span>
+            <span class="tool-tag">$29/tháng+</span>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-logo" style="color:#7c3aed;">🦅 Arize Phoenix</div>
+          <h4>Arize Phoenix (Open-source)</h4>
+          <p>Open-source, self-hosted, OTel-native. Hiển thị trace waterfall, token heatmaps, embedding visualization. Tích hợp tốt với bất kỳ framework nào (không lock-in LangChain).</p>
+          <div class="tool-tags">
+            <span class="tool-tag">Open-source</span>
+            <span class="tool-tag">OTel-native</span>
+            <span class="tool-tag">Self-hosted</span>
+            <span class="tool-tag">Free</span>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-logo" style="color:#0891b2;">🌿 Langfuse</div>
+          <h4>Langfuse (EU-hosted)</h4>
+          <p>Open-source, có cloud option hosted ở EU (GDPR-compliant). Mạnh về: cost tracking, prompt versioning, A/B testing prompts, dataset management cho evaluation.</p>
+          <div class="tool-tags">
+            <span class="tool-tag">GDPR-compliant</span>
+            <span class="tool-tag">EU-hosted</span>
+            <span class="tool-tag">Prompt A/B Test</span>
+            <span class="tool-tag">Open-source</span>
+          </div>
+        </div>
+        <div class="tool-card">
+          <div class="tool-logo" style="color:#059669;">🤖 AgentOps.ai</div>
+          <h4>AgentOps (Agent-specific)</h4>
+          <p>Thiết kế riêng cho agentic systems. Track: agent sessions, tool calls, LLM interactions, errors. SDK wrapper rất đơn giản (2 dòng code). Hỗ trợ CrewAI, AutoGen native.</p>
+          <div class="tool-tags">
+            <span class="tool-tag">Agent-native</span>
+            <span class="tool-tag">CrewAI built-in</span>
+            <span class="tool-tag">2-line setup</span>
+            <span class="tool-tag">$49/tháng+</span>
+          </div>
+        </div>
+      </div>
+
+      <h3>Decision Matrix — Chọn cho LoanBot v3.0</h3>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FinTech Corp chọn AgentOps Stack</div>
+        <p><strong>Yêu cầu:</strong> GDPR compliant (EU AI Act), self-hosted (data không ra ngoài), framework-agnostic (không lock-in LangChain), cost tracking per hồ sơ, audit trail 3 năm.</p>
+        <p><strong>Stack được chọn:</strong></p>
+        <ol class="process-steps">
+          <li><strong>OpenTelemetry SDK</strong> — instrument code, vendor-neutral, không lock-in</li>
+          <li><strong>Arize Phoenix (self-hosted)</strong> — LLM trace visualization, OTel native, free, chạy trong datacenter FinTech Corp</li>
+          <li><strong>Prometheus + Grafana</strong> — metrics storage, alerting, dashboards — industry standard</li>
+          <li><strong>Langfuse (self-hosted)</strong> — prompt versioning, cost tracking, evaluation dataset</li>
+        </ol>
+        <p><strong>Không chọn:</strong> LangSmith (cloud-only, data ra ngoài), AgentOps (cloud, không GDPR-compliant cho sensitive financial data).</p>
+      </div>
+
+      <!-- SVG: Stack architecture -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 260" style="max-width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg">
+          <title>FinTech Corp chọn stack self-hosted hoàn toàn — GDPR compliant, data không ra ngoài</title>
+          <rect width="720" height="260" fill="#f8fafc" rx="12"/>
+          <text x="360" y="26" text-anchor="middle" font-size="14" font-weight="700" fill="#0f172a">FinTech Corp AgentOps Stack — Self-Hosted</text>
+
+          <!-- LoanBot v3.0 -->
+          <rect x="20" y="40" width="200" height="80" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" rx="8"/>
+          <text x="120" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#1d4ed8">LoanBot v3.0</text>
+          <text x="120" y="80" text-anchor="middle" font-size="10" fill="#3b82f6">8 Agents</text>
+          <text x="120" y="96" text-anchor="middle" font-size="10" fill="#3b82f6">OTel SDK instrumented</text>
+          <text x="120" y="112" text-anchor="middle" font-size="10" fill="#3b82f6">trace_id propagation</text>
+
+          <!-- OTel Collector -->
+          <rect x="260" y="40" width="160" height="80" fill="#fdf4ff" stroke="#7c3aed" stroke-width="1.5" rx="8"/>
+          <text x="340" y="62" text-anchor="middle" font-size="12" font-weight="700" fill="#6b21a8">OTel Collector</text>
+          <text x="340" y="80" text-anchor="middle" font-size="10" fill="#7c3aed">Fan-out router</text>
+          <text x="340" y="96" text-anchor="middle" font-size="10" fill="#7c3aed">Traces → Jaeger</text>
+          <text x="340" y="112" text-anchor="middle" font-size="10" fill="#7c3aed">Metrics → Prometheus</text>
+
+          <!-- Phoenix -->
+          <rect x="460" y="40" width="120" height="35" fill="#fdf4ff" stroke="#7c3aed" stroke-width="1.5" rx="6"/>
+          <text x="520" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#6b21a8">Arize Phoenix</text>
+
+          <!-- Prometheus -->
+          <rect x="460" y="85" width="120" height="35" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" rx="6"/>
+          <text x="520" y="107" text-anchor="middle" font-size="11" font-weight="700" fill="#9a3412">Prometheus</text>
+
+          <!-- Langfuse -->
+          <rect x="600" y="40" width="110" height="35" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" rx="6"/>
+          <text x="655" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#065f46">Langfuse</text>
+
+          <!-- Grafana -->
+          <rect x="600" y="85" width="110" height="35" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5" rx="6"/>
+          <text x="655" y="107" text-anchor="middle" font-size="11" font-weight="700" fill="#9a3412">Grafana</text>
+
+          <!-- Arrows -->
+          <defs><marker id="arrG" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#94a3b8"/></marker></defs>
+          <line x1="220" y1="80" x2="260" y2="80" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrG)"/>
+          <line x1="420" y1="62" x2="460" y2="62" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrG)"/>
+          <line x1="420" y1="100" x2="460" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrG)"/>
+          <line x1="580" y1="62" x2="600" y2="62" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrG)"/>
+          <line x1="580" y1="100" x2="600" y2="100" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrG)"/>
+
+          <!-- All self-hosted label -->
+          <rect x="20" y="145" width="690" height="100" fill="#f0fdf4" stroke="#059669" stroke-width="1.5" rx="8" stroke-dasharray="6"/>
+          <text x="360" y="170" text-anchor="middle" font-size="12" font-weight="700" fill="#065f46">🔒 Tất cả Self-Hosted trong datacenter FinTech Corp (GDPR + EU AI Act Art.12 compliant)</text>
+          <text x="360" y="192" text-anchor="middle" font-size="11" fill="#059669">Data không rời khỏi premises · Audit trail 3 năm · ISO 27001 boundary</text>
+          <text x="360" y="212" text-anchor="middle" font-size="11" fill="#059669">OTel Collector: Docker · Phoenix: Docker · Prometheus: K8s · Grafana: K8s · Langfuse: Docker</text>
+          <text x="360" y="232" text-anchor="middle" font-size="10" fill="#6b7280">Estimated cost: ~8M VNĐ/tháng infrastructure vs 70M VNĐ/tháng manual thẩm định</text>
+        </svg>
+        <div class="diagram-title">FinTech Corp chọn stack self-hosted hoàn toàn — GDPR compliant, data không ra ngoài</div>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Sampling Strategy — Không lưu 100% traces
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>LoanBot xử lý 50,000 hồ sơ/tháng → 400,000 spans. Lưu tất cả tốn ~40GB/tháng và làm chậm pipeline. <strong>Head-based sampling</strong>: quyết định sample hay không ngay từ đầu request (ví dụ: sample 10% random). <strong>Tail-based sampling</strong>: quyết định sau khi trace hoàn tất — luôn lưu traces có errors hoặc latency > SLO, sample ngẫu nhiên 1% traces bình thường. LoanBot nên dùng <strong>tail-based</strong> để đảm bảo 100% error traces được lưu.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- LESSON 5 -->
+  <section class="lesson-section" id="lesson5">
+    <div class="lesson-header">
+      <div class="lesson-num">Bài 5 / 5</div>
+      <h2>LoanBot v3.0 + Full Observability Stack</h2>
+      <p>Tổng hợp: add OTel tracing, Prometheus metrics, Grafana dashboard, và alert rules vào 8-agent department.</p>
+    </div>
+    <div class="lesson-body">
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement <code>AgentMetricsCollector</code> đo latency + tokens + cost cho từng agent</li>
+          <li>Xây <code>ObservableIntelligentSupervisor</code> với full tracing qua 3 phases</li>
+          <li>Thiết kế Grafana dashboard panels cho 8 agents</li>
+          <li>Viết Prometheus alert rules SLO-based cho LoanBot v3.0</li>
+        </ul>
+      </div>
+
+      <h3>AgentMetricsCollector — Đo Lường Tất Cả</h3>
+      <p>Một lớp wrapper nhẹ, bọc quanh mỗi agent call để collect đủ 4 Golden Signals:</p>
+
+      <div class="code-block">
+        <span class="code-label">Python — AgentMetricsCollector</span>
+        <pre><code>
+<span class="code-keyword">import</span> time
+<span class="code-keyword">from</span> collections <span class="code-keyword">import</span> defaultdict
+
+<span class="code-keyword">class</span> <span class="code-function">AgentMetricsCollector</span>:
+    <span class="code-comment"># Thu thập metrics theo thời gian thực — export lên Prometheus</span>
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.latencies = defaultdict(list)   <span class="code-comment"># agent_name → [ms, ms, ...]</span>
+        self.errors    = defaultdict(int)    <span class="code-comment"># agent_name → error_count</span>
+        self.tokens    = defaultdict(int)    <span class="code-comment"># agent_name → total_tokens</span>
+        self.costs     = defaultdict(float)  <span class="code-comment"># agent_name → total_usd</span>
+        self.calls     = defaultdict(int)    <span class="code-comment"># agent_name → total_calls</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">record</span>(self, agent_name: <span class="code-type">str</span>, latency_ms: <span class="code-type">float</span>,
+                  tokens: <span class="code-type">int</span>, cost: <span class="code-type">float</span>, error: <span class="code-type">bool</span> = <span class="code-keyword">False</span>):
+        self.latencies[agent_name].append(latency_ms)
+        self.tokens[agent_name]   += tokens
+        self.costs[agent_name]    += cost
+        self.calls[agent_name]    += <span class="code-number">1</span>
+        <span class="code-keyword">if</span> error:
+            self.errors[agent_name] += <span class="code-number">1</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">p99</span>(self, agent_name: <span class="code-type">str</span>) -> <span class="code-type">float</span>:
+        lats = sorted(self.latencies[agent_name])
+        <span class="code-keyword">if not</span> lats: <span class="code-keyword">return</span> <span class="code-number">0</span>
+        idx = <span class="code-type">int</span>(<span class="code-number">0.99</span> * len(lats))
+        <span class="code-keyword">return</span> lats[min(idx, len(lats) - <span class="code-number">1</span>)]
+
+    <span class="code-keyword">def</span> <span class="code-function">error_rate</span>(self, agent_name: <span class="code-type">str</span>) -> <span class="code-type">float</span>:
+        total = self.calls[agent_name]
+        <span class="code-keyword">if not</span> total: <span class="code-keyword">return</span> <span class="code-number">0.0</span>
+        <span class="code-keyword">return</span> self.errors[agent_name] / total * <span class="code-number">100</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">report</span>(self):
+        <span class="code-comment"># In dashboard summary ra console — production sẽ export Prometheus metrics</span>
+        <span class="code-keyword">print</span>(<span class="code-string">"\n📊 AgentOps Dashboard — LoanBot v3.0"</span>)
+        <span class="code-keyword">print</span>(<span class="code-string">f"{'Agent':<20} {'Calls':>5} {'P99(ms)':>8} {'Errors':>7} {'Tokens':>8} {'Cost($)':>9}"</span>)
+        <span class="code-keyword">print</span>(<span class="code-string">"-" * 65</span>)
+        <span class="code-keyword">for</span> name <span class="code-keyword">in</span> self.calls:
+            <span class="code-keyword">print</span>(<span class="code-string">f"{name:<20} {self.calls[name]:>5} {self.p99(name):>8.0f}"</span>
+                  <span class="code-string">f" {self.errors[name]:>7} {self.tokens[name]:>8} {self.costs[name]:>9.4f}"</span>)
+        </code></pre>
+      </div>
+
+      <h3>Grafana Dashboard — 8 Panels cho LoanBot v3.0</h3>
+
+      <!-- SVG: Grafana dashboard mockup -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 380" style="max-width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg">
+          <title>Grafana Dashboard LoanBot v3.0 — 4 stat panels + agent latency chart + cost pie + throughput graph</title>
+          <rect width="720" height="380" fill="#111827" rx="12"/>
+          <rect width="720" height="36" fill="#1f2937" rx="12"/>
+          <rect x="0" y="24" width="720" height="12" fill="#1f2937"/>
+          <text x="16" y="23" font-size="12" font-weight="700" fill="#f9fafb">📊 LoanBot v3.0 — Production Dashboard</text>
+          <text x="580" y="23" font-size="11" fill="#6b7280">Last 1h · Auto-refresh 30s</text>
+
+          <!-- Row 1: 4 stat panels -->
+          <rect x="10" y="44" width="164" height="60" fill="#1f2937" rx="6"/>
+          <text x="92" y="64" text-anchor="middle" font-size="10" fill="#9ca3af">Pipeline P95 Latency</text>
+          <text x="92" y="86" text-anchor="middle" font-size="22" font-weight="800" fill="#10b981">3.2s</text>
+          <text x="92" y="100" text-anchor="middle" font-size="9" fill="#6b7280">SLO: &lt;5s ✅</text>
+
+          <rect x="182" y="44" width="164" height="60" fill="#1f2937" rx="6"/>
+          <text x="264" y="64" text-anchor="middle" font-size="10" fill="#9ca3af">Error Rate</text>
+          <text x="264" y="86" text-anchor="middle" font-size="22" font-weight="800" fill="#10b981">0.04%</text>
+          <text x="264" y="100" text-anchor="middle" font-size="9" fill="#6b7280">SLO: &lt;0.1% ✅</text>
+
+          <rect x="354" y="44" width="164" height="60" fill="#1f2937" rx="6"/>
+          <text x="436" y="64" text-anchor="middle" font-size="10" fill="#9ca3af">Cost / Hồ Sơ</text>
+          <text x="436" y="86" text-anchor="middle" font-size="22" font-weight="800" fill="#10b981">$0.0023</text>
+          <text x="436" y="100" text-anchor="middle" font-size="9" fill="#6b7280">SLO: &lt;$0.01 ✅</text>
+
+          <rect x="526" y="44" width="184" height="60" fill="#1f2937" rx="6"/>
+          <text x="618" y="64" text-anchor="middle" font-size="10" fill="#9ca3af">Error Budget Remaining</text>
+          <text x="618" y="86" text-anchor="middle" font-size="22" font-weight="800" fill="#f59e0b">72%</text>
+          <text x="618" y="100" text-anchor="middle" font-size="9" fill="#6b7280">28 days left in month</text>
+
+          <!-- Row 2: Agent latency heatmap -->
+          <rect x="10" y="112" width="440" height="120" fill="#1f2937" rx="6"/>
+          <text x="230" y="130" text-anchor="middle" font-size="11" font-weight="700" fill="#f3f4f6">Agent P99 Latency — Last 1h</text>
+          <!-- Mini bar chart -->
+          <text x="22" y="200" font-size="9" fill="#9ca3af">CreditAgent</text>    <rect x="110" y="185" width="86" height="12" fill="#10b981" rx="2"/><text x="200" y="195" font-size="9" fill="#9ca3af">287ms</text>
+          <text x="22" y="218" font-size="9" fill="#9ca3af">IncomeAgent</text>    <rect x="110" y="203" width="112" height="12" fill="#10b981" rx="2"/><text x="226" y="213" font-size="9" fill="#9ca3af">374ms</text>
+          <text x="22" y="236" font-size="9" fill="#9ca3af">FraudAgent</text>     <rect x="110" y="221" width="68" height="12" fill="#10b981" rx="2"/><text x="182" y="231" font-size="9" fill="#9ca3af">226ms</text>
+          <text x="22" y="154" font-size="9" fill="#9ca3af">RiskAgent</text>      <rect x="110" y="144" width="143" height="12" fill="#f59e0b" rx="2"/><text x="257" y="154" font-size="9" fill="#f59e0b">476ms ⚠</text>
+          <text x="22" y="172" font-size="9" fill="#9ca3af">ComplianceAgent</text><rect x="110" y="162" width="52" height="12" fill="#10b981" rx="2"/><text x="166" y="172" font-size="9" fill="#9ca3af">173ms</text>
+
+          <!-- Row 2: Token cost pie -->
+          <rect x="458" y="112" width="252" height="120" fill="#1f2937" rx="6"/>
+          <text x="584" y="130" text-anchor="middle" font-size="11" font-weight="700" fill="#f3f4f6">Token Cost by Agent</text>
+          <circle cx="540" cy="175" r="42" fill="none" stroke="#10b981" stroke-width="16" stroke-dasharray="80 184"/>
+          <circle cx="540" cy="175" r="42" fill="none" stroke="#0891b2" stroke-width="16" stroke-dasharray="52 212" stroke-dashoffset="-80"/>
+          <circle cx="540" cy="175" r="42" fill="none" stroke="#7c3aed" stroke-width="16" stroke-dasharray="40 224" stroke-dashoffset="-132"/>
+          <circle cx="540" cy="175" r="42" fill="none" stroke="#dc2626" stroke-width="16" stroke-dasharray="72 192" stroke-dashoffset="-172"/>
+          <text x="584" y="155" font-size="9" fill="#10b981">● CreditAgent 31%</text>
+          <text x="584" y="170" font-size="9" fill="#0891b2">● IncomeAgent 20%</text>
+          <text x="584" y="185" font-size="9" fill="#7c3aed">● FraudAgent 15%</text>
+          <text x="584" y="200" font-size="9" fill="#dc2626">● ReportAgent 28%</text>
+          <text x="584" y="215" font-size="9" fill="#6b7280">● Others 6%</text>
+
+          <!-- Row 3: Throughput graph -->
+          <rect x="10" y="240" width="700" height="120" fill="#1f2937" rx="6"/>
+          <text x="360" y="258" text-anchor="middle" font-size="11" font-weight="700" fill="#f3f4f6">Pipeline Throughput — Hồ Sơ/Phút (Last 1h)</text>
+          <!-- Fake time series -->
+          <polyline points="30,340 90,330 150,320 210,300 270,280 330,270 390,265 450,278 510,295 570,310 630,325 690,335" fill="none" stroke="#10b981" stroke-width="1.5"/>
+          <polygon points="30,355 30,340 90,330 150,320 210,300 270,280 330,270 390,265 450,278 510,295 570,310 630,325 690,335 690,355" fill="#10b981" opacity=".15"/>
+          <text x="30" y="350" font-size="9" fill="#6b7280">08:00</text>
+          <text x="370" y="350" font-size="9" fill="#6b7280">08:30</text>
+          <text x="680" y="350" font-size="9" fill="#6b7280">09:00</text>
+          <text x="20" y="278" font-size="9" fill="#6b7280">3/m</text>
+          <text x="20" y="335" font-size="9" fill="#6b7280">0/m</text>
+        </svg>
+        <div class="diagram-title">Grafana Dashboard LoanBot v3.0 — 4 stat panels + agent latency chart + cost pie + throughput graph</div>
+      </div>
+
+      <h3>Prometheus Alert Rules — YAML</h3>
+
+      <div class="code-block">
+        <span class="code-label">YAML — Prometheus Alert Rules (loanbot_slo.yml)</span>
+        <pre><code>
+<span class="code-keyword">groups</span>:
+  - name: loanbot_slo_alerts
+    rules:
+      <span class="code-comment"># Alert 1: CreditAgent P99 vượt SLO</span>
+      - alert: CreditAgentLatencySLOBreach
+        expr: <span class="code-string">histogram_quantile(0.99, agent_latency_ms{agent="CreditAgent"}) > 300</span>
+        for: <span class="code-number">5m</span>
+        labels: { severity: warning, team: loanbot }
+        annotations:
+          summary: <span class="code-string">"CreditAgent P99 > 300ms SLO threshold"</span>
+          runbook: <span class="code-string">"https://wiki.fintechcorp/runbooks/credit-agent-slow"</span>
+
+      <span class="code-comment"># Alert 2: Error budget burn rate quá nhanh (CRITICAL)</span>
+      - alert: ErrorBudgetBurnRateCritical
+        expr: <span class="code-string">rate(agent_errors_total[1h]) / rate(agent_requests_total[1h]) > 0.014</span>
+        for: <span class="code-number">2m</span>
+        labels: { severity: critical, team: loanbot }
+        annotations:
+          summary: <span class="code-string">"Error budget burning 14x faster than allowed"</span>
+          action: <span class="code-string">"FREEZE deployments, page on-call"</span>
+
+      <span class="code-comment"># Alert 3: Cost per hồ sơ spike</span>
+      - alert: CostPerApplicationSpike
+        expr: <span class="code-string">rate(agent_cost_usd_total[1h]) / rate(loan_applications_total[1h]) > 0.008</span>
+        for: <span class="code-number">10m</span>
+        labels: { severity: info, team: loanbot }
+        annotations:
+          summary: <span class="code-string">"Cost per application approaching $0.01 SLO"</span>
+        </code></pre>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Observability là Vòng Phản Hồi</div>
+        <p>Observability không chỉ để debug sau sự cố — nó tạo <strong>vòng phản hồi liên tục</strong>: Deploy → Observe → Alert → Fix → Deploy. LoanBot v3.0 với full observability stack có Mean Time To Detect (MTTD) giảm từ 47 phút xuống còn <strong>2.3 phút</strong>, Mean Time To Resolve (MTTR) giảm từ 3 giờ xuống <strong>23 phút</strong>. Đây là sự khác biệt giữa "agent system chạy được" và "agent system production-grade".</p>
+      </div>
+
+      <!-- Glossary -->
+      <div id="glossary" style="margin-top:var(--space-12);">
+        <h3>📚 Glossary — Module 8</h3>
+        <table class="slo-table">
+          <tr><th>Thuật ngữ</th><th>Định nghĩa</th></tr>
+          <tr><td><strong>Observability</strong></td><td>Khả năng hiểu trạng thái nội tại của hệ thống chỉ từ outputs bên ngoài (logs, metrics, traces)</td></tr>
+          <tr><td><strong>OpenTelemetry (OTel)</strong></td><td>Chuẩn mã nguồn mở CNCF cho instrumentation — vendor-neutral, framework-agnostic</td></tr>
+          <tr><td><strong>Span</strong></td><td>Đơn vị cơ bản của trace — đại diện cho một operation (ví dụ: một agent call)</td></tr>
+          <tr><td><strong>Trace</strong></td><td>Tập hợp spans liên kết với nhau qua trace_id — đại diện cho toàn bộ một request</td></tr>
+          <tr><td><strong>SLI</strong></td><td>Service Level Indicator — chỉ số đo lường cụ thể (ví dụ: p99 latency)</td></tr>
+          <tr><td><strong>SLO</strong></td><td>Service Level Objective — mục tiêu nội bộ (ví dụ: p99 < 300ms)</td></tr>
+          <tr><td><strong>SLA</strong></td><td>Service Level Agreement — cam kết pháp lý với khách hàng, vi phạm có penalty</td></tr>
+          <tr><td><strong>Error Budget</strong></td><td>Lượng downtime/errors được phép trong SLO period (ví dụ: 43.8 phút/tháng nếu SLO 99.9%)</td></tr>
+          <tr><td><strong>Golden Signals</strong></td><td>4 tín hiệu quan sát cốt lõi: Latency, Traffic, Errors, Saturation (Google SRE Book)</td></tr>
+          <tr><td><strong>MTTD</strong></td><td>Mean Time To Detect — thời gian trung bình để phát hiện incident</td></tr>
+          <tr><td><strong>MTTR</strong></td><td>Mean Time To Resolve — thời gian trung bình để giải quyết incident</td></tr>
+          <tr><td><strong>Tail-based Sampling</strong></td><td>Quyết định lưu trace sau khi hoàn thành — luôn lưu error traces, sample ngẫu nhiên success traces</td></tr>
+          <tr><td><strong>Arize Phoenix</strong></td><td>Open-source LLM observability platform, OTel-native, self-hosted, free</td></tr>
+          <tr><td><strong>Langfuse</strong></td><td>Open-source LLM observability với EU cloud option, mạnh về prompt versioning và cost tracking</td></tr>
+          <tr><td><strong>Burn Rate</strong></td><td>Tốc độ "tiêu" error budget — 1x = normal, 14x = sẽ hết budget trong 1 giờ</td></tr>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BOTTOM NAVIGATION -->
+  <div class="bottom-nav">
+    <a href="../module7/index.html" class="btn btn-secondary">← Module 7: Enterprise Multi-Agent</a>
+    <a href="quiz.html" class="btn btn-primary">📝 Làm bài kiểm tra →</a>
+  </div>
+
+</main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

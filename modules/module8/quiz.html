@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 8 — AgentOps & Production Observability</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .quiz-wrap { max-width: 780px; margin: 0 auto; padding: var(--space-6); }
+    .quiz-header { background: linear-gradient(135deg,#0d9488,#0f766e); color:#fff; border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-8); text-align:center; }
+    .quiz-header h1 { font-size:1.75rem; color:#fff; margin-bottom:var(--space-2); }
+    .quiz-header p  { color:rgba(255,255,255,.8); margin:0; }
+    .q-card { background: var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:var(--space-6); margin-bottom:var(--space-5); }
+    .q-num  { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .q-text { font-size:1rem; font-weight:600; color:var(--primary-dark); margin-bottom:var(--space-4); line-height:1.6; }
+    .q-opts { list-style:none; padding:0; margin:0; }
+    .q-opts li { margin-bottom:var(--space-2); }
+    .q-opts label { display:flex; align-items:flex-start; gap:var(--space-3); padding:var(--space-3) var(--space-4); border:1.5px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:var(--transition); font-size:.925rem; }
+    .q-opts label:hover { background:#f0fdfa; border-color:#0d9488; }
+    .q-opts input[type=radio] { margin-top:2px; flex-shrink:0; accent-color:#0d9488; }
+    .q-opts label.correct  { background:var(--success-light); border-color:var(--success); color:#14532d; }
+    .q-opts label.wrong    { background:var(--danger-light);  border-color:var(--danger);  color:#991b1b; }
+    .feedback { display:none; margin-top:var(--space-4); padding:var(--space-4); border-radius:var(--radius); font-size:.9rem; line-height:1.6; border-left:3px solid; }
+    .feedback.show { display:block; }
+    .feedback.ok  { background:var(--success-light); border-color:var(--success); color:#14532d; }
+    .feedback.ko  { background:var(--danger-light);  border-color:var(--danger);  color:#991b1b; }
+    .q-submit { margin-top:var(--space-4); background:#0d9488; color:#fff; border:none; padding:var(--space-3) var(--space-6); border-radius:var(--radius); cursor:pointer; font-size:.9rem; font-weight:600; font-family:var(--font-sans); transition:var(--transition); }
+    .q-submit:hover { background:#0f766e; }
+    .q-submit:disabled { opacity:.5; cursor:default; }
+    .progress-bar-wrap { background:var(--border); border-radius:var(--radius-full); height:8px; margin-bottom:var(--space-6); }
+    .progress-bar-fill { background:linear-gradient(90deg,#0d9488,#10b981); height:100%; border-radius:var(--radius-full); transition:width .4s ease; }
+    .score-box { background:linear-gradient(135deg,#0d9488,#0f766e); color:#fff; border-radius:var(--radius-xl); padding:var(--space-10); text-align:center; display:none; }
+    .score-num { font-size:4rem; font-weight:800; color:#fef9c3; }
+    .score-label { font-size:1.1rem; color:rgba(255,255,255,.8); margin:var(--space-2) 0 var(--space-6); }
+    code { background:rgba(13,148,136,.1); color:#0f766e; padding:1px 5px; border-radius:3px; font-size:.9em; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-wrap" style="margin-top:calc(var(--topbar-height) + var(--space-6))">
+  <div class="quiz-header">
+    <h1>📝 Quiz Module 8</h1>
+    <p>AgentOps & Production Observability · 15 câu hỏi · Golden Signals, OTel, SLO</p>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="prog" style="width:0%"></div>
+  </div>
+  <div id="quiz-body"></div>
+  <div class="score-box" id="score-box">
+    <div style="font-size:3rem;margin-bottom:var(--space-4)">🔭</div>
+    <div class="score-num" id="score-num">0/15</div>
+    <div class="score-label" id="score-label">Đang tính điểm...</div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:var(--space-4);">
+      <a href="index.html" class="btn btn-outline">📖 Xem lại bài giảng</a>
+      <a href="../module9/index.html" class="btn btn-primary">Module 9: Security →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const QS = [
+  {
+    q: "LoanBot v3.0 chạy 8 agents. Một hồ sơ mất 47 giây. Bạn cần xác định bottleneck. Loại observability nào cho kết quả NHANH NHẤT?",
+    opts: ["Logs — vì có timestamp từng event", "Metrics — vì có latency histogram", "Traces — vì liên kết 8 agent spans trong một waterfall theo trace_id", "Dashboard — vì thấy toàn bộ hệ thống"],
+    ans: 2,
+    fb: "✅ Đúng! Traces với trace_id cho bạn waterfall của 8 agents: Supervisor(0ms) → CreditAgent(42 giây — BOTTLENECK ở đây!) → IncomeAgent(0.3s). Logs cho bạn biết CÁI GÌ xảy ra, Metrics confirm sau, nhưng Traces cho ngay ROOT CAUSE trong vài giây."
+  },
+  {
+    q: "Tại sao Datadog, New Relic (APM truyền thống) KHÔNG ĐỦ cho multi-agent LLM systems?",
+    opts: ["Quá đắt tiền cho startups", "Không track được token usage, LLM call quality, agent-to-agent trace context, và cost per call", "Không support Python", "Chỉ chạy được trên AWS"],
+    ans: 1,
+    fb: "✅ Đúng! APM truyền thống missing 8 loại metric quan trọng: token count, cost per LLM call, agent reasoning quality, tool call trace, cross-agent trace propagation, prompt versioning, agent decision audit, hallucination rate. APM cần được bổ sung bằng LLM-specific observability layer."
+  },
+  {
+    q: "OpenTelemetry (OTel) được thiết kế để giải quyết vấn đề gì trong observability?",
+    opts: ["Giảm latency của LLM calls", "Vendor lock-in — bạn phải instrument code khác nhau cho Datadog vs Jaeger vs Honeycomb", "Tăng accuracy của ML models", "Giúp agents hiểu tiếng Việt tốt hơn"],
+    ans: 1,
+    fb: "✅ Đúng! OTel là chuẩn CNCF vendor-neutral: instrument code một lần, export đến bất kỳ backend nào (Jaeger, Grafana Tempo, Datadog, Honeycomb). 700+ công ty support bao gồm Google, Microsoft, AWS, Anthropic. Không OTel → phải rewrite code mỗi khi đổi observability tool."
+  },
+  {
+    q: "Trong OTel, một hồ sơ FC-2024-001 đi qua 8 agents. Cấu trúc dữ liệu nào ĐÚNG?",
+    opts: ["8 Traces riêng biệt, mỗi agent một Trace", "1 Trace với 8 Spans, tất cả cùng trace_id", "8 Metrics groups, mỗi agent một group", "1 Log entry cho toàn bộ pipeline"],
+    ans: 1,
+    fb: "✅ Đúng! 1 Trace = 1 trace_id xuyên suốt. Trace chứa 8 Spans (Supervisor + 7 agents). Mỗi span có parent-child relationship: CreditAgent span là con của Supervisor span. Khi nhập trace_id vào Jaeger → thấy toàn bộ 8 spans trong một waterfall view."
+  },
+  {
+    q: "Span attribute nào quan trọng NHẤT để track chi phí của LoanBot v3.0?",
+    opts: ["agent.name", "llm.tokens.input + llm.tokens.output + llm.cost.usd", "span.status", "loan.id"],
+    ans: 1,
+    fb: "✅ Đúng! Cost tracking cần: input tokens (→ billing), output tokens (→ billing), và cost.usd (pre-calculated). Kết hợp ba attribute này, bạn có cost per agent, cost per phase, và cost per hồ sơ. LoanBot target: < $0.01/hồ sơ. Hiện tại: $0.0023 (~57 VNĐ)."
+  },
+  {
+    q: "SLI, SLO, SLA — thứ tự quan hệ đúng là:",
+    opts: ["SLA (đo) → SLO (mục tiêu) → SLI (cam kết)", "SLI (đo) → SLO (mục tiêu nội bộ) → SLA (cam kết pháp lý)", "SLO (đo) → SLI (mục tiêu) → SLA (cam kết)", "Ba khái niệm độc lập, không có thứ tự"],
+    ans: 1,
+    fb: "✅ Đúng! SLI → SLO → SLA là chuỗi: SLI là chỉ số đo lường được (p99 latency = 287ms), SLO là mục tiêu nội bộ dựa trên SLI (p99 < 300ms), SLA là cam kết pháp lý với khách hàng (nếu p99 > 300ms kéo dài → penalty). SLA thường ít strict hơn SLO — buffer để không vi phạm hợp đồng."
+  },
+  {
+    q: "LoanBot có SLO 99.9%/tháng (43.8 phút error budget). Trong 10 ngày đầu, đã dùng 35 phút. Hành động đúng là:",
+    opts: ["Tiếp tục bình thường vì vẫn còn budget", "Freeze deployments mới, ưu tiên fix root cause — burn rate nguy hiểm", "Tăng SLO lên 99.5% cho dễ đạt", "Ignore vì 8.8 phút còn lại vẫn đủ"],
+    ans: 1,
+    fb: "✅ Đúng! 10 ngày = 1/3 tháng nhưng đã burn 80% budget (35/43.8 phút). Burn rate = 2.4x normal. Nếu giữ tốc độ này → hết budget trong 4-5 ngày nữa. Action: freeze deployments, bật post-mortem mode, fix root cause. Error budget là cơ chế 'tốc độ vs ổn định' — không còn budget = ngừng thêm rủi ro."
+  },
+  {
+    q: "FinTech Corp cần observability tool GDPR-compliant, data không rời datacenter nội bộ, framework-agnostic (không dùng LangChain). Tool nào PHÙ HỢP NHẤT?",
+    opts: ["LangSmith — vì native LangGraph support", "AgentOps.ai — vì agent-specific, 2-line setup", "Arize Phoenix (self-hosted) + OpenTelemetry — open-source, OTel-native, không vendor lock-in", "Datadog — vì enterprise-grade reliability"],
+    ans: 2,
+    fb: "✅ Đúng! LangSmith = cloud-only (data ra ngoài). AgentOps.ai = cloud, không GDPR-compliant cho financial data. Datadog = cloud, không self-hosted core. Arize Phoenix self-hosted + OTel = GDPR OK (chạy trong datacenter FinTech Corp), framework-agnostic (không cần LangChain), open-source, free."
+  },
+  {
+    q: "Four Golden Signals của Google SRE. Tín hiệu nào ĐẶC BIỆT QUAN TRỌNG cho agent systems và KHÔNG có trong APM truyền thống?",
+    opts: ["Latency — vì agents chậm hơn API thường", "Saturation — theo dõi token/phút và queue depth của LLM requests", "Traffic — số requests/giây", "Errors — tỷ lệ fail"],
+    ans: 1,
+    fb: "✅ Đúng! Saturation với token/phút đặc biệt quan trọng: Claude API có rate limit (tokens per minute). Nếu LoanBot peak 8-9h sáng đẩy 3 hồ sơ/phút × 8 agents × 500 tokens/call = 12,000 tokens/phút → có thể hit API rate limit! APM không track điều này. OTel + Prometheus có thể alert trước khi bị throttle."
+  },
+  {
+    q: "Tail-based sampling khác Head-based sampling ở điểm nào? Cái nào phù hợp hơn cho LoanBot?",
+    opts: ["Tail-based quyết định ngay từ đầu (10% random); Head-based quyết định sau khi trace xong. Dùng Head-based", "Head-based quyết định ngay từ đầu (10% random); Tail-based quyết định sau khi trace xong — luôn lưu error traces. Dùng Tail-based", "Cả hai giống nhau về chức năng", "Tail-based chỉ dùng cho databases, không phải agents"],
+    ans: 1,
+    fb: "✅ Đúng! Head-based = random sample 10% ngay từ đầu → 90% error traces bị mất! Tail-based = đợi trace hoàn tất rồi quyết định: nếu có error hoặc latency > SLO → LUÔN lưu; còn lại sample 1%. Với financial compliance (EU AI Act Art.12), LoanBot cần 100% error traces → Tail-based."
+  },
+  {
+    q: "LoanBot xử lý 50,000 hồ sơ/tháng với 8 spans/hồ sơ. Error rate 0.1%. Dùng Tail-based sampling (100% errors, 1% success). Tháng này lưu bao nhiêu spans?",
+    opts: ["400,000 spans (tất cả)", "~4,400 spans (1% success + 100% errors)", "4,000 spans (1% random)", "400 spans (chỉ errors)"],
+    ans: 1,
+    fb: "✅ Đúng! Error spans: 400,000 × 0.1% = 400. Success spans: 399,600 × 1% = 3,996. Tổng: ~4,396 spans. Giảm từ 400,000 xuống còn 4,400 spans (98.9% giảm) mà vẫn giữ 100% error traces. Storage tiết kiệm ~87GB/tháng mà không mất incident data."
+  },
+  {
+    q: "Trong dashboard LoanBot v3.0, bạn thấy RiskAgent P99 = 476ms trong khi SLO là 500ms. Hành động phù hợp nhất là:",
+    opts: ["Page on-call engineer ngay", "Theo dõi thêm 15 phút — đang gần SLO nhưng chưa vi phạm; xem có trend tăng không", "Tăng SLO của RiskAgent lên 600ms", "Restart RiskAgent ngay"],
+    ans: 1,
+    fb: "✅ Đúng! 476ms < 500ms SLO — chưa vi phạm. Nhưng đang 'warning territory' (95% của SLO). Action: theo dõi trend 15 phút. Nếu tăng liên tục → check: (1) Claude API latency, (2) input payload size có tăng không, (3) concurrent requests có spike không. Alert threshold nên set ở 450ms (90% SLO) để có warning trước khi vi phạm."
+  },
+  {
+    q: "MTTD và MTTR là gì? Observability tốt ảnh hưởng trực tiếp đến chỉ số nào hơn?",
+    opts: ["MTTD = Mean Time To Deploy, MTTR = Mean Time To Release. Cả hai quan trọng như nhau", "MTTD = Mean Time To Detect, MTTR = Mean Time To Resolve. Observability tốt giảm MTTD nhiều hơn", "MTTD = Mean Time To Debug, MTTR = Mean Time To Restart. MTTR quan trọng hơn", "Hai khái niệm về business metrics, không liên quan đến observability"],
+    ans: 1,
+    fb: "✅ Đúng! MTTD (Time To Detect) bị ảnh hưởng trực tiếp nhất bởi observability: LoanBot có full OTel stack → MTTD giảm từ 47 phút xuống 2.3 phút (alert tự động khi SLO breach). MTTR (Time To Resolve) cũng giảm nhờ traces chỉ đúng root cause → team fix nhanh hơn. Tổng savings: ~$2.5M VNĐ/incident."
+  },
+  {
+    q: "Langfuse được FinTech Corp ưu tiên so với LangSmith vì lý do nào?",
+    opts: ["Langfuse miễn phí còn LangSmith tính phí", "Langfuse có EU cloud option (GDPR-compliant) và open-source — có thể self-host trong datacenter FinTech Corp", "Langfuse support nhiều ngôn ngữ lập trình hơn", "Langfuse tích hợp tốt hơn với LangGraph"],
+    ans: 1,
+    fb: "✅ Đúng! LangSmith là cloud-only, dữ liệu prompt/completion ra khỏi datacenter → vi phạm GDPR và EU AI Act Art.12 (audit trail phải trong kiểm soát của tổ chức). Langfuse EU cloud (Frankfurt) = GDPR OK; hoặc self-host hoàn toàn = data không rời premises. Đây là quyết định compliance, không phải technical preference."
+  },
+  {
+    q: "Prometheus Alert Rule: 'Error Budget Burn Rate > 14x trong 2 phút'. Con số 14x có ý nghĩa gì?",
+    opts: ["CPU spike 14 lần bình thường", "Nếu tiếp tục với tốc độ này, sẽ hết TOÀN BỘ error budget tháng trong 1 giờ", "14% error rate — vượt SLO", "14 agents đang báo lỗi cùng lúc"],
+    ans: 1,
+    fb: "✅ Đúng! Burn rate 14x normal: Error budget 43.8 phút/tháng ÷ 14 ≈ 3.1 phút/14 = tiêu hết trong ~1 giờ nếu không stop. Đây là 'fast burn' alert — cần action ngay. Burn rate 1x = normal (budget sẽ hết chính xác cuối tháng). Pattern này từ Google's 'Implementing Service Level Objectives' — đây là golden standard cho SLO-based alerting."
+  }
+];
+
+let answered = 0, score = 0;
+const total = QS.length;
+
+function render() {
+  const body = document.getElementById('quiz-body');
+  body.innerHTML = QS.map((q, i) => `
+    <div class="q-card" id="card-${i}">
+      <div class="q-num">Câu ${i+1} / ${total}</div>
+      <div class="q-text">${q.q}</div>
+      <ul class="q-opts">
+        ${q.opts.map((o, j) => `
+          <li><label id="lbl-${i}-${j}">
+            <input type="radio" name="q${i}" value="${j}" id="r-${i}-${j}"> ${o}
+          </label></li>`).join('')}
+      </ul>
+      <button class="q-submit" onclick="submit(${i})" id="btn-${i}">Xác nhận</button>
+      <div class="feedback" id="fb-${i}"></div>
+    </div>`).join('');
+}
+
+function submit(i) {
+  const sel = document.querySelector(`input[name="q${i}"]:checked`);
+  if (!sel) { alert('Vui lòng chọn một đáp án.'); return; }
+  const chosen = +sel.value;
+  const q = QS[i];
+  const fb = document.getElementById(`fb-${i}`);
+  const btn = document.getElementById(`btn-${i}`);
+  btn.disabled = true;
+  document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.disabled = true);
+  q.opts.forEach((_, j) => {
+    const lbl = document.getElementById(`lbl-${i}-${j}`);
+    if (j === q.ans) lbl.classList.add('correct');
+    else if (j === chosen && chosen !== q.ans) lbl.classList.add('wrong');
+  });
+  const ok = chosen === q.ans;
+  if (ok) score++;
+  fb.className = `feedback show ${ok ? 'ok' : 'ko'}`;
+  fb.innerHTML = ok
+    ? `<strong>✅ Chính xác!</strong><br>${q.fb}`
+    : `<strong>❌ Chưa đúng.</strong> Đáp án: <strong>${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</strong><br><br>${q.fb}`;
+  answered++;
+  document.getElementById('prog').style.width = Math.round((answered/total)*100)+'%';
+  if (answered === total) showScore();
+}
+
+function showScore() {
+  setTimeout(() => {
+    const box = document.getElementById('score-box');
+    box.style.display = 'block';
+    document.getElementById('score-num').textContent = `${score}/${total}`;
+    const pct = Math.round((score/total)*100);
+    let msg = pct >= 90 ? '🏆 Xuất sắc! Bạn nắm vững AgentOps & Observability!'
+            : pct >= 70 ? '✅ Tốt! Ôn lại phần SLO và OTel trace structure.'
+            : '📖 Cần ôn tập. Xem lại bài giảng, đặc biệt phần Golden Signals và Error Budget.';
+    document.getElementById('score-label').textContent = `${pct}% — ${msg}`;
+    box.scrollIntoView({behavior:'smooth'});
+  }, 300);
+}
+
+render();
+</script>
+</body>
+</html>

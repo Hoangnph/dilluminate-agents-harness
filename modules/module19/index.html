@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 19 — AI Compliance & Regulatory Governance</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m19-primary: #4a1d96;
+      --m19-accent:  #a855f7;
+      --m19-light:   #faf5ff;
+      --m19-border:  #d8b4fe;
+    }
+    .lesson-header { background: linear-gradient(135deg, #2e1065 0%, #4a1d96 50%, #a855f7 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #f3e8ff; }
+    .lesson-header p { color: #d8b4fe; }
+    .sidebar-nav a.active { background: var(--m19-light); border-left: 3px solid var(--m19-accent); color: var(--m19-primary); }
+    .sidebar-nav a:hover { color: var(--m19-primary); }
+
+    .law-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin: var(--space-4) 0; }
+    .law-card { padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid var(--m19-border); background: var(--m19-light); }
+    .law-card h4 { color: var(--m19-primary); font-size: .875rem; font-weight: 700; margin-bottom: var(--space-2); }
+    .law-card ul { margin: 0; padding-left: var(--space-4); font-size: .85rem; }
+
+    .risk-level {
+      display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700;
+    }
+    .risk-unacceptable { background: #fee2e2; color: #991b1b; }
+    .risk-high         { background: #fef3c7; color: #92400e; }
+    .risk-limited      { background: #e0f2fe; color: #075985; }
+    .risk-minimal      { background: #f0fdf4; color: #166534; }
+
+    .article-ref { font-size: .78rem; color: var(--m19-accent); font-weight: 600; font-family: var(--font-mono); }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m19-light);color:var(--m19-primary);border-color:var(--m19-border);">MODULE 19</div>
+    <div class="sidebar-title">AI Compliance & Governance</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. EU AI Act & Risk Classification</a>
+      <a href="#lesson2">L2. Vietnamese Banking Law</a>
+      <a href="#lesson3">L3. Explainability & Right to Explanation</a>
+      <a href="#lesson4">L4. Audit Trail & Data Governance</a>
+      <a href="#lesson5">L5. AI Governance Framework</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m19-accent);">📝 Quiz Module 19</a>
+      <a href="lab.ipynb" download style="color:var(--m19-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module18/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 18: LLM Gateway</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 19 · Tuần 52–54</span>
+      <h1>⚖️ AI Compliance & Regulatory Governance</h1>
+      <p>EU AI Act phân loại LoanBot là <strong>High-Risk AI System</strong>. Điều này có nghĩa là gì? Những nghĩa vụ pháp lý nào FinTech Corp phải tuân thủ? Module này xây dựng compliance framework toàn diện cho LoanBot v3.5.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>⚖️ Legal & Technical</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: EU AI Act — Phân Loại Rủi Ro và Nghĩa Vụ High-Risk AI</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân loại LoanBot theo EU AI Act 4-tier risk framework</li>
+          <li>Biết 7 nghĩa vụ bắt buộc cho High-Risk AI Systems (Annex III)</li>
+          <li>Hiểu Article 22 — quyền con người không bị quyết định hoàn toàn tự động</li>
+          <li>Design conformity assessment checklist cho LoanBot v3.5</li>
+        </ul>
+      </div>
+
+      <p>EU AI Act (chính thức có hiệu lực 2024, áp dụng đầy đủ từ 2026) là luật AI toàn diện đầu tiên thế giới. FinTech Corp hoạt động tại EU (hoặc xử lý dữ liệu khách hàng EU) → tuân thủ là bắt buộc, không phải tùy chọn. Vi phạm: phạt tối đa €30 triệu hoặc 6% global revenue.</p>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg">
+          <title>EU AI Act Risk Tiers — 4 cấp độ rủi ro và phân loại LoanBot</title>
+          <defs>
+            <marker id="arrRisk" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#a855f7"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#2e1065" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f3e8ff">EU AI Act — 4-Tier Risk Classification</text>
+
+          <!-- Tier 1: Unacceptable -->
+          <rect x="20" y="35" width="720" height="38" fill="#7f1d1d" rx="8" stroke="#fca5a5" stroke-width="1"/>
+          <text x="30" y="52" font-size="10" font-weight="700" fill="#fca5a5">❌ UNACCEPTABLE RISK — BAN HOÀN TOÀN (Article 5)</text>
+          <text x="30" y="65" font-size="9" fill="#fca5a5">Social scoring by government · Subliminal manipulation · Real-time biometric surveillance in public · Emotion recognition (work/education)</text>
+          <text x="695" y="60" text-anchor="middle" font-size="8" fill="#fca5a5">CẤMHOÀN TOÀN</text>
+
+          <!-- Tier 2: High Risk -->
+          <rect x="20" y="80" width="720" height="45" fill="#78350f" rx="8" stroke="#fcd34d" stroke-width="2"/>
+          <text x="30" y="97" font-size="10" font-weight="700" fill="#fde68a">⚠️ HIGH RISK — NGHĨA VỤ TUÂN THỦ NẶNG (Annex III)</text>
+          <text x="30" y="110" font-size="9" fill="#fde68a">Credit scoring · Loan decisions · Employment AI · Education AI · Critical infrastructure · Law enforcement · Migration control · Justice administration</text>
+          <text x="640" y="100" font-size="9" fill="#fcd34d">📍 LoanBot</text>
+          <text x="640" y="112" font-size="9" fill="#fcd34d">thuộc tier</text>
+          <text x="640" y="124" font-size="9" font-weight="700" fill="#fbbf24">này!</text>
+
+          <!-- Tier 3: Limited Risk -->
+          <rect x="20" y="132" width="720" height="35" fill="#1e3a5f" rx="8" stroke="#93c5fd"/>
+          <text x="30" y="148" font-size="10" font-weight="700" fill="#bfdbfe">📋 LIMITED RISK — Transparency obligations (Article 52)</text>
+          <text x="30" y="161" font-size="9" fill="#93c5fd">Chatbots · Deepfake generators · Emotion recognition (limited) — phải thông báo người dùng đang tương tác với AI</text>
+
+          <!-- Tier 4: Minimal Risk -->
+          <rect x="20" y="174" width="720" height="28" fill="#1e3a8a" rx="8" stroke="#6366f1"/>
+          <text x="30" y="186" font-size="10" font-weight="700" fill="#c7d2fe">✅ MINIMAL RISK — Tự do sử dụng (Article 69)</text>
+          <text x="30" y="198" font-size="9" fill="#a5b4fc">Spam filters · AI games · General productivity tools — không có nghĩa vụ pháp lý đặc biệt</text>
+        </svg>
+        <div class="diagram-title">Hình 1: EU AI Act 4-tier risk classification. LoanBot (automated credit decisions) thuộc Annex III High-Risk — chịu 7 nghĩa vụ bắt buộc nghiêm ngặt nhất.</div>
+      </div>
+
+      <h3>7 Nghĩa Vụ Bắt Buộc cho High-Risk AI (Articles 9–15)</h3>
+
+      <div class="law-grid">
+        <div class="law-card">
+          <h4>📋 Art.9 — Risk Management System</h4>
+          <ul>
+            <li>Xác định và phân tích rủi ro trong vòng đời AI</li>
+            <li>Kiểm tra độ chính xác, robustness, cybersecurity</li>
+            <li>Cập nhật risk assessment định kỳ</li>
+          </ul>
+        </div>
+        <div class="law-card">
+          <h4>📊 Art.10 — Data Governance</h4>
+          <ul>
+            <li>Training data phải representative, không discriminatory</li>
+            <li>Data provenance tracking</li>
+            <li>Bias testing trên protected groups</li>
+          </ul>
+        </div>
+        <div class="law-card">
+          <h4>📄 Art.11–12 — Technical Documentation & Logging</h4>
+          <ul>
+            <li>System card: mô tả đầy đủ cách AI hoạt động</li>
+            <li>Audit log 5 năm: mọi quyết định phải có trace</li>
+            <li>Version control cho models và prompts</li>
+          </ul>
+        </div>
+        <div class="law-card">
+          <h4>👁️ Art.13–14 — Transparency & Human Oversight</h4>
+          <ul>
+            <li>Giải thích được quyết định (explainability)</li>
+            <li>Human-in-the-loop cho quyết định quan trọng</li>
+            <li>Override mechanism phải luôn available</li>
+          </ul>
+        </div>
+        <div class="law-card">
+          <h4>🎯 Art.15 — Accuracy, Robustness, Cybersecurity</h4>
+          <ul>
+            <li>Performance metrics phải được documented</li>
+            <li>Adversarial testing (red teaming)</li>
+            <li>Fallback mechanisms khi AI fails</li>
+          </ul>
+        </div>
+        <div class="law-card">
+          <h4>🔍 Annex IV — Conformity Assessment</h4>
+          <ul>
+            <li>Internal assessment hoặc third-party audit</li>
+            <li>CE marking sau khi pass</li>
+            <li>Đăng ký vào EU AI database</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Article 22 — Quyền Không Bị Quyết Định Hoàn Toàn Tự Động</div>
+        <p>EU AI Act kế thừa GDPR Article 22: con người có quyền <strong>không bị subject to decisions based solely on automated processing</strong> khi decisions ảnh hưởng "significantly" đến họ. Loan decisions rõ ràng thuộc diện này. Nghĩa vụ: (1) thông báo cho applicant khi quyết định do AI; (2) cung cấp giải thích có ý nghĩa; (3) quyền yêu cầu human review. LoanBot PHẢI có nút "Yêu cầu xem xét lại bởi con người" trong mọi rejection thư.</p>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot auto-approve FC-2024-001 (score 720) — có cần thông báo là quyết định do AI không? Và quyền Article 22 có áp dụng không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> (1) Thông báo AI: Có — Article 52 yêu cầu transparency, phải thông báo khi AI involvement. (2) Article 22: Áp dụng cho cả approval lẫn rejection khi "significant effect" — loan approval là significant. Nhưng GDPR Article 22(2)(a) cho phép automated decision nếu: cần thiết cho hợp đồng (loan application là hợp đồng), có biện pháp bảo vệ phù hợp (human review right). Vì vậy: LoanBot LEGAL nếu: thông báo AI, cung cấp explanation, đảm bảo human review option.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Vietnamese Banking Law — TT39/2021 & NHNN Requirements</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu Thông tư 39/2016/TT-NHNN về cho vay của TCTD — quy định về quy trình thẩm định</li>
+          <li>Biết Luật Bảo vệ Quyền lợi Người tiêu dùng 2023 — quyền giải thích</li>
+          <li>Mapping EU AI Act sang Vietnamese regulatory context</li>
+          <li>Design audit trail đáp ứng cả hai hệ thống pháp lý</li>
+        </ul>
+      </div>
+
+      <p>FinTech Corp hoạt động tại Việt Nam chịu sự quản lý của NHNN (Ngân hàng Nhà nước Việt Nam). Dù Việt Nam chưa có AI-specific law, nhưng các quy định hiện hành về cho vay, bảo vệ người tiêu dùng, và an toàn thông tin tạo ra framework tương đương với nhiều điều khoản EU AI Act.</p>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FC-2024-003 Khiếu Nại</div>
+        <p>FC-2024-003 (blacklisted, score 400) bị LoanBot từ chối. Khách hàng yêu cầu giải thích lý do từ chối. Theo:</p>
+        <ul style="margin-top:8px;">
+          <li><strong>TT39/2016 Điều 18:</strong> TCTD phải thông báo lý do từ chối cho vay theo quy định nội bộ</li>
+          <li><strong>Luật BVQLNTD 2023 Điều 10:</strong> NTD có quyền được cung cấp thông tin chính xác về quyết định ảnh hưởng đến họ</li>
+          <li><strong>Nghị định 13/2023/NĐ-CP:</strong> Dữ liệu cá nhân phải được xử lý với mục đích rõ ràng và minh bạch</li>
+        </ul>
+        <p>LoanBot v3.5 PHẢI tự động generate rejection letter với: lý do cụ thể, điều khoản pháp lý áp dụng, và hướng dẫn khiếu nại.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Compliant Rejection Letter Generator)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">RejectionLetter</span>:
+    application_id:  <span class="code-type">str</span>
+    applicant_name:  <span class="code-type">str</span>
+    loan_amount:     <span class="code-type">int</span>       <span class="code-comment"># VNĐ</span>
+    rejection_code:  <span class="code-type">str</span>       <span class="code-comment"># BLACKLIST / LOW_SCORE / INCOME_INSUFFICIENT</span>
+    rejection_reasons: List[<span class="code-type">str</span>]
+    decision_by:     <span class="code-type">str</span>       <span class="code-comment"># "LoanBot v3.5 (AI) + Human Review" hoặc "LoanBot v3.5 (AI)"</span>
+    regulation_refs: List[<span class="code-type">str</span>]   <span class="code-comment"># legal basis</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">to_text</span>(self) -> <span class="code-type">str</span>:
+        <span class="code-keyword">return</span> <span class="code-string">f"""THÔNG BÁO KẾT QUẢ XÉT DUYỆT HỒ SƠ VAY VỐN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Số hồ sơ: {self.application_id}
+Ngày: {datetime.now().strftime('%d/%m/%Y')}
+Khách hàng: {self.applicant_name}
+Số tiền đề nghị vay: {self.loan_amount:,.0f} VNĐ
+
+KẾT QUẢ: KHÔNG ĐƯỢC CHẤP THUẬN
+
+LÝ DO TỪ CHỐI:
+"""</span> + <span class="code-string">"\n"</span>.<span class="code-function">join</span>([<span class="code-string">f"• {r}"</span> <span class="code-keyword">for</span> r <span class="code-keyword">in</span> self.rejection_reasons]) + <span class="code-string">f"""
+
+QUYẾT ĐỊNH DO: {self.decision_by}
+
+[Theo quy định: {', '.join(self.regulation_refs)}]
+
+QUYỀN CỦA KHÁCH HÀNG:
+• Quyền yêu cầu giải thích thêm: gọi 1800-xxxx (miễn phí)
+• Quyền khiếu nại: Phòng CSKH trong 30 ngày từ ngày này
+• Quyền yêu cầu xem xét lại bởi cán bộ tín dụng con người:
+  Điền Mẫu YC-001 tại chi nhánh gần nhất hoặc email support@fintechcorp.vn
+
+FinTech Corp · NHNN License No. 001/GP-NHNN · Hotline: 1800-xxxx
+"""</span>
+
+<span class="code-comment"># Tạo rejection letter cho FC-2024-003</span>
+letter = <span class="code-function">RejectionLetter</span>(
+    application_id  = <span class="code-string">"FC-2024-003"</span>,
+    applicant_name  = <span class="code-string">"Nguyễn Văn C"</span>,
+    loan_amount     = <span class="code-number">200_000_000</span>,
+    rejection_code  = <span class="code-string">"BLACKLIST"</span>,
+    rejection_reasons = [
+        <span class="code-string">"Khách hàng hiện đang trong danh sách hạn chế tín dụng của CIC"</span>,
+        <span class="code-string">"Điểm tín dụng (400/850) dưới ngưỡng tối thiểu (550) của FinTech Corp"</span>,
+    ],
+    decision_by     = <span class="code-string">"LoanBot v3.5 (AI) — Tự động theo quy trình đã được phê duyệt"</span>,
+    regulation_refs = [<span class="code-string">"TT39/2016 Điều 18"</span>, <span class="code-string">"Luật BVQLNTD 2023 Điều 10"</span>, <span class="code-string">"EU AI Act Art.13"</span>],
+)
+<span class="code-function">print</span>(letter.<span class="code-function">to_text</span>())</code></pre>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Dual Compliance Strategy</div>
+        <p>FinTech Corp không cần viết code riêng cho EU và riêng cho VN. Thiết kế một compliance layer đáp ứng standard cao hơn (EU AI Act) → tự động đáp ứng standard thấp hơn (hiện tại của VN). Khi VN AI Law được ban hành (dự kiến 2025–2026), FinTech Corp đã sẵn sàng với minimal additional effort.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Explainability — Giải Thích Quyết Định AI cho Con Người</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt Global vs Local explainability — khi nào dùng cái nào</li>
+          <li>Implement counterfactual explanation: "Bạn cần làm gì để được chấp thuận?"</li>
+          <li>Hiểu SHAP values trong context LLM-based decisions</li>
+          <li>Design explanation cho 3 audiences: applicant, loan officer, regulator</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: 3 Loại Explainability</div>
+        <ul>
+          <li><strong>Global Explainability:</strong> Model hoạt động thế nào tổng thể — "credit_score chiếm 40% weight". Dùng cho regulator và audit.</li>
+          <li><strong>Local Explainability:</strong> Tại sao quyết định CỤ THỂ này như vậy — "FC-2024-002 bị từ chối vì DTI=58% vượt 45%". Dùng cho loan officer và applicant.</li>
+          <li><strong>Counterfactual:</strong> "Nếu X khác thì kết quả sẽ khác" — "Nếu điểm tín dụng tăng 80 điểm → APPROVE". Dùng cho applicant để có actionable advice.</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Counterfactual Explanation Generator)</span>
+        <pre><code><span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">LoanDecision</span>:
+    application_id: <span class="code-type">str</span>
+    credit_score:   <span class="code-type">int</span>
+    dti_ratio:      <span class="code-type">float</span>   <span class="code-comment"># Debt-to-Income ratio</span>
+    employment_months: <span class="code-type">int</span>
+    loan_amount:    <span class="code-type">int</span>
+    income_monthly: <span class="code-type">int</span>
+    decision:       <span class="code-type">str</span>   <span class="code-comment"># APPROVE / REJECT / REVIEW</span>
+
+THRESHOLDS = {
+    <span class="code-string">"credit_score_min"</span>:   <span class="code-number">550</span>,
+    <span class="code-string">"credit_score_good"</span>:  <span class="code-number">650</span>,
+    <span class="code-string">"dti_max"</span>:            <span class="code-number">0.45</span>,    <span class="code-comment"># 45% max Debt-to-Income</span>
+    <span class="code-string">"employment_min_months"</span>: <span class="code-number">6</span>,
+}
+
+<span class="code-keyword">def</span> <span class="code-function">generate_explanation</span>(d: LoanDecision) -> dict:
+    <span class="code-comment">"""Tạo explanation 3 lớp: factors, counterfactuals, action_plan."""</span>
+    factors     = []
+    positives   = []
+    counterfactuals = []
+
+    <span class="code-comment"># Phân tích từng factor</span>
+    <span class="code-keyword">if</span> d.credit_score < THRESHOLDS[<span class="code-string">"credit_score_min"</span>]:
+        gap = THRESHOLDS[<span class="code-string">"credit_score_min"</span>] - d.credit_score
+        factors.<span class="code-function">append</span>(<span class="code-string">f"Điểm tín dụng {d.credit_score} dưới mức tối thiểu {THRESHOLDS['credit_score_min']}"</span>)
+        counterfactuals.<span class="code-function">append</span>(<span class="code-string">f"Tăng điểm tín dụng thêm {gap} điểm (cần ~6–12 tháng trả đều đặn)"</span>)
+    <span class="code-keyword">elif</span> d.credit_score < THRESHOLDS[<span class="code-string">"credit_score_good"</span>]:
+        factors.<span class="code-function">append</span>(<span class="code-string">f"Điểm tín dụng {d.credit_score} ở mức chấp nhận được nhưng chưa tốt"</span>)
+    <span class="code-keyword">else</span>:
+        positives.<span class="code-function">append</span>(<span class="code-string">f"Điểm tín dụng tốt: {d.credit_score}"</span>)
+
+    <span class="code-keyword">if</span> d.dti_ratio > THRESHOLDS[<span class="code-string">"dti_max"</span>]:
+        excess = (d.dti_ratio - THRESHOLDS[<span class="code-string">"dti_max"</span>]) * d.income_monthly
+        factors.<span class="code-function">append</span>(<span class="code-string">f"Tỷ lệ nợ/thu nhập {d.dti_ratio:.1%} vượt ngưỡng {THRESHOLDS['dti_max']:.0%}"</span>)
+        counterfactuals.<span class="code-function">append</span>(
+            <span class="code-string">f"Giảm nợ hiện tại {excess:,.0f} VNĐ/tháng hoặc tăng thu nhập tương ứng"</span>
+        )
+    <span class="code-keyword">else</span>:
+        positives.<span class="code-function">append</span>(<span class="code-string">f"Tỷ lệ nợ/thu nhập hợp lý: {d.dti_ratio:.1%}"</span>)
+
+    <span class="code-keyword">if</span> d.employment_months < THRESHOLDS[<span class="code-string">"employment_min_months"</span>]:
+        needed = THRESHOLDS[<span class="code-string">"employment_min_months"</span>] - d.employment_months
+        factors.<span class="code-function">append</span>(<span class="code-string">f"Thời gian làm việc {d.employment_months} tháng dưới mức yêu cầu"</span>)
+        counterfactuals.<span class="code-function">append</span>(<span class="code-string">f"Chờ thêm {needed} tháng và nộp lại hồ sơ"</span>)
+    <span class="code-keyword">else</span>:
+        positives.<span class="code-function">append</span>(<span class="code-string">f"Lịch sử việc làm ổn định: {d.employment_months} tháng"</span>)
+
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"decision"</span>:        d.decision,
+        <span class="code-string">"rejection_factors"</span>: factors,
+        <span class="code-string">"positive_factors"</span>: positives,
+        <span class="code-string">"counterfactuals"</span>:  counterfactuals,
+        <span class="code-string">"can_reapply"</span>:      <span class="code-function">len</span>(counterfactuals) > <span class="code-number">0</span>,
+    }</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FC-2024-002 (score 580, DTI 58%) bị reject. Counterfactual explanation nên được cá nhân hóa hay generic cho tất cả reject cases? Tại sao?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Phải cá nhân hóa. Generic "cải thiện tín dụng" vô nghĩa với FC-2024-002 vì vấn đề chính là DTI (58% vs 45% threshold). Actionable counterfactual: "Giảm khoản nợ hiện tại 3.9M VNĐ/tháng (hiện 15.6M → 11.7M) hoặc tăng thu nhập lên 34.7M/tháng". Cụ thể hơn: "Tất toán khoản vay xe (ước tính 5M/tháng) trước khi nộp lại hồ sơ". Counterfactual phải trả lời "tôi cần làm GÌ CỤ THỂ" không phải "tôi cần cải thiện gì chung chung".
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Audit Trail Design & Data Governance</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Design immutable audit log theo EU AI Act Art.12 và GDPR</li>
+          <li>Biết data retention requirements: 5 năm cho credit decisions</li>
+          <li>Implement right to erasure vs audit log preservation — conflict resolution</li>
+          <li>Build compliance-ready audit trail cho mọi LoanBot decision</li>
+        </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot Audit Trail Architecture — mọi quyết định được log với full traceability</title>
+          <defs>
+            <marker id="arrAT" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#a855f7"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#2e1065" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f3e8ff">LoanBot Audit Trail — Immutable Log Architecture</text>
+
+          <!-- Input -->
+          <rect x="15" y="38" width="100" height="50" fill="#1e3a5f" rx="8" stroke="#93c5fd"/>
+          <text x="65" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#bfdbfe">Application</text>
+          <text x="65" y="72" text-anchor="middle" font-size="8" fill="#93c5fd">Customer data</text>
+          <text x="65" y="82" text-anchor="middle" font-size="8" fill="#93c5fd">+ Documents</text>
+
+          <line x1="115" y1="63" x2="135" y2="63" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrAT)"/>
+
+          <!-- LoanBot -->
+          <rect x="137" y="38" width="100" height="50" fill="#4a1d96" rx="8" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="187" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#f3e8ff">LoanBot v3.5</text>
+          <text x="187" y="70" text-anchor="middle" font-size="8" fill="#d8b4fe">Decision engine</text>
+          <text x="187" y="80" text-anchor="middle" font-size="8" fill="#d8b4fe">+ Explanation</text>
+
+          <line x1="237" y1="63" x2="257" y2="63" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrAT)"/>
+
+          <!-- Audit Logger -->
+          <rect x="259" y="30" width="120" height="66" fill="#500724" rx="8" stroke="#f9a8d4" stroke-width="1.5"/>
+          <text x="319" y="50" text-anchor="middle" font-size="9" font-weight="700" fill="#fce7f3">🔒 Audit Logger</text>
+          <text x="319" y="63" text-anchor="middle" font-size="8" fill="#f9a8d4">Cryptographic hash</text>
+          <text x="319" y="74" text-anchor="middle" font-size="8" fill="#f9a8d4">Timestamp (UTC)</text>
+          <text x="319" y="85" text-anchor="middle" font-size="8" fill="#f9a8d4">Append-only log</text>
+
+          <line x1="379" y1="63" x2="399" y2="63" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrAT)"/>
+
+          <!-- Storage -->
+          <rect x="401" y="38" width="100" height="50" fill="#065f46" rx="8" stroke="#6ee7b7"/>
+          <text x="451" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">Encrypted Store</text>
+          <text x="451" y="70" text-anchor="middle" font-size="8" fill="#6ee7b7">AES-256</text>
+          <text x="451" y="80" text-anchor="middle" font-size="8" fill="#6ee7b7">5-year retention</text>
+
+          <!-- Access paths -->
+          <line x1="451" y1="88" x2="451" y2="108" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrAT)"/>
+          <line x1="451" y1="108" x2="251" y2="108" stroke="#a855f7" stroke-width="1"/>
+          <line x1="251" y1="108" x2="251" y2="130" stroke="#a855f7" stroke-width="1" marker-end="url(#arrAT)"/>
+          <line x1="451" y1="108" x2="601" y2="108" stroke="#a855f7" stroke-width="1"/>
+          <line x1="601" y1="108" x2="601" y2="130" stroke="#a855f7" stroke-width="1" marker-end="url(#arrAT)"/>
+          <line x1="451" y1="108" x2="721" y2="108" stroke="#a855f7" stroke-width="1"/>
+          <line x1="721" y1="108" x2="721" y2="130" stroke="#a855f7" stroke-width="1" marker-end="url(#arrAT)"/>
+
+          <!-- Access boxes -->
+          <rect x="180" y="132" width="140" height="40" fill="#1e3a5f" rx="6"/>
+          <text x="250" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#bfdbfe">Applicant Portal</text>
+          <text x="250" y="162" text-anchor="middle" font-size="8" fill="#93c5fd">Kết quả + Explanation</text>
+
+          <rect x="530" y="132" width="140" height="40" fill="#1e293b" rx="6"/>
+          <text x="600" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">NHNN / Regulator</text>
+          <text x="600" y="162" text-anchor="middle" font-size="8" fill="#94a3b8">Full audit trail on request</text>
+
+          <rect x="670" y="132" width="80" height="40" fill="#312e81" rx="6"/>
+          <text x="710" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#c7d2fe">Internal</text>
+          <text x="710" y="162" text-anchor="middle" font-size="8" fill="#a5b4fc">Compliance team</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Immutable Audit Trail Architecture. Mọi decision được hash, timestamp, và lưu append-only. 3 access paths: applicant portal (giải thích), NHNN (full audit), internal compliance.</div>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Conflict: Right to Erasure (GDPR Art.17) vs Audit Log (AI Act Art.12)</div>
+        <p>Khách hàng yêu cầu xóa dữ liệu theo GDPR. Nhưng AI Act yêu cầu giữ audit log 5 năm. Giải pháp: <strong>pseudonymization</strong> — xóa thông tin nhận dạng (tên, CCCD, địa chỉ) nhưng giữ lại decision record dưới dạng anonymous. Record với customer_id hashed vẫn đáp ứng AI Act audit yêu cầu mà không vi phạm GDPR erasure right. Implement: 2-phase deletion — immediate PII erasure + delayed decision anonymization.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: AI Governance Framework — Tổng Hợp cho FinTech Corp</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế AI Governance Framework cho toàn tổ chức FinTech Corp</li>
+          <li>Biết 3 vai trò governance: CAIO, AI Ethics Board, AI Risk Committee</li>
+          <li>Implement Model Card cho LoanBot theo EU AI Act Annex IV</li>
+          <li>Design AI incident response playbook</li>
+        </ul>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Công thức cốt lõi</div>
+        <div class="formula-text">Trustworthy AI = Lawful + Ethical + Robust</div>
+        <div class="formula-desc">EU Ethics Guidelines: (1) Lawful — tuân thủ EU AI Act, GDPR, TT39; (2) Ethical — human agency, fairness, non-discrimination; (3) Robust — technically sound, socially resilient, monitored.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">YAML (LoanBot Model Card — EU AI Act Annex IV)</span>
+        <pre><code><span class="code-comment"># LoanBot v3.5 Model Card — Required under EU AI Act Art.11</span>
+<span class="code-keyword">system_name</span>: <span class="code-string">"LoanBot v3.5"</span>
+<span class="code-keyword">provider</span>: <span class="code-string">"FinTech Corp Vietnam"</span>
+<span class="code-keyword">version</span>: <span class="code-string">"3.5.0"</span>
+<span class="code-keyword">release_date</span>: <span class="code-string">"2026-Q1"</span>
+<span class="code-keyword">risk_classification</span>: <span class="code-string">"HIGH-RISK (EU AI Act Annex III §5b)"</span>
+
+<span class="code-keyword">intended_use</span>:
+  <span class="code-keyword">purpose</span>: <span class="code-string">"Automated credit risk assessment for consumer loans"</span>
+  <span class="code-keyword">users</span>: [<span class="code-string">"FinTech Corp loan officers"</span>, <span class="code-string">"Automated pipeline"</span>]
+  <span class="code-keyword">not_for</span>: [<span class="code-string">"Corporate loans > 20B VNĐ"</span>, <span class="code-string">"Real estate financing"</span>]
+
+<span class="code-keyword">ai_model</span>:
+  <span class="code-keyword">provider</span>: <span class="code-string">"Anthropic"</span>
+  <span class="code-keyword">model_id</span>: <span class="code-string">"claude-haiku-4-5 / claude-sonnet-4-6 (routing-dependent)"</span>
+
+<span class="code-keyword">performance_metrics</span>:
+  <span class="code-keyword">auto_decision_rate</span>: <span class="code-string">"78%"</span>
+  <span class="code-keyword">approval_accuracy</span>:  <span class="code-string">"97.2%"</span>      <span class="code-comment"># vs historical human decisions</span>
+  <span class="code-keyword">false_positive_rate</span>: <span class="code-string">"2.8%"</span>    <span class="code-comment"># approved loans that default</span>
+  <span class="code-keyword">false_negative_rate</span>: <span class="code-string">"1.1%"</span>    <span class="code-comment"># rejected loans that would have repaid</span>
+  <span class="code-keyword">p99_latency</span>: <span class="code-string">"4.2s"</span>
+  <span class="code-keyword">last_evaluated</span>: <span class="code-string">"2026-01"</span>
+
+<span class="code-keyword">bias_assessment</span>:
+  <span class="code-keyword">protected_groups_tested</span>: [<span class="code-string">"gender"</span>, <span class="code-string">"age"</span>, <span class="code-string">"ethnicity"</span>, <span class="code-string">"region"</span>]
+  <span class="code-keyword">max_disparity_ratio</span>: <span class="code-string">"1.08 (target < 1.20)"</span>
+  <span class="code-keyword">last_bias_audit</span>: <span class="code-string">"2026-01"</span>
+
+<span class="code-keyword">human_oversight</span>:
+  <span class="code-keyword">hitl_trigger</span>: <span class="code-string">"22% of applications"</span>
+  <span class="code-keyword">override_available</span>: <span class="code-string">"Always"</span>
+  <span class="code-keyword">appeal_process</span>: <span class="code-string">"Form YC-001, 5 business days"</span>
+
+<span class="code-keyword">data_governance</span>:
+  <span class="code-keyword">training_data_period</span>: <span class="code-string">"2018-2025"</span>
+  <span class="code-keyword">data_sources</span>: [<span class="code-string">"CIC credit bureau"</span>, <span class="code-string">"Internal loan history"</span>]
+  <span class="code-keyword">pii_handling</span>: <span class="code-string">"GDPR Article 5 + NĐ13/2023 compliant"</span>
+  <span class="code-keyword">retention_period</span>: <span class="code-string">"5 years (EU AI Act Art.12)"</span>
+
+<span class="code-keyword">regulatory_compliance</span>:
+  - <span class="code-string">"EU AI Act 2024 — High Risk, Annex III"</span>
+  - <span class="code-string">"GDPR 2016/679 — Art.22 automated decisions"</span>
+  - <span class="code-string">"TT39/2016/TT-NHNN — Cho vay TCTD"</span>
+  - <span class="code-string">"Luật BVQLNTD 2023"</span>
+
+<span class="code-keyword">contact</span>:
+  <span class="code-keyword">CAIO</span>: <span class="code-string">"ai-compliance@fintechcorp.vn"</span>
+  <span class="code-keyword">DPO</span>: <span class="code-string">"dpo@fintechcorp.vn"</span>
+  <span class="code-keyword">regulator_contact</span>: <span class="code-string">"NHNN Vụ Pháp chế: phapche@sbv.gov.vn"</span></code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: AI Incident Response Playbook
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Khi LoanBot tạo ra systematic errors (ví dụ: discriminate against một nhóm khách hàng trong 2 tuần):</p>
+          <ol class="process-steps">
+            <li><strong>Detect (T+0):</strong> SLA monitor phát hiện bias metric vượt ngưỡng hoặc complaint rate tăng đột biến</li>
+            <li><strong>Contain (T+1h):</strong> Switch toàn bộ traffic về HITL queue, tắt auto-decision, notify CAIO</li>
+            <li><strong>Assess (T+4h):</strong> AI Risk Committee họp khẩn, xác định scope và root cause</li>
+            <li><strong>Remediate (T+24h):</strong> Fix issue, re-test, re-enable với giám sát tăng cường</li>
+            <li><strong>Notify (T+72h):</strong> Thông báo NHNN + EU DPA nếu breach ảnh hưởng ≥1000 users (GDPR 72h rule)</li>
+            <li><strong>Post-mortem (T+7d):</strong> Root cause analysis, prevention measures, model card update</li>
+          </ol>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 19</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m19-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m19-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m19-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quy định AI đầu tiên của EU (2024), phân loại AI theo rủi ro và đặt nghĩa vụ tuân thủ. Phạt tối đa €30M hoặc 6% doanh thu.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">High-Risk AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI trong các lĩnh vực quan trọng như tín dụng, tuyển dụng, y tế — chịu 7 nghĩa vụ tuân thủ nặng nề (Annex III).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Annex III</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Danh sách các use cases được phân loại High-Risk trong EU AI Act, bao gồm credit scoring và loan decisions.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Article 22 (GDPR)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quyền không bị quyết định hoàn toàn tự động khi decisions ảnh hưởng significant đến người dùng.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TT39/2016/TT-NHNN</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thông tư NHNN về hoạt động cho vay của TCTD — quy định quy trình thẩm định và thông báo kết quả.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Local Explainability</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giải thích tại sao MỘT quyết định cụ thể được đưa ra — trái với global (model hoạt động tổng thể thế nào).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Counterfactual Explanation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Nếu X khác thì kết quả khác" — giúp applicant biết cụ thể cần làm gì để được chấp thuận.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Audit Trail</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Immutable log mọi quyết định AI — ai quyết định, khi nào, với data gì, kết quả gì. Giữ 5 năm (EU AI Act).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Pseudonymization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xóa PII khỏi record nhưng giữ lại decision data dưới dạng anonymized — giải quyết conflict GDPR vs AI Act.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Card</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tài liệu mô tả đầy đủ AI system: purpose, performance, bias assessment, data governance, compliance. Bắt buộc (Art.11).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">CAIO</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chief AI Officer — vai trò mới trong governance framework, chịu trách nhiệm tuân thủ AI regulations.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Conformity Assessment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đánh giá nội bộ hoặc bên thứ 3 xác nhận High-Risk AI đáp ứng EU AI Act trước khi deploy.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Bias Disparity Ratio</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ approval rate giữa 2 nhóm người dùng — EU AI Act yêu cầu &lt;1.20 (20% difference tolerance).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">NĐ13/2023/NĐ-CP</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Nghị định về bảo vệ dữ liệu cá nhân của Việt Nam — tương đương GDPR nhưng bộ luật VN.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Incident Response Playbook</td><td style="padding:8px 12px;">Quy trình phản ứng khi AI system tạo ra systematic errors — từ detect → contain → remediate → notify.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module18/index.html" class="btn btn-outline">← Module 18: LLM Gateway</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 19 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

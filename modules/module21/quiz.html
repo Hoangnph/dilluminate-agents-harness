@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 21 — Real-time & Streaming Agents</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m21-primary: #1e3a5f; --m21-accent: #38bdf8; --m21-light: #f0f9ff; --m21-border: #7dd3fc; }
+    .quiz-hero { background: linear-gradient(135deg, #0c1f36 0%, #1e3a5f 55%, #38bdf8 100%); padding: var(--space-16) var(--space-8); text-align: center; }
+    .quiz-hero h1 { color: #f0f9ff; font-size: 2rem; margin-bottom: var(--space-3); }
+    .quiz-hero p  { color: #7dd3fc; font-size: 1.1rem; margin-bottom: var(--space-4); }
+    .module-tag   { display: inline-block; background: rgba(56,189,248,.2); border: 1px solid #38bdf8; color: #7dd3fc; padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 700; margin-bottom: var(--space-3); }
+    .quiz-stats   { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; margin-top: var(--space-4); }
+    .quiz-stats span { background: rgba(255,255,255,.1); color: #f0f9ff; padding: 6px 16px; border-radius: 20px; font-size: .85rem; }
+    .quiz-container { max-width: 800px; margin: var(--space-10) auto; padding: 0 var(--space-6) var(--space-16); }
+    .quiz-progress { margin-bottom: var(--space-6); }
+    .quiz-progress-text { font-size: .85rem; color: var(--text-muted); margin-bottom: var(--space-2); }
+    .quiz-progress-bar  { height: 6px; background: var(--border); border-radius: 3px; }
+    .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #1e3a5f, #38bdf8); border-radius: 3px; transition: width .4s ease; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-8); box-shadow: var(--shadow-sm); }
+    .question-level { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: var(--space-3); padding: 4px 10px; border-radius: 12px; display: inline-block; }
+    .level-easy   { background: #f0fdf4; color: #166534; }
+    .level-medium { background: #f0f9ff; color: #1e3a5f; }
+    .level-hard   { background: #fef2f2; color: #991b1b; }
+    .question-text { font-size: 1.05rem; font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-6); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-3); }
+    .option-btn { text-align: left; padding: var(--space-4) var(--space-5); border: 2px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); color: var(--text-primary); font-size: .95rem; cursor: pointer; transition: all .2s; line-height: 1.5; }
+    .option-btn:hover:not(:disabled) { border-color: var(--m21-accent); background: var(--m21-light); }
+    .option-btn.correct { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+    .option-btn.wrong   { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+    .option-btn:disabled { cursor: default; }
+    .feedback { margin-top: var(--space-5); padding: var(--space-5); border-radius: var(--radius-lg); font-size: .9rem; line-height: 1.6; }
+    .feedback.correct-fb { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+    .feedback.wrong-fb   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .next-btn { margin-top: var(--space-5); padding: var(--space-3) var(--space-6); background: #1e3a5f; color: #f0f9ff; border: none; border-radius: var(--radius-lg); font-size: .95rem; font-weight: 600; cursor: pointer; }
+    .next-btn:hover { background: #1e40af; }
+    .quiz-result { text-align: center; }
+    .result-score { font-size: 3rem; font-weight: 800; color: var(--m21-primary); margin: var(--space-4) 0; }
+    .result-label { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .result-breakdown { display: grid; grid-template-columns: repeat(3,1fr); gap: var(--space-4); margin: var(--space-6) 0; }
+    .breakdown-item { padding: var(--space-4); border-radius: var(--radius-lg); }
+    .breakdown-easy   { background: #f0fdf4; border: 1px solid #86efac; }
+    .breakdown-medium { background: #f0f9ff; border: 1px solid #7dd3fc; }
+    .breakdown-hard   { background: #fef2f2; border: 1px solid #fca5a5; }
+    .breakdown-item h4 { font-size: .85rem; margin-bottom: var(--space-1); }
+    .breakdown-item p  { font-size: 1.2rem; font-weight: 700; margin: 0; }
+    .result-actions { display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap; margin-top: var(--space-6); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">← Bài giảng</a><a href="../../index.html">Trang chủ</a></div>
+</nav>
+
+<div class="quiz-hero">
+  <span class="module-tag">MODULE 21 · QUIZ</span>
+  <h1>⚡ Real-time & Streaming Agents</h1>
+  <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+  <div class="quiz-stats">
+    <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <h2>🎉 Hoàn thành Quiz!</h2>
+    <div class="result-score" id="scoreDisplay"></div>
+    <div class="result-label" id="scoreLabel"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-item breakdown-easy"><h4>Dễ (5 câu)</h4><p id="easyScore"></p></div>
+      <div class="breakdown-item breakdown-medium"><h4>Trung bình (7 câu)</h4><p id="medScore"></p></div>
+      <div class="breakdown-item breakdown-hard"><h4>Khó (3 câu)</h4><p id="hardScore"></p></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn btn-outline">📖 Ôn bài</a>
+      <a href="../module22/index.html" class="btn btn-primary">Module 22: Fine-tuning →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // === DỄ (5) ===
+  {
+    level: "easy",
+    q: "TTFB (Time to First Byte) là gì và tại sao nó quan trọng hơn total latency cho user experience?",
+    opts: [
+      "Tổng thời gian từ request đến khi nhận xong toàn bộ response",
+      "Thời gian từ khi gửi request đến khi nhận byte đầu tiên — người dùng thấy nội dung xuất hiện ngay dù backend chưa xong",
+      "Số bytes được truyền mỗi giây qua network",
+      "Thời gian server cần để process request trước khi trả lời"
+    ],
+    correct: 1,
+    fb: "Đúng! TTFB là thời gian đến byte/token đầu tiên. Với LoanBot: batch có TTFB=18s (người dùng nhìn màn hình trắng 18 giây), streaming có TTFB=0.3s (text xuất hiện ngay). Total time có thể giống nhau nhưng UX hoàn toàn khác — người dùng thấy progress ngay và bắt đầu đọc trong khi LoanBot vẫn đang generate. Total latency là tổng thời gian, nhưng perceived latency phụ thuộc vào TTFB."
+  },
+  {
+    level: "easy",
+    q: "SSE (Server-Sent Events) khác WebSocket ở điểm cơ bản nào?",
+    opts: [
+      "SSE nhanh hơn WebSocket vì dùng binary protocol",
+      "SSE chỉ chạy được trong Chrome, WebSocket hỗ trợ mọi browser",
+      "SSE là một chiều (server→client), WebSocket là hai chiều (full-duplex)",
+      "SSE yêu cầu TLS/HTTPS, WebSocket không cần"
+    ],
+    correct: 2,
+    fb: "Đúng! SSE chỉ cho phép server push data đến client (một chiều). Client không thể gửi messages qua SSE connection — chỉ HTTP requests thông thường. WebSocket là full-duplex: cả 2 bên có thể gửi bất kỳ lúc nào qua cùng 1 connection. SSE hỗ trợ tất cả modern browsers (không chỉ Chrome). SSE hoạt động tốt trên cả HTTP và HTTPS. Binary vs text không phải sự khác biệt chính — cả 2 đều dùng text theo mặc định."
+  },
+  {
+    level: "easy",
+    q: "Khi implement SSE endpoint trong FastAPI cho LoanBot, header 'X-Accel-Buffering: no' có tác dụng gì?",
+    opts: [
+      "Tắt SSL acceleration để giảm latency",
+      "Ngăn nginx buffer stream — nếu không, nginx sẽ giữ toàn bộ response trước khi gửi đến client",
+      "Giới hạn số concurrent connections đến server",
+      "Bật compression để giảm bandwidth"
+    ],
+    correct: 1,
+    fb: "Đúng! Nginx theo mặc định buffer responses — nhận toàn bộ từ backend rồi mới gửi đến client (gây ra batch behavior dù backend streaming). 'X-Accel-Buffering: no' báo với nginx không buffer response này — gửi ngay từng chunk nhận được. Đây là một trong những bug phổ biến nhất khi setup SSE: code backend đúng nhưng nginx buffering phá vỡ streaming. Cần set cả 'Cache-Control: no-cache' và 'Connection: keep-alive' nữa."
+  },
+  {
+    level: "easy",
+    q: "EventSource API trong browser tự động xử lý gì khi SSE connection bị ngắt?",
+    opts: [
+      "Không làm gì — developer phải implement reconnect logic thủ công",
+      "Tự động reconnect sau 3 giây và gửi Last-Event-ID để server resume từ đúng vị trí",
+      "Reload toàn bộ trang web",
+      "Gửi email alert đến admin"
+    ],
+    correct: 1,
+    fb: "Đúng! EventSource có built-in auto-reconnect — khi connection drop, browser tự động thử reconnect sau một khoảng thời gian (mặc định 3 giây, server có thể override bằng 'retry: N\\n\\n' directive). Quan trọng hơn: EventSource gửi 'Last-Event-ID' header để server biết event cuối client nhận được → server có thể replay missed events. Đây là advantage lớn của SSE so với raw WebSocket (cần implement reconnect và state sync thủ công)."
+  },
+  {
+    level: "easy",
+    q: "Backpressure là gì trong context của streaming LoanBot?",
+    opts: [
+      "Áp lực từ users khi LoanBot response chậm",
+      "Cơ chế producer (LLM) chậm lại hoặc dừng khi consumer (client) không nhận kịp — tránh buffer overflow",
+      "Pressure khi nhiều concurrent users cùng request",
+      "Kỹ thuật nén data để giảm bandwidth"
+    ],
+    correct: 1,
+    fb: "Đúng! Backpressure là flow control: khi client nhận data chậm hơn server generate (slow network, slow device), buffer sẽ grow. Không có backpressure → buffer vô hạn → OOM crash. Với asyncio.Queue(maxsize=100): khi queue đầy, producer block (backpressure applied) cho đến khi consumer drain. Nếu block quá lâu (timeout) → drop slow client gracefully thay vì crash toàn server. Đây là pattern critical cho bất kỳ streaming system nào."
+  },
+
+  // === TRUNG BÌNH (7) ===
+  {
+    level: "medium",
+    q: "FinTech Corp muốn implement LoanBot streaming. Nhân viên chỉ đọc qua browser. Protocol nào phù hợp nhất?",
+    opts: [
+      "gRPC streaming vì binary protocol hiệu quả nhất",
+      "WebSocket vì bidirectional",
+      "SSE vì unidirectional server→browser, native browser support, simpler implementation",
+      "HTTP polling mỗi 1 giây"
+    ],
+    correct: 2,
+    fb: "Đúng! SSE là lựa chọn tốt nhất cho browser streaming khi không cần bidirectional: (1) Native EventSource API — không cần library; (2) Auto-reconnect built-in; (3) Simple HTTP — works through proxies and load balancers; (4) Unidirectional phù hợp với use case 'server push analysis, client chỉ đọc'. gRPC không có native browser support. WebSocket phức tạp hơn không cần thiết nếu chỉ cần server→client. HTTP polling có N-second latency và wasted requests."
+  },
+  {
+    level: "medium",
+    q: "Nhân viên tín dụng muốn chat real-time với LoanBot: gửi follow-up questions trong khi LoanBot đang stream analysis, nhận stream response back. Protocol nào phù hợp?",
+    opts: [
+      "SSE vì đơn giản hơn",
+      "HTTP polling với 500ms interval",
+      "WebSocket vì bidirectional — analyst gửi questions, server stream responses",
+      "gRPC unary calls"
+    ],
+    correct: 2,
+    fb: "Đúng! Use case này cần bidirectional: client gửi questions (client→server), server streams responses (server→client) đồng thời. WebSocket là perfect fit: full-duplex cho phép cả 2 hướng trên cùng 1 connection. SSE chỉ server→client — analyst không thể gửi questions qua SSE connection (phải dùng HTTP requests riêng, phức tạp hơn). HTTP polling 500ms quá nhanh (wasted requests) hoặc quá chậm. gRPC unary (không streaming) không support server-side streaming."
+  },
+  {
+    level: "medium",
+    q: "Khi Claude API trả về streaming response có tool calls, event type 'input_json_delta' cần được handle như thế nào?",
+    opts: [
+      "Execute tool ngay khi nhận mỗi 'input_json_delta'",
+      "Bỏ qua — chỉ cần xử lý 'text_delta'",
+      "Accumulate toàn bộ 'input_json_delta' thành một string, parse JSON khi nhận 'content_block_stop', rồi execute tool",
+      "Convert 'input_json_delta' sang binary và gửi trực tiếp đến tool"
+    ],
+    correct: 2,
+    fb: "Đúng! 'input_json_delta' chứa partial JSON — ví dụ: '{\"app_' rồi 'id\": \"FC-' rồi '2024-002\"}' — không thể parse từng phần. Cần: (1) Accumulate tất cả deltas vào string buffer; (2) Khi 'content_block_stop' cho tool_use block → parse accumulated string thành JSON; (3) Execute tool với parsed input; (4) Append tool result vào messages và continue stream. Execute tool sớm sẽ fail vì JSON incomplete. Bỏ qua sẽ miss tool execution hoàn toàn."
+  },
+  {
+    level: "medium",
+    q: "asyncio.Queue(maxsize=100) trong streaming implementation có tác dụng backpressure như thế nào?",
+    opts: [
+      "Chặn tất cả requests khi queue đầy",
+      "Block producer coroutine khi queue full — tự động slow down LLM stream để match consumer speed",
+      "Drop toàn bộ messages khi queue vượt quá 100",
+      "Tự động scale up số workers khi queue đầy"
+    ],
+    correct: 1,
+    fb: "Đúng! asyncio.Queue với maxsize: khi queue có 100 items và producer gọi 'await queue.put(token)', coroutine sẽ block (yield control) cho đến khi consumer gọi 'queue.get()' và tạo chỗ trống. Đây là cooperative backpressure: producer không crash, chỉ chờ. Với timeout (asyncio.wait_for(queue.put(...), timeout=2.0)): nếu queue vẫn full sau 2 giây → slow client detected → drop connection gracefully. Không drop messages, không scale workers — chỉ coordinate speed."
+  },
+  {
+    level: "medium",
+    q: "Khi client disconnect trong khi server đang stream LoanBot analysis (FastAPI StreamingResponse), Claude API có bị charge tokens không? Làm sao ngăn?",
+    opts: [
+      "Không bị charge — Claude tự detect client disconnect",
+      "Bị charge — phải catch asyncio.CancelledError trong generator và gọi stream.close() để cancel Claude API call",
+      "Bị charge — không thể ngăn, chấp nhận cost",
+      "Không bị charge vì StreamingResponse tự động cancel upstream"
+    ],
+    correct: 1,
+    fb: "Đúng! Khi client disconnect, FastAPI raise CancelledError trong generator. Nếu không handle, Claude API stream tiếp tục generate và charge tokens (dù không ai nhận). Fix: wrap generator trong try/except CancelledError, gọi 'await stream.close()' để explicitly cancel Claude stream. Ngoài ra nên set max_tokens limit để worst case là cap cost chứ không generate vô hạn. Đây là chi phí ẩn phổ biến trong streaming implementations không cẩn thận."
+  },
+  {
+    level: "medium",
+    q: "LoanBot WebSocket session có conversation_history list grow mỗi turn. Sau 20 turns, context window bắt đầu bị limit. Strategy nào tốt nhất?",
+    opts: [
+      "Reset conversation_history sau mỗi turn — mỗi câu hỏi là independent",
+      "Limit history to last N messages và summarize older context vào system message",
+      "Tăng max_tokens để chứa được toàn bộ history",
+      "Dùng gRPC thay vì WebSocket để support larger payloads"
+    ],
+    correct: 1,
+    fb: "Đúng! Sliding window + summary strategy: (1) Giữ N messages gần nhất (ví dụ 10 turns = 20 messages); (2) Older context được Claude summarize thành 1 paragraph và append vào system message: 'Previous context: [summary]'; (3) Khi history vượt limit, drop oldest pair và add to summary. Tại sao không reset hoàn toàn? Analyst mất context — phải hỏi lại. Tăng max_tokens không giải quyết context window limit (context window = input, max_tokens = output). gRPC không liên quan đến context window."
+  },
+  {
+    level: "medium",
+    q: "Metrics nào quan trọng nhất để monitor streaming health của LoanBot system phục vụ 200 nhân viên đồng thời?",
+    opts: [
+      "CPU usage và RAM của server",
+      "TTFB (p99), buffer_depth, dropped_connections rate, active_connections",
+      "Network bandwidth và disk I/O",
+      "Database query time và cache hit rate"
+    ],
+    correct: 1,
+    fb: "Đúng! Streaming-specific metrics: (1) TTFB p99 — nếu p99 > 2s, nhiều users thấy response chậm; (2) buffer_depth — nếu consistently > 80% capacity, cần scale hoặc có slow clients; (3) dropped_connections — nếu >1%, nhiều users bị ngắt stream (bad UX, potential data loss); (4) active_connections — capacity planning. CPU/RAM là infrastructure metrics (important nhưng generic). Network bandwidth không capture streaming-specific issues. Database/cache metrics là cho different layer."
+  },
+
+  // === KHÓ (3) ===
+  {
+    level: "hard",
+    q: "FinTech Corp deploy LoanBot streaming với 200 concurrent analysts. Sau 1 tuần, team nhận thấy: 3% streams bị drop, p99 TTFB tăng từ 0.4s lên 3.2s vào giờ cao điểm 9-11h. Memory tăng steady 50MB/hour. Root cause nào MOST LIKELY và fix?",
+    opts: [
+      "Claude API rate limit — cần upgrade plan",
+      "Memory leak trong conversation_history: sessions không cleanup khi disconnect, + thundering herd lúc 9h khi tất cả analysts login đồng thời → buffer overflow → drops và latency spike",
+      "Network bandwidth exhausted",
+      "nginx timeout quá ngắn"
+    ],
+    correct: 1,
+    fb: "Đúng! 2 issues kết hợp: (1) **Memory leak**: ConnectionManager giữ conversation_history cho sessions đã disconnect (không có cleanup trong finally block) → 50MB/hour growth. Fix: add 'finally: manager.disconnect(session_id)' trong WebSocket handler. (2) **Thundering herd 9-11h**: 200 analysts login trong vài phút, tất cả start stream đồng thời → queue fill up → backpressure → producer timeout → drops → p99 spike. Fix: rate limit WebSocket connections (ví dụ 20 new connections/second), add gradual connection ramp-up. Claude rate limit không match pattern (would affect all hours equally). Bandwidth và nginx timeout không match memory growth pattern."
+  },
+  {
+    level: "hard",
+    q: "LoanBot streaming đang hoạt động. Claude stream: 'Credit score 580 — dưới ngưỡng. DTI 58% — vượt ngưỡng.' rồi dừng vì tool_use stop_reason để query CIC. Tool execution mất 2.3 giây. Từ user perspective, screen freeze 2.3 giây. Cách nào tốt nhất để cải thiện UX trong khoảng thời gian này?",
+    opts: [
+      "Tăng CIC API timeout từ 5s lên 10s",
+      "Send progress events qua SSE: 'event: tool_progress' mỗi 500ms trong khi tool chạy, show spinner/dots animation ở UI; cache CIC results để reduce latency",
+      "Dùng WebSocket thay vì SSE",
+      "Tăng số CIC API workers"
+    ],
+    correct: 1,
+    fb: "Đúng! Multi-part solution cho tool gap UX: (1) **Progress events**: khi tool bắt đầu, send 'event: tool_start\\ndata: {\"message\": \"Đang truy vấn CIC...\"}\\n\\n'; trong khi chờ, send heartbeat mỗi 500ms: 'event: tool_progress\\ndata: {\"dots\": \"...\"}\\n\\n' → user thấy dots animation không phải frozen screen; (2) **Cache CIC results**: nếu FC-2024-002 đã query trong 5 phút → return cached; (3) **Parallel execution**: nếu có nhiều tool calls, execute với asyncio.gather thay vì sequential. Tăng timeout không improve UX. Protocol switch không fix 2.3s delay. Thêm CIC workers chỉ help nếu bottleneck là CIC server capacity."
+  },
+  {
+    level: "hard",
+    q: "Architect đề xuất: 'Thay vì SSE, dùng gRPC bidirectional streaming cho LoanBot → browser dashboard'. Team lead phản đối. Ai đúng và lý do kỹ thuật là gì?",
+    opts: [
+      "Architect đúng — gRPC nhanh hơn và bidirectional",
+      "Team lead đúng — gRPC không có native browser support, cần gRPC-Web proxy layer (thêm complexity), không auto-reconnect, binary protocol khó debug. SSE đơn giản hơn và đủ cho use case này",
+      "Cả hai đúng — tùy browser version",
+      "Architect đúng nếu dùng HTTP/3"
+    ],
+    correct: 1,
+    fb: "Đúng! Team lead đúng vì 4 lý do kỹ thuật: (1) **No native browser support**: browser không thể gọi gRPC trực tiếp — cần gRPC-Web và Envoy proxy layer → thêm infrastructure, latency hop, failure point; (2) **No auto-reconnect**: gRPC connection drop → phải implement reconnect manually (SSE có built-in); (3) **Binary protocol**: khó debug với browser DevTools (SSE dễ đọc trong Network tab); (4) **Overkill**: use case LoanBot là server→browser streaming analysis — SSE hoàn toàn đủ. gRPC lý tưởng cho service-to-service (DocBot↔LoanBot), không phải browser UI. Architect đúng về hiệu quả gRPC nhưng sai về browser applicability. HTTP/3 không solve gRPC browser limitation."
+  }
+];
+
+let current = 0, score = 0;
+const easyQ = [0,1,2,3,4], medQ = [5,6,7,8,9,10,11], hardQ = [12,13,14];
+let easyScore = 0, medScore = 0, hardScore = 0;
+
+function renderQ() {
+  const q = questions[current];
+  document.getElementById("currentQ").textContent = current + 1;
+  document.getElementById("progressFill").style.width = ((current + 1) / 15 * 100) + "%";
+  const levelClass = {easy:"level-easy",medium:"level-medium",hard:"level-hard"}[q.level];
+  const levelLabel = {easy:"⭐ Dễ",medium:"⭐⭐ Trung bình",hard:"⭐⭐⭐ Khó"}[q.level];
+  document.getElementById("quizArea").innerHTML = `
+    <div class="question-card">
+      <span class="question-level ${levelClass}">${levelLabel}</span>
+      <p class="question-text">${q.q}</p>
+      <div class="options">
+        ${q.opts.map((o,i)=>`<button class="option-btn" onclick="selectAnswer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("")}
+      </div>
+    </div>`;
+}
+
+function selectAnswer(idx) {
+  const q = questions[current];
+  document.querySelectorAll(".option-btn").forEach(b=>b.disabled=true);
+  const btns = document.querySelectorAll(".option-btn");
+  if (idx === q.correct) {
+    btns[idx].classList.add("correct");
+    score++;
+    if (easyQ.includes(current)) easyScore++;
+    else if (medQ.includes(current)) medScore++;
+    else hardScore++;
+  } else {
+    btns[idx].classList.add("wrong");
+    btns[q.correct].classList.add("correct");
+  }
+  const fb = document.createElement("div");
+  fb.className = "feedback " + (idx === q.correct ? "correct-fb" : "wrong-fb");
+  fb.innerHTML = (idx === q.correct ? "<strong>✅ Chính xác!</strong> " : "<strong>❌ Chưa đúng.</strong> ") + q.fb;
+  const btn = document.createElement("button");
+  btn.className = "next-btn";
+  btn.textContent = current < 14 ? "Câu tiếp theo →" : "Xem kết quả →";
+  btn.onclick = nextQ;
+  document.querySelector(".question-card").appendChild(fb);
+  document.querySelector(".question-card").appendChild(btn);
+}
+
+function nextQ() {
+  current++;
+  if (current < 15) renderQ();
+  else showResult();
+}
+
+function showResult() {
+  document.getElementById("quizArea").style.display = "none";
+  const ra = document.getElementById("resultArea");
+  ra.style.display = "block";
+  const pct = Math.round(score/15*100);
+  document.getElementById("scoreDisplay").textContent = score + "/15";
+  const labels = ["Cần ôn thêm 📚","Đang tiến bộ 💪","Khá tốt 🌟","Xuất sắc 🏆","Hoàn hảo 🎉"];
+  document.getElementById("scoreLabel").textContent = pct < 50 ? labels[0] : pct < 65 ? labels[1] : pct < 80 ? labels[2] : pct < 95 ? labels[3] : labels[4];
+  document.getElementById("easyScore").textContent = easyScore + "/5";
+  document.getElementById("medScore").textContent = medScore + "/7";
+  document.getElementById("hardScore").textContent = hardScore + "/3";
+}
+
+function restartQuiz() {
+  current = score = easyScore = medScore = hardScore = 0;
+  document.getElementById("quizArea").style.display = "block";
+  document.getElementById("resultArea").style.display = "none";
+  renderQ();
+}
+
+renderQ();
+</script>
+</body>
+</html>

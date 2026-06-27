@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 4: Production Deployment — AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .lesson-section { scroll-margin-top: calc(var(--topbar-height) + 12px); }
+    .lesson-divider { border:none; border-top:2px dashed var(--border); margin:var(--space-12) 0; }
+
+    /* Checklist */
+    .checklist { display:flex; flex-direction:column; gap:var(--space-2); margin:var(--space-5) 0; }
+    .check-item {
+      display:flex; align-items:flex-start; gap:var(--space-3);
+      padding:var(--space-3) var(--space-4); border-radius:var(--radius-lg);
+      border:1px solid;
+    }
+    .check-item.pass  { background:#f0fdf4; border-color:#86efac; }
+    .check-item.warn  { background:#fefce8; border-color:#fde047; }
+    .check-item.fail  { background:#fff5f5; border-color:#fca5a5; }
+    .check-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
+    .check-text { flex:1; }
+    .check-title { font-weight:600; font-size:.9rem; }
+    .check-detail { font-size:.8rem; color:var(--text-muted); margin-top:2px; }
+
+    /* Pipeline stages */
+    .pipeline { display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:var(--space-2); margin:var(--space-6) 0; }
+    .pipe-stage {
+      min-width:110px; background:var(--surface); border:1.5px solid var(--border);
+      border-radius:var(--radius-lg); padding:var(--space-3) var(--space-3);
+      text-align:center; flex-shrink:0;
+    }
+    .pipe-arrow { color:#94a3b8; font-size:1.4rem; padding:0 4px; flex-shrink:0; }
+    .pipe-icon  { font-size:1.4rem; display:block; margin-bottom:3px; }
+    .pipe-name  { font-size:.75rem; font-weight:700; display:block; }
+    .pipe-detail{ font-size:.68rem; color:var(--text-muted); display:block; margin-top:2px; }
+
+    /* Tier cards */
+    .tier-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:var(--space-4); margin:var(--space-5) 0; }
+    .tier-card { border-radius:var(--radius-xl); padding:var(--space-5); border:1px solid; }
+    .tier-card h4 { font-size:1rem; margin-bottom:var(--space-2); }
+    .tier-card ul { margin:0; padding-left:var(--space-4); }
+    .tier-card li { font-size:.82rem; margin-bottom:3px; }
+
+    /* Alert severity */
+    .alert-table { width:100%; border-collapse:collapse; margin:var(--space-5) 0; font-size:.88rem; }
+    .alert-table th { background:var(--primary); color:#fff; padding:var(--space-3) var(--space-4); text-align:left; }
+    .alert-table td { border:1px solid var(--border); padding:var(--space-3) var(--space-4); }
+    .alert-table tr:nth-child(even) td { background:var(--bg); }
+    .alert-p1 { background:#fee2e2!important; font-weight:700; color:#991b1b; }
+    .alert-p2 { background:#fef9c3!important; font-weight:600; color:#854d0e; }
+
+    .sidebar-module-title {
+      font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+      color:var(--primary); padding:var(--space-4) var(--space-6) var(--space-2);
+      border-bottom:1px solid var(--border); margin-bottom:var(--space-2);
+    }
+  </style>
+</head>
+<body data-module="m4">
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="../module3/index.html">← Module 3</a>
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Notebook</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:#eff6ff;color:#0f4c81;border-color:#bfdbfe;">MODULE 4</div>
+    <div class="sidebar-title">Production Deployment</div>
+    <div class="module-progress" style="margin:12px 16px;padding:12px 14px;">
+      <div class="progress-header"><span>Tiến độ</span><span class="progress-label">0 / 5 bài</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Bài Giảng</div>
+      <a href="#lesson1" class="sidebar-item active" data-lesson="m4-l1">
+        <div class="item-icon">✅</div><span>Bài 1: Production Checklist</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson2" class="sidebar-item" data-lesson="m4-l2">
+        <div class="item-icon">🐳</div><span>Bài 2: Docker & Container</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson3" class="sidebar-item" data-lesson="m4-l3">
+        <div class="item-icon">⚙️</div><span>Bài 3: CI/CD Pipeline</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson4" class="sidebar-item" data-lesson="m4-l4">
+        <div class="item-icon">📡</div><span>Bài 4: Monitoring & Alert</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson5" class="sidebar-item" data-lesson="m4-l5">
+        <div class="item-icon">📈</div><span>Bài 5: Scaling & Cost</span>
+        <div class="status-dot"></div>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Tài Nguyên</div>
+      <a href="quiz.html" class="sidebar-item"><div class="item-icon">📝</div><span>Quiz ôn tập (15 câu)</span></a>
+      <a href="lab.ipynb" download class="sidebar-item"><div class="item-icon">🔬</div><span>Lab: LoanBot v1.0 Deploy</span></a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Điều Hướng</div>
+      <a href="../module3/index.html" class="sidebar-item"><div class="item-icon">◀</div><span>Module 3: Đánh Giá</span></a>
+      <a href="../module5/index.html" class="sidebar-item"><div class="item-icon">▶</div><span>Module 5: Governance</span></a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+  <div class="content-inner">
+
+    <div class="lesson-header" style="background:linear-gradient(135deg,#065f46 0%,#059669 60%,#34d399 100%);">
+      <div class="breadcrumb">
+        <a href="../../index.html" style="color:rgba(255,255,255,.65)">Trang chủ</a><span>›</span> Module 4
+      </div>
+      <h1>Module 4: Production Deployment</h1>
+      <p style="color:rgba(255,255,255,.8);margin-bottom:var(--space-5);max-width:650px;">
+        Đưa LoanBot từ <strong style="color:#d1fae5">notebook</strong> lên <strong style="color:#d1fae5">production</strong>
+        — Docker, CI/CD, monitoring, auto-scaling cho 50,000 hồ sơ/tháng.
+      </p>
+      <div class="lesson-meta">
+        <span class="meta-badge">⏱ ~4.5 giờ</span>
+        <span class="meta-badge">📖 5 bài giảng</span>
+        <span class="meta-badge">🎯 Mức: Trung bình-Cao</span>
+        <span class="meta-badge">🚀 LoanBot v1.0</span>
+      </div>
+    </div>
+
+    <!-- LEARNING MAP -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-6);">
+      <h4 style="color:var(--primary-dark);margin-bottom:var(--space-4);">🗺️ Bản Đồ Học Tập Module 4</h4>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:115px;">
+          <div style="background:#065f46;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">✅ Bài 1<br><span style="font-weight:400;font-size:.72rem;">Production Checklist</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:115px;">
+          <div style="background:#047857;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">🐳 Bài 2<br><span style="font-weight:400;font-size:.72rem;">Docker Container</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:115px;">
+          <div style="background:#059669;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">⚙️ Bài 3<br><span style="font-weight:400;font-size:.72rem;">CI/CD Pipeline</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:115px;">
+          <div style="background:#10b981;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">📡 Bài 4<br><span style="font-weight:400;font-size:.72rem;">Monitoring</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:115px;">
+          <div style="background:#34d399;color:#065f46;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">📈 Bài 5<br><span style="font-weight:400;font-size:.72rem;">Scaling & Cost</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:100px;">
+          <div style="background:var(--accent-dark);color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">🔬 Lab<br><span style="font-weight:400;font-size:.72rem;">Deploy v1.0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="objectives-box">
+      <h4>🎯 Sau Module 4, bạn sẽ có thể:</h4>
+      <ul>
+        <li>Chạy Production Readiness Checklist trước khi deploy LoanBot</li>
+        <li>Đóng gói LoanBot vào Docker container và triển khai trên cloud</li>
+        <li>Thiết kế CI/CD pipeline tự động chạy evaluation trước khi deploy</li>
+        <li>Setup monitoring và alerting để phát hiện issues trong production</li>
+        <li>Implement auto-scaling và tối ưu chi phí cho production workloads</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════ BÀI 1: CHECKLIST ════════════════════════ -->
+    <section id="lesson1" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">1</div>
+        <h2>Production Readiness Checklist — Chuẩn Bị Trước Khi Deploy</h2>
+      </div>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Biết 5 nhóm kiểm tra trong Production Readiness Checklist (Correctness, Security, Performance, Compliance, Reliability)</li>
+          <li>Hiểu tại sao có những checks là BLOCKING — không pass thì không được deploy</li>
+          <li>Áp dụng checklist để đánh giá mức độ "sẵn sàng" của LoanBot v1.0</li>
+        </ul>
+      </div>
+
+      <h3>1.1 Vấn Đề: Lab-to-Production Gap</h3>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Con số đáng lo: 37% Lab-to-Production Gap</div>
+        <p>Nghiên cứu từ Anthropic (2025) đo được: AI agents đạt điểm cao trong lab thường giảm hiệu năng <strong>trung bình 37%</strong> trong môi trường production thực tế. Nguyên nhân:</p>
+        <ul style="margin:0">
+          <li>Real data có edge cases không có trong test set</li>
+          <li>Network latency và backend failures cao hơn lab</li>
+          <li>Concurrent requests tạo race conditions không lường trước</li>
+          <li>Memory leaks tích lũy theo thời gian</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Checklist phi công trước khi cất cánh</div>
+        <p>Phi công không cất cánh khi chưa hoàn thành pre-flight checklist — dù đã bay ngàn chuyến. Mỗi chuyến đều kiểm tra: nhiên liệu, hệ thống thủy lực, đèn hiệu, thông tin liên lạc...</p>
+        <p style="margin:0"><strong>Production Readiness Checklist</strong> cho AI agent hoạt động tương tự — buộc phải kiểm tra mọi khía cạnh trước khi "cất cánh" với real users.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">1.2 LoanBot v1.0 Production Checklist</h3>
+
+      <!-- SVG: Checklist Categories -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 1.1 — Production Readiness: 5 nhóm kiểm tra, LoanBot v1.0 chỉ còn pending Compliance review</title>
+  <rect width="700" height="180" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="350" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Production Readiness — 5 Nhóm Kiểm Tra</text>
+
+          <!-- Category boxes -->
+          <rect x="10" y="35" width="128" height="130" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="74" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#065f46">✅ Correctness</text>
+          <text x="74" y="72" text-anchor="middle" font-size="9" fill="#047857">F1 ≥ 95%</text>
+          <text x="74" y="86" text-anchor="middle" font-size="9" fill="#047857">Faithful = 100%</text>
+          <text x="74" y="100" text-anchor="middle" font-size="9" fill="#047857">Edge cases tested</text>
+          <text x="74" y="114" text-anchor="middle" font-size="9" fill="#047857">Regression suite</text>
+          <text x="74" y="155" text-anchor="middle" font-size="8" fill="#86efac">✅ LoanBot PASS</text>
+
+          <rect x="148" y="35" width="128" height="130" rx="10" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="212" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#9a3412">🔒 Security</text>
+          <text x="212" y="72" text-anchor="middle" font-size="9" fill="#c2410c">API key rotation</text>
+          <text x="212" y="86" text-anchor="middle" font-size="9" fill="#c2410c">Input sanitization</text>
+          <text x="212" y="100" text-anchor="middle" font-size="9" fill="#c2410c">Network isolation</text>
+          <text x="212" y="114" text-anchor="middle" font-size="9" fill="#c2410c">Secret management</text>
+          <text x="212" y="155" text-anchor="middle" font-size="8" fill="#fdba74">✅ LoanBot PASS</text>
+
+          <rect x="286" y="35" width="128" height="130" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="350" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#1e40af">⚡ Performance</text>
+          <text x="350" y="72" text-anchor="middle" font-size="9" fill="#3730a3">P95 ≤ 300s</text>
+          <text x="350" y="86" text-anchor="middle" font-size="9" fill="#3730a3">Load test 100 RPS</text>
+          <text x="350" y="100" text-anchor="middle" font-size="9" fill="#3730a3">Memory leak check</text>
+          <text x="350" y="114" text-anchor="middle" font-size="9" fill="#3730a3">Cost budget set</text>
+          <text x="350" y="155" text-anchor="middle" font-size="8" fill="#93c5fd">✅ LoanBot PASS</text>
+
+          <rect x="424" y="35" width="128" height="130" rx="10" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+          <text x="488" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">📋 Compliance</text>
+          <text x="488" y="72" text-anchor="middle" font-size="9" fill="#92400e">Audit logs ready</text>
+          <text x="488" y="86" text-anchor="middle" font-size="9" fill="#92400e">HITL gates active</text>
+          <text x="488" y="100" text-anchor="middle" font-size="9" fill="#92400e">Data retention set</text>
+          <text x="488" y="114" text-anchor="middle" font-size="9" fill="#92400e">Legal review done</text>
+          <text x="488" y="155" text-anchor="middle" font-size="8" fill="#fde047">⚠️ Pending review</text>
+
+          <rect x="562" y="35" width="128" height="130" rx="10" fill="#fdf4ff" stroke="#e9d5ff" stroke-width="1.5"/>
+          <text x="626" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#6b21a8">🔄 Reliability</text>
+          <text x="626" y="72" text-anchor="middle" font-size="9" fill="#7e22ce">Retry tested</text>
+          <text x="626" y="86" text-anchor="middle" font-size="9" fill="#7e22ce">Circuit breaker OK</text>
+          <text x="626" y="100" text-anchor="middle" font-size="9" fill="#7e22ce">Graceful shutdown</text>
+          <text x="626" y="114" text-anchor="middle" font-size="9" fill="#7e22ce">Health endpoint</text>
+          <text x="626" y="155" text-anchor="middle" font-size="8" fill="#e9d5ff">✅ LoanBot PASS</text>
+        </svg>
+        <div class="diagram-title">Hình 1.1 — Production Readiness: 5 nhóm kiểm tra, LoanBot v1.0 chỉ còn pending Compliance review</div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Pre-launch Checklist Status</div>
+        <div class="checklist">
+          <div class="check-item pass">
+            <span class="check-icon">✅</span>
+            <div class="check-text">
+              <div class="check-title">F1 Score đạt 95.5% trên 200 hồ sơ test</div>
+              <div class="check-detail">Module 3 evaluation hoàn thành, regression suite 50 test cases</div>
+            </div>
+          </div>
+          <div class="check-item pass">
+            <span class="check-icon">✅</span>
+            <div class="check-text">
+              <div class="check-title">Docker image build thành công, chạy ổn định 24h</div>
+              <div class="check-detail">loanbot:v1.0 tag, vulnerabilities scan clean (Trivy)</div>
+            </div>
+          </div>
+          <div class="check-item pass">
+            <span class="check-icon">✅</span>
+            <div class="check-text">
+              <div class="check-title">ANTHROPIC_API_KEY lưu trong AWS Secrets Manager</div>
+              <div class="check-detail">Không hardcode trong code hay environment files</div>
+            </div>
+          </div>
+          <div class="check-item warn">
+            <span class="check-icon">⚠️</span>
+            <div class="check-text">
+              <div class="check-title">Legal team review đang pending (ETA 3 ngày)</div>
+              <div class="check-detail">AI disclosure language cần approve trước khi show cho end-users</div>
+            </div>
+          </div>
+          <div class="check-item pass">
+            <span class="check-icon">✅</span>
+            <div class="check-text">
+              <div class="check-title">HITL gateway test với 20 hồ sơ &gt;500 triệu — 100% trigger đúng</div>
+              <div class="check-detail">Notification đến trưởng phòng tín dụng qua Slack và email</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 1</h4>
+        <ul>
+          <li>Lab-to-Production Gap = 37% trung bình — cần Readiness Checklist để minimize</li>
+          <li>5 nhóm kiểm tra: Correctness, Security, Performance, Compliance, Reliability</li>
+          <li>KHÔNG deploy khi có bất kỳ Compliance item nào chưa PASS</li>
+          <li>Checklist phải là automated: CI/CD chạy trước mỗi deploy, block nếu fail</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════ BÀI 2: DOCKER ════════════════════════ -->
+    <section id="lesson2" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">2</div>
+        <h2>Docker &amp; Containerization — Đóng Gói LoanBot</h2>
+      </div>
+
+      <h3>2.1 Tại Sao Cần Container?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Container vận chuyển hàng hóa</div>
+        <p>Trước khi có container vận chuyển tiêu chuẩn, mỗi chuyến tàu phải bốc dỡ từng kiện hàng — chậm, tốn công, hàng dễ vỡ. Container tiêu chuẩn hoá tất cả: cùng một kích thước, cẩu thế nào cũng được.</p>
+        <p style="margin:0"><strong>Docker container</strong> làm điều tương tự cho phần mềm: đóng gói LoanBot cùng tất cả dependencies vào một "hộp" chuẩn. Laptop, staging server, production cloud — chạy giống hệt nhau. Hết chuyện "chạy trên máy tôi nhưng không chạy được trên server".</p>
+      </div>
+
+      <!-- SVG: Container Architecture -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 2.1 — LoanBot Docker Architecture: 3 containers, load balanced, với auto-scaling</title>
+  <rect width="700" height="210" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="350" y="20" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">LoanBot Docker Architecture</text>
+
+          <!-- Host OS -->
+          <rect x="10" y="30" width="680" height="170" rx="12" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="350" y="50" text-anchor="middle" font-size="10" fill="#94a3b8">Host OS (Linux / Ubuntu 22.04)</text>
+
+          <!-- Docker Engine -->
+          <rect x="25" y="58" width="650" height="132" rx="10" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
+          <text x="350" y="74" text-anchor="middle" font-size="10" fill="#0369a1">Docker Engine</text>
+
+          <!-- Container 1: API Server -->
+          <rect x="40" y="82" width="195" height="98" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="137" y="98" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">loanbot-api:v1.0</text>
+          <text x="137" y="113" text-anchor="middle" font-size="8" fill="#94a3b8">Python 3.11 + FastAPI</text>
+          <text x="137" y="127" text-anchor="middle" font-size="8" fill="#93c5fd">LoanBotHarnessV2</text>
+          <text x="137" y="141" text-anchor="middle" font-size="8" fill="#93c5fd">anthropic SDK</text>
+          <text x="137" y="155" text-anchor="middle" font-size="8" fill="#64748b">Port: 8080</text>
+          <text x="137" y="172" text-anchor="middle" font-size="8" fill="#34d399">REPLICAS: 3</text>
+
+          <!-- Container 2: Worker -->
+          <rect x="253" y="82" width="195" height="98" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="350" y="98" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">loanbot-worker:v1.0</text>
+          <text x="350" y="113" text-anchor="middle" font-size="8" fill="#94a3b8">Celery + Redis Queue</text>
+          <text x="350" y="127" text-anchor="middle" font-size="8" fill="#93c5fd">Async processing</text>
+          <text x="350" y="141" text-anchor="middle" font-size="8" fill="#93c5fd">Batch loan processing</text>
+          <text x="350" y="155" text-anchor="middle" font-size="8" fill="#64748b">Port: internal</text>
+          <text x="350" y="172" text-anchor="middle" font-size="8" fill="#34d399">REPLICAS: 2</text>
+
+          <!-- Container 3: Monitoring -->
+          <rect x="466" y="82" width="199" height="98" rx="8" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="565" y="98" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">loanbot-monitor:v1.0</text>
+          <text x="565" y="113" text-anchor="middle" font-size="8" fill="#94a3b8">Prometheus + Grafana</text>
+          <text x="565" y="127" text-anchor="middle" font-size="8" fill="#93c5fd">Metrics collection</text>
+          <text x="565" y="141" text-anchor="middle" font-size="8" fill="#93c5fd">Audit log shipper</text>
+          <text x="565" y="155" text-anchor="middle" font-size="8" fill="#64748b">Port: 3000 (Grafana)</text>
+          <text x="565" y="172" text-anchor="middle" font-size="8" fill="#34d399">REPLICAS: 1</text>
+        </svg>
+        <div class="diagram-title">Hình 2.1 — LoanBot Docker Architecture: 3 containers, load balanced, với auto-scaling</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">2.2 Dockerfile LoanBot v1.0</h3>
+
+      <div class="code-block">
+        <span class="code-label">Dockerfile — LoanBot v1.0</span>
+<span class="code-comment"># Multi-stage build: stage 1 install deps, stage 2 copy only needed files</span>
+FROM python:<span class="code-number">3.11</span>-slim AS builder
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --user --no-cache-dir -r requirements.txt
+
+FROM python:<span class="code-number">3.11</span>-slim
+<span class="code-comment"># Security: chạy với user không phải root</span>
+RUN useradd --create-home loanbot
+WORKDIR /app
+
+<span class="code-comment"># Copy chỉ những gì cần, không copy .env hay secrets</span>
+COPY --from=builder /root/.local /home/loanbot/.local
+COPY --chown=loanbot:loanbot ./src /app/src
+COPY --chown=loanbot:loanbot ./config /app/config
+
+<span class="code-comment"># API key KHÔNG được bake vào image — lấy từ Secrets Manager runtime</span>
+ENV PYTHONUNBUFFERED=<span class="code-number">1</span>
+ENV PYTHONPATH=/app
+EXPOSE <span class="code-number">8080</span>
+
+USER loanbot
+<span class="code-comment"># Health check — Kubernetes dùng để restart khi unhealthy</span>
+HEALTHCHECK --interval=<span class="code-number">30</span>s --timeout=<span class="code-number">5</span>s --retries=<span class="code-number">3</span> \
+  CMD curl -f http://localhost:<span class="code-number">8080</span>/health || exit <span class="code-number">1</span>
+
+CMD [<span class="code-string">"python"</span>, <span class="code-string">"-m"</span>, <span class="code-string">"uvicorn"</span>, <span class="code-string">"src.main:app"</span>, <span class="code-string">"--host"</span>, <span class="code-string">"0.0.0.0"</span>, <span class="code-string">"--port"</span>, <span class="code-string">"8080"</span>]
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 Best Practices: Docker cho AI Agents</div>
+        <ul style="margin:0">
+          <li><strong>Multi-stage build:</strong> giảm image size từ ~2GB xuống ~300MB</li>
+          <li><strong>Non-root user:</strong> chạy với user riêng, không root — giảm attack surface</li>
+          <li><strong>HEALTHCHECK:</strong> Kubernetes restart container tự động khi unhealthy</li>
+          <li><strong>KHÔNG bake secrets vào image:</strong> API keys, DB passwords lấy từ Secrets Manager lúc runtime</li>
+          <li><strong>Pin exact versions:</strong> python:3.11.9-slim thay vì python:3-slim để tránh surprise upgrades</li>
+        </ul>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 2</h4>
+        <ul>
+          <li>Container = đóng gói app + dependencies → chạy nhất quán trên mọi môi trường</li>
+          <li>Multi-stage Dockerfile: giảm image size, không bao gồm build tools trong production image</li>
+          <li>Secrets KHÔNG BAO GIỜ bake vào Docker image — dùng Secrets Manager (AWS/GCP/Azure)</li>
+          <li>HEALTHCHECK bắt buộc để orchestrator (Kubernetes) biết khi nào container cần restart</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════ BÀI 3: CI/CD ════════════════════════ -->
+    <section id="lesson3" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">3</div>
+        <h2>CI/CD Pipeline — Tự Động Hóa Deploy</h2>
+      </div>
+
+      <h3>3.1 CI/CD là gì?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Dây chuyền kiểm tra chất lượng nhà máy</div>
+        <p>Khi sản phẩm ra khỏi máy, ngay lập tức đi qua băng chuyền kiểm tra: đo kích thước, kiểm tra màu sắc, test độ bền... Chỉ sản phẩm qua tất cả kiểm tra mới được đóng hộp và giao hàng.</p>
+        <p style="margin:0"><strong>CI/CD Pipeline</strong> là băng chuyền đó cho code: mỗi lần developer push code → tự động chạy tests, build Docker image, chạy evaluation suite, rồi deploy nếu tất cả pass.</p>
+      </div>
+
+      <!-- SVG: CI/CD Pipeline -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 120" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.1 — CI/CD Pipeline: tự động từ git push đến production, với Evaluation Suite gate bắt buộc</title>
+          <text x="350" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">LoanBot CI/CD Pipeline (GitHub Actions)</text>
+          <defs>
+            <marker id="ap" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#64748b"/>
+            </marker>
+            <marker id="apg" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#16a34a"/>
+            </marker>
+          </defs>
+  <rect width="700" height="120" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+
+          <!-- Stage boxes -->
+          <rect x="10" y="32" width="85" height="70" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="52" y="55" text-anchor="middle" font-size="20">📤</text>
+          <text x="52" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#1e293b">Git Push</text>
+          <text x="52" y="86" text-anchor="middle" font-size="8" fill="#64748b">main / PR</text>
+          <text x="52" y="97" text-anchor="middle" font-size="7" fill="#64748b">Trigger</text>
+          <line x1="97" y1="67" x2="108" y2="67" stroke="#64748b" stroke-width="1.5" marker-end="url(#ap)"/>
+
+          <rect x="110" y="32" width="85" height="70" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="152" y="55" text-anchor="middle" font-size="20">🔍</text>
+          <text x="152" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">Lint &amp; Test</text>
+          <text x="152" y="86" text-anchor="middle" font-size="8" fill="#3730a3">pytest, mypy</text>
+          <text x="152" y="97" text-anchor="middle" font-size="7" fill="#3730a3">~2 min</text>
+          <line x1="197" y1="67" x2="208" y2="67" stroke="#64748b" stroke-width="1.5" marker-end="url(#ap)"/>
+
+          <rect x="210" y="32" width="85" height="70" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+          <text x="252" y="55" text-anchor="middle" font-size="20">🐳</text>
+          <text x="252" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#5b21b6">Docker Build</text>
+          <text x="252" y="86" text-anchor="middle" font-size="8" fill="#6d28d9">Trivy scan</text>
+          <text x="252" y="97" text-anchor="middle" font-size="7" fill="#6d28d9">~5 min</text>
+          <line x1="297" y1="67" x2="308" y2="67" stroke="#64748b" stroke-width="1.5" marker-end="url(#ap)"/>
+
+          <rect x="310" y="32" width="85" height="70" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+          <text x="352" y="55" text-anchor="middle" font-size="20">🧪</text>
+          <text x="352" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#854d0e">Eval Suite</text>
+          <text x="352" y="86" text-anchor="middle" font-size="8" fill="#92400e">12 metrics</text>
+          <text x="352" y="97" text-anchor="middle" font-size="7" fill="#92400e">F1≥95% gate</text>
+          <line x1="397" y1="67" x2="408" y2="67" stroke="#64748b" stroke-width="1.5" marker-end="url(#ap)"/>
+
+          <rect x="410" y="32" width="85" height="70" rx="8" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="452" y="55" text-anchor="middle" font-size="20">🏗️</text>
+          <text x="452" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#065f46">Staging</text>
+          <text x="452" y="86" text-anchor="middle" font-size="8" fill="#047857">Smoke test</text>
+          <text x="452" y="97" text-anchor="middle" font-size="7" fill="#047857">~10 min</text>
+          <line x1="497" y1="67" x2="508" y2="67" stroke="#16a34a" stroke-width="1.5" marker-end="url(#apg)"/>
+
+          <rect x="510" y="32" width="85" height="70" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text x="552" y="55" text-anchor="middle" font-size="20">🚀</text>
+          <text x="552" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">Deploy</text>
+          <text x="552" y="86" text-anchor="middle" font-size="8" fill="#14532d">Canary 10%</text>
+          <text x="552" y="97" text-anchor="middle" font-size="7" fill="#14532d">→ 100% nếu ok</text>
+          <line x1="597" y1="67" x2="608" y2="67" stroke="#16a34a" stroke-width="1.5" marker-end="url(#apg)"/>
+
+          <rect x="610" y="32" width="80" height="70" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="650" y="55" text-anchor="middle" font-size="20">✅</text>
+          <text x="650" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">Production</text>
+          <text x="650" y="86" text-anchor="middle" font-size="8" fill="#166534">v1.0 live</text>
+          <text x="650" y="97" text-anchor="middle" font-size="7" fill="#166534">Monitor 1h</text>
+        </svg>
+        <div class="diagram-title">Hình 3.1 — CI/CD Pipeline: tự động từ git push đến production, với Evaluation Suite gate bắt buộc</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">3.2 Quality Gate — Không Qua Là Dừng</h3>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 Quality Gate trong CI/CD cho AI Agent</div>
+        <p>AI agent pipeline cần có <strong>Quality Gate</strong> đặc biệt mà software thông thường không có: chạy Evaluation Suite (12 metrics) trước mỗi deploy. Nếu F1 giảm từ 95.5% xuống 93% (dù mọi unit test vẫn pass), pipeline phải FAIL và không deploy.</p>
+        <p style="margin:0">Đây là điểm khác biệt quan trọng giữa CI/CD cho AI và CI/CD cho software thông thường — <strong>metric regression là bug nghiêm trọng</strong>.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">YAML — GitHub Actions: Evaluation Gate</span>
+<span class="code-keyword">jobs</span>:
+  <span class="code-keyword">evaluation-gate</span>:
+    <span class="code-keyword">runs-on</span>: ubuntu-latest
+    <span class="code-keyword">steps</span>:
+      - <span class="code-keyword">uses</span>: actions/checkout@v4
+      - <span class="code-keyword">name</span>: Run LoanBot Evaluation Suite
+        <span class="code-keyword">run</span>: |
+          python scripts/eval_suite.py \
+            --model ${{ secrets.MODEL_NAME }} \
+            --test-cases tests/ground_truth.json \
+            --output eval_results.json
+      - <span class="code-keyword">name</span>: Check Quality Gates
+        <span class="code-keyword">run</span>: |
+          python scripts/check_quality_gates.py \
+            --results eval_results.json \
+            --f1-threshold <span class="code-number">0.95</span> \
+            --latency-p95-s <span class="code-number">300</span> \
+            --faithfulness <span class="code-number">0.99</span>
+          <span class="code-comment"># Script exits 1 nếu bất kỳ gate nào fail → pipeline stops</span>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 3</h4>
+        <ul>
+          <li>CI/CD = Continuous Integration / Continuous Deployment — tự động hóa mọi bước từ commit đến production</li>
+          <li>Quality Gate bắt buộc: Eval Suite (F1≥95%, Faithfulness≥99%) phải pass trước khi deploy</li>
+          <li>Canary deployment: deploy lên 10% traffic trước, monitor 1 giờ, rồi mới rollout 100%</li>
+          <li>Mỗi bước CI/CD nếu fail thì DỪNG — không bao giờ deploy code chưa pass evaluation</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════ BÀI 4: MONITORING ════════════════════ -->
+    <section id="lesson4" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">4</div>
+        <h2>Monitoring &amp; Alerting — Theo Dõi Production</h2>
+      </div>
+
+      <h3>4.1 Monitoring vs Observability</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Giám sát vs Điều tra</div>
+        <p><strong>Monitoring</strong> = đặt camera trong cửa hàng: biết có trộm xảy ra (anomaly detected). <strong>Observability</strong> = camera + microphone + cảm biến chuyển động + log khách vào ra: biết ai, ở đâu, làm gì, bao giờ.</p>
+        <p style="margin:0">Module 2 đã xây Observability (structured logs + traces + metrics). Bài này tập trung vào <strong>Monitoring</strong>: xem metrics theo thời gian thực và tự động alert khi có vấn đề.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">4.2 Alert Tiers cho LoanBot</h3>
+
+      <table class="alert-table">
+        <thead><tr><th>Tier</th><th>Metric Vi Phạm</th><th>Hành Động</th><th>Response Time</th></tr></thead>
+        <tbody>
+          <tr class="alert-p1">
+            <td>🚨 P1 (Critical)</td>
+            <td>F1 Score giảm &gt;5% so với baseline (regression)</td>
+            <td>Page on-call + rollback tự động</td>
+            <td>&lt;5 phút</td>
+          </tr>
+          <tr class="alert-p1">
+            <td>🚨 P1 (Critical)</td>
+            <td>Faithfulness &lt;95% (hallucination spike)</td>
+            <td>Suspend agent, notify Compliance</td>
+            <td>&lt;5 phút</td>
+          </tr>
+          <tr class="alert-p2">
+            <td>⚠️ P2 (High)</td>
+            <td>P95 Latency &gt;300s (SLA breach)</td>
+            <td>Alert Engineering team + scale up</td>
+            <td>&lt;15 phút</td>
+          </tr>
+          <tr class="alert-p2">
+            <td>⚠️ P2 (High)</td>
+            <td>Cost/request tăng &gt;50% so với baseline</td>
+            <td>Alert Finance + Engineering</td>
+            <td>&lt;30 phút</td>
+          </tr>
+          <tr>
+            <td>📋 P3 (Medium)</td>
+            <td>Task Success Rate &lt;98%</td>
+            <td>Create Jira ticket, investigate next day</td>
+            <td>&lt;24 giờ</td>
+          </tr>
+          <tr>
+            <td>📋 P3 (Medium)</td>
+            <td>Error Recovery Rate &lt;80%</td>
+            <td>Review retry configuration</td>
+            <td>&lt;24 giờ</td>
+          </tr>
+          <tr>
+            <td>ℹ️ P4 (Low)</td>
+            <td>Avg tool calls/request tăng &gt;10%</td>
+            <td>Log for weekly review</td>
+            <td>Weekly</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Monitoring Dashboard LoanBot v1.0</div>
+        <p>Grafana dashboard được setup với 4 panels chính:</p>
+        <div class="stats-row" style="margin:var(--space-3) 0 0;">
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.4rem;color:var(--success)">95.5%</div>
+            <div class="stat-label">F1 Score (15-min rolling avg)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.4rem;color:var(--success)">187s</div>
+            <div class="stat-label">P95 Latency (7-day)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.4rem;color:var(--success)">$0.041</div>
+            <div class="stat-label">Avg Cost/Request (today)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.4rem;color:var(--primary)">1,247</div>
+            <div class="stat-label">Hồ sơ processed (today)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 4</h4>
+        <ul>
+          <li>Alert tiers: P1 (Critical → auto-rollback), P2 (High → engineer alert), P3 (Medium → ticket), P4 (Info → weekly)</li>
+          <li>F1 Score regression &gt;5% = P1 Critical — phải rollback ngay, không chờ investigation</li>
+          <li>Faithfulness drop = P1 Critical — suspend agent ngay vì hallucination trong tài chính là nguy hiểm</li>
+          <li>Rolling metrics: không chỉ current value mà trend over time — phát hiện slow degradation</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════ BÀI 5: SCALING ════════════════════════ -->
+    <section id="lesson5" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">5</div>
+        <h2>Scaling &amp; Cost Optimization — Mở Rộng Hiệu Quả</h2>
+      </div>
+
+      <h3>5.1 Scaling Strategies</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Quán phở mở thêm quán</div>
+        <p>Quán phở bận không có nghĩa là phải thuê bếp to hơn — mở thêm chi nhánh thứ 2 rồi thứ 3 khi cần. Khi khách vắng, đóng chi nhánh 2 và 3. Chi phí tỷ lệ thuận với nhu cầu thực tế.</p>
+        <p style="margin:0"><strong>Horizontal scaling</strong> (thêm containers) thường tốt hơn <strong>vertical scaling</strong> (server to hơn) cho AI agents — linh hoạt và cost-efficient hơn.</p>
+      </div>
+
+      <div class="tier-grid">
+        <div class="tier-card" style="background:#eff6ff;border-color:#93c5fd;">
+          <h4 style="color:#1e40af">📊 Load-based Scaling</h4>
+          <ul>
+            <li>Scale khi CPU &gt;70% hoặc queue depth &gt;100</li>
+            <li>Min 2 replicas (HA), Max 10 replicas</li>
+            <li>Scale down sau 5 phút idle</li>
+            <li>LoanBot: business hours 8AM-10PM</li>
+          </ul>
+        </div>
+        <div class="tier-card" style="background:#f0fdf4;border-color:#86efac;">
+          <h4 style="color:#065f46">🕐 Scheduled Scaling</h4>
+          <ul>
+            <li>Pre-scale trước 8AM (peak intake)</li>
+            <li>Scale down 10PM-6AM</li>
+            <li>Tháng cuối quý: tăng thêm capacity</li>
+            <li>Tiết kiệm 40% chi phí vs always-on</li>
+          </ul>
+        </div>
+        <div class="tier-card" style="background:#fff7ed;border-color:#fdba74;">
+          <h4 style="color:#9a3412">💰 Cost Optimization</h4>
+          <ul>
+            <li>Cache results cho identical requests</li>
+            <li>Batch processing khi non-urgent</li>
+            <li>Dùng Haiku cho simple cases, Sonnet cho complex</li>
+            <li>Spot instances cho worker containers</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- SVG: Scaling Flow -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 5.1 — Auto-scaling: cost tăng linear với volume, tiết kiệm 99.7% so với xử lý thủ công</title>
+          <text x="350" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">LoanBot Auto-Scaling: Từ 50K đến 200K Hồ Sơ/Tháng</text>
+          <defs>
+            <marker id="as" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#0f4c81"/>
+            </marker>
+          </defs>
+  <rect width="700" height="160" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+
+          <!-- Baseline -->
+          <rect x="20" y="40" width="160" height="100" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="100" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#065f46">Baseline</text>
+          <text x="100" y="78" text-anchor="middle" font-size="10" fill="#047857">50K hồ sơ/tháng</text>
+          <text x="100" y="93" text-anchor="middle" font-size="10" fill="#047857">2 replicas</text>
+          <text x="100" y="108" text-anchor="middle" font-size="10" fill="#047857">$2,150/tháng API</text>
+          <text x="100" y="128" text-anchor="middle" font-size="9" fill="#16a34a">✅ Stable</text>
+          <line x1="182" y1="90" x2="210" y2="90" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#as)"/>
+          <text x="196" y="83" font-size="8" fill="#0f4c81">Scale ↑</text>
+
+          <!-- Growth -->
+          <rect x="212" y="40" width="160" height="100" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="292" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">Growth</text>
+          <text x="292" y="78" text-anchor="middle" font-size="10" fill="#3730a3">100K hồ sơ/tháng</text>
+          <text x="292" y="93" text-anchor="middle" font-size="10" fill="#3730a3">4 replicas (auto)</text>
+          <text x="292" y="108" text-anchor="middle" font-size="10" fill="#3730a3">$4,300/tháng API</text>
+          <text x="292" y="128" text-anchor="middle" font-size="9" fill="#0369a1">Linear cost scaling</text>
+          <line x1="374" y1="90" x2="402" y2="90" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#as)"/>
+          <text x="388" y="83" font-size="8" fill="#0f4c81">Scale ↑↑</text>
+
+          <!-- Peak -->
+          <rect x="404" y="40" width="160" height="100" rx="10" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+          <text x="484" y="62" text-anchor="middle" font-size="11" font-weight="700" fill="#854d0e">Peak</text>
+          <text x="484" y="78" text-anchor="middle" font-size="10" fill="#92400e">200K hồ sơ/tháng</text>
+          <text x="484" y="93" text-anchor="middle" font-size="10" fill="#92400e">8 replicas (auto)</text>
+          <text x="484" y="108" text-anchor="middle" font-size="10" fill="#92400e">$8,600/tháng API</text>
+          <text x="484" y="128" text-anchor="middle" font-size="9" fill="#d97706">Still &lt;10K/hồ sơ ✅</text>
+
+          <!-- Savings note -->
+          <rect x="580" y="50" width="110" height="80" rx="10" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+          <text x="635" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">vs Old System</text>
+          <text x="635" y="88" text-anchor="middle" font-size="9" fill="#047857">200K × 350K VNĐ</text>
+          <text x="635" y="102" text-anchor="middle" font-size="9" fill="#047857">= 70 tỷ VNĐ</text>
+          <text x="635" y="116" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">vs $8,600 ≈ 220tr</text>
+        </svg>
+        <div class="diagram-title">Hình 5.1 — Auto-scaling: cost tăng linear với volume, tiết kiệm 99.7% so với xử lý thủ công</div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">ROI — Lợi tức đầu tư AI của FinTech Corp</div>
+        <div class="formula-text">ROI = (70 tỷ − 219 triệu) / 70 tỷ = 99.7%</div>
+        <div class="formula-desc">Manual: 200K × 350K VNĐ = 70 tỷ VNĐ/tháng &nbsp;|&nbsp; LoanBot: ~219 triệu VNĐ/tháng</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FinTech Corp muốn scale LoanBot lên 200K hồ sơ/tháng (gấp 4 lần). Chi phí manual sẽ tăng bao nhiêu? Chi phí LoanBot sẽ tăng bao nhiêu? AI có còn lợi thế không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Manual:</strong> 200K × 350K VNĐ = <strong>70 tỷ VNĐ/tháng</strong> (gấp 4 lần, tuyến tính)<br><br>
+          <strong>LoanBot:</strong> API cost ≈ $8,600/tháng ≈ 220 triệu VNĐ. Infra cost tăng (thêm replicas) nhưng vẫn dưới 10K VNĐ/hồ sơ.<br><br>
+          <strong>Kết luận:</strong> AI vẫn tiết kiệm 99.7%. Đây là <em>superlinear advantage</em> — khi volume tăng, lợi thế tuyệt đối của AI tăng theo (từ 17.5 tỷ/tháng lên 69.8 tỷ/tháng tiết kiệm).
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 5</h4>
+        <ul>
+          <li>Horizontal scaling (nhiều containers nhỏ) > Vertical scaling (1 server to) cho AI agents</li>
+          <li>Scheduled scaling: pre-scale trước business hours, scale down ban đêm → tiết kiệm 40% infra cost</li>
+          <li>Model tiering: Haiku ($0.25/M tokens) cho simple cases, Sonnet cho complex — giảm API cost 60%</li>
+          <li>LoanBot scale tuyến tính: 50K→200K hồ sơ = $2,150→$8,600/tháng, vẫn tiết kiệm 99.7% vs thủ công</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GLOSSARY -->
+    <section style="margin:var(--space-10) 0 0;">
+      <div class="section-heading">
+        <div class="section-number" style="background:var(--text-muted);">📖</div>
+        <h2>Thuật Ngữ Quan Trọng Module 4</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-3);">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Docker Container</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Đơn vị đóng gói phần mềm cùng tất cả dependencies, chạy nhất quán trên mọi môi trường. Nhẹ hơn Virtual Machine vì dùng chung OS kernel.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">CI/CD Pipeline</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Chuỗi tự động: code push → build → test → eval → staging → production. Mỗi bước fail thì dừng, không deploy code xấu lên production.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Quality Gate</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Điểm kiểm tra bắt buộc trong CI/CD: nếu metrics (F1, Faithfulness, Latency) không đạt ngưỡng, pipeline dừng và không deploy.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Canary Deployment</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Deploy lên một phần nhỏ traffic (10%) trước, monitor, rồi mới rollout toàn bộ. Giảm rủi ro khi deploy phiên bản mới.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Horizontal Scaling</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Thêm nhiều instances (containers/nodes) thay vì nâng cấp server hiện tại. Linh hoạt hơn, không có single point of failure.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Lab-to-Production Gap</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Sự chênh lệch hiệu năng giữa môi trường lab (lý tưởng) và production (thực tế). Trung bình 37% với AI agents — giảm bằng Production Checklist.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Multi-stage Dockerfile</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Dockerfile dùng nhiều FROM stages: stage 1 build/compile, stage 2 chỉ copy runtime artifacts. Giảm image size từ GB xuống MB.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">HEALTHCHECK</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Lệnh trong Dockerfile để container orchestrator (Kubernetes) biết container có healthy không. Nếu fail → restart tự động.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE SUMMARY -->
+    <div style="background:linear-gradient(135deg,#f0fdf4,#eff6ff);border:1px solid #86efac;border-radius:var(--radius-xl);padding:var(--space-8);margin:var(--space-10) 0;">
+      <h3 style="color:#065f46;margin-bottom:var(--space-5);">🎓 Tổng Kết Module 4 — LoanBot v1.0 Production Journey</h3>
+      <div class="pipeline">
+        <div class="pipe-stage" style="border-color:#86efac;background:#f0fdf4;">
+          <span class="pipe-icon">📋</span>
+          <span class="pipe-name" style="color:#065f46">Checklist</span>
+          <span class="pipe-detail">5 groups PASS</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" style="border-color:#93c5fd;background:#eff6ff;">
+          <span class="pipe-icon">🐳</span>
+          <span class="pipe-name" style="color:#1e40af">Docker</span>
+          <span class="pipe-detail">loanbot:v1.0</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" style="border-color:#c4b5fd;background:#f5f3ff;">
+          <span class="pipe-icon">⚙️</span>
+          <span class="pipe-name" style="color:#5b21b6">CI/CD</span>
+          <span class="pipe-detail">Quality Gate</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" style="border-color:#fde047;background:#fef9c3;">
+          <span class="pipe-icon">📡</span>
+          <span class="pipe-name" style="color:#854d0e">Monitor</span>
+          <span class="pipe-detail">Grafana + Alerts</span>
+        </div>
+        <span class="pipe-arrow">→</span>
+        <div class="pipe-stage" style="border-color:#86efac;background:#f0fdf4;">
+          <span class="pipe-icon">🚀</span>
+          <span class="pipe-name" style="color:#065f46">Production</span>
+          <span class="pipe-detail">50K+ hồ sơ/tháng</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="lesson-nav">
+      <a href="../module3/index.html" class="nav-btn">← Module 3: Đánh Giá</a>
+      <div style="display:flex;gap:12px;">
+        <a href="quiz.html" class="nav-btn">📝 Quiz Module 4</a>
+        <a href="lab.ipynb" download class="nav-btn">🔬 Notebook</a>
+        <a href="../module5/index.html" class="nav-btn primary">Module 5: Governance →</a>
+      </div>
+    </div>
+
+  </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

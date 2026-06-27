@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 22 — Fine-tuning & Model Specialization</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m22-primary: #7f1d1d;
+      --m22-accent:  #f97316;
+      --m22-light:   #fff7ed;
+      --m22-border:  #fdba74;
+    }
+    .lesson-header { background: linear-gradient(135deg, #431407 0%, #7f1d1d 55%, #f97316 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fff7ed; }
+    .lesson-header p { color: #fdba74; }
+    .sidebar-nav a.active { background: var(--m22-light); border-left: 3px solid var(--m22-accent); color: var(--m22-primary); }
+    .sidebar-nav a:hover { color: var(--m22-primary); }
+
+    .decision-card {
+      padding: var(--space-4); border-radius: var(--radius-lg); border-left: 4px solid;
+      margin-bottom: var(--space-3);
+    }
+    .decision-prompt { border-color: #16a34a; background: #f0fdf4; }
+    .decision-prompt h4 { color: #166534; font-size: .875rem; font-weight: 700; margin-bottom: var(--space-1); }
+    .decision-ft { border-color: #f97316; background: #fff7ed; }
+    .decision-ft h4 { color: #7f1d1d; font-size: .875rem; font-weight: 700; margin-bottom: var(--space-1); }
+
+    .lora-param {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: .8rem; font-weight: 700; margin: 2px;
+      background: #fff7ed; color: #7f1d1d; border: 1px solid #fdba74;
+    }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m22-light);color:var(--m22-primary);border-color:var(--m22-border);">MODULE 22</div>
+    <div class="sidebar-title">Fine-tuning & Specialization</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Fine-tune vs Prompt Engineering</a>
+      <a href="#lesson2">L2. LoRA & QLoRA Explained</a>
+      <a href="#lesson3">L3. Synthetic Data Generation</a>
+      <a href="#lesson4">L4. Evaluation & Catastrophic Forgetting</a>
+      <a href="#lesson5">L5. Model Registry & Deployment</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m22-accent);">📝 Quiz Module 22</a>
+      <a href="lab.ipynb" download style="color:var(--m22-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module21/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 21: Streaming Agents</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 22 · Tuần 61–63</span>
+      <h1>🔬 Fine-tuning & Model Specialization</h1>
+      <p>LoanBot với Claude base model đạt 91% accuracy. Sau 6 tháng với 300,000 quyết định thực tế, FinTech Corp có đủ data để fine-tune một model chuyên biệt đạt 97.3% accuracy — đồng thời giảm 60% token cost vì model đã "hiểu" domain.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🔬 Fine-tuning Pipeline</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Fine-tuning vs Prompt Engineering — Khi Nào Dùng Gì?</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Biết 5 điều kiện xác định khi nào fine-tuning vượt trội prompt engineering</li>
+          <li>Hiểu trade-off: cost, time, flexibility, maintenance</li>
+          <li>Tính ROI: khi nào fine-tuning cost-effective</li>
+          <li>Áp dụng decision framework cho LoanBot</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Nhân viên mới vs Chuyên gia tư vấn</div>
+        <p><strong>Prompt Engineering</strong> = Thuê chuyên gia tư vấn giỏi (Claude) và viết brief chi tiết mỗi lần. Nhanh, linh hoạt, không cần đào tạo — nhưng tốn thời gian viết brief và đắt hơn per-use. <strong>Fine-tuning</strong> = Tuyển nhân viên mới, đào tạo 3 tháng về nghiệp vụ FinTech Corp. Sau đó nhân viên này hiểu quy trình mà không cần giải thích lại — nhanh hơn, rẻ hơn per-use, nhưng cần đầu tư training ban đầu và khi quy trình thay đổi cần đào tạo lại.</p>
+      </div>
+
+      <h3>Decision Framework: 5 Điều Kiện Nên Fine-tune</h3>
+
+      <div class="decision-card decision-ft">
+        <h4>✅ Nên fine-tune khi:</h4>
+        <ol style="font-size:.875rem;margin-top:var(--space-2);">
+          <li><strong>Volume cao</strong>: >50,000 requests/tháng → cost savings từ shorter prompts và smaller model justify training cost</li>
+          <li><strong>Domain rất đặc thù</strong>: LoanBot cần biết TT39/2016, NĐ13/2023, FinTech Corp internal thresholds — quá nhiều context để nhét vào system prompt mỗi lần</li>
+          <li><strong>Output format cứng</strong>: luôn muốn JSON với schema cụ thể, không bao giờ thay đổi</li>
+          <li><strong>Consistency critical</strong>: quyết định tín dụng phải nhất quán — không muốn LLM "sáng tạo" cách diễn đạt mỗi lần</li>
+          <li><strong>Data đủ lớn và chất lượng</strong>: ≥1,000 high-quality examples với expert-verified labels</li>
+        </ol>
+      </div>
+
+      <div class="decision-card decision-prompt">
+        <h4>✅ Nên dùng prompt engineering khi:</h4>
+        <ol style="font-size:.875rem;margin-top:var(--space-2);">
+          <li><strong>Prototype/MVP</strong>: cần ship nhanh, chưa có enough data</li>
+          <li><strong>Task thay đổi thường xuyên</strong>: regulation mới mỗi quý → fine-tuned model outdated nhanh</li>
+          <li><strong>Volume thấp</strong>: <5,000 requests/tháng → training cost không recover được</li>
+          <li><strong>Cần latest knowledge</strong>: Claude frontier model cập nhật liên tục; fine-tuned model bị frozen</li>
+          <li><strong>Nhiều diverse tasks</strong>: một model phải làm nhiều việc khác nhau — fine-tune một task có thể hurt others</li>
+        </ol>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">ROI Calculator</div>
+        <div class="formula-text">Break-even = Training Cost ÷ (Monthly Savings × 12)</div>
+        <div class="formula-desc">LoanBot: Training Cost ≈ $2,000; Savings = $0.003/req × 50,000 req/month = $150/month; Break-even = 2,000 ÷ (150×12) = 1.1 năm. Nếu model dùng &gt;1.1 năm → positive ROI.</div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Fine-tuning Decision Matrix — 4 quadrants: Volume vs Task Stability cho LoanBot</title>
+          <defs>
+            <marker id="arr22" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#f97316"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#431407" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fff7ed">Fine-tune Decision Matrix</text>
+
+          <!-- Axes -->
+          <line x1="380" y1="35" x2="380" y2="185" stroke="#7f1d1d" stroke-width="1.5"/>
+          <line x1="30"  y1="110" x2="730" y2="110" stroke="#7f1d1d" stroke-width="1.5"/>
+          <!-- Axis labels -->
+          <text x="380" y="192" text-anchor="middle" font-size="8" fill="#fdba74">→ Task Stability (thay đổi ít)</text>
+          <text x="22" y="115" text-anchor="end" font-size="8" fill="#fdba74" transform="rotate(-90,22,110)">→ Volume (cao)</text>
+          <text x="200" y="28" text-anchor="middle" font-size="8" fill="#64748b">Thay đổi nhiều</text>
+          <text x="560" y="28" text-anchor="middle" font-size="8" fill="#64748b">Ổn định</text>
+
+          <!-- Q1: High volume, stable → FINE-TUNE -->
+          <rect x="385" y="38" width="340" height="68" fill="#431407" rx="6" stroke="#f97316" stroke-width="1.5"/>
+          <text x="555" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#f97316">🔬 FINE-TUNE</text>
+          <text x="555" y="82" text-anchor="middle" font-size="8" fill="#fdba74">Volume cao + Task ổn định</text>
+          <text x="555" y="93" text-anchor="middle" font-size="8" fill="#fbbf24">→ LoanBot sau 6 tháng ✅</text>
+
+          <!-- Q2: High volume, unstable → Hybrid -->
+          <rect x="35" y="38" width="340" height="68" fill="#1a0a00" rx="6" stroke="#fdba74"/>
+          <text x="205" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#fdba74">⚖️ HYBRID</text>
+          <text x="205" y="82" text-anchor="middle" font-size="8" fill="#fdba74">Fine-tune format, prompt-engineer content</text>
+          <text x="205" y="93" text-anchor="middle" font-size="8" fill="#94a3b8">→ Structured output + dynamic rules</text>
+
+          <!-- Q3: Low volume, stable → Prompt Engineering -->
+          <rect x="385" y="115" width="340" height="68" fill="#1a0a00" rx="6" stroke="#fdba74"/>
+          <text x="555" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#86efac">📝 PROMPT ENG.</text>
+          <text x="555" y="160" text-anchor="middle" font-size="8" fill="#fdba74">Volume thấp + Task ổn định</text>
+          <text x="555" y="171" text-anchor="middle" font-size="8" fill="#94a3b8">→ Training cost không justify</text>
+
+          <!-- Q4: Low volume, unstable → Prompt Engineering -->
+          <rect x="35" y="115" width="340" height="68" fill="#1a0a00" rx="6" stroke="#334155"/>
+          <text x="205" y="143" text-anchor="middle" font-size="11" font-weight="700" fill="#86efac">📝 PROMPT ENG.</text>
+          <text x="205" y="160" text-anchor="middle" font-size="8" fill="#64748b">Volume thấp + Thay đổi nhiều</text>
+          <text x="205" y="171" text-anchor="middle" font-size="8" fill="#64748b">→ MVP, prototype</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Decision Matrix — Fine-tuning phù hợp khi volume cao VÀ task ổn định. LoanBot sau 6 tháng production nằm ở quadrant trên-phải: 50K hồ sơ/tháng, quy trình thẩm định ổn định.</div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: LoRA & QLoRA — Fine-tuning Hiệu Quả với Chi Phí Thấp</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao full fine-tuning tốn kém và LoRA giải quyết vấn đề đó như thế nào</li>
+          <li>Biết các hyperparameters quan trọng: rank (r), alpha, target_modules</li>
+          <li>Hiểu QLoRA = LoRA + 4-bit quantization: giảm thêm 75% memory</li>
+          <li>Chọn đúng rank cho LoanBot use case</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Tại Sao LoRA?</div>
+        <p><strong>Full fine-tuning</strong>: update toàn bộ billions of parameters → cần GPU cluster, tốn $10,000+, mất nhiều tuần. <strong>LoRA (Low-Rank Adaptation)</strong>: insight quan trọng — khi adapt model cho domain mới, thay đổi thực sự chỉ nằm trong một <em>low-rank subspace</em>. Thay vì update matrix W (7B params), LoRA thêm 2 small matrices A và B (chỉ ~0.1% của W) và chỉ train A và B. <code>W_new = W + B·A</code> — W frozen, chỉ train B·A. Kết quả: 100x ít parameters cần train → 10x ít VRAM → training cost $10-100 thay vì $10,000+.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>LoRA Architecture: W_new = W_frozen + B·A — Low-Rank Adaptation cho LoanBot fine-tuning</title>
+          <rect width="760" height="195" fill="#431407" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fff7ed">LoRA Architecture: Low-Rank Adaptation</text>
+
+          <!-- Full fine-tune (left) -->
+          <rect x="20" y="35" width="180" height="145" fill="#1e293b" rx="8" stroke="#334155"/>
+          <text x="110" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="#94a3b8">Full Fine-tuning</text>
+          <rect x="35" y="65" width="150" height="100" fill="#7f1d1d" rx="6"/>
+          <text x="110" y="110" text-anchor="middle" font-size="28" font-weight="700" fill="#fca5a5">W</text>
+          <text x="110" y="130" text-anchor="middle" font-size="8" fill="#fca5a5">7B parameters</text>
+          <text x="110" y="142" text-anchor="middle" font-size="8" fill="#fca5a5">ALL updated</text>
+          <text x="110" y="170" text-anchor="middle" font-size="8" fill="#64748b">Cost: $10,000+ GPU</text>
+
+          <!-- Arrow -->
+          <line x1="200" y1="110" x2="225" y2="110" stroke="#f97316" stroke-width="2"/>
+          <text x="212" y="105" text-anchor="middle" font-size="8" fill="#f97316">vs</text>
+
+          <!-- LoRA (right) -->
+          <rect x="228" y="35" width="510" height="145" fill="#1e293b" rx="8" stroke="#f97316" stroke-width="1.5"/>
+          <text x="483" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="#fdba74">LoRA: W_new = W_frozen + B·A</text>
+
+          <!-- W frozen -->
+          <rect x="245" y="65" width="140" height="100" fill="#1e3a5f" rx="6" stroke="#7dd3fc"/>
+          <text x="315" y="100" text-anchor="middle" font-size="22" font-weight="700" fill="#93c5fd">W</text>
+          <text x="315" y="118" text-anchor="middle" font-size="8" fill="#7dd3fc">7B params</text>
+          <text x="315" y="130" text-anchor="middle" font-size="8" fill="#7dd3fc">❄️ FROZEN</text>
+          <text x="315" y="155" text-anchor="middle" font-size="7" fill="#64748b">No gradient update</text>
+
+          <!-- Plus sign -->
+          <text x="400" y="118" text-anchor="middle" font-size="24" font-weight="700" fill="#f97316">+</text>
+
+          <!-- B matrix -->
+          <rect x="420" y="75" width="60" height="80" fill="#7f1d1d" rx="6" stroke="#f97316"/>
+          <text x="450" y="115" text-anchor="middle" font-size="18" font-weight="700" fill="#fdba74">B</text>
+          <text x="450" y="148" text-anchor="middle" font-size="7" fill="#fdba74">d × r</text>
+
+          <!-- Dot sign -->
+          <text x="495" y="118" text-anchor="middle" font-size="16" fill="#f97316">·</text>
+
+          <!-- A matrix -->
+          <rect x="505" y="95" width="90" height="45" fill="#7f1d1d" rx="6" stroke="#f97316"/>
+          <text x="550" y="122" text-anchor="middle" font-size="18" font-weight="700" fill="#fdba74">A</text>
+          <text x="550" y="137" text-anchor="middle" font-size="7" fill="#fdba74">r × d</text>
+
+          <!-- Rank annotation -->
+          <rect x="608" y="65" width="115" height="110" fill="#431407" rx="6" stroke="#fdba74"/>
+          <text x="665" y="83" text-anchor="middle" font-size="8" font-weight="700" fill="#f97316">rank r = 16</text>
+          <text x="665" y="97" text-anchor="middle" font-size="7" fill="#fdba74">B: 4096 × 16</text>
+          <text x="665" y="109" text-anchor="middle" font-size="7" fill="#fdba74">A: 16 × 4096</text>
+          <text x="665" y="123" text-anchor="middle" font-size="7" fill="#fdba74">= 131,072 params</text>
+          <text x="665" y="141" text-anchor="middle" font-size="8" fill="#86efac">vs 16.7M full</text>
+          <text x="665" y="155" text-anchor="middle" font-size="8" fill="#86efac">= 0.78% params</text>
+          <text x="665" y="168" text-anchor="middle" font-size="7" fill="#fde047">Cost: ~$50 GPU</text>
+        </svg>
+        <div class="diagram-title">Hình 2: LoRA Architecture. Thay vì update toàn bộ W (7B params), LoRA thêm 2 small matrices B·A (rank=16 → chỉ 131K params = 0.78%). W frozen hoàn toàn. Training cost giảm từ $10,000+ xuống ~$50.</div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: QLoRA — Quantization + LoRA</div>
+        <p><strong>QLoRA</strong> đi thêm một bước: quantize W từ float16 (16-bit) xuống int4 (4-bit) → giảm thêm 4x memory. Model 7B với float16 cần 14GB VRAM; với QLoRA chỉ cần 3.5GB — chạy được trên single consumer GPU (RTX 3090). Nhược điểm: small accuracy drop (~0.5%) do quantization noise. Cho LoanBot: acceptable vì fine-tuning sau đó recover accuracy.</p>
+      </div>
+
+      <h3>Hyperparameters Quan Trọng</h3>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-4);margin:var(--space-4) 0;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;font-size:.875rem;margin-bottom:var(--space-2);">rank (r) <span class="lora-param">LoanBot: r=16</span></p>
+          <p style="font-size:.825rem;color:var(--text-secondary);">Kích thước low-rank subspace. r=8: nhỏ, ít params, domain không quá đặc thù. r=16: balance tốt cho most cases. r=64: complex domain, nhiều data. Lớn hơn không luôn tốt hơn — overfitting risk tăng.</p>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;font-size:.875rem;margin-bottom:var(--space-2);">alpha <span class="lora-param">LoanBot: α=32</span></p>
+          <p style="font-size:.825rem;color:var(--text-secondary);">Scaling factor. Learning rate effective = (alpha/rank) × lr. Alpha=32 với rank=16 → scaling=2.0. Thường set alpha=2×rank. Quá cao → unstable training; quá thấp → học chậm.</p>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;font-size:.875rem;margin-bottom:var(--space-2);">target_modules <span class="lora-param">q_proj, v_proj</span></p>
+          <p style="font-size:.825rem;color:var(--text-secondary);">Layers nào apply LoRA. Mặc định: q_proj và v_proj trong attention. Thêm k_proj, o_proj, mlp → nhiều params hơn, tốt hơn nhưng tốn VRAM hơn. Bắt đầu với q+v, thêm nếu accuracy không đủ.</p>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;font-size:.875rem;margin-bottom:var(--space-2);">dropout <span class="lora-param">LoanBot: 0.05</span></p>
+          <p style="font-size:.825rem;color:var(--text-secondary);">Regularization để prevent overfitting. 0.0 = no dropout (nếu data đủ lớn). 0.05–0.1 = typical range. Cao hơn nếu training data nhỏ (<1,000 examples). LoanBot với 50K examples → 0.05 đủ.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (LoRA config cho LoanBot với PEFT library)</span>
+        <pre><code><span class="code-keyword">from</span> peft <span class="code-keyword">import</span> LoraConfig, get_peft_model, TaskType
+<span class="code-keyword">from</span> transformers <span class="code-keyword">import</span> AutoModelForCausalLM, BitsAndBytesConfig
+<span class="code-keyword">import</span> torch
+
+<span class="code-comment"># QLoRA: load model in 4-bit</span>
+bnb_config = <span class="code-function">BitsAndBytesConfig</span>(
+    load_in_4bit=<span class="code-keyword">True</span>,
+    bnb_4bit_quant_type=<span class="code-string">"nf4"</span>,          <span class="code-comment"># NormalFloat4 — best for LLM weights</span>
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=<span class="code-keyword">True</span>,     <span class="code-comment"># double quantize for extra compression</span>
+)
+
+model = <span class="code-function">AutoModelForCausalLM.from_pretrained</span>(
+    <span class="code-string">"meta-llama/Llama-3-8b-instruct"</span>,
+    quantization_config=bnb_config,
+    device_map=<span class="code-string">"auto"</span>,
+)
+
+<span class="code-comment"># LoRA configuration for LoanBot domain adaptation</span>
+lora_config = <span class="code-function">LoraConfig</span>(
+    r=<span class="code-number">16</span>,                      <span class="code-comment"># rank — balance between params and expressiveness</span>
+    lora_alpha=<span class="code-number">32</span>,             <span class="code-comment"># scaling = alpha/r = 2.0</span>
+    target_modules=[<span class="code-string">"q_proj"</span>, <span class="code-string">"v_proj"</span>, <span class="code-string">"k_proj"</span>, <span class="code-string">"o_proj"</span>],
+    lora_dropout=<span class="code-number">0.05</span>,
+    bias=<span class="code-string">"none"</span>,
+    task_type=TaskType.<span class="code-function">CAUSAL_LM</span>,
+)
+
+model = <span class="code-function">get_peft_model</span>(model, lora_config)
+model.<span class="code-function">print_trainable_parameters</span>()
+<span class="code-comment"># Output: trainable params: 6,815,744 || all params: 8,037,224,448 || 0.085%</span>
+<span class="code-comment"># Only 0.085% of parameters are trained! Rest are frozen.</span></code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Với LoanBot cần học cả domain knowledge (TT39/2016, FinTech Corp thresholds) lẫn output format (JSON schema cụ thể), bạn nên dùng rank r=8 hay r=32? Giải thích lý do.</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> r=16 là compromise tốt hơn. r=8: có thể không đủ expressiveness để học cả domain knowledge phức tạp (Vietnamese banking law) lẫn strict JSON format — risk underfitting. r=32: nhiều params, học được nhiều hơn, nhưng risk overfitting nếu dataset không đủ lớn và tốn VRAM gấp đôi r=16. r=16 là "Goldilocks" — đủ capacity, không overfit với 50K examples, VRAM manageable. Bắt đầu với r=16, evaluate, điều chỉnh nếu cần. Nếu accuracy vẫn thấp → tăng rank và thêm target modules. Nếu overfitting → giảm rank hoặc tăng dropout.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Synthetic Data Generation — Tạo Training Data từ Production</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao raw production data không đủ để fine-tune trực tiếp</li>
+          <li>Dùng Claude để generate synthetic training examples từ real cases</li>
+          <li>Apply data quality filters: deduplication, length filter, quality scorer</li>
+          <li>Đảm bảo privacy: anonymize PII trước khi đưa vào training pipeline</li>
+        </ul>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ PII trong Training Data — Risk Nghiêm Trọng</div>
+        <p>FinTech Corp có 300,000 real loan decisions với tên KH, CCCD, địa chỉ, thu nhập. <strong>Tuyệt đối không dùng raw production data</strong> để fine-tune — model có thể memorize và leak PII sau này. GDPR Art.17 và NĐ13/2023 yêu cầu xóa PII khi không cần thiết. Pipeline bắt buộc: (1) Anonymize: thay tên → "KH_001", thay CCCD → random 12 digits, thay địa chỉ → tỉnh/thành phố chỉ; (2) Synthetic generation từ anonymized data; (3) Verify: không còn PII nào trong training set.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Synthetic Training Data Generator)</span>
+        <pre><code><span class="code-keyword">import</span> anthropic, json, random, hashlib
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">TrainingExample</span>:
+    instruction: <span class="code-type">str</span>
+    input_data: dict
+    output: dict         <span class="code-comment"># expert-verified decision</span>
+    quality_score: float <span class="code-comment"># 0.0–1.0</span>
+    source: <span class="code-type">str</span>         <span class="code-comment"># "synthetic" | "production_anonymized"</span>
+
+<span class="code-keyword">def</span> <span class="code-function">anonymize_application</span>(app: dict) -> dict:
+    <span class="code-comment">"""Remove PII before using in training pipeline."""</span>
+    pseudo_id = <span class="code-string">"KH_"</span> + hashlib.<span class="code-function">md5</span>(app.<span class="code-function">get</span>(<span class="code-string">"customer_id"</span>, <span class="code-string">""</span>).<span class="code-function">encode</span>()).<span class="code-function">hexdigest</span>()[:<span class="code-number">6</span>].<span class="code-function">upper</span>()
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"customer_id"</span>: pseudo_id,       <span class="code-comment"># hash, not original</span>
+        <span class="code-string">"credit_score"</span>: app[<span class="code-string">"credit_score"</span>],
+        <span class="code-string">"dti_ratio"</span>: app[<span class="code-string">"dti_ratio"</span>],
+        <span class="code-string">"employment_months"</span>: app[<span class="code-string">"employment_months"</span>],
+        <span class="code-string">"loan_amount"</span>: <span class="code-function">round</span>(app[<span class="code-string">"loan_amount"</span>], -<span class="code-number">7</span>),  <span class="code-comment"># round to nearest 10M</span>
+        <span class="code-string">"region"</span>: app.<span class="code-function">get</span>(<span class="code-string">"province"</span>, <span class="code-string">"Unknown"</span>),  <span class="code-comment"># province only, not address</span>
+        <span class="code-comment"># REMOVED: name, cccd_number, phone, exact_address, income</span>
+    }
+
+<span class="code-keyword">async def</span> <span class="code-function">generate_training_example</span>(
+    client: anthropic.AsyncAnthropic,
+    app: dict,
+    expert_decision: dict
+) -> TrainingExample:
+    <span class="code-comment">"""Use Claude to generate high-quality training example from real case."""</span>
+    prompt = <span class="code-string">f"""Generate a training example for LoanBot fine-tuning.
+
+Application (anonymized):
+{json.dumps(app, indent=2, ensure_ascii=False)}
+
+Expert decision:
+{json.dumps(expert_decision, indent=2, ensure_ascii=False)}
+
+Create a natural Vietnamese instruction + explanation that a loan officer would write.
+The explanation must:
+1. Reference specific numbers from the application
+2. Cite relevant regulation (TT39/2016 if applicable)
+3. Be consistent with the expert decision
+4. Be 2-4 sentences
+
+Return JSON: {{"instruction": "...", "explanation": "...", "quality_score": 0.0-1.0}}"""</span>
+
+    response = <span class="code-keyword">await</span> client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="code-number">512</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: prompt}]
+    )
+    data = json.<span class="code-function">loads</span>(response.content[<span class="code-number">0</span>].text)
+    <span class="code-keyword">return</span> <span class="code-function">TrainingExample</span>(
+        instruction=data[<span class="code-string">"instruction"</span>],
+        input_data=app,
+        output=expert_decision,
+        quality_score=data.<span class="code-function">get</span>(<span class="code-string">"quality_score"</span>, <span class="code-number">0.8</span>),
+        source=<span class="code-string">"synthetic"</span>
+    )
+
+<span class="code-keyword">def</span> <span class="code-function">filter_training_data</span>(examples: List[TrainingExample]) -> List[TrainingExample]:
+    <span class="code-comment">"""Apply quality filters before training."""</span>
+    seen_hashes = <span class="code-function">set</span>()
+    filtered = []
+    <span class="code-keyword">for</span> ex <span class="code-keyword">in</span> examples:
+        <span class="code-comment"># 1. Quality threshold</span>
+        <span class="code-keyword">if</span> ex.quality_score < <span class="code-number">0.7</span>: <span class="code-keyword">continue</span>
+        <span class="code-comment"># 2. Length filter</span>
+        <span class="code-keyword">if</span> <span class="code-function">len</span>(ex.instruction) < <span class="code-number">30</span> <span class="code-keyword">or</span> <span class="code-function">len</span>(ex.instruction) > <span class="code-number">500</span>: <span class="code-keyword">continue</span>
+        <span class="code-comment"># 3. Deduplication (MD5 of instruction)</span>
+        h = hashlib.<span class="code-function">md5</span>(ex.instruction.<span class="code-function">encode</span>()).<span class="code-function">hexdigest</span>()
+        <span class="code-keyword">if</span> h <span class="code-keyword">in</span> seen_hashes: <span class="code-keyword">continue</span>
+        seen_hashes.<span class="code-function">add</span>(h)
+        filtered.<span class="code-function">append</span>(ex)
+    <span class="code-keyword">return</span> filtered</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Evaluation & Catastrophic Forgetting</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế evaluation suite cho fine-tuned LoanBot model</li>
+          <li>Hiểu catastrophic forgetting và cách phát hiện nó</li>
+          <li>Implement early stopping dựa trên validation accuracy</li>
+          <li>So sánh base model vs fine-tuned trên 4 dimensions</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Catastrophic Forgetting</div>
+        <p><strong>Catastrophic forgetting</strong>: khi fine-tune LoanBot trên loan data, model có thể "quên" general capabilities — ví dụ không còn có thể viết email hay translate tiếng Anh nữa. Với LoanBot: acceptable nếu chỉ dùng để thẩm định tín dụng. <strong>Nhưng nguy hiểm</strong> nếu forget: khả năng follow instructions, common sense reasoning, JSON formatting (cần cho output). Cách detect: test general capability benchmarks trước và sau fine-tuning. Cách mitigate: (1) dùng lower learning rate; (2) đừng fine-tune quá nhiều epochs; (3) xen lẫn general instructions vào training data (~10-20% của dataset).</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (4-Dimension Evaluation Suite)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">EvalResult</span>:
+    dimension: <span class="code-type">str</span>
+    score: float       <span class="code-comment"># 0.0–1.0</span>
+    baseline: float    <span class="code-comment"># base model score</span>
+    passed: bool
+
+<span class="code-keyword">class</span> <span class="code-function">FineTunedModelEvaluator</span>:
+    <span class="code-comment">"""Compare base vs fine-tuned model on 4 critical dimensions."""</span>
+
+    <span class="code-keyword">async def</span> <span class="code-function">evaluate_domain_accuracy</span>(self, model_fn, dataset) -> EvalResult:
+        <span class="code-comment">"""Dimension 1: Domain task accuracy (primary metric)."""</span>
+        correct = <span class="code-function">sum</span>(
+            model_fn(c)[<span class="code-string">"decision"</span>] == c.expert_decision
+            <span class="code-keyword">for</span> c <span class="code-keyword">in</span> dataset
+        )
+        score = correct / <span class="code-function">len</span>(dataset)
+        <span class="code-keyword">return</span> <span class="code-function">EvalResult</span>(<span class="code-string">"domain_accuracy"</span>, score, baseline=<span class="code-number">0.91</span>, passed=score >= <span class="code-number">0.95</span>)
+
+    <span class="code-keyword">async def</span> <span class="code-function">evaluate_json_compliance</span>(self, model_fn, test_cases) -> EvalResult:
+        <span class="code-comment">"""Dimension 2: Output always valid JSON with required schema."""</span>
+        valid = <span class="code-number">0</span>
+        <span class="code-keyword">for</span> case <span class="code-keyword">in</span> test_cases:
+            <span class="code-keyword">try</span>:
+                result = model_fn(case)
+                <span class="code-keyword">assert</span> {<span class="code-string">"decision"</span>, <span class="code-string">"confidence"</span>, <span class="code-string">"explanation"</span>}.<span class="code-function">issubset</span>(result)
+                <span class="code-keyword">assert</span> result[<span class="code-string">"decision"</span>] <span class="code-keyword">in</span> {<span class="code-string">"APPROVE"</span>, <span class="code-string">"REJECT"</span>, <span class="code-string">"REVIEW"</span>}
+                valid += <span class="code-number">1</span>
+            <span class="code-keyword">except</span>: <span class="code-keyword">pass</span>
+        score = valid / <span class="code-function">len</span>(test_cases)
+        <span class="code-keyword">return</span> <span class="code-function">EvalResult</span>(<span class="code-string">"json_compliance"</span>, score, baseline=<span class="code-number">0.98</span>, passed=score >= <span class="code-number">0.99</span>)
+
+    <span class="code-keyword">async def</span> <span class="code-function">evaluate_general_capability</span>(self, model_fn) -> EvalResult:
+        <span class="code-comment">"""Dimension 3: Detect catastrophic forgetting of general skills."""</span>
+        general_tasks = [
+            (<span class="code-string">"Translate to English: 'Xin chào'"</span>, <span class="code-keyword">lambda</span> r: <span class="code-string">"hello"</span> <span class="code-keyword">in</span> r.<span class="code-function">lower</span>()),
+            (<span class="code-string">"What is 234 × 17?"</span>,              <span class="code-keyword">lambda</span> r: <span class="code-string">"3978"</span> <span class="code-keyword">in</span> r),
+            (<span class="code-string">"Format as bullet list: a, b, c"</span>,  <span class="code-keyword">lambda</span> r: <span class="code-string">"•"</span> <span class="code-keyword">in</span> r <span class="code-keyword">or</span> <span class="code-string">"-"</span> <span class="code-keyword">in</span> r),
+        ]
+        passed = <span class="code-function">sum</span>(<span class="code-number">1</span> <span class="code-keyword">for</span> task, check <span class="code-keyword">in</span> general_tasks <span class="code-keyword">if</span> <span class="code-function">check</span>(model_fn(task)))
+        score = passed / <span class="code-function">len</span>(general_tasks)
+        <span class="code-keyword">return</span> <span class="code-function">EvalResult</span>(<span class="code-string">"general_capability"</span>, score, baseline=<span class="code-number">1.0</span>, passed=score >= <span class="code-number">0.85</span>)
+
+    <span class="code-keyword">async def</span> <span class="code-function">evaluate_latency</span>(self, model_fn, n_samples: int = <span class="code-number">50</span>) -> EvalResult:
+        <span class="code-comment">"""Dimension 4: Latency improvement (fine-tuned smaller model is faster)."""</span>
+        <span class="code-keyword">import</span> time
+        times = []
+        <span class="code-keyword">for</span> _ <span class="code-keyword">in</span> <span class="code-function">range</span>(n_samples):
+            t = time.<span class="code-function">time</span>()
+            model_fn({<span class="code-string">"credit_score"</span>: <span class="code-number">650</span>, <span class="code-string">"dti"</span>: <span class="code-number">0.38</span>})
+            times.<span class="code-function">append</span>(time.<span class="code-function">time</span>() - t)
+        p50 = <span class="code-function">sorted</span>(times)[n_samples // <span class="code-number">2</span>]
+        <span class="code-comment"># Fine-tuned model: p50 < 2s (vs base Claude: ~5s with long system prompt)</span>
+        score = <span class="code-function">min</span>(<span class="code-number">1.0</span>, <span class="code-number">5.0</span> / <span class="code-function">max</span>(p50, <span class="code-number">0.1</span>))  <span class="code-comment"># normalize against 5s baseline</span>
+        <span class="code-keyword">return</span> <span class="code-function">EvalResult</span>(<span class="code-string">"latency"</span>, score, baseline=<span class="code-number">0.50</span>, passed=p50 < <span class="code-number">2.0</span>)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Fine-tuned LoanBot đạt domain accuracy 97.2% (tốt hơn baseline 91%) nhưng general_capability chỉ còn 65% (baseline: 100%). Có nên deploy không? Tại sao?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> <strong>Không nên deploy ngay.</strong> 65% general capability = severe catastrophic forgetting — model có thể fail trên general instruction following, JSON formatting, math. Ngay cả trong loan domain, các câu hỏi follow-up ("giải thích thêm", "so sánh với trường hợp tương tự") có thể fail. Fix: (1) Giảm learning rate 10x và train lại; (2) Tăng general instruction data trong training set lên 20-30%; (3) Giảm số epochs; (4) Thêm early stopping criterion: nếu general_capability < 90% → stop. Threshold acceptable: general_capability ≥ 85%. 65% là red flag nghiêm trọng.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Model Registry & Deployment — Quản Lý Model Lifecycle</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế model registry: versioning, metadata, rollback</li>
+          <li>Implement A/B testing: routing traffic giữa base và fine-tuned model</li>
+          <li>Shadow mode: chạy fine-tuned model song song nhưng không dùng output để giám sát</li>
+          <li>Canary deployment: rollout 5% → 25% → 100% với automated rollback</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot Model Registry</div>
+        <p>FinTech Corp quản lý 3 model versions đồng thời:</p>
+        <ul style="font-size:.875rem;margin-top:var(--space-2);">
+          <li><strong>v3.5-base</strong>: Claude claude-sonnet-4-6 + long system prompt. Production 100%. Baseline accuracy 91%.</li>
+          <li><strong>v3.6-ft-shadow</strong>: LLaMA-3-8B + LoRA fine-tuned. Shadow mode — chạy 100% requests nhưng output không dùng. Đang monitor accuracy, latency.</li>
+          <li><strong>v3.6-ft-canary</strong>: Sau 2 tuần shadow OK → promote to canary 5%. Nếu 7 ngày stable → 25% → 100%.</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Model Registry & Canary Router)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, Optional
+<span class="code-keyword">import</span> random, time
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ModelVersion</span>:
+    version_id:   <span class="code-type">str</span>
+    model_path:   <span class="code-type">str</span>
+    status:       <span class="code-type">str</span>   <span class="code-comment"># shadow | canary | production | retired</span>
+    traffic_pct:  float  <span class="code-comment"># 0.0–1.0 — fraction of requests routed here</span>
+    accuracy:     Optional[float] = <span class="code-keyword">None</span>
+    p50_latency:  Optional[float] = <span class="code-keyword">None</span>
+    promoted_at:  Optional[float] = <span class="code-keyword">None</span>
+    metrics: Dict = field(default_factory=dict)
+
+<span class="code-keyword">class</span> <span class="code-function">ModelRegistry</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.versions: Dict[str, ModelVersion] = {}
+        self.routing_log = []
+
+    <span class="code-keyword">def</span> <span class="code-function">register</span>(self, version: ModelVersion):
+        self.versions[version.version_id] = version
+
+    <span class="code-keyword">def</span> <span class="code-function">route_request</span>(self, request_id: <span class="code-type">str</span>) -> ModelVersion:
+        <span class="code-comment">"""Route request to correct model based on traffic split.</span>
+        <span class="code-comment">Deterministic: same request_id always routes to same model (consistent UX).</span>
+        <span class="code-comment">"""</span>
+        active = [v <span class="code-keyword">for</span> v <span class="code-keyword">in</span> self.versions.<span class="code-function">values</span>()
+                  <span class="code-keyword">if</span> v.status <span class="code-keyword">in</span> (<span class="code-string">"canary"</span>, <span class="code-string">"production"</span>)]
+        <span class="code-comment"># Deterministic hashing for consistent routing</span>
+        bucket = int(request_id.<span class="code-function">replace</span>(<span class="code-string">"-"</span>, <span class="code-string">""</span>, <span class="code-number">1</span>)[:<span class="code-number">8</span>], <span class="code-number">16</span>) % <span class="code-number">100</span> / <span class="code-number">100</span>
+        cumulative = <span class="code-number">0.0</span>
+        <span class="code-keyword">for</span> v <span class="code-keyword">in</span> <span class="code-function">sorted</span>(active, key=<span class="code-keyword">lambda</span> x: x.version_id):
+            cumulative += v.traffic_pct
+            <span class="code-keyword">if</span> bucket <= cumulative:
+                <span class="code-keyword">return</span> v
+        <span class="code-keyword">return</span> active[-<span class="code-number">1</span>]  <span class="code-comment"># fallback to last</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">promote_canary</span>(self, version_id: <span class="code-type">str</span>, new_pct: float):
+        <span class="code-comment">"""Increase canary traffic share — reduce production share."""</span>
+        canary = self.versions[version_id]
+        prod = [v <span class="code-keyword">for</span> v <span class="code-keyword">in</span> self.versions.<span class="code-function">values</span>() <span class="code-keyword">if</span> v.status == <span class="code-string">"production"</span>][<span class="code-number">0</span>]
+        canary.traffic_pct = new_pct
+        prod.traffic_pct = <span class="code-number">1.0</span> - new_pct
+        <span class="code-keyword">if</span> new_pct >= <span class="code-number">1.0</span>:
+            canary.status = <span class="code-string">"production"</span>
+            prod.status = <span class="code-string">"retired"</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">rollback</span>(self, reason: <span class="code-type">str</span>):
+        <span class="code-comment">"""Emergency rollback — set canary to 0%, production to 100%."""</span>
+        <span class="code-keyword">for</span> v <span class="code-keyword">in</span> self.versions.<span class="code-function">values</span>():
+            <span class="code-keyword">if</span> v.status == <span class="code-string">"canary"</span>:
+                v.traffic_pct = <span class="code-number">0.0</span>
+                v.status = <span class="code-string">"shadow"</span>   <span class="code-comment"># demote back to shadow</span>
+            <span class="code-keyword">elif</span> v.status == <span class="code-string">"production"</span>:
+                v.traffic_pct = <span class="code-number">1.0</span>
+        <span class="code-function">print</span>(<span class="code-string">f"🚨 ROLLBACK: {reason}"</span>)</code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Model Card cho Fine-tuned LoanBot
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>EU AI Act yêu cầu Model Card cho High-Risk AI (LoanBot). Fine-tuned model cần update Model Card với:</p>
+          <ul style="font-size:.875rem;">
+            <li><strong>Training data provenance</strong>: nguồn gốc data, anonymization procedure, date range, n=X examples</li>
+            <li><strong>Evaluation results</strong>: domain accuracy, by-difficulty breakdown, catastrophic forgetting test results</li>
+            <li><strong>Known limitations</strong>: edge cases model vẫn struggle (out-of-distribution applications, new regulation không có trong training data)</li>
+            <li><strong>Intended deployment context</strong>: chỉ dùng trong FinTech Corp loan processing, không transfer sang domains khác</li>
+            <li><strong>Bias assessment update</strong>: re-run disparate impact analysis sau fine-tuning — bias có thể increase nếu training data có historical bias</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 22</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m22-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m22-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m22-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fine-tuning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tiếp tục train một pre-trained model trên domain-specific data để specialize behavior và output.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LoRA</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Low-Rank Adaptation — chỉ train 2 small matrices (B·A) thay vì toàn bộ weight matrix. Giảm trainable params ~100x.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">QLoRA</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">LoRA + 4-bit quantization — giảm VRAM thêm 4x, cho phép fine-tune trên consumer GPU.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">rank (r)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kích thước low-rank subspace trong LoRA. r=8 (nhỏ), r=16 (balance), r=64 (lớn, cần nhiều data).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">alpha (α)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Scaling factor trong LoRA: effective_lr = (α/r) × lr. Thường set α = 2×r.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">target_modules</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Layers nào apply LoRA adapters. Thường: q_proj, v_proj trong attention blocks.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Catastrophic Forgetting</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hiện tượng model "quên" general capabilities sau fine-tuning. Detect bằng general benchmark trước/sau.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Synthetic Data</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Training data được generate bởi LLM từ real anonymized examples — tránh PII leakage trong training.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Anonymization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xóa/thay thế PII (tên, CCCD, địa chỉ) trước khi đưa data vào training pipeline.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Registry</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hệ thống quản lý model versions: metadata, evaluation results, deployment status, rollback history.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Shadow Mode</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chạy new model song song với production model, nhận 100% traffic nhưng không dùng output — chỉ monitor.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Canary Deployment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rollout dần: 5% traffic → 25% → 100%. Automated rollback nếu metrics xấu tại bất kỳ stage nào.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Quantization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giảm precision của model weights: float32 → float16 → int8 → int4. Giảm VRAM nhưng có accuracy trade-off.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Break-even Point</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thời điểm cost savings từ fine-tuned model bù đắp được training cost ban đầu. Training Cost ÷ Monthly Savings.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">PEFT</td><td style="padding:8px 12px;">Parameter-Efficient Fine-Tuning — umbrella term cho các methods chỉ train một phần nhỏ parameters (LoRA, Prefix Tuning, Adapter, etc.).</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module21/index.html" class="btn btn-outline">← Module 21: Streaming Agents</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 22 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

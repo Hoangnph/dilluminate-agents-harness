@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 7: Enterprise Multi-Agent Department — AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .lesson-section { scroll-margin-top: calc(var(--topbar-height) + 12px); }
+    .lesson-divider { border: none; border-top: 2px dashed var(--border); margin: var(--space-12) 0; }
+
+    /* Module 7 custom: agent department cards */
+    .agent-dept-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+      margin: var(--space-6) 0;
+    }
+    .agent-dept-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      text-align: center;
+      transition: var(--transition);
+    }
+    .agent-dept-card:hover { box-shadow: var(--shadow); border-color: var(--primary-light); transform: translateY(-2px); }
+    .agent-dept-card.core   { border-color: var(--primary-light); background: var(--info-light); }
+    .agent-dept-card.new    { border-color: var(--success); background: var(--success-light); }
+    .agent-dept-card.supervisor { border-color: var(--accent); background: var(--accent-light); grid-column: 1/-1; }
+    .agent-icon-lg { font-size: 2rem; margin-bottom: var(--space-2); }
+    .agent-name-sm { font-weight: 700; font-size: .9rem; color: var(--primary-dark); margin-bottom: 4px; }
+    .agent-role-sm { font-size: .78rem; color: var(--text-muted); }
+    .agent-new-badge { font-size: .65rem; background: var(--success); color: #fff; padding: 2px 6px; border-radius: var(--radius-full); font-weight: 700; margin-left: 4px; vertical-align: middle; }
+
+    /* Framework comparison */
+    .framework-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-5);
+      margin: var(--space-6) 0;
+    }
+    .framework-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      position: relative;
+      overflow: hidden;
+    }
+    .framework-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+    }
+    .framework-card.langgraph::before { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
+    .framework-card.autogen::before   { background: linear-gradient(90deg, #7c3aed, #a855f7); }
+    .framework-card.crewai::before    { background: linear-gradient(90deg, #dc2626, #ef4444); }
+    .framework-name { font-size: 1.1rem; font-weight: 800; margin-bottom: var(--space-1); }
+    .framework-by   { font-size: .75rem; color: var(--text-muted); margin-bottom: var(--space-3); }
+    .framework-strength { font-size: .82rem; margin-bottom: var(--space-1); }
+    .framework-strength span { font-weight: 700; }
+    .framework-tag {
+      display: inline-block;
+      font-size: .7rem; font-weight: 700;
+      padding: 2px 8px; border-radius: var(--radius-full);
+      background: var(--info-light); color: #0369a1;
+      margin: 2px 2px 0 0;
+    }
+
+    /* Protocol comparison */
+    .protocol-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 1fr 1fr;
+      gap: var(--space-3);
+      align-items: center;
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .875rem;
+    }
+    .protocol-row.header {
+      font-weight: 700;
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+    }
+    .protocol-row .check { color: var(--success); font-weight: 700; }
+    .protocol-row .cross { color: var(--danger); }
+    .protocol-row .partial { color: var(--warning); }
+
+    /* State machine */
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-3);
+      margin: var(--space-5) 0;
+    }
+    .state-box {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+    .state-box h5 { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: var(--space-2); }
+    .state-box p { font-size: .82rem; color: var(--text); margin: 0; }
+
+    /* sidebar */
+    .sidebar-module-title {
+      font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em;
+      color: #7c3aed; padding: var(--space-4) var(--space-6) var(--space-2);
+      border-bottom: 1px solid var(--border); margin-bottom: var(--space-2);
+    }
+
+    @media (max-width: 768px) {
+      .agent-dept-grid { grid-template-columns: repeat(2, 1fr); }
+      .framework-grid { grid-template-columns: 1fr; }
+      .state-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body data-module="m7">
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<!-- TOP NAV -->
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="../../index.html">Trang chủ</a>
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>💻 Lab</a>
+  </div>
+</nav>
+
+<!-- PAGE LAYOUT -->
+<div class="page-layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-module-tag" style="background:#f5f3ff;color:#7c3aed;border-color:#ddd6fe;">MODULE 7</div>
+  <div class="sidebar-title">Enterprise Multi-Agent</div>
+  <div class="module-progress">
+    <div class="progress-header">
+      <span class="progress-label">0 / 5 bài hoàn thành</span>
+      <span class="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#lesson1" class="sidebar-item active" data-lesson="m7-l1">L1. Từ Team đến Department</a>
+    <a href="#lesson2" class="sidebar-item" data-lesson="m7-l2">L2. Agent Registry & ANS Pattern</a>
+    <a href="#lesson3" class="sidebar-item" data-lesson="m7-l3">L3. A2A Protocol & State Management</a>
+    <a href="#lesson4" class="sidebar-item" data-lesson="m7-l4">L4. Framework Deep-Dive SOTA</a>
+    <a href="#lesson5" class="sidebar-item" data-lesson="m7-l5">L5. LoanBot v3.0 — Enterprise Dept</a>
+    <a href="quiz.html" style="margin-top:var(--space-4);color:#7c3aed;">📝 Quiz Module 7</a>
+    <a href="lab.ipynb" download style="color:#7c3aed;">🔬 Lab Notebook</a>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- LESSON HEADER -->
+  <div class="lesson-header" style="background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 60%,#a855f7 100%);">
+    <div class="lesson-header-inner">
+      <div class="lesson-header-meta">
+        <span class="module-tag" style="background:rgba(255,255,255,.15)">Module 7 · NÂNG CAO</span>
+        <span class="lesson-count">5 Bài Giảng · 15 Quiz · 1 Lab</span>
+      </div>
+      <h1>Enterprise Multi-Agent Department</h1>
+      <p class="lesson-header-desc">Xây dựng hệ thống multi-agent như một phòng ban chuyên nghiệp trong môi trường production doanh nghiệp — Agent Registry, A2A Protocol, State Persistence, và LoanBot v3.0 với 8 specialized agents.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-num">8</div><div class="hero-stat-label">Agents trong LoanBot v3.0</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">3</div><div class="hero-stat-label">SOTA Frameworks</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">2025</div><div class="hero-stat-label">A2A Protocol ra đời</div></div>
+        <div class="hero-stat"><div class="hero-stat-num">62.7%</div><div class="hero-stat-label">CAGR domain-specific agents</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE ROADMAP -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin:var(--space-6) 0;">
+    <h3 style="color:var(--primary-dark);margin-bottom:var(--space-4);">🗺️ Hành Trình Module 7</h3>
+    <div class="step-flow">
+      <div class="step"><div class="step-num">1</div><div class="step-title">Scaling Problem</div><div class="step-desc">Tại sao v2.0 không scale được</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-title">Agent Registry</div><div class="step-desc">ANS — service discovery cho agents</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-title">A2A + State</div><div class="step-desc">Protocol giao tiếp + checkpoint</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-title">Frameworks</div><div class="step-desc">LangGraph vs AutoGen vs CrewAI</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-title">LoanBot v3.0</div><div class="step-desc">8-agent enterprise department</div></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- BÀI 1: TỪ TEAM ĐẾN DEPARTMENT                      -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="lesson1" class="lesson-section">
+    <div class="section-heading">
+      <div class="section-number">1</div>
+      <h2>Từ Team đến Department — Vấn Đề Scaling</h2>
+    </div>
+
+    <div class="learning-objective">
+      <h4>🎯 Sau bài này, bạn sẽ:</h4>
+      <ul>
+        <li>Hiểu tại sao LoanBot v2.0 (5 agents hardcoded) gặp vấn đề khi FinTech Corp muốn thêm agents mới</li>
+        <li>Phân biệt "hardcoded team" vs "agent department with registry"</li>
+        <li>Biết 3 vấn đề cốt lõi khi scale multi-agent: Discovery, State, Coordination</li>
+      </ul>
+    </div>
+
+    <div class="callout example">
+      <div class="callout-header">🏢 FinTech Corp: LoanBot v2.0 đã scale — vấn đề mới nảy sinh</div>
+      <p>LoanBot v2.0 (Supervisor + 4 agents) xử lý 50K hồ sơ/tháng xuất sắc. CTO hài lòng, quyết định mở rộng:</p>
+      <ul>
+        <li><strong>Yêu cầu mới 1:</strong> Thêm <code>ComplianceAgent</code> — kiểm tra EU AI Act trước khi phê duyệt</li>
+        <li><strong>Yêu cầu mới 2:</strong> Thêm <code>FraudAgent</code> — phát hiện pattern gian lận theo thời gian thực</li>
+        <li><strong>Yêu cầu mới 3:</strong> Thêm <code>CustomerServiceAgent</code> — thông báo kết quả và giải thích cho khách hàng</li>
+        <li><strong>Yêu cầu mới 4:</strong> 3 team khác nhau trong FinTech Corp muốn <em>chia sẻ</em> CreditAgent</li>
+      </ul>
+      <p style="margin:0"><strong>Vấn đề:</strong> Code hiện tại của LoanBot v2.0 hardcode: <code>CreditAgent()</code>, <code>IncomeAgent()</code>... Mỗi lần thêm agent = phải sửa code Supervisor. 3 team muốn share = copy-paste code = chaos.</p>
+    </div>
+
+    <h3 style="margin-top:var(--space-8)">1.1 Hardcoded Team vs Agent Department</h3>
+
+    <div class="callout analogy">
+      <div class="callout-header">💡 Analogy: Phòng nhân sự vs giao nhiệm vụ trực tiếp</div>
+      <p>Hãy tưởng tượng một startup 5 người: CEO biết tên và số điện thoại của từng người, giao việc trực tiếp. Khi startup lớn lên thành 50 người, CEO không thể nhớ từng người — cần <strong>phòng nhân sự với hệ thống lưu trữ năng lực, ca làm việc, và phân công tự động</strong>.</p>
+      <p style="margin:0">Multi-agent system cũng vậy: <strong>Agent Registry</strong> là "phòng nhân sự" của hệ thống — biết mọi agent đang available, năng lực (capabilities), và trạng thái (health). Supervisor không cần biết cụ thể agent nào — chỉ cần yêu cầu "tôi cần agent có khả năng kiểm tra tín dụng".</p>
+    </div>
+
+    <!-- SVG: Hardcoded vs Registry -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 1.1 — Hardcoded v2.0 vs Registry-based v3.0: thêm agent không cần sửa Supervisor</title>
+        <defs>
+          <marker id="arrA" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <polygon points="0 0, 7 3, 0 6" fill="#94a3b8"/>
+          </marker>
+          <marker id="arrB" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <polygon points="0 0, 7 3, 0 6" fill="#059669"/>
+          </marker>
+        </defs>
+  <rect width="760" height="280" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+
+        <!-- LEFT: Hardcoded v2.0 -->
+        <rect x="10" y="10" width="350" height="260" rx="12" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="185" y="35" text-anchor="middle" font-size="12" font-weight="700" fill="#dc2626">❌ LoanBot v2.0 — Hardcoded Team</text>
+
+        <rect x="120" y="50" width="130" height="36" rx="8" fill="#dc2626"/>
+        <text x="185" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Supervisor</text>
+
+        <!-- Arrows down hardcoded -->
+        <line x1="60" y1="86" x2="60" y2="120" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="120" y1="86" x2="120" y2="120" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="185" y1="86" x2="185" y2="120" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="250" y1="86" x2="250" y2="120" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arrA)"/>
+        <line x1="310" y1="86" x2="310" y2="120" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arrA)"/>
+
+        <!-- Hardcoded lines from Supervisor box to agents -->
+        <line x1="120" y1="68" x2="60" y2="68" stroke="#fca5a5" stroke-width="1" stroke-dasharray="3,2"/>
+        <line x1="120" y1="68" x2="310" y2="68" stroke="#fca5a5" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- Agents hardcoded -->
+        <rect x="20" y="120" width="80" height="50" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="60" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">CreditAgent</text>
+        <text x="60" y="156" text-anchor="middle" font-size="8" fill="#b91c1c">hardcoded</text>
+
+        <rect x="100" y="120" width="70" height="50" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="135" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">Income</text>
+        <text x="135" y="156" text-anchor="middle" font-size="8" fill="#b91c1c">Agent</text>
+
+        <rect x="165" y="120" width="60" height="50" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="195" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">Risk</text>
+        <text x="195" y="156" text-anchor="middle" font-size="8" fill="#b91c1c">Agent</text>
+
+        <rect x="225" y="120" width="65" height="50" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="257" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">Report</text>
+        <text x="257" y="156" text-anchor="middle" font-size="8" fill="#b91c1c">Agent</text>
+
+        <rect x="285" y="120" width="55" height="50" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="312" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#991b1b">Fraud</text>
+        <text x="312" y="156" text-anchor="middle" font-size="8" fill="#b91c1c">+more?</text>
+
+        <!-- Problem labels -->
+        <text x="185" y="200" text-anchor="middle" font-size="10" fill="#dc2626" font-weight="700">Vấn đề khi thêm agent mới:</text>
+        <text x="185" y="215" text-anchor="middle" font-size="9" fill="#b91c1c">→ Phải sửa code Supervisor</text>
+        <text x="185" y="228" text-anchor="middle" font-size="9" fill="#b91c1c">→ Không share được giữa teams</text>
+        <text x="185" y="241" text-anchor="middle" font-size="9" fill="#b91c1c">→ Không biết agent nào đang available</text>
+        <text x="185" y="254" text-anchor="middle" font-size="9" fill="#b91c1c">→ Version conflicts khi scale</text>
+
+        <!-- RIGHT: Registry-based v3.0 -->
+        <rect x="400" y="10" width="350" height="260" rx="12" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <text x="575" y="35" text-anchor="middle" font-size="12" font-weight="700" fill="#15803d">✅ LoanBot v3.0 — Agent Department</text>
+
+        <rect x="505" y="50" width="140" height="36" rx="8" fill="#059669"/>
+        <text x="575" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Supervisor</text>
+
+        <!-- Registry box -->
+        <rect x="490" y="105" width="170" height="50" rx="8" fill="#d1fae5" stroke="#059669" stroke-width="1.5"/>
+        <text x="575" y="126" text-anchor="middle" font-size="11" font-weight="700" fill="#065f46">Agent Registry</text>
+        <text x="575" y="143" text-anchor="middle" font-size="9" fill="#047857">"tôi cần credit-checking agent"</text>
+
+        <line x1="575" y1="86" x2="575" y2="105" stroke="#059669" stroke-width="1.5" marker-end="url(#arrB)"/>
+
+        <!-- Agents discovered dynamically -->
+        <rect x="410" y="180" width="68" height="46" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="444" y="200" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">Credit</text>
+        <text x="444" y="213" text-anchor="middle" font-size="8" fill="#15803d">v2.1 ✅</text>
+
+        <rect x="486" y="180" width="68" height="46" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="520" y="200" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">Income</text>
+        <text x="520" y="213" text-anchor="middle" font-size="8" fill="#15803d">v1.3 ✅</text>
+
+        <rect x="562" y="180" width="65" height="46" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="594" y="200" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">Fraud</text>
+        <text x="594" y="213" text-anchor="middle" font-size="8" fill="#15803d">v1.0 ✅ NEW</text>
+
+        <rect x="635" y="180" width="75" height="46" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="672" y="200" text-anchor="middle" font-size="9" font-weight="700" fill="#14532d">Compliance</text>
+        <text x="672" y="213" text-anchor="middle" font-size="8" fill="#15803d">v1.0 ✅ NEW</text>
+
+        <line x1="575" y1="155" x2="444" y2="180" stroke="#059669" stroke-width="1" marker-end="url(#arrB)"/>
+        <line x1="575" y1="155" x2="520" y2="180" stroke="#059669" stroke-width="1" marker-end="url(#arrB)"/>
+        <line x1="575" y1="155" x2="594" y2="180" stroke="#059669" stroke-width="1" marker-end="url(#arrB)"/>
+        <line x1="575" y1="155" x2="672" y2="180" stroke="#059669" stroke-width="1" marker-end="url(#arrB)"/>
+
+        <text x="575" y="248" text-anchor="middle" font-size="10" fill="#15803d" font-weight="700">Thêm agent mới: chỉ register vào registry</text>
+        <text x="575" y="261" text-anchor="middle" font-size="9" fill="#047857">Không cần sửa Supervisor code</text>
+      </svg>
+      <div class="diagram-title">Hình 1.1 — Hardcoded v2.0 vs Registry-based v3.0: thêm agent không cần sửa Supervisor</div>
+    </div>
+
+    <h3 style="margin-top:var(--space-8)">1.2 Ba Vấn Đề Cốt Lõi Khi Scale</h3>
+
+    <p>Nghiên cứu năm 2025 phân tích 120 enterprise multi-agent deployments cho thấy <strong>77% thất bại khi scale</strong> đến từ 3 vấn đề:</p>
+
+    <div class="stats-row">
+      <div class="stat-card danger">
+        <div class="stat-number">73%</div>
+        <div class="stat-label">incidents do Cascading Failures — một agent chậm làm sập toàn bộ hệ thống</div>
+      </div>
+      <div class="stat-card" style="border-color:var(--warning)">
+        <div class="stat-number">#1</div>
+        <div class="stat-label">thất bại: State Management — agent mất state khi restart, không resume được</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">23%</div>
+        <div class="stat-label">doanh nghiệp scale thành công — phần lớn bị kẹt ở pilot stage</div>
+      </div>
+    </div>
+
+    <div class="callout concept">
+      <div class="callout-header">📌 Ba Pillars của Enterprise Multi-Agent Department</div>
+      <ol class="process-steps">
+        <li>
+          <strong>Discovery — "Tìm đúng người"</strong>
+          <p>Agent Registry &amp; Service Discovery: Supervisor không hardcode tên agent, mà query registry theo capability. Tương tự DNS resolver — biến tên thành địa chỉ.</p>
+        </li>
+        <li>
+          <strong>Persistence — "Không mất việc đang làm"</strong>
+          <p>State Checkpointing: Mỗi bước xử lý được lưu vào persistent storage. Nếu agent crash giữa chừng, có thể resume từ checkpoint thay vì làm lại từ đầu.</p>
+        </li>
+        <li>
+          <strong>Coordination — "Giao tiếp đúng cách"</strong>
+          <p>A2A Protocol: Chuẩn giao tiếp agent-to-agent — không custom, không mất thông tin khi handoff. Google ra mắt tháng 4/2025, đã trở thành tiêu chuẩn industry.</p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="concept-check">
+      <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+      <p class="concept-check-q">FinTech Corp muốn thêm <code>MarketingAgent</code> vào hệ thống LoanBot để gửi offer sau khi phê duyệt khoản vay. Với v2.0 hardcoded, cần sửa mấy file? Với v3.0 Registry, cần làm gì?</p>
+      <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+      <div class="concept-check-answer">
+        <strong>v2.0 Hardcoded:</strong> Phải sửa ít nhất 3 file: (1) Supervisor code để import và gọi MarketingAgent, (2) Config để thêm API keys, (3) Test files để test luồng mới. Nguy cơ breaking change cao.<br><br>
+        <strong>v3.0 Registry:</strong> (1) Tạo MarketingAgent với capability = ["send_offer", "marketing"]. (2) Register vào AgentRegistry. (3) Supervisor tự phát hiện khi query "tôi cần agent send_offer sau approval". Không cần sửa Supervisor code.
+      </div>
+    </div>
+
+    <div class="key-points">
+      <h4>💡 Điểm cốt lõi Bài 1</h4>
+      <ul>
+        <li>23% doanh nghiệp scale multi-agent thành công — vì hardcoded architecture không flex</li>
+        <li>3 pillars: Discovery (Registry), Persistence (Checkpointing), Coordination (A2A Protocol)</li>
+        <li>Chuyển từ "biết tên" sang "biết capability" — fundamental shift trong multi-agent design</li>
+        <li>LoanBot v3.0 = 8 agents (5 cũ + ComplianceAgent + FraudAgent + AuditAgent)</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- BÀI 2: AGENT REGISTRY & ANS PATTERN                -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="lesson2" class="lesson-section">
+    <div class="section-heading">
+      <div class="section-number">2</div>
+      <h2>Agent Registry & ANS Pattern — Thư Mục Agents</h2>
+    </div>
+
+    <div class="learning-objective">
+      <h4>🎯 Sau bài này, bạn sẽ:</h4>
+      <ul>
+        <li>Hiểu Agent Name Service (ANS) hoạt động như thế nào — tương tự DNS</li>
+        <li>Thiết kế được Capability Card cho một agent mới</li>
+        <li>Biết vòng đời Registration → Health Check → Deregistration</li>
+      </ul>
+    </div>
+
+    <div class="callout analogy">
+      <div class="callout-header">💡 Analogy: DNS của internet vs ANS của agent</div>
+      <p>Khi bạn gõ <code>google.com</code>, DNS resolver không tìm kiếm thủ công — nó query <strong>hệ thống phân tán</strong> lưu mapping: <code>google.com → 142.250.x.x</code>. Bạn không cần biết IP thực sự.</p>
+      <p style="margin:0"><strong>Agent Name Service (ANS)</strong> hoạt động tương tự: Supervisor query <code>"capability:credit_check"</code> → ANS trả về <code>CreditAgent@host:port</code>. Supervisor không cần biết tên cụ thể của agent.</p>
+    </div>
+
+    <h3 style="margin-top:var(--space-6)">2.1 Capability Card — Hồ Sơ Năng Lực Agent</h3>
+
+    <p>Mỗi agent khi đăng ký vào Registry phải cung cấp <strong>Capability Card</strong> — tương tự CV khi ứng tuyển vào phòng ban:</p>
+
+    <div class="code-block">
+      <span class="code-label">Python / JSON Schema</span>
+<pre><code><span class="code-comment"># Capability Card của CreditAgent khi đăng ký vào LoanBot v3.0 Registry</span>
+<span class="code-keyword">class</span> <span class="code-type">CapabilityCard</span>:
+    agent_id:      <span class="code-type">str</span>   <span class="code-comment"># "credit-agent-prod-01"</span>
+    agent_version: <span class="code-type">str</span>   <span class="code-comment"># "2.1.0"</span>
+    capabilities:  <span class="code-type">List[str]</span>  <span class="code-comment"># ["credit_check", "cic_query", "score_interpret"]</span>
+    input_schema:  <span class="code-type">dict</span>  <span class="code-comment"># {"application_id": str, "citizen_id": str}</span>
+    output_schema: <span class="code-type">dict</span>  <span class="code-comment"># {"credit_score": int, "grade": str, "blacklisted": bool}</span>
+    sla_ms:        <span class="code-type">int</span>   <span class="code-comment"># 500 — cam kết trả kết quả trong 500ms</span>
+    cost_per_call: <span class="code-type">float</span> <span class="code-comment"># 0.02 — chi phí ước tính mỗi lần gọi (USD)</span>
+    health_endpoint: <span class="code-type">str</span>  <span class="code-comment"># "http://credit-agent:8080/health"</span>
+    tags: <span class="code-type">List[str]</span>      <span class="code-comment"># ["production", "cic-integration", "pci-compliant"]</span>
+    ttl_seconds: <span class="code-type">int</span>    <span class="code-comment"># 300 — lease expires sau 5 phút nếu không renew</span></code></pre>
+    </div>
+
+    <p>Registry lưu Capability Cards và cho phép query theo nhiều chiều:</p>
+
+    <div class="code-block">
+      <span class="code-label">Python</span>
+<pre><code><span class="code-comment"># Supervisor v3.0 query Registry — không hardcode agent name</span>
+<span class="code-keyword">class</span> <span class="code-type">AgentRegistry</span>:
+    <span class="code-keyword">def</span> <span class="code-function">find</span>(self,
+             capability: <span class="code-type">str</span>,
+             version_min: <span class="code-type">str</span> = <span class="code-string">"1.0.0"</span>,
+             tag: <span class="code-type">Optional[str]</span> = <span class="code-keyword">None</span>,
+             max_cost: <span class="code-type">Optional[float]</span> = <span class="code-keyword">None</span>
+    ) -> <span class="code-type">List[CapabilityCard]</span>:
+        <span class="code-string">"""Tìm agents theo capability — trả về list sorted theo SLA."""</span>
+        ...
+
+<span class="code-comment"># Supervisor dùng như sau:</span>
+credit_agents = registry.find(
+    capability=<span class="code-string">"credit_check"</span>,
+    tag=<span class="code-string">"production"</span>,
+    max_cost=<span class="code-number">0.05</span>
+)
+best_agent = credit_agents[<span class="code-number">0</span>]  <span class="code-comment"># Chọn agent SLA tốt nhất, cost thấp nhất</span></code></pre>
+    </div>
+
+    <!-- SVG: ANS Architecture -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 2.1 — ANS Pattern: Supervisor query capability, Registry resolve agent phù hợp</title>
+        <defs>
+          <marker id="arrC" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <polygon points="0 0, 7 3, 0 6" fill="#7c3aed"/>
+          </marker>
+        </defs>
+  <rect width="760" height="300" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#4c1d95">Agent Name Service (ANS) — LoanBot v3.0 Registry Architecture</text>
+
+        <!-- Supervisor -->
+        <rect x="300" y="40" width="160" height="50" rx="10" fill="#4c1d95" stroke="#7c3aed" stroke-width="2"/>
+        <text x="380" y="63" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">Supervisor Agent</text>
+        <text x="380" y="80" text-anchor="middle" font-size="9" fill="#c4b5fd">capability query</text>
+
+        <!-- Registry -->
+        <rect x="280" y="130" width="200" height="55" rx="10" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+        <text x="380" y="153" text-anchor="middle" font-size="12" font-weight="700" fill="#4c1d95">Agent Registry (ANS)</text>
+        <text x="380" y="168" text-anchor="middle" font-size="9" fill="#5b21b6">CapabilityCard Store · Health Monitor</text>
+        <text x="380" y="180" text-anchor="middle" font-size="9" fill="#6d28d9">TTL-based lease · Version index</text>
+
+        <line x1="380" y1="90" x2="380" y2="130" stroke="#7c3aed" stroke-width="2" marker-end="url(#arrC)"/>
+
+        <!-- Agents register -->
+        <rect x="20" y="230" width="100" height="48" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="70" y="252" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">CreditAgent</text>
+        <text x="70" y="267" text-anchor="middle" font-size="8" fill="#15803d">v2.1 · sla=300ms</text>
+
+        <rect x="134" y="230" width="100" height="48" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="184" y="252" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">IncomeAgent</text>
+        <text x="184" y="267" text-anchor="middle" font-size="8" fill="#15803d">v1.3 · sla=400ms</text>
+
+        <rect x="248" y="230" width="90" height="48" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="293" y="252" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">RiskAgent</text>
+        <text x="293" y="267" text-anchor="middle" font-size="8" fill="#15803d">v1.5 · sla=200ms</text>
+
+        <rect x="352" y="230" width="100" height="48" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+        <text x="402" y="252" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">FraudAgent</text>
+        <text x="402" y="267" text-anchor="middle" font-size="8" fill="#92400e">v1.0 · NEW 🆕</text>
+
+        <rect x="466" y="230" width="110" height="48" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+        <text x="521" y="252" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">ComplianceAgent</text>
+        <text x="521" y="267" text-anchor="middle" font-size="8" fill="#92400e">v1.0 · NEW 🆕</text>
+
+        <rect x="590" y="230" width="100" height="48" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+        <text x="640" y="252" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">AuditAgent</text>
+        <text x="640" y="267" text-anchor="middle" font-size="8" fill="#92400e">v1.0 · NEW 🆕</text>
+
+        <!-- Registration arrows up -->
+        <line x1="70" y1="230" x2="300" y2="185" stroke="#059669" stroke-width="1" stroke-dasharray="4,2"/>
+        <line x1="184" y1="230" x2="330" y2="185" stroke="#059669" stroke-width="1" stroke-dasharray="4,2"/>
+        <line x1="293" y1="230" x2="360" y2="185" stroke="#059669" stroke-width="1" stroke-dasharray="4,2"/>
+        <line x1="402" y1="230" x2="400" y2="185" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <line x1="521" y1="230" x2="440" y2="185" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <line x1="640" y1="230" x2="470" y2="185" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,2"/>
+
+        <text x="150" y="218" font-size="8" fill="#059669">register()</text>
+        <text x="490" y="218" font-size="8" fill="#d97706">register() — new agents tự động</text>
+
+        <!-- Registry returns to Supervisor -->
+        <text x="410" y="112" font-size="9" fill="#7c3aed">returns: [CreditAgent@host:3001]</text>
+        <line x1="400" y1="130" x2="400" y2="100" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="3,2" marker-end="url(#arrC)"/>
+      </svg>
+      <div class="diagram-title">Hình 2.1 — ANS Pattern: Supervisor query capability, Registry resolve agent phù hợp</div>
+    </div>
+
+    <h3 style="margin-top:var(--space-6)">2.2 Vòng Đời Agent trong Registry</h3>
+
+    <ol class="process-steps">
+      <li>
+        <strong>Registration</strong>
+        <p>Agent khởi động → gửi CapabilityCard tới Registry với TTL (Time-To-Live). Registry cấp lease và trả về agent_id.</p>
+      </li>
+      <li>
+        <strong>Heartbeat / Renewal</strong>
+        <p>Mỗi 60 giây, agent gửi heartbeat để renew lease. Registry track last_seen và health metrics.</p>
+      </li>
+      <li>
+        <strong>Health Check</strong>
+        <p>Registry định kỳ gọi <code>/health</code> endpoint của mỗi agent. Agent trả về trạng thái: HEALTHY / DEGRADED / UNHEALTHY.</p>
+      </li>
+      <li>
+        <strong>Deregistration</strong>
+        <p>Agent shutdown bình thường → gửi deregister signal. Registry xóa khỏi pool ngay lập tức. Nếu crash: TTL hết hạn → tự động bị xóa.</p>
+      </li>
+    </ol>
+
+    <div class="key-formula">
+      <div class="formula-label">Agent Availability Rule</div>
+      <div class="formula-text">Available = HEALTHY ∧ TTL_active ∧ SLA_within_budget</div>
+      <div class="formula-desc">Supervisor chỉ route đến agents thỏa mãn cả 3 điều kiện — không cần manual monitoring</div>
+    </div>
+
+    <div class="key-points">
+      <h4>💡 Điểm cốt lõi Bài 2</h4>
+      <ul>
+        <li>Capability Card = hồ sơ năng lực agent: capabilities, SLA, cost, schema, health endpoint</li>
+        <li>Registry query theo capability (không theo tên) — Supervisor không cần biết agent cụ thể</li>
+        <li>TTL-based lease: agent tự động bị xóa khỏi pool nếu crash (không cần manual cleanup)</li>
+        <li>Health check tự động: Supervisor chỉ route đến agents HEALTHY + within SLA budget</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- BÀI 3: A2A PROTOCOL & STATE MANAGEMENT             -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="lesson3" class="lesson-section">
+    <div class="section-heading">
+      <div class="section-number">3</div>
+      <h2>A2A Protocol & State Management — Giao Tiếp Chuẩn & Không Mất Dữ Liệu</h2>
+    </div>
+
+    <div class="learning-objective">
+      <h4>🎯 Sau bài này, bạn sẽ:</h4>
+      <ul>
+        <li>Hiểu A2A Protocol (Google, 4/2025) khác gì với cách giao tiếp agent cũ</li>
+        <li>Biết tại sao State Checkpointing quan trọng và implement như thế nào</li>
+        <li>Thiết kế được Task với checkpoint/resume cho một workflow LoanBot</li>
+      </ul>
+    </div>
+
+    <div class="callout analogy">
+      <div class="callout-header">💡 Analogy: Bưu phẩm có tracking vs giao tay</div>
+      <p>Giao tay trực tiếp: nhanh nhưng không có bằng chứng, không recover được nếu người nhận vắng mặt. <strong>Bưu phẩm có tracking</strong>: mỗi bước được ghi nhận — xuất phát, trung chuyển, giao thành công — và có thể "tiếp tục" từ trạm cuối nếu gặp sự cố.</p>
+      <p style="margin:0"><strong>A2A Protocol</strong> là "hệ thống tracking" cho agent handoffs: mỗi task có ID, trạng thái được ghi nhận, và có thể resume từ bước cuối mà không cần làm lại từ đầu.</p>
+    </div>
+
+    <h3 style="margin-top:var(--space-6)">3.1 A2A Protocol — Chuẩn Giao Tiếp Agent (Google, 4/2025)</h3>
+
+    <p><strong>A2A (Agent-to-Agent Protocol)</strong> ra đời tháng 4/2025 từ Google — chuẩn REST-native cho phép agents giao tiếp peer-to-peer mà không cần custom integration code:</p>
+
+    <div class="protocol-row header">
+      <div>Khía cạnh</div><div>Trước A2A (custom)</div><div>Với A2A Protocol</div><div>Lợi ích</div>
+    </div>
+    <div class="protocol-row">
+      <div><strong>Task format</strong></div>
+      <div class="cross">JSON tùy ý, không chuẩn</div>
+      <div class="check">Task object chuẩn hóa</div>
+      <div>Agents hiểu nhau ngay</div>
+    </div>
+    <div class="protocol-row">
+      <div><strong>Capability discovery</strong></div>
+      <div class="cross">Hardcode biết nhau</div>
+      <div class="check">Agent Card công khai</div>
+      <div>Dynamic discovery</div>
+    </div>
+    <div class="protocol-row">
+      <div><strong>Handoff state</strong></div>
+      <div class="cross">Custom serialization</div>
+      <div class="check">Artifacts chuẩn hóa</div>
+      <div>Zero context loss</div>
+    </div>
+    <div class="protocol-row">
+      <div><strong>Streaming</strong></div>
+      <div class="cross">Websocket/polling tùy ý</div>
+      <div class="check">SSE built-in</div>
+      <div>Real-time progress</div>
+    </div>
+    <div class="protocol-row">
+      <div><strong>Error handling</strong></div>
+      <div class="cross">HTTP codes + custom</div>
+      <div class="check">Task state machine</div>
+      <div>Retry tự động</div>
+    </div>
+
+    <div class="code-block">
+      <span class="code-label">Python — A2A Task Object</span>
+<pre><code><span class="code-comment"># A2A Task — unit of work giữa hai agents</span>
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Dict, Any, Optional, List
+
+<span class="code-keyword">class</span> <span class="code-type">TaskState</span>(Enum):
+    SUBMITTED  = <span class="code-string">"submitted"</span>   <span class="code-comment"># Task mới được tạo</span>
+    WORKING    = <span class="code-string">"working"</span>     <span class="code-comment"># Agent đang xử lý</span>
+    INPUT_NEEDED = <span class="code-string">"input-needed"</span> <span class="code-comment"># Agent cần thêm input</span>
+    COMPLETED  = <span class="code-string">"completed"</span>   <span class="code-comment"># Xử lý thành công</span>
+    FAILED     = <span class="code-string">"failed"</span>      <span class="code-comment"># Lỗi — có thể retry</span>
+    CANCELLED  = <span class="code-string">"cancelled"</span>   <span class="code-comment"># Bị hủy bởi Supervisor</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-type">A2ATask</span>:
+    task_id:    <span class="code-type">str</span>           <span class="code-comment"># Unique ID xuyên suốt workflow</span>
+    from_agent: <span class="code-type">str</span>           <span class="code-comment"># "supervisor-01"</span>
+    to_agent:   <span class="code-type">str</span>           <span class="code-comment"># "credit-agent-prod-01"</span>
+    capability: <span class="code-type">str</span>           <span class="code-comment"># "credit_check" — không phải tên agent</span>
+    input:      <span class="code-type">Dict[str, Any]</span> <span class="code-comment"># Dữ liệu đầu vào</span>
+    state:      <span class="code-type">TaskState</span> = TaskState.SUBMITTED
+    artifacts:  <span class="code-type">List[dict]</span> = field(default_factory=list)  <span class="code-comment"># Kết quả</span>
+    checkpoint: <span class="code-type">Optional[dict]</span> = <span class="code-keyword">None</span>  <span class="code-comment"># State để resume</span>
+    trace_id:   <span class="code-type">str</span> = field(default_factory=lambda: str(uuid4()))
+</code></pre>
+    </div>
+
+    <h3 style="margin-top:var(--space-8)">3.2 State Checkpointing — "Lưu Game" Cho Agents</h3>
+
+    <div class="callout analogy">
+      <div class="callout-header">💡 Analogy: Điểm lưu trong video game</div>
+      <p>Khi chơi game boss dài 30 phút, bạn luôn muốn game tự save sau mỗi checkpoint. Nếu mất điện lúc 25 phút, bạn tiếp tục từ checkpoint 20 phút — không phải bắt đầu lại từ đầu.</p>
+      <p style="margin:0">Agent checkpointing hoạt động y hệt: trước mỗi tool call quan trọng (gọi CIC, kiểm tra BHXH...), Harness lưu toàn bộ state của task. Nếu agent crash sau đó, workflow resume từ checkpoint thay vì xử lý lại hồ sơ từ đầu — tiết kiệm chi phí API và thời gian của khách hàng.</p>
+    </div>
+
+    <div class="state-grid">
+      <div class="state-box">
+        <h5>Local State</h5>
+        <p>Biến nội bộ của agent: kết quả tính toán trung gian, context window hiện tại</p>
+      </div>
+      <div class="state-box">
+        <h5>Shared State</h5>
+        <p>Dữ liệu chia sẻ giữa agents: thông tin hồ sơ, credit score đã fetch</p>
+      </div>
+      <div class="state-box">
+        <h5>Workspace State</h5>
+        <p>Artifacts tạm: draft báo cáo, intermediate analysis, tool outputs</p>
+      </div>
+      <div class="state-box">
+        <h5>Execution State</h5>
+        <p>Vị trí trong workflow: đang ở step nào, đã gọi tool nào, còn bao nhiêu bước</p>
+      </div>
+    </div>
+
+    <!-- SVG: Checkpoint Flow -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.1 — Checkpoint/Resume: crash giữa chừng → resume từ điểm cuối, không gọi lại API</title>
+        <defs>
+          <marker id="arrD" markerWidth="7" markerHeight="6" refX="6" refY="3" orient="auto">
+            <polygon points="0 0, 7 3, 0 6" fill="#0f4c81"/>
+          </marker>
+        </defs>
+  <rect width="760" height="220" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="380" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="#0f4c81">Checkpoint/Resume Flow — LoanBot v3.0</text>
+
+        <!-- Step 1: Task Start -->
+        <rect x="20" y="40" width="110" height="60" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="75" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#1e40af">1. Task Start</text>
+        <text x="75" y="80" text-anchor="middle" font-size="9" fill="#3730a3">task_id: TK-001</text>
+        <text x="75" y="93" text-anchor="middle" font-size="9" fill="#3730a3">state: SUBMITTED</text>
+        <line x1="130" y1="70" x2="160" y2="70" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrD)"/>
+
+        <!-- Checkpoint 1 -->
+        <rect x="160" y="40" width="110" height="60" rx="8" fill="#d1fae5" stroke="#34d399" stroke-width="1.5"/>
+        <text x="215" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#065f46">💾 CHECKPOINT 1</text>
+        <text x="215" y="77" text-anchor="middle" font-size="9" fill="#047857">Before CIC call</text>
+        <text x="215" y="90" text-anchor="middle" font-size="9" fill="#047857">state saved to DB</text>
+        <line x1="270" y1="70" x2="300" y2="70" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrD)"/>
+
+        <!-- CIC call -->
+        <rect x="300" y="40" width="110" height="60" rx="8" fill="#fef3c7" stroke="#fcd34d" stroke-width="1.5"/>
+        <text x="355" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">CIC API Call</text>
+        <text x="355" y="77" text-anchor="middle" font-size="9" fill="#b45309">score = 720</text>
+        <text x="355" y="90" text-anchor="middle" font-size="9" fill="#dc2626">💥 CRASH!</text>
+        <line x1="410" y1="70" x2="440" y2="70" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="5,3"/>
+
+        <!-- Recovery -->
+        <rect x="440" y="40" width="120" height="60" rx="8" fill="#fdf4ff" stroke="#d8b4fe" stroke-width="1.5"/>
+        <text x="500" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#7e22ce">⚡ RESUME</text>
+        <text x="500" y="77" text-anchor="middle" font-size="9" fill="#6d28d9">Load checkpoint 1</text>
+        <text x="500" y="90" text-anchor="middle" font-size="9" fill="#6d28d9">score = 720 ✅ (cached)</text>
+        <line x1="560" y1="70" x2="590" y2="70" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrD)"/>
+
+        <!-- Continue -->
+        <rect x="590" y="40" width="110" height="60" rx="8" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="645" y="62" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">Continue from</text>
+        <text x="645" y="77" text-anchor="middle" font-size="9" fill="#15803d">Income check</text>
+        <text x="645" y="90" text-anchor="middle" font-size="9" fill="#15803d">No re-work! ✅</text>
+
+        <!-- Labels below -->
+        <text x="215" y="135" text-anchor="middle" font-size="9" fill="#047857">Lưu: application_id, citizen_id,</text>
+        <text x="215" y="148" text-anchor="middle" font-size="9" fill="#047857">tools_called=[], step=1</text>
+
+        <text x="500" y="135" text-anchor="middle" font-size="9" fill="#6d28d9">Recover: tools_called=["check_credit"],</text>
+        <text x="500" y="148" text-anchor="middle" font-size="9" fill="#6d28d9">step=2, credit_score=720 ✅</text>
+
+        <!-- Savings note -->
+        <rect x="20" y="175" width="720" height="35" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+        <text x="380" y="197" text-anchor="middle" font-size="10" fill="#15803d" font-weight="700">💰 Tiết kiệm: Không gọi CIC lần 2 (tránh $0.05/call × 50K hồ sơ = $2,500/tháng nếu retry rate 10%)</text>
+      </svg>
+      <div class="diagram-title">Hình 3.1 — Checkpoint/Resume: crash giữa chừng → resume từ điểm cuối, không gọi lại API</div>
+    </div>
+
+    <div class="concept-check">
+      <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+      <p class="concept-check-q">LoanBot đang xử lý hồ sơ FC-2024-100. Đã checkpoint sau bước 1 (credit score = 720). Bước 2 (income check) đang chạy thì server restart. Điều gì xảy ra tiếp theo?</p>
+      <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+      <div class="concept-check-answer">
+        <strong>Khi server restart:</strong> Supervisor đọc TaskState từ database. Task TK-100 có state=WORKING, checkpoint={step: 2, credit_score: 720, tools_called: ["check_credit"]}.<br><br>
+        <strong>Resume:</strong> Supervisor KHÔNG gọi CreditAgent lại (credit_score đã có). Thay vào đó, tạo A2ATask mới gửi cho IncomeAgent với checkpoint data. IncomeAgent tiếp tục từ step 2.<br><br>
+        <strong>Kết quả:</strong> Khách hàng không biết có incident. Hồ sơ được xử lý đúng hạn. CIC không bị gọi lần 2 (tiết kiệm chi phí và tránh duplicate audit log).
+      </div>
+    </div>
+
+    <div class="key-points">
+      <h4>💡 Điểm cốt lõi Bài 3</h4>
+      <ul>
+        <li>A2A Protocol (Google 4/2025): chuẩn REST cho agent-to-agent handoffs — Task object + Agent Card + Artifacts</li>
+        <li>TaskState machine: SUBMITTED → WORKING → INPUT_NEEDED / COMPLETED / FAILED</li>
+        <li>4 loại state cần persist: Local, Shared, Workspace, Execution state</li>
+        <li>Checkpoint trước mỗi external API call — đây là điểm thất bại chính (CIC timeout, BHXH chậm)</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- BÀI 4: FRAMEWORK DEEP-DIVE SOTA                    -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="lesson4" class="lesson-section">
+    <div class="section-heading">
+      <div class="section-number">4</div>
+      <h2>Framework Deep-Dive SOTA — LangGraph vs AutoGen vs CrewAI</h2>
+    </div>
+
+    <div class="learning-objective">
+      <h4>🎯 Sau bài này, bạn sẽ:</h4>
+      <ul>
+        <li>Biết điểm mạnh của từng framework: LangGraph (state persistence), AutoGen (async actor), CrewAI (time-to-value)</li>
+        <li>Áp dụng ma trận quyết định để chọn framework phù hợp với use case</li>
+        <li>Hiểu tại sao LoanBot v3.0 chọn Anthropic SDK + LangGraph-inspired patterns</li>
+      </ul>
+    </div>
+
+    <p>Năm 2025 xuất hiện 3 SOTA frameworks được enterprise adopt rộng rãi nhất cho production multi-agent:</p>
+
+    <div class="framework-grid">
+      <div class="framework-card langgraph">
+        <div class="framework-name" style="color:#1d4ed8">🗺️ LangGraph</div>
+        <div class="framework-by">by LangChain · v1.0 (Oct 2025)</div>
+        <div class="framework-strength"><span>Mô hình:</span> Directed Graph — nodes = agents, edges = transitions</div>
+        <div class="framework-strength"><span>Killer feature:</span> State persistence với PostgreSQL/Redis checkpointing</div>
+        <div class="framework-strength"><span>Production users:</span> Uber, JPMorgan, BlackRock, Klarna, Cisco</div>
+        <div style="margin-top:var(--space-3)">
+          <span class="framework-tag">✅ Stateful</span>
+          <span class="framework-tag">✅ HITL Gates</span>
+          <span class="framework-tag">✅ Checkpoint/Resume</span>
+          <span class="framework-tag">⚠️ Verbose setup</span>
+        </div>
+        <div style="margin-top:var(--space-3);font-size:.82rem;color:var(--text-muted)"><strong>Chọn khi:</strong> Mission-critical workflows cần state persistence, complex HITL, và audit trail</div>
+      </div>
+
+      <div class="framework-card autogen">
+        <div class="framework-name" style="color:#7c3aed">⚡ AutoGen v0.4</div>
+        <div class="framework-by">by Microsoft · Redesign hoàn toàn 1/2025</div>
+        <div class="framework-strength"><span>Mô hình:</span> Event-Driven Actor Model — agents nhận/gửi messages async</div>
+        <div class="framework-strength"><span>Killer feature:</span> Non-blocking async — agents không đợi nhau, throughput cao</div>
+        <div class="framework-strength"><span>Ecosystem:</span> Magentic-One (generalist team), AutoGen Studio (low-code)</div>
+        <div style="margin-top:var(--space-3)">
+          <span class="framework-tag">✅ High throughput</span>
+          <span class="framework-tag">✅ Async native</span>
+          <span class="framework-tag">✅ MS ecosystem</span>
+          <span class="framework-tag">⚠️ Debugging complex</span>
+        </div>
+        <div style="margin-top:var(--space-3);font-size:.82rem;color:var(--text-muted)"><strong>Chọn khi:</strong> High-concurrency, event-driven workflows, tích hợp Microsoft Azure ecosystem</div>
+      </div>
+
+      <div class="framework-card crewai">
+        <div class="framework-name" style="color:#dc2626">🚢 CrewAI</div>
+        <div class="framework-by">Open-source · 47.8K stars · 63% Fortune 500</div>
+        <div class="framework-strength"><span>Mô hình:</span> Crew = Agents + Tasks + Process (sequential/hierarchical)</div>
+        <div class="framework-strength"><span>Killer feature:</span> Fastest time-to-value — RBAC, audit, MCP servers built-in</div>
+        <div class="framework-strength"><span>Scale:</span> 2 tỷ agent tasks trong 12 tháng</div>
+        <div style="margin-top:var(--space-3)">
+          <span class="framework-tag">✅ Quick start</span>
+          <span class="framework-tag">✅ Built-in governance</span>
+          <span class="framework-tag">✅ MCP native</span>
+          <span class="framework-tag">⚠️ Less flexible</span>
+        </div>
+        <div style="margin-top:var(--space-3);font-size:.82rem;color:var(--text-muted)"><strong>Chọn khi:</strong> Prototype → production nhanh, team nhỏ, workflows có cấu trúc rõ ràng</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:var(--space-8)">4.1 Ma Trận Quyết Định — Chọn Framework</h3>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Tiêu chí</th><th>LangGraph</th><th>AutoGen v0.4</th><th>CrewAI</th><th>Anthropic SDK*</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Time to first agent</strong></td>
+          <td>~2 ngày</td>
+          <td>~1 ngày</td>
+          <td>~4 giờ</td>
+          <td>~1 ngày</td>
+        </tr>
+        <tr>
+          <td><strong>State persistence</strong></td>
+          <td style="color:var(--success)">✅ Native PostgreSQL</td>
+          <td style="color:var(--warning)">⚠️ Custom cần code</td>
+          <td style="color:var(--warning)">⚠️ Partial</td>
+          <td style="color:var(--warning)">⚠️ Custom cần code</td>
+        </tr>
+        <tr>
+          <td><strong>HITL / Human gates</strong></td>
+          <td style="color:var(--success)">✅ Built-in</td>
+          <td style="color:var(--warning)">⚠️ Manual</td>
+          <td style="color:var(--success)">✅ Flows</td>
+          <td style="color:var(--success)">✅ Custom logic</td>
+        </tr>
+        <tr>
+          <td><strong>Async / Concurrency</strong></td>
+          <td style="color:var(--warning)">⚠️ asyncio</td>
+          <td style="color:var(--success)">✅ Actor model native</td>
+          <td style="color:var(--warning)">⚠️ asyncio</td>
+          <td style="color:var(--success)">✅ asyncio.gather</td>
+        </tr>
+        <tr>
+          <td><strong>Enterprise governance</strong></td>
+          <td style="color:var(--success)">✅ LangSmith</td>
+          <td style="color:var(--warning)">⚠️ Custom</td>
+          <td style="color:var(--success)">✅ RBAC + audit</td>
+          <td style="color:var(--warning)">⚠️ Custom build</td>
+        </tr>
+        <tr>
+          <td><strong>Vendor lock-in</strong></td>
+          <td>LangChain ecosystem</td>
+          <td>Microsoft stack</td>
+          <td>CrewAI cloud</td>
+          <td style="color:var(--success)">❌ Không lock-in</td>
+        </tr>
+        <tr>
+          <td><strong>Best for LoanBot?</strong></td>
+          <td>Nếu cần checkpoint nâng cao</td>
+          <td>Nếu cần high throughput</td>
+          <td>Nếu cần prototype nhanh</td>
+          <td style="color:var(--success)">✅ Custom control tốt nhất</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:.8rem;color:var(--text-muted);">* Anthropic Agents SDK — dùng trong chương trình này vì kiểm soát tốt nhất và không vendor lock-in.</p>
+
+    <div class="callout key-insight">
+      <div class="callout-header">🔑 Key Insight: Đừng chọn framework vì "phổ biến"</div>
+      <p>23% doanh nghiệp scale thành công multi-agent — và nhiều trong số đó <strong>không dùng framework nào cả</strong>, hoặc tự build orchestration layer. Framework phù hợp là framework giải quyết được bottleneck cụ thể của bạn:</p>
+      <ul style="margin:0">
+        <li>State persistence là vấn đề số 1? → LangGraph</li>
+        <li>Throughput cao, nhiều concurrent workflows? → AutoGen v0.4</li>
+        <li>Team nhỏ, cần ship nhanh? → CrewAI</li>
+        <li>Kiểm soát tối đa, không vendor lock-in? → Anthropic SDK + custom orchestration</li>
+      </ul>
+    </div>
+
+    <div class="key-points">
+      <h4>💡 Điểm cốt lõi Bài 4</h4>
+      <ul>
+        <li>LangGraph: graph-based, state persistence native, best for complex stateful workflows</li>
+        <li>AutoGen v0.4: actor model, async native, best for high-concurrency event-driven systems</li>
+        <li>CrewAI: fastest time-to-value, built-in governance, best for structured workflows</li>
+        <li>Không có "best framework" — chọn theo bottleneck cụ thể của use case</li>
+      </ul>
+    </div>
+  </section>
+
+  <hr class="lesson-divider">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- BÀI 5: LOANBOT v3.0 — ENTERPRISE DEPARTMENT        -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="lesson5" class="lesson-section">
+    <div class="section-heading">
+      <div class="section-number">5</div>
+      <h2>LoanBot v3.0 — Enterprise Department Architecture</h2>
+    </div>
+
+    <div class="learning-objective">
+      <h4>🎯 Sau bài này, bạn sẽ:</h4>
+      <ul>
+        <li>Đọc được full architecture diagram của LoanBot v3.0 (8 agents + Registry + A2A)</li>
+        <li>Biết vai trò của 3 agents mới: ComplianceAgent, FraudAgent, AuditAgent</li>
+        <li>Hiểu cách Registry + Checkpointing + A2A cùng hoạt động trong một workflow thực tế</li>
+      </ul>
+    </div>
+
+    <div class="callout example">
+      <div class="callout-header">🏢 FinTech Corp: LoanBot v3.0 — "AI Credit Department"</div>
+      <p>Sau 6 tháng vận hành v2.0, FinTech Corp nâng cấp lên v3.0 với đầy đủ tính năng enterprise:</p>
+      <ul>
+        <li><strong>8 specialized agents</strong> (5 cũ + 3 mới) trong Agent Registry</li>
+        <li><strong>ComplianceAgent</strong>: Kiểm tra EU AI Act Art.14 (HITL) và Art.12 (audit trail) trước mỗi quyết định</li>
+        <li><strong>FraudAgent</strong>: Pattern matching với 500+ fraud signatures, ML-based anomaly detection</li>
+        <li><strong>AuditAgent</strong>: Ghi nhận mọi quyết định vào immutable ledger (3 năm theo Art.12)</li>
+        <li><strong>A2A Protocol</strong>: Tất cả agent handoffs qua chuẩn A2A — không custom code</li>
+        <li><strong>Checkpoint/Resume</strong>: Mỗi bước external API call được checkpoint</li>
+      </ul>
+    </div>
+
+    <!-- LoanBot v3.0 Dept Grid -->
+    <h3 style="margin-top:var(--space-6)">5.1 The 8-Agent Department</h3>
+
+    <div class="agent-dept-grid">
+      <div class="agent-dept-card supervisor" style="grid-column:1/-1">
+        <div style="display:flex;align-items:center;gap:var(--space-4);justify-content:center;">
+          <span style="font-size:2.5rem;">🧠</span>
+          <div>
+            <div style="font-weight:800;font-size:1.1rem;color:var(--primary-dark)">IntelligentSupervisor</div>
+            <div style="font-size:.85rem;color:var(--text-muted)">Orchestrates all 7 sub-agents · Queries AgentRegistry · Manages A2A tasks · Coordinates checkpoints</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-dept-card core">
+        <div class="agent-icon-lg">💳</div>
+        <div class="agent-name-sm">CreditAgent v2.1</div>
+        <div class="agent-role-sm">CIC query · Score interpretation · Blacklist check</div>
+      </div>
+      <div class="agent-dept-card core">
+        <div class="agent-icon-lg">💰</div>
+        <div class="agent-name-sm">IncomeAgent v1.3</div>
+        <div class="agent-role-sm">BHXH verification · DTI calculation · Annuity formula</div>
+      </div>
+      <div class="agent-dept-card core">
+        <div class="agent-icon-lg">⚖️</div>
+        <div class="agent-name-sm">RiskAgent v1.5</div>
+        <div class="agent-role-sm">APPROVED/PENDING/REJECTED · Composite risk score · HITL trigger</div>
+      </div>
+      <div class="agent-dept-card core">
+        <div class="agent-icon-lg">📄</div>
+        <div class="agent-name-sm">ReportAgent v1.2</div>
+        <div class="agent-role-sm">Decision report · Customer explanation · API response</div>
+      </div>
+      <div class="agent-dept-card new">
+        <div class="agent-icon-lg">🛡️</div>
+        <div class="agent-name-sm">ComplianceAgent <span class="agent-new-badge">NEW</span></div>
+        <div class="agent-role-sm">EU AI Act Art.14 HITL check · Art.12 logging · Disclosure</div>
+      </div>
+      <div class="agent-dept-card new">
+        <div class="agent-icon-lg">🔍</div>
+        <div class="agent-name-sm">FraudAgent <span class="agent-new-badge">NEW</span></div>
+        <div class="agent-role-sm">500+ fraud patterns · Anomaly detection · Risk flags</div>
+      </div>
+      <div class="agent-dept-card new">
+        <div class="agent-icon-lg">📋</div>
+        <div class="agent-name-sm">AuditAgent <span class="agent-new-badge">NEW</span></div>
+        <div class="agent-role-sm">Immutable ledger · 3-year retention · Explainability log</div>
+      </div>
+    </div>
+
+    <!-- SVG: Full v3.0 Architecture -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 5.1 — LoanBot v3.0 Full Architecture: 8 agents, 3 phases, Registry + A2A + Checkpoint</title>
+        <defs>
+          <marker id="arrE" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+            <polygon points="0 0, 6 2.5, 0 5" fill="#0f4c81"/>
+          </marker>
+          <marker id="arrF" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+            <polygon points="0 0, 6 2.5, 0 5" fill="#059669"/>
+          </marker>
+          <marker id="arrG" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+            <polygon points="0 0, 6 2.5, 0 5" fill="#dc2626"/>
+          </marker>
+        </defs>
+  <rect width="760" height="400" fill="#0f172a" rx="12"/>
+
+        <text x="380" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">LoanBot v3.0 — Enterprise Department Architecture</text>
+
+        <!-- Input -->
+        <rect x="10" y="30" width="100" height="45" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+        <text x="60" y="50" text-anchor="middle" font-size="10" font-weight="700" fill="#334155">Loan Application</text>
+        <text x="60" y="65" text-anchor="middle" font-size="9" fill="#64748b">FC-2024-XXX</text>
+        <line x1="110" y1="52" x2="140" y2="52" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrE)"/>
+
+        <!-- Agent Registry -->
+        <rect x="140" y="30" width="130" height="45" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="1.5"/>
+        <text x="205" y="50" text-anchor="middle" font-size="10" font-weight="700" fill="#4c1d95">Agent Registry</text>
+        <text x="205" y="65" text-anchor="middle" font-size="8" fill="#5b21b6">Capability-based lookup</text>
+        <line x1="270" y1="52" x2="300" y2="52" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrE)"/>
+
+        <!-- Supervisor -->
+        <rect x="300" y="20" width="150" height="65" rx="10" fill="#0f4c81" stroke="#1a6abf" stroke-width="2"/>
+        <text x="375" y="45" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Intelligent</text>
+        <text x="375" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Supervisor</text>
+        <text x="375" y="76" text-anchor="middle" font-size="8" fill="#93c5fd">A2A Task Orchestrator</text>
+
+        <!-- Checkpoint DB -->
+        <rect x="480" y="30" width="120" height="45" rx="8" fill="#fef3c7" stroke="#fcd34d" stroke-width="1.5"/>
+        <text x="540" y="50" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">💾 Checkpoint DB</text>
+        <text x="540" y="65" text-anchor="middle" font-size="8" fill="#b45309">PostgreSQL / Redis</text>
+        <line x1="450" y1="52" x2="480" y2="52" stroke="#d97706" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- Phase arrows from Supervisor -->
+        <!-- Phase 1: Parallel -->
+        <text x="375" y="108" text-anchor="middle" font-size="9" font-weight="700" fill="#0f4c81">Phase 1: asyncio.gather() — PARALLEL</text>
+        <line x1="345" y1="85" x2="200" y2="130" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrE)"/>
+        <line x1="375" y1="85" x2="375" y2="130" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrE)"/>
+        <line x1="405" y1="85" x2="550" y2="130" stroke="#0f4c81" stroke-width="1.5" marker-end="url(#arrE)"/>
+
+        <!-- Credit -->
+        <rect x="120" y="130" width="110" height="55" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="175" y="152" text-anchor="middle" font-size="10" font-weight="700" fill="#1e40af">💳 CreditAgent</text>
+        <text x="175" y="167" text-anchor="middle" font-size="8" fill="#3730a3">CIC · Score · Blacklist</text>
+        <text x="175" y="179" text-anchor="middle" font-size="8" fill="#059669">≤300ms · 💾 checkpoint</text>
+
+        <!-- Fraud (parallel with credit) -->
+        <rect x="320" y="130" width="110" height="55" rx="8" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+        <text x="375" y="152" text-anchor="middle" font-size="10" font-weight="700" fill="#c2410c">🔍 FraudAgent</text>
+        <text x="375" y="167" text-anchor="middle" font-size="8" fill="#c2410c">Pattern · Anomaly</text>
+        <text x="375" y="179" text-anchor="middle" font-size="8" fill="#059669">≤200ms · NEW 🆕</text>
+
+        <!-- Income (parallel) -->
+        <rect x="480" y="130" width="110" height="55" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <text x="535" y="152" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">💰 IncomeAgent</text>
+        <text x="535" y="167" text-anchor="middle" font-size="8" fill="#15803d">BHXH · DTI calc</text>
+        <text x="535" y="179" text-anchor="middle" font-size="8" fill="#059669">≤400ms · 💾 checkpoint</text>
+
+        <!-- Phase 2 -->
+        <text x="375" y="215" text-anchor="middle" font-size="9" font-weight="700" fill="#0f4c81">Phase 2: Sequential — Aggregated inputs</text>
+        <line x1="175" y1="185" x2="310" y2="235" stroke="#0f4c81" stroke-width="1" marker-end="url(#arrE)"/>
+        <line x1="375" y1="185" x2="375" y2="235" stroke="#0f4c81" stroke-width="1" marker-end="url(#arrE)"/>
+        <line x1="535" y1="185" x2="440" y2="235" stroke="#0f4c81" stroke-width="1" marker-end="url(#arrE)"/>
+
+        <!-- Risk -->
+        <rect x="285" y="235" width="110" height="50" rx="8" fill="#fdf4ff" stroke="#d8b4fe" stroke-width="1.5"/>
+        <text x="340" y="256" text-anchor="middle" font-size="10" font-weight="700" fill="#7e22ce">⚖️ RiskAgent</text>
+        <text x="340" y="271" text-anchor="middle" font-size="8" fill="#6d28d9">Composite Score · HITL?</text>
+        <text x="340" y="283" text-anchor="middle" font-size="8" fill="#059669">≤200ms · 💾 checkpoint</text>
+
+        <!-- Compliance (parallel with Risk) -->
+        <rect x="420" y="235" width="120" height="50" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"/>
+        <text x="480" y="256" text-anchor="middle" font-size="10" font-weight="700" fill="#854d0e">🛡️ ComplianceAgent</text>
+        <text x="480" y="271" text-anchor="middle" font-size="8" fill="#92400e">EU AI Act · HITL check</text>
+        <text x="480" y="283" text-anchor="middle" font-size="8" fill="#059669">≤150ms · NEW 🆕</text>
+        <line x1="375" y1="260" x2="420" y2="260" stroke="#0f4c81" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <!-- Phase 3 -->
+        <line x1="340" y1="285" x2="290" y2="320" stroke="#0f4c81" stroke-width="1" marker-end="url(#arrE)"/>
+        <line x1="400" y1="285" x2="430" y2="320" stroke="#0f4c81" stroke-width="1" marker-end="url(#arrE)"/>
+        <text x="375" y="315" text-anchor="middle" font-size="9" font-weight="700" fill="#0f4c81">Phase 3: Parallel — Final output</text>
+
+        <!-- Report -->
+        <rect x="150" y="325" width="120" height="50" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <text x="210" y="347" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">📄 ReportAgent</text>
+        <text x="210" y="362" text-anchor="middle" font-size="8" fill="#15803d">Decision + Explanation</text>
+        <text x="210" y="374" text-anchor="middle" font-size="8" fill="#059669">≤150ms</text>
+
+        <!-- Audit -->
+        <rect x="430" y="325" width="110" height="50" rx="8" fill="#fee2e2" stroke="#fca5a5" stroke-width="1.5"/>
+        <text x="485" y="347" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">📋 AuditAgent</text>
+        <text x="485" y="362" text-anchor="middle" font-size="8" fill="#b91c1c">Immutable ledger · 3yr</text>
+        <text x="485" y="374" text-anchor="middle" font-size="8" fill="#059669">≤100ms · NEW 🆕</text>
+
+        <!-- Output -->
+        <rect x="610" y="340" width="100" height="42" rx="8" fill="#0f4c81"/>
+        <text x="660" y="358" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Decision</text>
+        <text x="660" y="373" text-anchor="middle" font-size="9" fill="#93c5fd">APPROVED/REJECTED</text>
+        <line x1="270" y1="360" x2="610" y2="361" stroke="#059669" stroke-width="1.5" marker-end="url(#arrF)"/>
+
+        <text x="380" y="392" text-anchor="middle" font-size="8" fill="#64748b">Total latency: ~0.9s (parallel phases) vs ~1.3s (sequential) — 30% faster</text>
+      </svg>
+      <div class="diagram-title">Hình 5.1 — LoanBot v3.0 Full Architecture: 8 agents, 3 phases, Registry + A2A + Checkpoint</div>
+    </div>
+
+    <h3 style="margin-top:var(--space-8)">5.2 Enterprise Case Study — FinTech Corp ROI v3.0</h3>
+
+    <div class="stats-row">
+      <div class="stat-card success">
+        <div class="stat-number">8</div>
+        <div class="stat-label">Specialized agents — tương đương một phòng thẩm định đầy đủ</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">0.9s</div>
+        <div class="stat-label">P95 latency (vs 1.3s v2.0) — 30% nhanh hơn nhờ parallel optimization</div>
+      </div>
+      <div class="stat-card" style="border-color:var(--success)">
+        <div class="stat-number">100%</div>
+        <div class="stat-label">EU AI Act compliance — Art.9, 10, 12, 13, 14, 15 đều đã implement</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-number">171%</div>
+        <div class="stat-label">Average ROI cho scaled multi-agent vs 88% ROI cho basic agentic AI</div>
+      </div>
+    </div>
+
+    <div class="callout key-insight">
+      <div class="callout-header">🔑 Key Insight: "Department" không phải "team"</div>
+      <p>Sự khác biệt giữa LoanBot v2.0 (team) và v3.0 (department) không chỉ là thêm agents. Đó là sự thay đổi về <strong>quản trị hệ thống</strong>:</p>
+      <ul style="margin:0">
+        <li><strong>Registry</strong>: Agents tự quản lý lifecycle, tự report health — không cần DevOps can thiệp thủ công</li>
+        <li><strong>A2A</strong>: Handoffs không bao giờ mất dữ liệu — mỗi task có tracking end-to-end</li>
+        <li><strong>Checkpointing</strong>: Failures không restart toàn bộ workflow — tiết kiệm cost và thời gian</li>
+        <li><strong>Compliance built-in</strong>: ComplianceAgent + AuditAgent → auditor có thể kiểm tra mọi quyết định</li>
+      </ul>
+    </div>
+
+    <!-- Glossary -->
+    <div style="margin:var(--space-10) 0 0;">
+      <div class="section-heading">
+        <div class="section-number" style="background:var(--text-muted);">📖</div>
+        <h2>Thuật Ngữ Quan Trọng Module 7</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-3);">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Agent Registry / ANS</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Hệ thống lưu trữ và tra cứu agents theo capability — tương tự DNS. Supervisor query capability, không query tên agent.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Capability Card</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">"CV" của agent khi đăng ký: capabilities, SLA, cost, schema, health endpoint, TTL. Registry dùng để routing.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">A2A Protocol</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Agent-to-Agent Protocol (Google, 4/2025). Chuẩn REST cho task handoffs giữa agents: Task object, Agent Card, Artifacts.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">TaskState Machine</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">SUBMITTED → WORKING → INPUT_NEEDED / COMPLETED / FAILED. Mỗi task A2A đi qua state machine, hỗ trợ retry.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Checkpointing</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Lưu execution state trước mỗi external API call. Nếu crash, resume từ checkpoint — không gọi lại APIs đã thành công.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">LangGraph</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Framework by LangChain. Graph-based orchestration, state persistence native với PostgreSQL. Best for stateful workflows.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">AutoGen v0.4 Actor Model</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Microsoft framework. Event-driven actors giao tiếp async — không blocking. Throughput cao hơn synchronous patterns.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">CrewAI</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Open-source framework. Crew = Agents + Tasks. 63% Fortune 500 dùng. Fastest time-to-value, built-in RBAC &amp; audit.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">TTL-based Lease</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Time-To-Live lease trong Registry. Agent phải renew heartbeat trước khi TTL hết — nếu crash, tự động bị xóa khỏi pool.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Cascading Failure</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Một agent chậm/lỗi làm toàn bộ hệ thống sụp đổ. Giải pháp: bulkheads (isolate pools) + circuit breaker + timeout.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Agentic RAG</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Dynamic retrieval-augmented generation: agent chủ động quyết định nguồn nào cần query (vector DB, web, SQL) theo reasoning.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">MCP (Model Context Protocol)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Chuẩn Anthropic cho agent-to-tool integration (JSON-RPC). 500+ public MCP servers. Tích hợp: GitHub, Slack, Postgres, Notion.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graduation banner -->
+    <div style="margin-top:var(--space-12);background:linear-gradient(135deg,#4c1d95,#7c3aed);border-radius:var(--radius-xl);padding:var(--space-10);text-align:center;color:#fff;">
+      <div style="font-size:3rem;margin-bottom:var(--space-4)">🏢</div>
+      <h2 style="color:var(--accent);font-size:1.75rem;margin-bottom:var(--space-4)">LoanBot v3.0 — Enterprise Department Hoàn Chỉnh!</h2>
+      <p style="color:rgba(255,255,255,.85);max-width:600px;margin:0 auto var(--space-6);">Bạn đã hiểu cách xây dựng multi-agent system như một phòng ban chuyên nghiệp: Registry tìm đúng agent, A2A đảm bảo handoffs an toàn, Checkpointing ngăn mất dữ liệu, và 8 specialized agents làm việc như một đội ngũ thực thụ.</p>
+      <div style="display:flex;gap:var(--space-4);justify-content:center;flex-wrap:wrap;">
+        <a href="quiz.html" style="background:var(--accent);color:var(--primary-dark);padding:var(--space-3) var(--space-8);border-radius:var(--radius-full);font-weight:800;text-decoration:none;display:inline-block;">📝 Làm Quiz Module 7</a>
+        <a href="lab.ipynb" download style="background:rgba(255,255,255,.15);color:#fff;padding:var(--space-3) var(--space-8);border-radius:var(--radius-full);font-weight:700;text-decoration:none;display:inline-block;">💻 Mở Lab Notebook</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom nav -->
+  <nav class="lesson-nav">
+    <a href="../module6/index.html" class="nav-btn">← Module 6: Multi-Agent</a>
+    <a href="quiz.html" class="nav-btn primary">📝 Làm Quiz Module 7 →</a>
+  </nav>
+
+</main>
+
+</div><!-- /.page-layout -->
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

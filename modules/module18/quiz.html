@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz — Module 18: LLM Gateway & Infrastructure</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m18-primary: #831843; --m18-accent: #ec4899; --m18-light: #fdf2f8; --m18-border: #f9a8d4; }
+    .quiz-hero { background: linear-gradient(135deg, #500724 0%, #831843 50%, #ec4899 100%); }
+    .quiz-option.selected { border-color: var(--m18-accent); }
+    .quiz-progress-fill { background: linear-gradient(90deg, var(--m18-primary), var(--m18-accent)); }
+    .quiz-option:hover:not(.correct):not(.wrong) { border-color: var(--m18-border); background: var(--m18-light); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-page">
+  <div class="quiz-hero">
+    <div class="quiz-header">
+      <div class="quiz-badge">MODULE 18 · QUIZ</div>
+      <h1>🌐 LLM Gateway & Enterprise Infrastructure</h1>
+      <div class="quiz-stats">
+        <span>📊 15 câu hỏi</span>
+        <span>⏱ ~20 phút</span>
+        <span>🎯 Đạt: 80%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-container">
+    <div id="startScreen" class="quiz-start-screen">
+      <h2>Sẵn sàng kiểm tra?</h2>
+      <p>Quiz này kiểm tra kiến thức về LLM Gateway, load balancing, failover, quota management, priority queue, SLA monitoring, và cost attribution.</p>
+      <ul style="text-align:left;max-width:400px;margin:16px auto;">
+        <li>🟢 5 câu dễ — Gateway concepts</li>
+        <li>🟡 7 câu trung bình — Design & trade-offs</li>
+        <li>🔴 3 câu khó — Architecture analysis</li>
+      </ul>
+      <button class="btn btn-primary btn-lg" onclick="startQuiz()">🚀 Bắt đầu Quiz</button>
+    </div>
+
+    <div id="quizArea" style="display:none">
+      <div class="quiz-progress-bar">
+        <div class="quiz-progress-fill" id="progressFill"></div>
+      </div>
+      <div class="quiz-progress-text" id="progressText">Câu 1 / 15</div>
+      <div id="questionContainer"></div>
+      <div class="quiz-navigation">
+        <button class="btn btn-outline" id="prevBtn" onclick="prevQ()" style="display:none">← Câu trước</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextQ()" style="display:none">Câu tiếp theo →</button>
+      </div>
+    </div>
+
+    <div id="resultArea" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  // === EASY (5) ===
+  {
+    level:"easy", lesson:1,
+    q:"LLM Gateway là gì trong kiến trúc AI enterprise?",
+    opts:["Một loại model AI nhỏ hơn dùng cho tác vụ đơn giản","Lớp trung gian giữa application và LLM providers — xử lý auth, routing, retry, caching, logging","Một database lưu trữ kết quả của LLM để tái sử dụng","Plugin để extend chức năng của Claude API"],
+    ans:1,
+    exp:"LLM Gateway là lớp trung gian (middleware) đứng giữa application code và các LLM providers. Nó xử lý 6 concerns: authentication & API key management, rate limiting & quota, load balancing, failover & retry, caching, và observability. Không có gateway, mỗi application team phải tự implement tất cả logic này."
+  },
+  {
+    level:"easy", lesson:2,
+    q:"Round-robin load balancing qua API key pool có nghĩa là gì?",
+    opts:["Luôn dùng key đầu tiên, chỉ chuyển sang key khác khi key đầu fail","Phân phối requests đều nhau lần lượt qua các keys trong pool","Random chọn key cho mỗi request để tăng entropy","Chọn key có latency thấp nhất dựa trên response time gần đây"],
+    ans:1,
+    exp:"Round-robin: request 1 → key A, request 2 → key B, request 3 → key C, request 4 → key A, ... Đây là phân phối đơn giản nhất, đảm bảo mọi key được dùng đều nhau. Không cần tracking metrics, chỉ cần maintain một pointer index. Khác với weighted round-robin (key mạnh hơn xử lý nhiều hơn) hay least-connections (gửi đến key có ít request nhất)."
+  },
+  {
+    level:"easy", lesson:3,
+    q:"Graceful degradation trong context LLM Gateway nghĩa là gì?",
+    opts:["Tắt toàn bộ hệ thống khi phát hiện lỗi để tránh data corruption","Tiếp tục hoạt động ở mức độ giảm (queue + notify) thay vì crash khi có partial failure","Giảm chất lượng output của LLM để tiết kiệm tokens","Chuyển sang model nhỏ hơn khi primary model quá tải"],
+    ans:1,
+    exp:"Graceful degradation là khi L1 (primary pool) và L2 (backup pool) đều fail, hệ thống không crash toàn bộ — thay vào đó: (1) queue request vào Redis với TTL, (2) gửi alert ngay cho ops team, (3) trả về 'đang xử lý, kết quả trong 2 giờ' cho user. Ứng dụng vẫn chạy nhưng với SLA nới lỏng. Khác với 'fail fast' (crash ngay) hay 'silent fail' (trả về empty response mà không thông báo)."
+  },
+  {
+    level:"easy", lesson:4,
+    q:"Trong priority queue của LoanBot, P1 VIP và P3 batch khác nhau như thế nào?",
+    opts:["P1 được xử lý bởi model tốt hơn, P3 bởi model kém hơn","P1 được phân bổ nhiều tokens hơn, P3 bị giới hạn tokens","P1 được dequeue và xử lý trước P3, bất kể thứ tự arrive","P1 và P3 giống nhau nhưng P1 có logging chi tiết hơn"],
+    ans:2,
+    exp:"Priority queue đảm bảo P1 luôn được xử lý trước P3, bất kể P3 arrive trước. Ví dụ: nếu có 100 P3 requests và 1 P1 request, P1 được dequeue và xử lý ngay, sau đó mới tiếp tục P3. Điều này đảm bảo VIP customers không bị block bởi batch workload. Model selection (haiku vs sonnet) là routing decision riêng biệt, không phải function của priority."
+  },
+  {
+    level:"easy", lesson:5,
+    q:"P99 latency là gì và tại sao dùng nó thay vì average latency cho SLA?",
+    opts:["Latency của 99% requests tệ nhất — không liên quan đến SLA, chỉ dùng để debug","99th percentile: 99% requests hoàn thành trong thời gian này — phản ánh trải nghiệm extreme users","Latency trung bình cộng 3 standard deviation — ước lượng worst case lý thuyết","99% của maximum latency đo được — conservative estimate"],
+    ans:1,
+    exp:"P99 latency (99th percentile) nghĩa là 99% requests hoàn thành trong ≤ N ms. Nếu P99 = 5s, thì 1% requests mất hơn 5s. Tốt hơn average vì: average che giấu outliers (99 requests 1s + 1 request 100s → average = 1.99s, nhưng P99 = 100s). SLA dùng P99 vì: khách hàng VIP không chấp nhận '1 trong 100 lần phải chờ 100s'. Average thấp không có ý nghĩa nếu một số requests cực chậm."
+  },
+
+  // === MEDIUM (7) ===
+  {
+    level:"medium", lesson:1,
+    q:"Cache key trong LLM Gateway được tính từ gì? Tại sao cần sort_keys=True?",
+    opts:["Chỉ từ prompt text — đủ để identify unique requests","Từ MD5(model + messages + system) với sort_keys=True để JSON serialization deterministic","Từ request timestamp — mỗi request unique theo thời gian","Từ user_id + session_id để personalize cache per user"],
+    ans:1,
+    exp:"Cache key = MD5(json.dumps({'model': ..., 'messages': ..., 'system': ...}, sort_keys=True)). sort_keys=True quan trọng vì: Python dict không đảm bảo key order, nên {'a':1,'b':2} và {'b':2,'a':1} nếu không sort sẽ cho MD5 khác nhau dù semantically giống nhau. Với sort_keys=True, cùng content → cùng JSON string → cùng MD5 → cache hit. Không include timestamp hoặc request_id vì chúng luôn unique và sẽ làm cache vô nghĩa."
+  },
+  {
+    level:"medium", lesson:2,
+    q:"Sliding window rate limiting khác fixed window như thế nào? Cái nào chính xác hơn?",
+    opts:["Sliding window phức tạp hơn nhưng ít chính xác hơn fixed window","Fixed window: reset counter mỗi X giây; Sliding window: đếm trong X giây vừa qua — sliding chính xác hơn","Sliding window chỉ dùng cho per-user, fixed window cho global rate limiting","Chúng giống nhau về độ chính xác nhưng sliding window dùng ít memory hơn"],
+    ans:1,
+    exp:"Fixed window: counter reset lúc :00 và :60 mỗi phút. Vấn đề: có thể có burst 2x limit tại boundary (59 requests lúc :59, 59 requests lúc :00 → 118 requests trong 2 giây). Sliding window: mỗi lúc, đếm requests trong 60 giây VỪA QUA. Luôn chính xác — không có boundary exploit. Trade-off: sliding window cần lưu timestamp mỗi request (deque), fixed window chỉ cần 1 counter. LoanBot dùng sliding window vì accuracy quan trọng hơn memory overhead."
+  },
+  {
+    level:"medium", lesson:3,
+    q:"Health check proactive (test call mỗi 60 giây) tốt hơn reactive (phát hiện khi thật sự fail) vì lý do gì?",
+    opts:["Proactive tốn kém hơn nhưng không có lợi ích rõ ràng — reactive đủ cho production","Proactive phát hiện degraded API key trước khi nó ảnh hưởng production requests — giảm P99 latency","Reactive nhanh hơn proactive vì không cần schedule background job","Cả hai giống nhau về kết quả cuối cùng, chỉ khác về thời điểm phát hiện"],
+    ans:1,
+    exp:"Reactive discovery: khi key fail, N production requests đã bị timeout hoặc error trước khi gateway switch sang backup. Với 60s timeout per request, nếu 10 requests đang in-flight khi key fail → tất cả 10 bị delay. Proactive health check: background job test key mỗi 60s với dummy prompt. Phát hiện key 'degraded' (latency > 10s) hoặc 'unhealthy' (error rate > 5%) trước khi nó ảnh hưởng real traffic. Gateway automatically skip unhealthy keys. Cost: 1 haiku call/60s ≈ $0.0003/phút ≈ $0.43/ngày — negligible so với downtime cost."
+  },
+  {
+    level:"medium", lesson:4,
+    q:"Tại sao intelligent routing (haiku vs sonnet) dựa trên risk_score thay vì chỉ dùng sonnet cho tất cả?",
+    opts:["Haiku nhanh hơn nhưng chất lượng kém hơn — không nên dùng cho LoanBot vì ảnh hưởng accuracy","Routing giảm cost đáng kể: haiku ~$0.0003/call vs sonnet ~$0.015/call — với 50K hồ sơ/tháng tiết kiệm lớn","Sonnet chậm hơn haiku và gây tăng P99 latency cho tất cả requests","Anthropic không cho phép dùng sonnet cho financial decisions"],
+    ans:1,
+    exp:"Cost calculation: 50,000 hồ sơ/tháng. Nếu 60% clear cases (score ≥ 700 hoặc blacklisted) → haiku, 40% borderline → sonnet. Sonnet only: 50K × $0.015 = $750/tháng. Mixed routing: 30K × $0.0003 + 20K × $0.015 = $9 + $300 = $309/tháng. Tiết kiệm: $441/tháng = $5,292/năm. Accuracy không giảm vì: clear cases (score ≥ 700) không cần deep reasoning của sonnet — kết quả giống nhau với cost thấp hơn. Borderline cases vẫn dùng sonnet để đảm bảo quality."
+  },
+  {
+    level:"medium", lesson:5,
+    q:"Cost attribution là gì và tại sao quan trọng cho FinTech Corp?",
+    opts:["Kỹ thuật giảm cost API bằng cách batch nhiều requests thành một call","Phân bổ chi phí API về đúng team/department — basis cho charge-back và optimize incentives","Công thức tính tổng chi phí API theo tháng cho báo cáo tài chính","Cách Anthropic charge FinTech Corp theo số lượng active users"],
+    ans:1,
+    exp:"Cost attribution: mỗi API call được tagged với team_id. Cuối tháng: loan_dept = 68% ($510), risk_dept = 21% ($157), compliance = 8% ($60), IT_test = 3% ($23). Finance dùng số liệu này để: (1) charge-back từng department theo actual usage, (2) incentivize optimization (IT test dept thấy mình tốn $23/tháng cho test → optimize test prompts), (3) budget planning chính xác. Không có attribution → IT Central absorbs toàn bộ và không ai có incentive để optimize. Attribution là business intelligence tool, không chỉ là billing."
+  },
+  {
+    level:"medium", lesson:1,
+    q:"Exponential backoff trong retry logic hoạt động thế nào? Tại sao không retry ngay lập tức?",
+    opts:["Retry ngay lập tức là tốt nhất — minimize wait time cho user","Retry sau 2^attempt giây: attempt 0 → 1s, attempt 1 → 2s, attempt 2 → 4s — tránh overload server đang bị stress","Retry sau fixed 5 giây mỗi lần — đơn giản và predictable","Không retry — fail ngay và chuyển sang backup key"],
+    ans:1,
+    exp:"Exponential backoff: attempt 0 → sleep(1s), attempt 1 → sleep(2s), attempt 2 → sleep(4s). Lý do: nếu API đang bị overload và bạn retry ngay lập tức, bạn thêm load vào server đang stress → vòng xoáy downward. Exponential backoff cho server thời gian recover. Thêm jitter (random ±20%) để tránh thundering herd (nhiều clients retry đồng thời). Code: `time.sleep(2**attempt + random.uniform(0, 1))`. Sau max_retries (thường 3), try backup pool thay vì tiếp tục retry primary."
+  },
+  {
+    level:"medium", lesson:2,
+    q:"FinTech Corp có 5 departments và budget IT trung tâm. Khi nào quota management là critical vs nice-to-have?",
+    opts:["Quota management chỉ cần khi có hơn 1000 users — với 5 departments là overkill","Critical khi một department có thể monopolize toàn bộ quota và starve các departments khác","Nice-to-have vì Anthropic rate limits tự động protect mọi departments","Chỉ cần khi tổng usage vượt 80% của Anthropic rate limit"],
+    ans:1,
+    exp:"Critical scenario: IT_test department deploy automated stress test script lúc 2am → consume 80% quota trong 30 phút → loan_dept không thể process VIP applications lúc 3am (sáng sớm giờ HK có nhiều applications). Không có quota management → SLA breach cho loan_dept mặc dù vấn đề do IT_test. Với quota: loan_dept luôn có guaranteed 60% quota, IT_test giới hạn 500 req/hour, isolated. Critical từ ngày 1 với multi-tenant API usage. 'Chờ đến khi có vấn đề' là reactive và đã để incident xảy ra."
+  },
+
+  // === HARD (3) ===
+  {
+    level:"hard", lesson:3,
+    q:"LoanBot gateway có primary pool (3 keys) và backup pool (2 keys). Primary key 2 bị rate-limited (429). Key 1 và 3 OK. Hành vi đúng của gateway là gì?",
+    opts:["Tất cả requests chuyển ngay sang backup pool vì primary có vấn đề","Round-robin tiếp tục qua key 1 và 3, skip key 2 (marked unhealthy) — backup pool chỉ dùng khi toàn bộ primary fail","Pause tất cả requests 60 giây chờ key 2 recover","Requests ngẫu nhiên phân phối giữa primary và backup pool"],
+    ans:1,
+    exp:"Correct behavior: Health check phát hiện key 2 có error rate > threshold → mark 'unhealthy'. Round-robin pointer skip key 2 và chỉ route qua key 1 và 3. Capacity giảm từ 3 xuống 2 keys (~33% reduction) nhưng vẫn serve requests. Backup pool được reserve cho khi toàn bộ primary pool fail — không kích hoạt chỉ vì 1 primary key fail. Sau 5 phút cooldown, health check re-test key 2: nếu recovered → return to rotation, nếu vẫn fail → continue to exclude. Strategy này maximize available capacity và preserve backup pool như true emergency reserve."
+  },
+  {
+    level:"hard", lesson:4,
+    q:"LoanBot cần xử lý burst: 300 applications arrive trong 2 phút (150 P1, 100 P2, 50 P3). Rate limit: 60 req/min (2 primary keys). Trình tự xử lý tối ưu?",
+    opts:["First-in-first-out: xử lý theo thứ tự arrive bất kể priority","150 P1 trước (2.5 phút) → 100 P2 tiếp theo (1.67 phút) → 50 P3 cuối (0.83 phút) — total 5 phút","Xử lý parallel: chia đều 3 queues → mỗi queue nhận 33% capacity — 300 requests trong 5 phút","Random shuffle để fair distribution — không ưu tiên bất kỳ customer nào"],
+    ans:1,
+    exp:"Với 2 primary keys × 60 req/min = 120 req/min = 2 req/s throughput. 300 total requests. Priority queue strategy: tất cả 150 P1 được dequeued và processed first: 150/120 = 1.25 phút. Sau đó 100 P2: 100/120 = 0.83 phút. Cuối cùng 50 P3: 50/120 = 0.42 phút. Tổng: 2.5 phút cho tất cả. P1 customers (VIP) nhận kết quả trong 1.25 phút thay vì chờ 5 phút nếu FIFO. Trade-off: P3 customers chờ lâu hơn (2.5 phút thay vì có thể 1 phút nếu FIFO) — acceptable vì P3 = batch/reprocessing, không phải real-time users."
+  },
+  {
+    level:"hard", lesson:5,
+    q:"FinTech Corp SLA: P99 latency ≤ 5s, error rate ≤ 0.1%. Tháng 3: đo được P99 = 4.2s, error rate = 0.08% — SLA đạt. Tháng 4: P99 = 4.8s, error rate = 0.09%. Điều gì nên xảy ra?",
+    opts:["Không có action — cả hai tháng đều meet SLA, không cần lo lắng","Alert warning ngay trong tháng 4 — trend cho thấy sẽ breach SLA tháng 5, cần điều tra root cause","Chỉ alert khi breach thực sự xảy ra — tháng 4 vẫn OK","Giảm SLA target để đảm bảo selalu đạt — 6s thay vì 5s"],
+    ans:1,
+    exp:"Trend analysis là critical skill trong SLA management. Tháng 3→4: P99 tăng từ 4.2s → 4.8s (+14.3%), error rate từ 0.08% → 0.09% (+12.5%). Nếu trend tiếp tục: Tháng 5 P99 ≈ 5.4s (breach), error rate ≈ 0.10% (boundary). Proactive alert trong tháng 4 cho phép: (1) investigate root cause khi còn time, (2) fix trước khi breach, (3) không để customers bị ảnh hưởng. Gateway nên monitor rolling 30-day trend và alert khi: trend cho thấy breach trong 30 ngày hoặc current value vượt 80% SLA threshold (đây là lý do tại sao threshold alert set ở 4s, không phải 5s)."
+  }
+];
+
+let current = 0, score = 0, answered = [];
+
+function startQuiz() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  renderQ();
+}
+
+function renderQ() {
+  const q = QUESTIONS[current];
+  const pct = ((current) / QUESTIONS.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `Câu ${current+1} / ${QUESTIONS.length}`;
+
+  const levelLabel = {easy:'🟢 Dễ', medium:'🟡 Trung bình', hard:'🔴 Khó'}[q.level];
+  const lessonLabel = `Bài ${q.lesson}`;
+
+  const optsHTML = q.opts.map((o, i) => `
+    <button class="quiz-option" onclick="selectAnswer(${i})" id="opt-${i}">
+      <span class="option-letter">${String.fromCharCode(65+i)}</span>
+      <span>${o}</span>
+    </button>`).join('');
+
+  document.getElementById('questionContainer').innerHTML = `
+    <div class="quiz-question-card">
+      <div class="quiz-meta">
+        <span class="quiz-level-badge">${levelLabel}</span>
+        <span class="quiz-lesson-tag">${lessonLabel}</span>
+        <span class="quiz-counter">Câu ${current+1}</span>
+      </div>
+      <p class="quiz-question-text">${q.q}</p>
+      <div class="quiz-options">${optsHTML}</div>
+      <div class="quiz-feedback" id="feedback" style="display:none"></div>
+    </div>`;
+  document.getElementById('prevBtn').style.display = current > 0 ? 'inline-flex' : 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function selectAnswer(idx) {
+  const q = QUESTIONS[current];
+  if (document.querySelector('.quiz-option.correct') || document.querySelector('.quiz-option.wrong')) return;
+
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o => o.disabled = true);
+  opts[idx].classList.add(idx === q.ans ? 'correct' : 'wrong');
+  if (idx !== q.ans) opts[q.ans].classList.add('correct');
+
+  const isCorrect = idx === q.ans;
+  if (isCorrect && !answered[current]) score++;
+  answered[current] = true;
+
+  const fb = document.getElementById('feedback');
+  fb.style.display = 'block';
+  fb.className = 'quiz-feedback ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+  fb.innerHTML = `<strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng.'}</strong> ${q.exp}`;
+  document.getElementById('nextBtn').style.display = 'inline-flex';
+  document.getElementById('nextBtn').textContent = current < QUESTIONS.length-1 ? 'Câu tiếp theo →' : 'Xem kết quả →';
+}
+
+function nextQ() {
+  if (current < QUESTIONS.length - 1) { current++; renderQ(); }
+  else showResult();
+}
+function prevQ() { if (current > 0) { current--; renderQ(); } }
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  const pass = pct >= 80;
+  const byLevel = {easy:{correct:0,total:0},medium:{correct:0,total:0},hard:{correct:0,total:0}};
+  QUESTIONS.forEach((q,i) => { byLevel[q.level].total++; if(answered[i]) byLevel[q.level].correct++; });
+  // re-count correct
+  let actualCorrect = 0;
+  QUESTIONS.forEach((q,i) => {
+    if (answered[i]) { /* we incremented score only for correct answers */ }
+  });
+
+  document.getElementById('resultArea').style.display = 'block';
+  document.getElementById('resultArea').innerHTML = `
+    <div class="quiz-result">
+      <div class="result-score ${pass ? 'pass' : 'fail'}">${score}/${QUESTIONS.length}</div>
+      <div class="result-pct">${pct}%</div>
+      <p class="result-msg">${pass
+        ? '🎉 Xuất sắc! Bạn đã nắm vững LLM Gateway & Infrastructure. Sẵn sàng cho module tiếp theo!'
+        : '📚 Cần ôn lại kiến thức về gateway architecture và SLA monitoring trước khi tiếp tục.'}</p>
+      <div class="result-breakdown">
+        <div class="result-card">
+          <div class="rc-label">🟢 Dễ</div>
+          <div class="rc-score">${byLevel.easy.correct}/5</div>
+        </div>
+        <div class="result-card">
+          <div class="rc-label">🟡 Trung bình</div>
+          <div class="rc-score">${byLevel.medium.correct}/7</div>
+        </div>
+        <div class="result-card">
+          <div class="rc-label">🔴 Khó</div>
+          <div class="rc-score">${byLevel.hard.correct}/3</div>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại Quiz</button>
+        <a href="index.html" class="btn btn-secondary">📖 Ôn lại bài giảng</a>
+        <a href="../module19/index.html" class="btn btn-primary">Module 19: AI Compliance →</a>
+      </div>
+    </div>`;
+}
+
+function restartQuiz() {
+  current = 0; score = 0; answered = [];
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  renderQ();
+}
+</script>
+</body>
+</html>

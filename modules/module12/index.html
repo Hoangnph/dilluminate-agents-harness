@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 12 — Agent Evaluation & Continuous Improvement</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m12-primary: #9f1239;
+      --m12-accent:  #e11d48;
+      --m12-light:   #fff1f2;
+      --m12-border:  #fda4af;
+    }
+    .lesson-header { background: linear-gradient(135deg, #4c0519 0%, #9f1239 50%, #e11d48 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #ffe4e6; }
+    .lesson-header p { color: #fecdd3; }
+    .sidebar-nav a.active { background: var(--m12-light); border-left: 3px solid var(--m12-accent); color: var(--m12-primary); }
+    .sidebar-nav a:hover { color: var(--m12-primary); }
+
+    .eval-dim-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); margin: var(--space-5) 0;
+    }
+    .eval-dim {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid;
+    }
+    .eval-dim.correctness  { background: #f0fdf4; border-color: #86efac; }
+    .eval-dim.helpfulness  { background: #eff6ff; border-color: #93c5fd; }
+    .eval-dim.safety       { background: #fff1f2; border-color: #fda4af; }
+    .eval-dim.efficiency   { background: #fef3c7; border-color: #fcd34d; }
+    .eval-dim h4 { font-size: .9rem; margin-bottom: var(--space-2); color: var(--primary-dark); font-weight: 700; }
+    .eval-dim p  { font-size: .85rem; color: var(--text-muted); margin: 0; }
+
+    .metric-row {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius); margin-bottom: var(--space-2);
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .metric-name { font-weight: 700; width: 180px; font-size: .9rem; }
+    .metric-bar-wrap { flex: 1; background: #f1f5f9; border-radius: 4px; height: 10px; }
+    .metric-bar { height: 10px; border-radius: 4px; }
+    .metric-val { font-weight: 700; width: 50px; text-align: right; font-size: .9rem; }
+
+    .judge-prompt-box {
+      background: #1e1b4b; color: #e0e7ff; padding: var(--space-5);
+      border-radius: var(--radius-lg); margin: var(--space-5) 0;
+      font-family: var(--font-mono); font-size: .85rem; line-height: 1.7;
+    }
+    .judge-prompt-box .role-tag { color: #818cf8; font-weight: 700; }
+    .judge-prompt-box .placeholder { color: #fbbf24; }
+
+    .ab-card { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin: var(--space-5) 0; }
+    .ab-variant {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 2px solid;
+    }
+    .ab-variant.control { background: #eff6ff; border-color: #93c5fd; }
+    .ab-variant.treatment { background: #f0fdf4; border-color: #86efac; }
+    .ab-variant h4 { margin-bottom: var(--space-3); font-size: 1rem; }
+    .ab-stat { display: flex; justify-content: space-between; font-size: .85rem; margin-bottom: 6px; }
+    .ab-stat .label { color: var(--text-muted); }
+    .ab-stat .value { font-weight: 700; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m12-light);color:var(--m12-primary);border-color:var(--m12-border);">MODULE 12</div>
+    <div class="sidebar-title">Agent Evaluation & Improvement</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Evaluation Fundamentals</a>
+      <a href="#lesson2">L2. LLM-as-Judge</a>
+      <a href="#lesson3">L3. A/B Testing Agent Versions</a>
+      <a href="#lesson4">L4. Benchmark & Regression Testing</a>
+      <a href="#lesson5">L5. Continuous Improvement Loop</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m12-accent);">📝 Quiz Module 12</a>
+      <a href="lab.ipynb" download style="color:var(--m12-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module11/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 11: HITL</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 12 · Tuần 31–33</span>
+      <h1>📊 Agent Evaluation & Continuous Improvement</h1>
+      <p>Bạn không thể cải thiện điều bạn không đo được. Module này dạy cách đánh giá AI agent một cách khoa học — từ golden datasets, LLM-as-Judge, đến A/B testing và regression suites.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>📊 Evaluation engineering</span>
+      </div>
+    </div>
+
+    <!-- ===== LESSON 1 ===== -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Evaluation Fundamentals — Tại Sao Đánh Giá AI Khó?</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao accuracy đơn thuần không đủ để đánh giá AI agent</li>
+          <li>Phân biệt 4 chiều đánh giá: Correctness, Helpfulness, Safety, Efficiency</li>
+          <li>Xây dựng Golden Dataset 100 hồ sơ cho LoanBot evaluation</li>
+          <li>Chọn evaluation strategy phù hợp với từng agent trong pipeline</li>
+        </ul>
+      </div>
+
+      <p>LoanBot v3.0 xử lý 50.000 hồ sơ/tháng. Làm sao biết nó đang hoạt động tốt? Không phải chỉ nhìn vào tỷ lệ approve/reject — mà phải hỏi: <em>Các quyết định có đúng không? Giải thích có rõ không? Có gây hại không? Chi phí có tối ưu không?</em></p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Evaluation Gap</div>
+        <p><strong>Evaluation Gap</strong> là khoảng cách giữa metric bạn đang đo và kết quả thực sự bạn quan tâm. Ví dụ: đo <em>throughput</em> cao nhưng không đo <em>decision quality</em> → LoanBot nhanh nhưng approve hồ sơ xấu. Đo <em>reject rate thấp</em> → tưởng tốt nhưng thực ra đang approve risk. Evaluation engineering là về việc đo đúng thứ quan trọng.</p>
+      </div>
+
+      <h3>1.1 Bốn Chiều Đánh Giá</h3>
+
+      <div class="eval-dim-grid">
+        <div class="eval-dim correctness">
+          <h4>✅ Correctness — Độ chính xác</h4>
+          <p>Quyết định có match với expert ground truth không? Dùng Golden Dataset (100 hồ sơ được chuyên gia label). Metric: decision_accuracy, false_positive_rate, false_negative_rate.</p>
+        </div>
+        <div class="eval-dim helpfulness">
+          <h4>💬 Helpfulness — Hữu ích</h4>
+          <p>Explanation có đủ để loan officer hiểu và act không? Dùng LLM-as-Judge (Lesson 2). Metric: explanation_clarity_score (1–5), factor_coverage.</p>
+        </div>
+        <div class="eval-dim safety">
+          <h4>🛡️ Safety — An toàn</h4>
+          <p>Agent có vi phạm policy, privacy, hoặc tạo discriminatory output không? Red team + automated safety checks. Metric: policy_violation_rate, bias_index.</p>
+        </div>
+        <div class="eval-dim efficiency">
+          <h4>⚡ Efficiency — Hiệu quả</h4>
+          <p>Cost, latency, token usage có tối ưu không? Module 10 CostTracker. Metric: cost_per_decision, p95_latency_ms, token_efficiency_ratio.</p>
+        </div>
+      </div>
+
+      <h3>1.2 Golden Dataset — Tiêu Chuẩn Đánh Giá</h3>
+
+      <p>Một <strong>Golden Dataset</strong> là tập hồ sơ được chuyên gia label chính xác — dùng làm ground truth cho evaluation. FinTech Corp xây dựng 100 hồ sơ golden:</p>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FinTech Corp Golden Dataset</div>
+        <p>Ban tín dụng senior review 100 hồ sơ lịch sử (đã biết kết quả trả nợ thực tế sau 12 tháng) và gán label:</p>
+        <ul>
+          <li><strong>40 hồ sơ "should APPROVE"</strong> — khách hàng trả nợ đúng hạn</li>
+          <li><strong>40 hồ sơ "should REJECT"</strong> — khách hàng default hoặc trả trễ nhiều</li>
+          <li><strong>20 hồ sơ "borderline"</strong> — 2 chuyên gia evaluate, lấy majority vote</li>
+        </ul>
+        <p>Distribution: phủ đều 4 customers types · 3 loan amount ranges · tự kinh doanh và không · các credit score levels.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Decision Accuracy</div>
+        <div class="formula-text">accuracy = correct_decisions / total_golden × 100%</div>
+        <div class="formula-desc">LoanBot v3.0 target: ≥ 94% accuracy trên golden dataset · False Positive Rate ≤ 3% (approve bad loan) · False Negative Rate ≤ 5% (reject good loan)</div>
+      </div>
+
+      <h3>1.3 Per-Agent Evaluation Strategy</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+          <title>Per-Agent Evaluation Strategy trong LoanBot Pipeline</title>
+          <defs>
+            <marker id="arrEv" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#e11d48"/>
+            </marker>
+          </defs>
+          <rect width="760" height="280" fill="#fff1f2" rx="12" stroke="#fda4af"/>
+          <text x="380" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#4c0519">Per-Agent Evaluation Strategy — LoanBot</text>
+
+          <!-- Agent boxes -->
+          <rect x="20" y="50" width="105" height="50" fill="#eff6ff" rx="8" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="72" y="71" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">CreditAgent</text>
+          <text x="72" y="85" text-anchor="middle" font-size="8" fill="#3b82f6">Accuracy vs CIC</text>
+
+          <rect x="140" y="50" width="105" height="50" fill="#f0fdf4" rx="8" stroke="#86efac" stroke-width="1.5"/>
+          <text x="192" y="71" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">IncomeAgent</text>
+          <text x="192" y="85" text-anchor="middle" font-size="8" fill="#22c55e">Income verify rate</text>
+
+          <rect x="260" y="50" width="105" height="50" fill="#fff1f2" rx="8" stroke="#fda4af" stroke-width="1.5"/>
+          <text x="312" y="71" text-anchor="middle" font-size="10" font-weight="700" fill="#9f1239">FraudAgent</text>
+          <text x="312" y="85" text-anchor="middle" font-size="8" fill="#e11d48">Precision@0.3</text>
+
+          <rect x="380" y="50" width="105" height="50" fill="#fdf4ff" rx="8" stroke="#d8b4fe" stroke-width="1.5"/>
+          <text x="432" y="71" text-anchor="middle" font-size="10" font-weight="700" fill="#7e22ce">RiskAgent</text>
+          <text x="432" y="85" text-anchor="middle" font-size="8" fill="#9333ea">LLM-as-Judge</text>
+
+          <rect x="500" y="50" width="105" height="50" fill="#fef3c7" rx="8" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="552" y="71" text-anchor="middle" font-size="10" font-weight="700" fill="#92400e">ComplianceAgent</text>
+          <text x="552" y="85" text-anchor="middle" font-size="8" fill="#d97706">Policy coverage %</text>
+
+          <rect x="620" y="50" width="120" height="50" fill="#f1f5f9" rx="8" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="680" y="71" text-anchor="middle" font-size="10" font-weight="700" fill="#334155">Orchestrator</text>
+          <text x="680" y="85" text-anchor="middle" font-size="8" fill="#64748b">End-to-end accuracy</text>
+
+          <!-- Arrows down to eval method boxes -->
+          <line x1="72" y1="100" x2="72" y2="130" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrEv)"/>
+          <line x1="192" y1="100" x2="192" y2="130" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrEv)"/>
+          <line x1="312" y1="100" x2="312" y2="130" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrEv)"/>
+          <line x1="432" y1="100" x2="432" y2="130" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrEv)"/>
+          <line x1="552" y1="100" x2="552" y2="130" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrEv)"/>
+          <line x1="680" y1="100" x2="680" y2="130" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrEv)"/>
+
+          <!-- Eval method boxes -->
+          <rect x="20" y="130" width="105" height="44" fill="#1d4ed8" rx="8"/>
+          <text x="72" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Rule-Based</text>
+          <text x="72" y="162" text-anchor="middle" font-size="8" fill="#bfdbfe">CIC API match</text>
+
+          <rect x="140" y="130" width="105" height="44" fill="#15803d" rx="8"/>
+          <text x="192" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Rule-Based</text>
+          <text x="192" y="162" text-anchor="middle" font-size="8" fill="#bbf7d0">doc verification</text>
+
+          <rect x="260" y="130" width="105" height="44" fill="#9f1239" rx="8"/>
+          <text x="312" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Statistical</text>
+          <text x="312" y="162" text-anchor="middle" font-size="8" fill="#fecdd3">F1 score</text>
+
+          <rect x="380" y="130" width="105" height="44" fill="#7e22ce" rx="8"/>
+          <text x="432" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">LLM Judge</text>
+          <text x="432" y="162" text-anchor="middle" font-size="8" fill="#e9d5ff">Claude-as-judge</text>
+
+          <rect x="500" y="130" width="105" height="44" fill="#92400e" rx="8"/>
+          <text x="552" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Rule-Based</text>
+          <text x="552" y="162" text-anchor="middle" font-size="8" fill="#fde68a">checklist match</text>
+
+          <rect x="620" y="130" width="120" height="44" fill="#334155" rx="8"/>
+          <text x="680" y="148" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">Golden Dataset</text>
+          <text x="680" y="162" text-anchor="middle" font-size="8" fill="#cbd5e1">100 expert labels</text>
+
+          <!-- Target metrics row -->
+          <rect x="20" y="200" width="720" height="60" fill="#fff" rx="8" stroke="#fda4af" stroke-width="1.5"/>
+          <text x="40" y="220" font-size="10" font-weight="700" fill="#9f1239">Target Metrics — LoanBot v3.0:</text>
+          <text x="40" y="238" font-size="9" fill="#374151">CreditAgent: accuracy ≥ 97%</text>
+          <text x="170" y="238" font-size="9" fill="#374151">FraudAgent: F1 ≥ 0.92</text>
+          <text x="295" y="238" font-size="9" fill="#374151">RiskAgent: clarity ≥ 4.2/5</text>
+          <text x="445" y="238" font-size="9" fill="#374151">Pipeline: decision_accuracy ≥ 94%</text>
+          <text x="40" y="252" font-size="9" fill="#374151">FPR ≤ 3%</text>
+          <text x="110" y="252" font-size="9" fill="#374151">FNR ≤ 5%</text>
+          <text x="190" y="252" font-size="9" fill="#374151">p95 latency ≤ 8s</text>
+          <text x="320" y="252" font-size="9" fill="#374151">cost/decision ≤ $0.008</text>
+          <text x="445" y="252" font-size="9" fill="#374151">safety violations = 0</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Per-Agent Evaluation — mỗi agent dùng evaluation method phù hợp với output type của nó</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao RiskAgent dùng "LLM-as-Judge" thay vì rule-based evaluation? RiskAgent output là gì mà khó evaluate bằng rules?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> RiskAgent output là free-text reasoning và recommendation với confidence score. Rule-based chỉ check cấu trúc (có field recommendation không), không check chất lượng reasoning (có logic không? có giải thích yếu tố đúng không?). LLM-as-Judge dùng Claude để đọc reasoning và chấm điểm clarity, completeness, logical soundness — giống như chuyên gia review nhưng scalable và consistent.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- ===== LESSON 2 ===== -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: LLM-as-Judge — Dùng AI Đánh Giá AI</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu khi nào nên dùng LLM-as-Judge thay vì rule-based hoặc human evaluation</li>
+          <li>Thiết kế evaluation prompt chống bias hiệu quả</li>
+          <li>Implement JudgeAgent sử dụng Claude claude-sonnet-4-6</li>
+          <li>Calibrate judge scores với human ground truth</li>
+        </ul>
+      </div>
+
+      <p>Dùng Claude để đánh giá output của các agent khác trong LoanBot — đặc biệt những output có dạng free text như reasoning của RiskAgent hay explanation của ExplanationGenerator. Đây là kỹ thuật phổ biến trong SOTA evaluation (LMSYS, Alpaca Eval, MT-Bench).</p>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Bias trong LLM-as-Judge</div>
+        <ul>
+          <li><strong>Position bias</strong>: Judge thích response xuất hiện trước (khi compare 2 outputs). → Randomize order.</li>
+          <li><strong>Verbosity bias</strong>: Judge thích output dài hơn. → Penalize unnecessary length trong rubric.</li>
+          <li><strong>Self-enhancement bias</strong>: Claude thích Claude outputs hơn GPT. → Use multiple judges từ providers khác nhau cho critical evals.</li>
+          <li><strong>Sycophancy</strong>: Judge có xu hướng agree với framing trong prompt. → Phrase rubric neutrally.</li>
+        </ul>
+      </div>
+
+      <h3>2.1 Judge Prompt Design</h3>
+
+      <div class="judge-prompt-box">
+        <div class="role-tag">[SYSTEM — JudgeAgent Prompt]</div><br>
+        Bạn là chuyên gia đánh giá AI output cho hệ thống thẩm định tín dụng.<br>
+        Đánh giá output của RiskAgent theo rubric sau:<br><br>
+        <div class="role-tag">RUBRIC (điểm 1–5 cho mỗi tiêu chí):</div><br>
+        1. <strong>Logical Consistency</strong>: Recommendation (APPROVE/REJECT) có nhất quán với factors được liệt kê không?<br>
+        2. <strong>Factor Coverage</strong>: Đề cập đủ các yếu tố quan trọng (credit score, income, DTI, fraud) không?<br>
+        3. <strong>Confidence Calibration</strong>: Confidence score có phù hợp với evidence strength không?<br>
+        4. <strong>Actionability</strong>: Loan officer có thể act dựa trên output này không?<br>
+        5. <strong>Conciseness</strong>: Không quá dài, không thiếu thông tin quan trọng.<br><br>
+        <div class="role-tag">[USER — Input to judge]</div><br>
+        Loan Application: <span class="placeholder">{loan_summary}</span><br>
+        RiskAgent Output: <span class="placeholder">{risk_agent_output}</span><br><br>
+        Trả về JSON: {"scores": {1: N, 2: N, 3: N, 4: N, 5: N}, "overall": N, "reasoning": "...", "weaknesses": [...]}
+      </div>
+
+      <h3>2.2 RiskAgent Evaluation kết quả</h3>
+
+      <div class="metric-row">
+        <div class="metric-name">Logical Consistency</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:90%;background:#16a34a;"></div></div>
+        <div class="metric-val" style="color:#16a34a;">4.5</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Factor Coverage</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:86%;background:#22c55e;"></div></div>
+        <div class="metric-val" style="color:#22c55e;">4.3</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Confidence Calibration</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:74%;background:#f59e0b;"></div></div>
+        <div class="metric-val" style="color:#d97706;">3.7</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Actionability</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:84%;background:#22c55e;"></div></div>
+        <div class="metric-val" style="color:#22c55e;">4.2</div>
+      </div>
+      <div class="metric-row">
+        <div class="metric-name">Conciseness</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:80%;background:#22c55e;"></div></div>
+        <div class="metric-val" style="color:#22c55e;">4.0</div>
+      </div>
+      <div class="metric-row" style="background:var(--m12-light);border-color:var(--m12-border);">
+        <div class="metric-name" style="color:var(--m12-primary);">Overall Score</div>
+        <div class="metric-bar-wrap"><div class="metric-bar" style="width:83%;background:#e11d48;"></div></div>
+        <div class="metric-val" style="color:#e11d48;">4.14/5</div>
+      </div>
+
+      <p style="margin-top:var(--space-3);font-size:.85rem;color:var(--text-muted);">Weakness được phát hiện: <em>"Confidence Calibration yếu — RiskAgent báo confidence 0.88 cho borderline case FC-2024-004 nhưng actual factors suggest ≤ 0.7."</em> → Action: update confidence scaling function.</p>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Calibrating Judge Scores với Human Ground Truth
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Judge score có giá trị khi chúng <strong>correlate với human judgment</strong>. Để calibrate:</p>
+          <ol class="process-steps">
+            <li><strong>Human evaluation set</strong> — 50 cases được loan officer chuyên gia chấm điểm 1–5 cho mỗi rubric.</li>
+            <li><strong>Pearson correlation</strong> — Tính r giữa LLM judge scores và human scores. Target: r ≥ 0.75.</li>
+            <li><strong>Disagreement analysis</strong> — Xem xét cases có |LLM - Human| ≥ 1.5 → adjust rubric wording.</li>
+            <li><strong>Anchor examples</strong> — Thêm 3 ví dụ điển hình (score 1, 3, 5) vào system prompt để anchor judge.</li>
+          </ol>
+          <p>FinTech Corp calibration: Pearson r = 0.82 (acceptable). Cases bất đồng thường liên quan đến domain-specific edge cases → thêm domain knowledge vào judge prompt.</p>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- ===== LESSON 3 ===== -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: A/B Testing Agent Versions — So Sánh Khoa Học</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế A/B test so sánh LoanBot v2 và v3.0</li>
+          <li>Tính sample size đủ lớn để kết quả có statistical significance</li>
+          <li>Phân tích kết quả và quyết định rollout hay rollback</li>
+          <li>Tránh các pitfalls phổ biến: novelty effect, simpson's paradox</li>
+        </ul>
+      </div>
+
+      <p>Trước khi deploy LoanBot v3.0 toàn bộ 50.000 hồ sơ/tháng, FinTech Corp chạy A/B test: <strong>10% traffic</strong> (5.000 hồ sơ) vào v3.0, 90% vẫn dùng v2. Sau 4 tuần, so sánh kết quả.</p>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Thử nghiệm thuốc</div>
+        <p>A/B test AI agent giống clinical trial của thuốc: Control group (v2 = placebo cũ), Treatment group (v3.0 = thuốc mới). Không thể chỉ "cảm giác tốt hơn" — phải có p-value &lt; 0.05 để chứng minh improvement không phải ngẫu nhiên. Cũng cần check: có side effects không? (tăng false positive rate?)</p>
+      </div>
+
+      <h3>3.1 Kết quả A/B Test LoanBot v2 vs v3.0</h3>
+
+      <div class="ab-card">
+        <div class="ab-variant control">
+          <h4 style="color:#1d4ed8;">🅰 Control — LoanBot v2</h4>
+          <div class="ab-stat"><span class="label">Decision Accuracy</span><span class="value">89.2%</span></div>
+          <div class="ab-stat"><span class="label">False Positive Rate</span><span class="value" style="color:#dc2626;">5.8%</span></div>
+          <div class="ab-stat"><span class="label">HITL Rate</span><span class="value">1.2%</span></div>
+          <div class="ab-stat"><span class="label">Avg Processing Time</span><span class="value">12.4s</span></div>
+          <div class="ab-stat"><span class="label">Cost/Decision</span><span class="value">$0.014</span></div>
+          <div class="ab-stat"><span class="label">Sample</span><span class="value">45,000 apps</span></div>
+        </div>
+        <div class="ab-variant treatment">
+          <h4 style="color:#15803d;">🅱 Treatment — LoanBot v3.0</h4>
+          <div class="ab-stat"><span class="label">Decision Accuracy</span><span class="value" style="color:#16a34a;">94.7% ↑</span></div>
+          <div class="ab-stat"><span class="label">False Positive Rate</span><span class="value" style="color:#16a34a;">2.3% ↓</span></div>
+          <div class="ab-stat"><span class="label">HITL Rate</span><span class="value" style="color:#16a34a;">0.3% ↓</span></div>
+          <div class="ab-stat"><span class="label">Avg Processing Time</span><span class="value" style="color:#16a34a;">6.8s ↓</span></div>
+          <div class="ab-stat"><span class="label">Cost/Decision</span><span class="value" style="color:#16a34a;">$0.006 ↓</span></div>
+          <div class="ab-stat"><span class="label">Sample</span><span class="value">5,000 apps</span></div>
+        </div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Statistical Significance</div>
+        <div class="formula-text">p-value (accuracy delta) = 0.0003 → p &lt; 0.05 ✅ Significant</div>
+        <div class="formula-desc">Chi-squared test: accuracy 94.7% vs 89.2%, n=5000 vs 45000. Effect size Cohen's h = 0.19 (small-medium). Decision: ROLLOUT v3.0 toàn bộ.</div>
+      </div>
+
+      <h3>3.2 A/B Test Architecture</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+          <title>A/B Testing Architecture — Traffic Splitting cho LoanBot</title>
+          <defs>
+            <marker id="arrAB" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#e11d48"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#fff8f8" rx="12" stroke="#fda4af"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#4c0519">A/B Testing Architecture — Traffic Splitting</text>
+
+          <!-- Traffic source -->
+          <ellipse cx="100" cy="110" rx="75" ry="30" fill="#e11d48"/>
+          <text x="100" y="106" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Loan Applications</text>
+          <text x="100" y="120" text-anchor="middle" font-size="9" fill="#fecdd3">50,000/month</text>
+
+          <!-- Router -->
+          <rect x="220" y="88" width="100" height="44" fill="#1e1b4b" rx="8"/>
+          <text x="270" y="106" text-anchor="middle" font-size="10" font-weight="700" fill="#e0e7ff">A/B Router</text>
+          <text x="270" y="120" text-anchor="middle" font-size="9" fill="#a5b4fc">hash(loan_id) % 100</text>
+
+          <line x1="175" y1="110" x2="218" y2="110" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrAB)"/>
+
+          <!-- Control branch (90%) -->
+          <line x1="320" y1="100" x2="410" y2="70" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrAB)"/>
+          <text x="362" y="78" text-anchor="middle" font-size="9" fill="#1d4ed8">90%</text>
+          <rect x="410" y="48" width="110" height="44" fill="#eff6ff" rx="8" stroke="#93c5fd" stroke-width="2"/>
+          <text x="465" y="66" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">LoanBot v2</text>
+          <text x="465" y="80" text-anchor="middle" font-size="9" fill="#3b82f6">Control group</text>
+
+          <!-- Treatment branch (10%) -->
+          <line x1="320" y1="120" x2="410" y2="150" stroke="#16a34a" stroke-width="2" marker-end="url(#arrAB)"/>
+          <text x="362" y="142" text-anchor="middle" font-size="9" fill="#15803d">10%</text>
+          <rect x="410" y="128" width="110" height="44" fill="#f0fdf4" rx="8" stroke="#86efac" stroke-width="2"/>
+          <text x="465" y="146" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">LoanBot v3.0</text>
+          <text x="465" y="160" text-anchor="middle" font-size="9" fill="#22c55e">Treatment group</text>
+
+          <!-- Metrics collection -->
+          <line x1="520" y1="70" x2="600" y2="100" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrAB)"/>
+          <line x1="520" y1="150" x2="600" y2="120" stroke="#6b7280" stroke-width="1.5" marker-end="url(#arrAB)"/>
+          <rect x="600" y="78" width="140" height="64" fill="#f8fafc" rx="8" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="670" y="98" text-anchor="middle" font-size="10" font-weight="700" fill="#334155">📊 Metrics Store</text>
+          <text x="670" y="112" text-anchor="middle" font-size="9" fill="#64748b">accuracy, FPR, latency</text>
+          <text x="670" y="126" text-anchor="middle" font-size="9" fill="#64748b">cost, HITL rate</text>
+
+          <!-- Stats analysis -->
+          <rect x="620" y="165" width="120" height="40" fill="#9f1239" rx="8"/>
+          <text x="680" y="180" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">Statistical Test</text>
+          <text x="680" y="194" text-anchor="middle" font-size="9" fill="#fecdd3">chi-squared, t-test</text>
+          <line x1="680" y1="142" x2="680" y2="163" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrAB)"/>
+
+          <!-- Constraint: same loan_id always same variant -->
+          <rect x="20" y="165" width="175" height="44" fill="#fffbeb" rx="8" stroke="#fcd34d"/>
+          <text x="107" y="183" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">⚠️ Sticky Assignment</text>
+          <text x="107" y="197" text-anchor="middle" font-size="9" fill="#78350f">Same loan → same version</text>
+          <text x="107" y="208" text-anchor="middle" font-size="8" fill="#78350f">(consistency requirement)</text>
+        </svg>
+        <div class="diagram-title">Hình 2: A/B Testing Architecture — hash(loan_id) đảm bảo sticky assignment; 10% traffic → v3.0</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao A/B test dùng hash(loan_id) % 100 thay vì random() mỗi request? Điều gì xảy ra nếu cùng hồ sơ được evaluate lần 2 bằng version khác?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Sticky assignment: hash(loan_id) deterministic → cùng loan_id luôn vào cùng variant. Nếu dùng random(), cùng hồ sơ có thể được process bởi v2 và v3 trong các lần khác nhau → metrics nhiễu, không so sánh được. Đặc biệt quan trọng với HITL cases: nếu loan officer thấy v2 output rồi lại thấy v3 output cho cùng hồ sơ → bị confuse. Sticky assignment giữ experience nhất quán.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- ===== LESSON 4 ===== -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Benchmark & Regression Testing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Xây dựng automated regression test suite cho LoanBot</li>
+          <li>Integrate evaluation vào CI/CD pipeline</li>
+          <li>Thiết lập score thresholds và alerts cho degradation</li>
+          <li>Manage golden dataset versioning khi business rules thay đổi</li>
+        </ul>
+      </div>
+
+      <p>A/B test là one-time comparison. <strong>Regression testing</strong> là đánh giá liên tục — mỗi lần code thay đổi, tự động chạy evaluation trên golden dataset và fail build nếu score giảm quá threshold.</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Evaluation-Driven Development (EDD)</div>
+        <p>Tương tự Test-Driven Development (TDD) nhưng cho AI: <strong>Viết evaluation cases TRƯỚC khi thay đổi prompt</strong>. Khi modify RiskAgent prompt, trước tiên phải có test cases verify behavior mới và không break behavior cũ. EDD ngăn "prompt drift" — prompts ngày càng phức tạp nhưng performance ngày càng kém vì không có regression tests.</p>
+      </div>
+
+      <h3>4.1 Regression Test Suite</h3>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict
+<span class="code-keyword">import</span> json
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">RegressionCase</span>:
+    case_id: <span class="code-type">str</span>
+    loan_data: Dict
+    expected_decision: <span class="code-type">str</span>        <span class="code-comment"># "APPROVE" | "REJECT"</span>
+    expected_confidence_min: <span class="code-type">float</span>  <span class="code-comment"># confidence phải >= threshold này</span>
+    tags: List[<span class="code-type">str</span>]              <span class="code-comment"># ["borderline", "fraud_signal", "high_amount"]</span>
+
+<span class="code-keyword">class</span> <span class="code-function">RegressionSuite</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, cases: List[RegressionCase], pipeline_fn):
+        self.cases = cases
+        self.pipeline_fn = pipeline_fn  <span class="code-comment"># LoanBot pipeline function</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">run</span>(self, accuracy_threshold: <span class="code-type">float</span> = <span class="code-number">0.94</span>) -> Dict:
+        results = []
+        <span class="code-keyword">for</span> case <span class="code-keyword">in</span> self.cases:
+            output = self.pipeline_fn(case.loan_data)
+            correct = output[<span class="code-string">'decision'</span>] == case.expected_decision
+            conf_ok = output[<span class="code-string">'confidence'</span>] >= case.expected_confidence_min
+            results.append({
+                <span class="code-string">'case_id'</span>: case.case_id, <span class="code-string">'correct'</span>: correct,
+                <span class="code-string">'conf_ok'</span>: conf_ok, <span class="code-string">'tags'</span>: case.tags,
+                <span class="code-string">'expected'</span>: case.expected_decision,
+                <span class="code-string">'got'</span>: output[<span class="code-string">'decision'</span>],
+            })
+        accuracy = sum(<span class="code-number">1</span> <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> r[<span class="code-string">'correct'</span>]) / len(results)
+        <span class="code-comment"># Fail build nếu accuracy drop > threshold</span>
+        passed = accuracy >= accuracy_threshold
+        <span class="code-keyword">return</span> {
+            <span class="code-string">'passed'</span>: passed, <span class="code-string">'accuracy'</span>: accuracy,
+            <span class="code-string">'threshold'</span>: accuracy_threshold,
+            <span class="code-string">'failures'</span>: [r <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results <span class="code-keyword">if</span> <span class="code-keyword">not</span> r[<span class="code-string">'correct'</span>]],
+            <span class="code-string">'tag_breakdown'</span>: self.<span class="code-function">_tag_accuracy</span>(results),
+        }
+
+    <span class="code-keyword">def</span> <span class="code-function">_tag_accuracy</span>(self, results) -> Dict[str, float]:
+        <span class="code-comment"># Accuracy per tag category — tìm segment weakness</span>
+        tag_correct  = {}
+        tag_total    = {}
+        <span class="code-keyword">for</span> r <span class="code-keyword">in</span> results:
+            <span class="code-keyword">for</span> tag <span class="code-keyword">in</span> r[<span class="code-string">'tags'</span>]:
+                tag_total[tag] = tag_total.get(tag, <span class="code-number">0</span>) + <span class="code-number">1</span>
+                <span class="code-keyword">if</span> r[<span class="code-string">'correct'</span>]: tag_correct[tag] = tag_correct.get(tag, <span class="code-number">0</span>) + <span class="code-number">1</span>
+        <span class="code-keyword">return</span> {t: tag_correct.get(t, <span class="code-number">0</span>) / tag_total[t] <span class="code-keyword">for</span> t <span class="code-keyword">in</span> tag_total}</code></pre>
+      </div>
+
+      <h3>4.2 CI/CD Integration</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg">
+          <title>CI/CD Evaluation Pipeline cho LoanBot prompt changes</title>
+          <defs>
+            <marker id="arrCI" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#e11d48"/>
+            </marker>
+          </defs>
+          <rect width="760" height="180" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#e2e8f0">CI/CD Evaluation Pipeline</text>
+
+          <rect x="20"  y="50" width="100" height="40" fill="#334155" rx="8"/>
+          <text x="70"  y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">📝 Prompt</text>
+          <text x="70"  y="80" text-anchor="middle" font-size="8" fill="#94a3b8">Change → PR</text>
+
+          <rect x="140" y="50" width="100" height="40" fill="#334155" rx="8"/>
+          <text x="190" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">🏗️ Build</text>
+          <text x="190" y="80" text-anchor="middle" font-size="8" fill="#94a3b8">Docker image</text>
+
+          <rect x="260" y="50" width="120" height="40" fill="#7c3aed" rx="8"/>
+          <text x="320" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">📊 Eval Suite</text>
+          <text x="320" y="80" text-anchor="middle" font-size="8" fill="#e9d5ff">100 golden cases</text>
+
+          <rect x="400" y="50" width="100" height="40" fill="#334155" rx="8"/>
+          <text x="450" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">🔍 Judge</text>
+          <text x="450" y="80" text-anchor="middle" font-size="8" fill="#94a3b8">LLM-as-Judge</text>
+
+          <!-- Gate -->
+          <rect x="520" y="45" width="80" height="50" fill="#9f1239" rx="8"/>
+          <text x="560" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">⚡ Gate</text>
+          <text x="560" y="77" text-anchor="middle" font-size="8" fill="#fecdd3">acc ≥ 94%?</text>
+          <text x="560" y="89" text-anchor="middle" font-size="8" fill="#fecdd3">judge ≥ 4.0?</text>
+
+          <rect x="620" y="50" width="120" height="40" fill="#15803d" rx="8"/>
+          <text x="680" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">🚀 Deploy</text>
+          <text x="680" y="80" text-anchor="middle" font-size="8" fill="#bbf7d0">Staging → Prod</text>
+
+          <!-- Fail path -->
+          <rect x="520" y="125" width="120" height="36" fill="#dc2626" rx="8"/>
+          <text x="580" y="140" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">❌ Block PR</text>
+          <text x="580" y="152" text-anchor="middle" font-size="8" fill="#fecdd3">Fix before merge</text>
+
+          <!-- Arrows -->
+          <line x1="120" y1="70" x2="138" y2="70" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrCI)"/>
+          <line x1="240" y1="70" x2="258" y2="70" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrCI)"/>
+          <line x1="380" y1="70" x2="398" y2="70" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrCI)"/>
+          <line x1="500" y1="70" x2="518" y2="70" stroke="#e11d48" stroke-width="1.5" marker-end="url(#arrCI)"/>
+          <line x1="600" y1="70" x2="618" y2="70" stroke="#16a34a" stroke-width="2" marker-end="url(#arrCI)"/>
+          <line x1="560" y1="95" x2="560" y2="123" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrCI)"/>
+          <text x="568" y="112" font-size="8" fill="#f87171">FAIL</text>
+          <text x="608" y="63" font-size="8" fill="#86efac">PASS</text>
+        </svg>
+        <div class="diagram-title">Hình 3: CI/CD Evaluation Gate — mọi prompt change phải pass accuracy ≥ 94% và judge ≥ 4.0 trước khi merge</div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- ===== LESSON 5 ===== -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Continuous Improvement Loop — RAGAS & Evaluation Metrics</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu RAGAS framework và 4 metrics cốt lõi</li>
+          <li>Thiết lập evaluation dashboard cho LoanBot</li>
+          <li>Xây dựng improvement cycle: evaluate → identify → fix → re-evaluate</li>
+          <li>Tránh overfitting vào evaluation set (Goodhart's Law)</li>
+        </ul>
+      </div>
+
+      <h3>5.1 RAGAS Framework (Simplified cho LoanBot)</h3>
+
+      <p><strong>RAGAS</strong> (RAG Assessment) là framework đánh giá RAG-based AI systems. LoanBot không phải RAG thuần túy, nhưng 4 metrics cốt lõi apply trực tiếp:</p>
+
+      <div class="callout formula">
+        <div class="callout-header">📐 RAGAS Metrics cho LoanBot</div>
+        <table style="width:100%;font-size:.85rem;border-collapse:collapse;">
+          <tr style="background:var(--m12-light);">
+            <th style="padding:8px;text-align:left;border-bottom:1px solid var(--m12-border);">Metric</th>
+            <th style="padding:8px;text-align:left;border-bottom:1px solid var(--m12-border);">LoanBot Interpretation</th>
+            <th style="padding:8px;border-bottom:1px solid var(--m12-border);">Target</th>
+          </tr>
+          <tr><td style="padding:8px;">Faithfulness</td><td style="padding:8px;">RiskAgent reasoning chỉ claim điều supported bởi agent outputs</td><td style="padding:8px;">≥ 0.90</td></tr>
+          <tr><td style="padding:8px;">Answer Relevancy</td><td style="padding:8px;">Recommendation có address câu hỏi "loan có nên approve không?"</td><td style="padding:8px;">≥ 0.92</td></tr>
+          <tr><td style="padding:8px;">Context Precision</td><td style="padding:8px;">Tỷ lệ credit data được dùng thực sự liên quan</td><td style="padding:8px;">≥ 0.85</td></tr>
+          <tr><td style="padding:8px;">Context Recall</td><td style="padding:8px;">Bao nhiêu % key factors được đề cập trong reasoning</td><td style="padding:8px;">≥ 0.88</td></tr>
+        </table>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Goodhart's Law trong AI Evaluation</div>
+        <p>Khi một metric trở thành target, nó ngừng là good metric. Ví dụ: nếu team optimize specifically cho golden dataset 100 hồ sơ, model có thể overfit → score cao trên golden nhưng kém trên real-world. Giải pháp: <strong>(1) giữ test set riêng biệt với dev set</strong>, <strong>(2) rotate golden dataset định kỳ</strong>, <strong>(3) monitor production metrics song song với benchmark</strong>.</p>
+      </div>
+
+      <h3>5.2 Improvement Cycle</h3>
+
+      <ol class="process-steps">
+        <li>
+          <strong>Evaluate — Chạy full evaluation suite</strong>
+          <p>Weekly: 100 golden cases + LLM judge + 4 RAGAS metrics. Log tất cả vào metrics store.</p>
+        </li>
+        <li>
+          <strong>Identify — Tìm điểm yếu cụ thể</strong>
+          <p>Tag breakdown: segment nào accuracy thấp? (self_employed? high_amount?). Judge score thấp nhất ở criterion nào? (Calibration? Coverage?)</p>
+        </li>
+        <li>
+          <strong>Fix — Targeted improvement</strong>
+          <p>Không fix "everything" — chọn 1 điểm yếu lớn nhất. Viết targeted test cases cho điểm yếu đó trước (EDD). Modify prompt/logic. Verify improvement.</p>
+        </li>
+        <li>
+          <strong>Re-evaluate — Regression check</strong>
+          <p>Chạy full suite lại. Verify: điểm yếu được fix. Verify: không có regression ở areas khác. Nếu pass → merge và deploy.</p>
+        </li>
+      </ol>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 12</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m12-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m12-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m12-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Evaluation Gap</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khoảng cách giữa metric bạn đo và kết quả thực sự bạn quan tâm.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Golden Dataset</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập dữ liệu được chuyên gia label chính xác, dùng làm ground truth cho evaluation.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM-as-Judge</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dùng LLM (Claude) để evaluate output của LLM khác — scalable alternative to human evaluation.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Position Bias</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Judge LLM ưu tiên response xuất hiện ở position đầu tiên khi compare 2 outputs.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Verbosity Bias</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Judge LLM đánh giá cao output dài hơn, không phân biệt quality.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">A/B Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Randomized experiment so sánh 2 versions (Control vs Treatment) trên split traffic.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sticky Assignment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đảm bảo cùng user/loan_id luôn vào cùng experiment variant — dùng hash deterministic.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Statistical Significance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">p-value &lt; 0.05: kết quả observed không phải do ngẫu nhiên với ≥ 95% confidence.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">False Positive Rate (FPR)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ approve bad loans (Type I error) — FPR cao = risk tài chính cho ngân hàng.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">False Negative Rate (FNR)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ reject good loans (Type II error) — FNR cao = mất doanh thu + customer dissatisfaction.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Regression Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động verify rằng thay đổi mới không làm giảm performance của behavior đã đúng trước đây.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RAGAS</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAG Assessment framework — 4 metrics: Faithfulness, Answer Relevancy, Context Precision, Recall.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Goodhart's Law</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"When a measure becomes a target, it ceases to be a good measure" — overfitting to evaluation.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EDD (Evaluation-Driven Development)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Viết evaluation cases TRƯỚC khi thay đổi prompt — AI version của TDD.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Calibration</td><td style="padding:8px 12px;">Confidence score của model phản ánh đúng actual accuracy (confidence 0.9 → 90% thực sự đúng).</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module11/index.html" class="btn btn-outline">← Module 11: HITL</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 12 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

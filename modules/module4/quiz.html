@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 4 — Production Deployment</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .quiz-container { max-width: 820px; margin: 0 auto; padding: var(--space-6); }
+    .quiz-header { background: linear-gradient(135deg,#065f46,#059669); color:#fff; border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-8); text-align: center; }
+    .quiz-header h1 { font-size: 1.8rem; margin-bottom: var(--space-2); }
+    .quiz-header p { color: rgba(255,255,255,.8); margin: 0; }
+    .quiz-meta { display: flex; gap: var(--space-4); justify-content: center; margin-top: var(--space-4); flex-wrap: wrap; }
+    .quiz-meta span { background: rgba(255,255,255,.15); padding: 4px 14px; border-radius: var(--radius-full); font-size: .85rem; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-5); transition: var(--transition); }
+    .question-card.correct { border-color: var(--success); background: #f0fdf4; }
+    .question-card.wrong   { border-color: var(--danger); background: #fff5f5; }
+    .question-num { font-size: .78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--space-2); }
+    .question-text { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: var(--space-4); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-2); }
+    .option { display: flex; align-items: flex-start; gap: var(--space-3); background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); cursor: pointer; transition: var(--transition); font-size: .92rem; line-height: 1.5; }
+    .option:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); }
+    .option.correct { background: #dcfce7; border-color: var(--success); color: var(--success-dark); }
+    .option.wrong   { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+    .option.disabled { cursor: default; }
+    .opt-letter { width: 26px; height: 26px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem; flex-shrink: 0; margin-top: 1px; }
+    .option.correct .opt-letter { background: var(--success); color: #fff; }
+    .option.wrong   .opt-letter { background: var(--danger); color: #fff; }
+    .explanation { display: none; margin-top: var(--space-4); padding: var(--space-4); background: rgba(15,76,129,.06); border-left: 3px solid var(--primary); border-radius: 0 var(--radius-lg) var(--radius-lg) 0; font-size: .88rem; line-height: 1.6; color: var(--text-muted); }
+    .explanation.show { display: block; }
+    .progress-bar-quiz { background: var(--bg); border-radius: var(--radius-full); height: 8px; margin-bottom: var(--space-6); }
+    .progress-bar-fill { background: linear-gradient(90deg, var(--primary), var(--accent)); height: 100%; border-radius: var(--radius-full); transition: width .4s ease; }
+    .score-display { text-align: center; font-size: .95rem; color: var(--text-muted); margin-bottom: var(--space-4); }
+    .result-card { background: var(--surface); border-radius: var(--radius-xl); padding: var(--space-10); text-align: center; margin-top: var(--space-8); border: 1px solid var(--border); display: none; }
+    .result-card.show { display: block; }
+    .result-score { font-size: 4rem; font-weight: 900; }
+    .result-grade { font-size: 1.5rem; font-weight: 700; margin: var(--space-2) 0; }
+    .result-msg { color: var(--text-muted); margin-bottom: var(--space-6); }
+    .result-breakdown { display: flex; justify-content: center; gap: var(--space-6); margin-bottom: var(--space-6); flex-wrap: wrap; }
+    .breakdown-item { text-align: center; }
+    .breakdown-num { font-size: 2rem; font-weight: 800; }
+    .breakdown-label { font-size: .8rem; color: var(--text-muted); }
+    .quiz-actions { display: flex; justify-content: center; gap: var(--space-4); margin-top: var(--space-8); flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav"><a href="index.html">← Bài Giảng</a><a href="lab.ipynb" download>🔬 Notebook</a></div>
+</nav>
+<div class="quiz-container" style="padding-top: calc(var(--topbar-height) + 24px);">
+  <div class="quiz-header">
+    <h1>📝 Quiz: Production Deployment</h1>
+    <p>Module 4 — Docker, CI/CD, Monitoring, Scaling cho LoanBot v1.0</p>
+    <div class="quiz-meta"><span>15 câu hỏi</span><span>Phủ 5 bài giảng</span><span>LoanBot context</span></div>
+  </div>
+  <div class="score-display">Đã trả lời: <span id="answered">0</span> / 15 câu</div>
+  <div class="progress-bar-quiz"><div class="progress-bar-fill" id="quiz-progress" style="width:0%"></div></div>
+  <div id="quiz-questions"></div>
+  <div class="result-card" id="result-card">
+    <div class="result-score" id="result-score">0/15</div>
+    <div class="result-grade" id="result-grade"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-item"><div class="breakdown-num" id="bd-correct" style="color:var(--success)">0</div><div class="breakdown-label">Đúng</div></div>
+      <div class="breakdown-item"><div class="breakdown-num" id="bd-wrong" style="color:var(--danger)">0</div><div class="breakdown-label">Sai</div></div>
+      <div class="breakdown-item"><div class="breakdown-num" id="bd-pct" style="color:var(--primary)">0%</div><div class="breakdown-label">Điểm</div></div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn" onclick="resetQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn">📖 Ôn bài giảng</a>
+      <a href="../module5/index.html" class="btn primary">Module 5 →</a>
+    </div>
+  </div>
+  <div class="quiz-actions" style="margin-top: var(--space-4);">
+    <a href="index.html" class="btn">← Bài Giảng M4</a>
+    <a href="../module3/quiz.html" class="btn">M3 Quiz</a>
+  </div>
+</div>
+<script>
+const questions = [
+  // Bài 1: Checklist
+  {
+    q: "Theo nghiên cứu từ Anthropic 2025, AI agents giảm trung bình bao nhiêu % hiệu năng khi chuyển từ lab sang production?",
+    opts: ["5-10%", "15-20%", "37%", "Không thay đổi"],
+    correct: 2,
+    explain: "<strong>37% Lab-to-Production Gap</strong> là con số đáng lo được đo trong research. Nguyên nhân: real data có edge cases không có trong test set, network latency cao hơn, concurrent requests, memory leaks tích lũy. Production Readiness Checklist giúp minimize gap này."
+  },
+  {
+    q: "Trong 5 nhóm Production Readiness Checklist, nhóm nào là BLOCKING — tức là KHÔNG thể deploy nếu chưa PASS?",
+    opts: ["Performance (Latency SLA)", "Compliance (Legal review, Audit logs)", "Scalability (Load test)", "Documentation"],
+    correct: 1,
+    explain: "<strong>Compliance</strong> là blocking. Với FinTech Corp: deploy LoanBot khi chưa có legal review về AI disclosure là vi phạm quy định tài chính. EU AI Act nghiêm cấm triển khai high-risk AI system mà chưa có compliance documentation. Performance và Scalability quan trọng nhưng có thể fix sau deploy; Compliance không thể."
+  },
+  {
+    q: "LoanBot Production Checklist của FinTech Corp: HITL gateway test với 20 hồ sơ >500 triệu, kết quả 100% trigger đúng. Đây thuộc nhóm kiểm tra nào?",
+    opts: ["Correctness", "Security", "Performance", "Compliance + Reliability"],
+    correct: 3,
+    explain: "<strong>Compliance + Reliability</strong>: HITL gateway đúng là Compliance item (quyết định lớn cần human oversight theo regulation) VÀ Reliability item (harness phải trigger đúng 100% trường hợp). Đây là ví dụ item thuộc nhiều nhóm — checklist tốt phải cover intersection này."
+  },
+  // Bài 2: Docker
+  {
+    q: "Dockerfile LoanBot v1.0 dùng multi-stage build với 2 stages: builder và runtime. Mục đích CHÍNH của pattern này là gì?",
+    opts: [
+      "Tăng tốc build time",
+      "Giảm image size bằng cách chỉ copy runtime artifacts, không copy build tools",
+      "Enable hot reload trong development",
+      "Cho phép parallel builds"
+    ],
+    correct: 1,
+    explain: "<strong>Giảm image size</strong> là mục đích chính. Stage builder install GCC, pip, build tools... Stage runtime chỉ copy /root/.local (installed packages) và source code. Kết quả: image từ ~2GB (full build tools) xuống ~300MB (chỉ runtime). Nhỏ hơn = pull faster, deploy faster, less attack surface."
+  },
+  {
+    q: "Tại sao ANTHROPIC_API_KEY KHÔNG được đặt trong Dockerfile như 'ENV ANTHROPIC_API_KEY=sk-...'?",
+    opts: [
+      "Dockerfile không hỗ trợ ENV cho secrets",
+      "API key sẽ bị bake vào Docker image layers và visible qua docker history",
+      "Docker không cho phép environment variables có dấu gạch ngang",
+      "Key quá dài cho Dockerfile"
+    ],
+    correct: 1,
+    explain: "Secrets trong Dockerfile <strong>bake vào image layers</strong> — bất kỳ ai pull image hoặc chạy <code>docker history image_name</code> đều thấy key đó. Ngay cả khi xóa ở layer sau, key vẫn còn trong previous layer. Giải pháp: lấy từ Secrets Manager (AWS Secrets Manager, Vault) lúc container start, không hardcode."
+  },
+  {
+    q: "HEALTHCHECK trong Dockerfile hoạt động như thế nào và tại sao cần thiết?",
+    opts: [
+      "Kiểm tra code không có bug trước khi build image",
+      "Cho orchestrator (Kubernetes) biết container có healthy không để restart tự động khi cần",
+      "Monitor performance của container sau khi deploy",
+      "Validate environment variables khi container start"
+    ],
+    correct: 1,
+    explain: "<strong>HEALTHCHECK định kỳ chạy command</strong> (ví dụ: curl /health). Nếu fail N lần → container trở thành UNHEALTHY. Kubernetes tự động restart UNHEALTHY containers. Không có HEALTHCHECK: container có thể bị stuck trong infinite loop hay deadlock mà orchestrator không biết, không restart, service dead vĩnh viễn."
+  },
+  // Bài 3: CI/CD
+  {
+    q: "Trong CI/CD pipeline của LoanBot, 'Quality Gate' ở bước Eval Suite làm gì nếu F1 Score giảm từ 95.5% xuống 92%?",
+    opts: [
+      "Ghi warning vào log nhưng vẫn tiếp tục deploy",
+      "Gửi email thông báo nhưng vẫn deploy",
+      "DỪNG pipeline, không deploy, require investigation",
+      "Deploy lên staging nhưng không lên production"
+    ],
+    correct: 2,
+    explain: "<strong>Quality Gate DỪNG pipeline</strong> — script exit với code 1, CI/CD system không tiếp tục bước Deploy. F1 giảm từ 95.5% xuống 92% = regression 3.5% — đây là <em>bug nghiêm trọng</em> với AI agent (có thể do prompt change, model update, data drift). Phải investigate root cause TRƯỚC khi deploy bất kỳ thứ gì."
+  },
+  {
+    q: "Canary Deployment trong CI/CD của LoanBot nghĩa là gì cụ thể?",
+    opts: [
+      "Deploy vào buổi sáng sớm khi ít users",
+      "Deploy lên 10% traffic trước, monitor 1 giờ, rồi rollout 100% nếu metrics ổn",
+      "Deploy lên server backup trước khi rollout production",
+      "Test trên 10 hồ sơ mẫu trước khi enable cho tất cả"
+    ],
+    correct: 1,
+    explain: "<strong>Canary deployment: 10% traffic → monitor → 100%</strong>. Nếu LoanBot v1.1 có bug subtle (latency tăng nhẹ, error rate tăng 0.5%), chỉ 10% users bị ảnh hưởng thay vì 100%. Monitor 1 giờ: nếu P95 latency OK và F1 không giảm → rollout 100%. Nếu có vấn đề → rollback ngay về v1.0."
+  },
+  {
+    q: "Tại sao CI/CD pipeline cho AI agent cần bước 'Eval Suite' mà CI/CD cho software thông thường không cần?",
+    opts: [
+      "Vì AI code phức tạp hơn",
+      "Vì unit tests không thể phát hiện metric regression (F1 drop, hallucination increase)",
+      "Vì Docker build chậm hơn",
+      "Vì AI cần thêm security scanning"
+    ],
+    correct: 1,
+    explain: "<strong>Unit tests không đủ cho AI agents</strong>. Ví dụ: thay đổi system prompt → tất cả unit tests vẫn pass (code syntax đúng), nhưng F1 giảm từ 95% xuống 85% vì LLM behavior thay đổi. Chỉ Eval Suite (chạy actual agent trên ground truth test cases) mới phát hiện được. Đây là khác biệt căn bản giữa AI system và traditional software."
+  },
+  // Bài 4: Monitoring
+  {
+    q: "LoanBot production nhận alert: 'Faithfulness score = 94% (threshold 99%)'. Theo Alert Tier, đây là P1 hay P2 và tại sao?",
+    opts: [
+      "P2 High — chỉ 5% drop, chưa critical",
+      "P3 Medium — faithfulness fluctuates normally",
+      "P1 Critical — hallucination trong tài chính là nguy hiểm ngay lập tức",
+      "P4 Low — monitor thêm tuần trước khi action"
+    ],
+    correct: 2,
+    explain: "<strong>P1 Critical</strong>. Faithfulness &lt;95% nghĩa là LoanBot đang hallucinate số liệu tài chính. Trong bối cảnh FinTech Corp: LoanBot có thể bịa credit score, DTI ratio → approve hồ sơ không đủ tiêu chuẩn → rủi ro tín dụng thực. Hành động: SUSPEND agent ngay, notify Compliance team, investigate root cause. Không chờ."
+  },
+  {
+    q: "LoanBot đang có P95 latency = 187s (target ≤ 300s). Sáng nay P95 tăng lên 320s. Đây là Alert Tier nào?",
+    opts: ["P4 Low — vẫn gần target", "P3 Medium — investigate next day", "P2 High — alert Engineering + scale up", "P1 Critical — rollback immediately"],
+    correct: 2,
+    explain: "<strong>P2 High</strong>: P95 = 320s vi phạm SLA ≤ 300s. Hành động: alert Engineering team ngay, check dashboard xem bottleneck (CIC timeout? LLM latency tăng? Queue backup?), scale up nếu cần. Không phải P1 vì SLA breach không ngay lập tức gây incorrect decisions — nhưng user experience xấu và có thể leo thang. Không phải P3/P4 vì SLA đã breach."
+  },
+  // Bài 5: Scaling
+  {
+    q: "FinTech Corp muốn giảm chi phí LoanBot API 60% mà vẫn đảm bảo chất lượng. Chiến lược nào tốt nhất?",
+    opts: [
+      "Giảm số lượng tool calls bằng cách bỏ bước verify_income",
+      "Dùng claude-haiku cho hồ sơ đơn giản (score cao, income rõ ràng), claude-sonnet cho hồ sơ phức tạp",
+      "Giảm max_retries từ 3 xuống 1",
+      "Tăng context window để giảm số lần gọi"
+    ],
+    correct: 1,
+    explain: "<strong>Model tiering</strong>: Haiku ($0.25/M input tokens) vs Sonnet ($3/M) = 12x chênh lệch. Nếu 70% hồ sơ đơn giản (score≥700, income rõ ràng) → dùng Haiku, 30% phức tạp → Sonnet. Cost giảm ~65%. Phải validate: Haiku đủ accurate cho simple cases? Chạy Eval Suite riêng cho từng tier. Không bao giờ bỏ bước verify_income vì đó là Compliance requirement."
+  },
+  {
+    q: "LoanBot cần xử lý 1,000 hồ sơ trong 1 giờ thay vì 50 hồ sơ thông thường (end-of-quarter rush). Cách scale nào phù hợp nhất?",
+    opts: [
+      "Nâng cấp server lên CPU 96 core (vertical scaling)",
+      "Thêm 4 replicas container tự động (horizontal scaling) + increase queue workers",
+      "Chạy 1,000 hồ sơ sequentially overnight",
+      "Yêu cầu nhân viên làm thêm giờ để bù"
+    ],
+    correct: 1,
+    explain: "<strong>Horizontal scaling</strong>: thêm replicas từ 2→6 + tăng worker queue capacity. Lý do: LoanBot là stateless (mỗi hồ sơ độc lập) → horizontal scale tuyến tính. Vertical scaling (server to hơn) đắt hơn và có ceiling. Scheduled scaling pre-provision thêm capacity cuối quý là best practice. Sequential overnight vi phạm SLA (hồ sơ cần phê duyệt trong ngày)."
+  },
+  {
+    q: "LoanBot Scheduled Scaling: min 2 replicas 24/7, max 8 replicas trong business hours (8AM-10PM). Tại sao không chạy 8 replicas 24/7?",
+    opts: [
+      "Docker không hỗ trợ >8 replicas",
+      "Tiết kiệm ~35-40% chi phí infra — 14 giờ off-peak không cần full capacity",
+      "Kubernetes không hỗ trợ scheduled scaling",
+      "Để tránh overload database"
+    ],
+    correct: 1,
+    explain: "<strong>Tiết kiệm 35-40% infra cost</strong>: 24 giờ/ngày với 8 replicas vs 10 giờ peak (8 replicas) + 14 giờ off-peak (2 replicas) = khoảng 58% thời gian chạy reduced capacity. Với cloud pricing (pay per hour): tiết kiệm đáng kể. LoanBot workload rõ ràng có peak giờ hành chính → scheduled scaling là cost optimization rõ ràng và zero risk."
+  },
+  {
+    q: "LoanBot xử lý 200K hồ sơ/tháng với $8,600 API cost. So sánh với hệ thống cũ (200 nhân viên × 350K VNĐ/hồ sơ), LoanBot tiết kiệm bao nhiêu?",
+    opts: [
+      "~50% tiết kiệm", "~90% tiết kiệm", "~99.7% tiết kiệm", "Không tiết kiệm — chi phí tương đương"],
+    correct: 2,
+    explain: "Hệ thống cũ: 200K × 350K VNĐ = 70 tỷ VNĐ/tháng. LoanBot: $8,600 × 25,500 = ~219 triệu VNĐ/tháng. Tiết kiệm: (70 tỷ - 219 triệu) / 70 tỷ = <strong>~99.7%</strong>. Ngay cả tính thêm infra cost ($2,000/tháng) + development cost amortization, ROI vẫn cực kỳ compelling. Đây là lý do AI agents đang được enterprise adopt mạnh mẽ."
+  }
+];
+
+let answered = 0, correct = 0;
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-questions');
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-card" id="q${i}">
+      <div class="question-num">Câu ${i + 1} / ${questions.length}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt, j) => `
+          <div class="option" id="q${i}o${j}" onclick="selectAnswer(${i}, ${j})">
+            <span class="opt-letter">${String.fromCharCode(65+j)}</span><span>${opt}</span>
+          </div>`).join('')}
+      </div>
+      <div class="explanation" id="exp${i}">${q.explain}</div>
+    </div>`).join('');
+}
+
+function selectAnswer(qIdx, optIdx) {
+  const card = document.getElementById(`q${qIdx}`);
+  if (card.classList.contains('correct') || card.classList.contains('wrong')) return;
+  const isCorrect = optIdx === questions[qIdx].correct;
+  card.classList.add(isCorrect ? 'correct' : 'wrong');
+  questions[qIdx].opts.forEach((_, j) => {
+    const opt = document.getElementById(`q${qIdx}o${j}`);
+    opt.classList.add('disabled');
+    if (j === questions[qIdx].correct) opt.classList.add('correct');
+    else if (j === optIdx && !isCorrect) opt.classList.add('wrong');
+  });
+  document.getElementById(`exp${qIdx}`).classList.add('show');
+  answered++; if (isCorrect) correct++;
+  document.getElementById('answered').textContent = answered;
+  document.getElementById('quiz-progress').style.width = `${(answered/questions.length)*100}%`;
+  localStorage.setItem('quiz_m4_score', `${correct}/${questions.length}`);
+  if (answered === questions.length) showResult();
+}
+
+function showResult() {
+  const pct = Math.round((correct / questions.length) * 100);
+  let grade, msg, color;
+  if (pct >= 90) { grade = '🏆 Xuất sắc!'; msg = 'LoanBot v1.0 sẵn sàng production! Tiếp tục Module 5: Governance.'; color = 'var(--success)'; }
+  else if (pct >= 70) { grade = '✅ Tốt'; msg = 'Hiểu phần lớn. Xem lại Docker best practices và CI/CD Quality Gate.'; color = 'var(--primary)'; }
+  else if (pct >= 50) { grade = '📖 Cần ôn thêm'; msg = 'Đọc lại bài giảng, đặc biệt Canary Deployment và Alert Tiers.'; color = 'var(--warning)'; }
+  else { grade = '🔄 Cần học lại'; msg = 'Nên đọc lại Module 4 từ đầu trước khi chuyển Module 5.'; color = 'var(--danger)'; }
+  document.getElementById('result-score').textContent = `${correct}/${questions.length}`;
+  document.getElementById('result-score').style.color = color;
+  document.getElementById('result-grade').textContent = grade;
+  document.getElementById('result-msg').textContent = msg;
+  document.getElementById('bd-correct').textContent = correct;
+  document.getElementById('bd-wrong').textContent = questions.length - correct;
+  document.getElementById('bd-pct').textContent = `${pct}%`;
+  const r = document.getElementById('result-card'); r.classList.add('show');
+  r.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetQuiz() {
+  answered = 0; correct = 0;
+  document.getElementById('answered').textContent = '0';
+  document.getElementById('quiz-progress').style.width = '0%';
+  document.getElementById('result-card').classList.remove('show');
+  renderQuiz(); window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuiz();
+window.addEventListener('scroll', () => {
+  const fill = document.querySelector('.scroll-progress-fill');
+  if (fill) { const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100; fill.style.width = `${Math.min(pct,100)}%`; }
+});
+</script>
+</body>
+</html>

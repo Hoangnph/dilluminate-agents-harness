@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 27 — Agent Self-Improvement & Meta-Learning</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m27-primary:#78350f;--m27-accent:#fbbf24;--m27-light:#fffbeb;--m27-border:#fcd34d; }
+    .quiz-hero { background: linear-gradient(135deg, #451a03 0%, #78350f 55%, #fbbf24 100%); padding: var(--space-12) var(--space-6); text-align:center; }
+    .quiz-hero h1 { color:#fff; font-size:2rem; margin:var(--space-3) 0; }
+    .quiz-hero p  { color:#fde68a; }
+    .module-tag { background:rgba(255,255,255,.15); color:#fff; padding:4px 12px; border-radius:99px; font-size:.8rem; font-weight:700; }
+    .quiz-stats { display:flex; gap:var(--space-4); justify-content:center; margin-top:var(--space-4); }
+    .quiz-stats span { background:rgba(255,255,255,.15); color:#fff; padding:6px 16px; border-radius:99px; font-size:.85rem; }
+    .quiz-container { max-width:780px; margin:var(--space-8) auto; padding:0 var(--space-4); }
+    .quiz-progress { margin-bottom:var(--space-6); }
+    .quiz-progress-text { font-size:.875rem; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .quiz-progress-bar { height:6px; background:var(--border); border-radius:99px; }
+    .quiz-progress-fill { height:100%; background:linear-gradient(90deg,#78350f,#fbbf24); border-radius:99px; transition:width .4s ease; }
+    .quiz-card { background:#fff; border:1px solid var(--border); border-radius:var(--radius-xl); padding:var(--space-6); box-shadow:var(--shadow-sm); }
+    .quiz-q-num { font-size:.8rem; font-weight:700; color:var(--m27-primary); text-transform:uppercase; letter-spacing:.05em; margin-bottom:var(--space-2); }
+    .quiz-q-text { font-size:1rem; line-height:1.7; margin-bottom:var(--space-4); color:var(--text-primary); }
+    .quiz-options { display:flex; flex-direction:column; gap:var(--space-2); }
+    .quiz-option { padding:var(--space-3) var(--space-4); border:1.5px solid var(--border); border-radius:var(--radius-lg); cursor:pointer; font-size:.9rem; transition:all .15s; background:#fff; text-align:left; }
+    .quiz-option:hover { border-color:var(--m27-accent); background:var(--m27-light); }
+    .quiz-option.correct   { background:#f0fdf4; border-color:#16a34a; color:#166534; }
+    .quiz-option.incorrect { background:#fef2f2; border-color:#dc2626; color:#991b1b; }
+    .quiz-option.disabled  { pointer-events:none; opacity:.6; }
+    .quiz-feedback { margin-top:var(--space-4); padding:var(--space-4); border-radius:var(--radius-lg); font-size:.875rem; line-height:1.7; display:none; }
+    .quiz-feedback.correct   { background:#f0fdf4; border:1px solid #86efac; }
+    .quiz-feedback.incorrect { background:#fef2f2; border:1px solid #fca5a5; }
+    .quiz-next { margin-top:var(--space-4); display:none; }
+    .quiz-result { text-align:center; padding:var(--space-8); }
+    .result-score { font-size:3rem; font-weight:800; color:var(--m27-primary); }
+    .result-grade { font-size:1.2rem; color:var(--text-secondary); margin:var(--space-2) 0 var(--space-6); }
+    .result-actions { display:flex; gap:var(--space-3); justify-content:center; flex-wrap:wrap; margin-top:var(--space-4); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <span class="module-tag">MODULE 27 · QUIZ</span>
+  <h1>🔄 Agent Self-Improvement & Meta-Learning</h1>
+  <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+  <div class="quiz-stats">
+    <span>5 câu dễ</span>
+    <span>7 câu trung bình</span>
+    <span>3 câu khó</span>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="finalScore"></div>
+    <div class="result-grade" id="finalGrade"></div>
+    <p id="finalMsg"></p>
+    <div class="result-actions">
+      <a href="index.html" class="btn btn-outline">📖 Xem lại bài giảng</a>
+      <button onclick="restartQuiz()" class="btn btn-outline">🔄 Làm lại</button>
+      <a href="../module28/index.html" class="btn btn-primary">→ Module 28</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // Lesson 1 — Self-Improvement Loop (dễ)
+  {
+    q: "Self-Improvement Loop của LoanBot gồm các phases theo thứ tự nào?",
+    opts: [
+      "A. Deploy → Monitor → Analyze → Update → A/B Test → Re-deploy",
+      "B. Analyze → Update → Deploy → Monitor → Re-deploy",
+      "C. Train → Test → Deploy → Monitor → Rollback",
+      "D. Design → Build → Deploy → Evaluate → Retire"
+    ],
+    correct: 0,
+    explanation: "Đúng: A. Self-Improvement Loop: Deploy (v3.9 production) → Monitor (thu thập ground truth 30 ngày) → Analyze (error taxonomy, segment analysis) → Update (threshold optimization, persona rebalancing) → A/B Test (shadow → canary → gradual rollout) → Re-deploy (v4.0 full). B và C đều sai về sequence. D là generic SDLC không specific cho AI agent improvement."
+  },
+  // Lesson 1 — Loop trigger (dễ)
+  {
+    q: "PSI (Population Stability Index) đo gì và ngưỡng nào trigger improvement cycle?",
+    opts: [
+      "A. Đo accuracy của agent — PSI > 0.95 trigger khi accuracy quá cao (overfitting)",
+      "B. Đo drift của borrower population so với baseline — PSI > 0.25 trigger significant drift",
+      "C. Đo số lượng hồ sơ — PSI > 10000 trigger khi có đủ data để retrain",
+      "D. Đo latency của agent responses — PSI > 2s trigger performance optimization"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. PSI (Population Stability Index) đo sự thay đổi của borrower population distribution. PSI < 0.1 = stable (không cần lo); 0.1–0.25 = moderate change (monitor); PSI > 0.25 = significant drift (trigger improvement/retraining). Ví dụ: nếu COVID làm thay đổi income distribution của borrowers, PSI tăng cao → model trained trên pre-COVID data không còn accurate → cần retrain. PSI không đo accuracy (A), không đo volume (C), không đo latency (D)."
+  },
+  // Lesson 2 — Error taxonomy (dễ)
+  {
+    q: "Tại sao FinTech Corp prioritize giảm Type I errors hơn Type II, dù điều này tăng số khách hàng bị từ chối?",
+    opts: [
+      "A. Type I errors ảnh hưởng đến brand reputation nhiều hơn Type II",
+      "B. Type I cost (180M/case default loss) đắt hơn 4.3× so với Type II cost (42M/case opportunity)",
+      "C. NHNN quy định ngân hàng phải minimize default rate trên tất cả metrics",
+      "D. Type I errors khó reverse hơn — không thể lấy lại tiền đã cho vay"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Business Cost Matrix là lý do chính: Type I cost = 180M VNĐ/case (mất vốn + không recover đầy đủ); Type II cost = 42M VNĐ/case (interest income lost). Ratio 180/42 = 4.3× → về mặt tài chính thuần túy, giảm 1 Type I error worth 4.3 Type II errors. D cũng có phần đúng (không reversible) nhưng không phải lý do chính — lý do chính là financial cost differential. A và C đều sai hoặc không phải primary reason."
+  },
+  // Lesson 2 — Error segmentation (trung bình)
+  {
+    q: "Error analysis cho thấy 72% Type I errors tập trung ở segment: DTI 0.40–0.45 VÀ employment < 12mo VÀ score 600–650. Root cause là gì và action tốt nhất là gì?",
+    opts: [
+      "A. Random noise — không có root cause cụ thể. Cần collect thêm data để confirm pattern",
+      "B. OptimistAgent anchor quá nhiều vào income amount, ignore employment tenure. Fix: update OptimistAgent persona prompt + lower DTI threshold",
+      "C. Score 600–650 quá cao — cần raise minimum score requirement lên 700 để eliminate segment này",
+      "D. Dataset bias — training data không đủ borderline cases. Fix: collect thêm data và retrain toàn bộ"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. 72% errors trong 1 segment là strong signal, không phải random noise (A sai). Root cause analysis theo bài giảng: OptimistAgent được prompt để prioritize income stability over tenure — khi DTI cao + employment ngắn cùng lúc, nó anchor vào income amount mà miss tenure risk. Fixes: (1) Update OptimistAgent prompt để consider employment tenure as risk factor; (2) Lower DTI threshold từ 0.45 xuống 0.42 cho segment này. Raise score lên 700 (C) quá aggressive và tạo Type II errors. Dataset bias (D) có thể contribute nhưng prompt fix là faster và more targeted action."
+  },
+  // Lesson 3 — Threshold optimization (dễ)
+  {
+    q: "Tại sao dùng Business Cost Matrix để optimize thresholds thay vì F1 score hay accuracy?",
+    opts: [
+      "A. F1 và accuracy đòi hỏi nhiều computation hơn — business cost matrix đơn giản hơn",
+      "B. F1/accuracy treat Type I và Type II errors equally. Business cost matrix reflect rằng 1 default (Type I) costs 4.3× hơn 1 missed opportunity (Type II)",
+      "C. Regulatory requirement: NHNN yêu cầu tất cả credit models phải optimize theo financial cost",
+      "D. Business cost matrix có thể optimize online real-time; F1 cần offline batch processing"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. F1 score = harmonic mean of precision and recall — weights Type I và Type II equally (1:1 ratio). Business cost matrix làm explicit: Type I = 180M VNĐ cost, Type II = 42M VNĐ cost (ratio 4.3:1). Optimal threshold theo F1 sẽ không same với optimal threshold theo business cost khi costs asymmetric. Trong production, care about money, not points on an ML metric. A sai (computation không phải lý do). C không phải regulatory requirement. D sai về technical claim."
+  },
+  // Lesson 3 — Grid search (trung bình)
+  {
+    q: "Grid Search qua score [580-670 step 10] × DTI [0.38,0.40,0.42,0.43,0.45] × emp [6,9,12,18] = tổng bao nhiêu configurations? Tại sao không dùng continuous optimization?",
+    opts: [
+      "A. 450 configs. Continuous optimization (gradient descent) không áp dụng vì thresholds là binary decisions",
+      "B. 10×5×4=200 configs. Dùng grid vì mỗi config cần run toàn bộ validation set → too slow otherwise",
+      "C. 90×5×4=1800 configs. Grid search để ensure global optimum vs gradient descent có thể stuck ở local",
+      "D. 10×5×4=200 configs. Grid search là ML best practice vì continuous optimization overfits to training data"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Score range 580-670 step 10: (670-580)/10 + 1 = 10 values. DTI: 5 values. Emp: 4 values. 10 × 5 × 4 = 200 configurations. Lý do dùng grid thay vì gradient descent: (1) Thresholds tạo ra discontinuous, step-function losses — gradient không defined; (2) Search space nhỏ (200 configs) — exhaustive search feasible; (3) Each evaluation = run validation set (5.200 records) = fast in Python. Continuous optimization (A) partially right about binary decisions. 1800 configs (C) là tính sai. D sai về lý do — grid search không prevent overfitting tốt hơn."
+  },
+  // Lesson 4 — Bayesian update (trung bình)
+  {
+    q: "Sau 90 ngày, PessimistAgent accuracy = 81%, baseline = 70%, prior weight = 1.2. Tính new weight theo Bayesian update rule. Clip ceiling = 2.0.",
+    opts: [
+      "A. new_weight = 1.2 + (0.81 − 0.70) = 1.31",
+      "B. new_weight = 1.2 × (0.81 / 0.70) = 1.39, clip to min(2.0, 1.39) = 1.39",
+      "C. new_weight = (1.2 + 0.81) / 2 = 1.005",
+      "D. new_weight = 0.81 × 1.2 / 0.70 = 1.389, rounded = 1.40"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Formula: new_weight = prior_weight × (accuracy / baseline_accuracy). Tính: 1.2 × (0.81 / 0.70) = 1.2 × 1.1571 = 1.3886 ≈ 1.39. Clip: min(2.0, max(0.5, 1.39)) = 1.39. Note: D cho result 1.389 ≈ 1.39 cũng đúng về số nhưng formula viết sai (không có phép chia khác). B viết đúng formula và đúng số. A dùng addition thay vì multiplication (sai). C dùng average (sai)."
+  },
+  // Lesson 4 — Persona update (trung bình)
+  {
+    q: "Sau Bayesian weight update, OptimistAgent new weight = 0.87 (giảm từ 1.0). Bạn nhận thấy dù weight giảm, pattern errors vẫn tập trung ở same segment (DTI 0.40–0.45 + emp <12mo). Bước tiếp theo là gì?",
+    opts: [
+      "A. Tiếp tục giảm weight xuống 0.5 (floor) — nếu vẫn không fix, remove OptimistAgent khỏi panel",
+      "B. Update OptimistAgent persona system prompt để explicitly address employment tenure risk khi DTI cao",
+      "C. Tăng weight của PessimistAgent và RegulatorAgent để counter-balance OptimistAgent's errors",
+      "D. Retrain LoanBot từ đầu với new dataset — weight updates không đủ để fix systematic bias"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Weight reduction giúp giảm influence của OptimistAgent, nhưng nếu error pattern persist → vấn đề nằm ở reasoning logic trong persona prompt, không chỉ ở weight. Root cause: OptimistAgent được instructed để prioritize income over tenure. Fix tại source: update system prompt để add explicit risk factor: 'khi DTI > 0.40 VÀ employment < 12mo, employment tenure là primary risk factor, không phải income amount.' Chỉ giảm weight thêm (A) hay counter-balance (C) là symptomatic treatment. Full retrain (D) quá expensive và không necessary — prompt update là faster, targeted, và reversible."
+  },
+  // Lesson 5 — A/B Testing (dễ)
+  {
+    q: "Trong credit decision context, tại sao cần Shadow Mode trước Canary Deployment?",
+    opts: [
+      "A. Shadow Mode là legal requirement — NHNN yêu cầu tất cả model changes phải có shadow period",
+      "B. Mỗi wrong credit decision có real financial consequence — shadow validates v4.0 trước khi bất kỳ real customer nào bị ảnh hưởng",
+      "C. Shadow Mode giúp collect thêm training data từ v4.0 predictions để improve model",
+      "D. Shadow Mode thay thế unit testing — nhanh hơn viết test cases thủ công"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Core reason: credit decisions have direct financial impact on real people. Nếu v4.0 có bugs (ví dụ: wrong threshold logic, encoding error) → canary deployment sẽ harm 5% real customers trước khi detected. Shadow Mode runs v4.0 in parallel nhưng outcomes không affect real customers — chỉ log. Sau 2 tuần shadow: compare v4.0 shadow predictions vs ground truth → nếu v4.0 shadow accuracy better → safe to move to real canary. A sai (không phải legal requirement). C sai về purpose — shadow không để collect training data. D sai — shadow mode không replace unit tests."
+  },
+  // Lesson 5 — Statistical significance (trung bình)
+  {
+    q: "Canary test 2 tuần: control (v3.9) = 1.850 cases, default rate 18.2%. Treatment (v4.0) = 97 cases, default rate 11.3%. Nên làm gì?",
+    opts: [
+      "A. Rollout lên 25% ngay — improvement rõ ràng (18.2% → 11.3%) đủ để action",
+      "B. Đợi thêm — 97 cases treatment là insufficient; chi-square test underpowered với n<500",
+      "C. Declare A/B test successful và rollout 100% — effect size lớn (6.9%) outweighs sample size concern",
+      "D. Rollback v4.0 — 97 cases quá ít để conclude bất cứ điều gì, cần restart shadow mode"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Power analysis: để detect 6% difference in default rate (18% vs 12%) với power=0.80, α=0.05, cần ≈500 cases/arm. 97 cases = underpowered → wide confidence intervals. 11.3% default rate với n=97: 95% CI ≈ 5%–18% — không thể exclude possibility rằng true rate là 18%. Không rollout thêm (A,C) vì có risk của real financial harm nếu result không hold. Không rollback (D) — current data is "promising" just not significant; increase canary to 10% để collect data faster. Correct action: tăng traffic để đạt 500 cases faster, không rollout và không rollback."
+  },
+  // Lesson 5 — Stopping criteria (trung bình)
+  {
+    q: "Trong rollout 50% canary, monitoring báo: v4.0 default rate spike từ 12% lên 21% trong 3 ngày. Type I errors đang ở 21% > rollback threshold 20%. Bạn làm gì?",
+    opts: [
+      "A. Wait và observe thêm 7 ngày — có thể là random variance, cần more data trước khi rollback",
+      "B. Immediate rollback v4.0 → v3.9 cho 50% traffic đang chạy v4.0. Investigate root cause.",
+      "C. Reduce canary xuống 10% và monitor — không cần full rollback vì đã confirm improvement trước đó",
+      "D. Emergency rollout 100% v3.9 toàn bộ hệ thống và suspend all loan processing cho đến khi investigate"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Rollback criterion đã hit (Type I > 20%). Actions: (1) Immediate rollback v4.0 → v3.9 cho 50% traffic đang bị affect — stop the bleeding; (2) Keep investigation parallel. Không wait (A) — mỗi ngày delay = thêm defaults = more loss. Reduce canary (C) còn allow v4.0 to harm 10% customers — khi rollback criterion hit, stop completely. Full suspend (D) là overreaction — v3.9 works fine, không cần suspend all processing. Root cause investigation cần chạy song song: kiểm tra data pipeline, threshold encoding, deploy config — thường là configuration bug, không phải model logic."
+  },
+  // Hard — Multi-lesson: Error + Threshold + Fairness
+  {
+    q: "Sau threshold optimization: optimal theo business cost là (score≥620, DTI≤0.42, emp≥9mo). Fairness analysis cho thấy: approval rate nhóm tuổi 18–30 giảm từ 34% xuống 19%, nhóm 30–50 giảm từ 52% xuống 48% — vi phạm 80% rule (19/34 = 55.9% < 80%). Bạn phải làm gì?",
+    opts: [
+      "A. Deploy optimal threshold vì business impact (savings 66B VNĐ/month) quan trọng hơn fairness metric",
+      "B. Chọn next-best threshold satisfy 80% rule, chấp nhận higher business cost — và investigate nguồn gốc của age-based disparity",
+      "C. Apply score adjustment: tăng credit score của nhóm 18–30 thêm 20 điểm để compensate",
+      "D. Remove age từ feature set — nếu model không dùng age, không thể vi phạm 80% rule theo age"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. 80% rule (disparate impact doctrine): approval_rate_protected_group / approval_rate_control_group ≥ 0.80. 19%/34% = 55.9% < 80% → discriminatory impact. Action: (1) Select next-best threshold config that satisfies 80% rule — accept higher business cost as 'fairness cost'; (2) Investigate WHY young borrowers disproportionately affected: là thresholds reasonable (they DO have shorter employment, higher DTI due to student debt) hay là proxy discrimination? (3) If reasonable business justification exists → document carefully for regulatory audit. Score adjustment (C) là explicit manipulation — illegal và unethical. Removing age feature (D) doesn't fix disparate impact — model can infer age from correlated features (employment months, income level)."
+  },
+  // Hard — A/B test design
+  {
+    q: "FinTech Corp muốn A/B test thresholds mới. Expected improvement: default rate giảm từ 18.2% xuống 12.5% (Δ=5.7%). Tính approximate minimum sample size/arm cần thiết (power=0.80, α=0.05). Hint: n ≈ (Z_α/2 + Z_β)² × p̄(1-p̄) / (Δ/2)² với Z_0.025=1.96, Z_0.20=0.84, p̄=(0.182+0.125)/2=0.154",
+    opts: [
+      "A. ≈100 cases/arm — improvement lớn nên cần ít sample",
+      "B. ≈400 cases/arm",
+      "C. ≈640 cases/arm",
+      "D. ≈2000 cases/arm — phải rất conservative vì financial stakes cao"
+    ],
+    correct: 2,
+    explanation: "Đúng: C. Power analysis: n ≈ (Z_α/2 + Z_β)² × 2p̄(1-p̄) / Δ². Tính: (1.96 + 0.84)² = 2.8² = 7.84. p̄ = 0.154, p̄(1-p̄) = 0.154 × 0.846 = 0.130. Δ = 0.057. n ≈ 7.84 × 2 × 0.130 / (0.057²) = 7.84 × 0.260 / 0.00325 = 2.038 / 0.00325 ≈ 627 ≈ 640 cases/arm. Với canary 5% traffic và FinTech Corp 50K/tháng = 2.500 cases/tháng total → 125 cases/tháng cho canary arm → cần ≈5 tháng. Alternative: tăng canary lên 20% → 500 cases/tháng → 1.3 tháng. 100 cases (A) underpowered. 2000 (D) oversized — overcautious khi control rate đã known."
+  },
+  // Hard — Meta-learning
+  {
+    q: "FinTech Corp muốn LoanBot tự động adapt khi NHNN ban hành regulation mới (ví dụ: giảm DTI ceiling từ 0.45 xuống 0.40 cho unsecured loans). Thay vì full retrain (6 tháng), giải pháp nhanh nhất và an toàn nhất là gì?",
+    opts: [
+      "A. Full retrain với new labeled dataset — không có shortcut nào an toàn cho regulatory changes",
+      "B. Update RegulatorAgent system prompt với quy định mới + update ThresholdConfig.max_dti = 0.40. Deploy qua A/B test nhanh.",
+      "C. Auto-detect regulatory change qua NLP monitoring của NHNN publications → immediate deploy không cần A/B test",
+      "D. Prompt LoanBot meta-model để học quy định mới từ few-shot examples trong context window"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Regulatory change là known update với clear specification — không cần retrain từ đầu. Approach: (1) Update RegulatorAgent system prompt: thêm 'TT XX/2026 Điều Y: DTI ceiling cho unsecured loans = 0.40 (effective 2026-MM-DD)'; (2) Update ThresholdConfig: max_dti = 0.40 trong optimizer; (3) Shadow mode 1 tuần (shorter vì change is deterministic, not learned); (4) Deploy via accelerated A/B test — compliance is mandatory, speed matters. Full retrain (A) là overkill cho rule-based change. Auto-immediate deploy (C) dangerous — bypass safety checks; NLP monitoring of regulations is good but needs human validation before deploy. Few-shot meta-learning (D) là valid research direction but production reliability unclear — not safe for compliance-critical changes."
+  },
+  // Lesson 1+5 — Loop completeness
+  {
+    q: "Sau khi LoanBot v4.0 fully deployed (100%), bạn nên schedule improvement cycle tiếp theo khi nào?",
+    opts: [
+      "A. Ngay lập tức — improvement là ongoing process, không có điểm 'done'",
+      "B. Sau 30 ngày: collect 30-day ground truth outcomes, check trigger conditions (Type I >15%, PSI >0.25)",
+      "C. Sau 12 tháng — quá nhiều cycles sẽ make model unstable",
+      "D. Chỉ khi có user complaint hoặc audit finding — reactive improvement tiết kiệm resources hơn"
+    ],
+    correct: 1,
+    explanation: "Đúng: B. Ground truth data cần 30 ngày để collect (loan outcomes sau 30 ngày disbursement). Sau 30 ngày, chạy trigger check: Type I > 15%? PSI > 0.25? Accuracy drop > 3%? Regulation change? Nếu có trigger → start improvement cycle. Ngay lập tức (A) impossible — chưa có ground truth data. 12 tháng (C) quá chậm — thị trường và regulations thay đổi nhanh hơn. Reactive-only (D) nguy hiểm — errors tích lũy nhiều trước khi được detect; proactive monitoring ít tốn kém hơn reactive fixes. Self-improvement loop là đinh nghĩa của 'not done' — nhưng cần gated triggers, không phải always-on."
+  }
+];
+
+let currentQ = 0, score = 0;
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const pct = ((currentQ + 1) / 15 * 100).toFixed(2);
+  document.getElementById('currentQ').textContent = currentQ + 1;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  document.getElementById('quizArea').innerHTML = `
+    <div class="quiz-card">
+      <div class="quiz-q-num">Câu ${currentQ + 1} / 15</div>
+      <div class="quiz-q-text">${q.q}</div>
+      <div class="quiz-options">
+        ${q.opts.map((o,i) => `<button class="quiz-option" onclick="selectAnswer(${i})">${o}</button>`).join('')}
+      </div>
+      <div class="quiz-feedback" id="feedback"></div>
+      <div class="quiz-next" id="nextBtn">
+        <button class="btn btn-primary" onclick="nextQuestion()" style="margin-top:var(--space-2);">
+          ${currentQ < 14 ? 'Câu tiếp →' : 'Xem kết quả 🎯'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(idx) {
+  const q = questions[currentQ];
+  const opts = document.querySelectorAll('.quiz-option');
+  opts.forEach(o => o.classList.add('disabled'));
+
+  const isCorrect = idx === q.correct;
+  opts[idx].classList.add(isCorrect ? 'correct' : 'incorrect');
+  if (!isCorrect) opts[q.correct].classList.add('correct');
+  if (isCorrect) score++;
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'incorrect');
+  fb.style.display = 'block';
+  fb.innerHTML = (isCorrect ? '✅ <strong>Chính xác!</strong> ' : '❌ <strong>Chưa đúng.</strong> ') + q.explanation;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < 15) { renderQuestion(); }
+  else { showResult(); }
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.querySelector('.quiz-progress').style.display = 'none';
+  const res = document.getElementById('resultArea');
+  res.style.display = 'block';
+  const pct = Math.round(score / 15 * 100);
+  document.getElementById('finalScore').textContent = score + '/15';
+  let grade, msg;
+  if (pct >= 90) { grade = '🏆 Xuất sắc — Improvement Engineer!'; msg = 'Bạn nắm vững tất cả: self-improvement loop, error taxonomy, threshold optimization, và A/B testing. LoanBot v5.0 sẽ rất tốt!'; }
+  else if (pct >= 70) { grade = '✅ Tốt — Agent Optimizer'; msg = 'Bạn hiểu các concepts chính. Xem lại bài giảng về Power Analysis và Fairness Constraints để hoàn thiện.'; }
+  else { grade = '📖 Cần ôn thêm'; msg = 'Xem lại Lessons 2-3 về Error Taxonomy và Threshold Optimization — đây là core skills của improvement cycle.'; }
+  document.getElementById('finalGrade').textContent = grade;
+  document.getElementById('finalMsg').textContent = msg;
+}
+
+function restartQuiz() {
+  currentQ = 0; score = 0;
+  document.getElementById('quizArea').style.display = 'block';
+  document.querySelector('.quiz-progress').style.display = 'block';
+  document.getElementById('resultArea').style.display = 'none';
+  renderQuestion();
+}
+
+renderQuestion();
+</script>
+</body>
+</html>

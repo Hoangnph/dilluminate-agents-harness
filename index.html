@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agent Harness — Chương Trình Đào Tạo Enterprise SOTA</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+  <style>
+    body { background: var(--bg); }
+    .page-wrapper { padding-top: var(--topbar-height); }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: var(--space-8);
+    }
+    .section-title h2 { font-size: 2rem; color: var(--primary-dark); margin-bottom: var(--space-3); }
+    .section-title p  { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-5);
+      padding: 0 var(--space-8) var(--space-12);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .why-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+    }
+
+    .why-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-4);
+      display: block;
+    }
+
+    .why-card h4 { color: var(--primary-dark); margin-bottom: var(--space-2); }
+    .why-card p  { font-size: .9rem; color: var(--text-muted); }
+
+    .section-bg {
+      background: var(--surface);
+      padding: var(--space-12) 0;
+    }
+
+    .stats-full {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-12);
+      flex-wrap: wrap;
+      padding: var(--space-8);
+      background: linear-gradient(135deg, #f0f4f8, #e8f0fe);
+      margin: 0;
+    }
+
+    .stats-full .stat-item { text-align: center; }
+    .stats-full .stat-item .num { font-size: 3rem; font-weight: 800; color: var(--primary); }
+    .stats-full .stat-item .label { font-size: .9rem; color: var(--text-muted); max-width: 160px; margin: 0 auto; }
+
+    .roadmap {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 var(--space-8) var(--space-12);
+    }
+
+    .roadmap-item {
+      display: flex;
+      gap: var(--space-5);
+      margin-bottom: var(--space-6);
+    }
+
+    .roadmap-left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .roadmap-circle {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: .9rem;
+      flex-shrink: 0;
+    }
+
+    .roadmap-line {
+      width: 2px;
+      flex: 1;
+      background: var(--border);
+      margin: var(--space-2) 0;
+    }
+
+    .roadmap-item:last-child .roadmap-line { display: none; }
+
+    .roadmap-body {
+      flex: 1;
+      padding-top: var(--space-2);
+    }
+
+    .roadmap-body h4 { color: var(--primary-dark); margin-bottom: var(--space-1); }
+    .roadmap-body p  { font-size: .875rem; color: var(--text-muted); margin: 0; }
+    .roadmap-tags { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
+
+    .tag {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .tag.blue   { background: var(--info-light);    border-color: #bae6fd; color: #0369a1; }
+    .tag.green  { background: var(--success-light); border-color: #bbf7d0; color: #15803d; }
+    .tag.purple { background: #f5f3ff; border-color: #c4b5fd; color: #7e22ce; }
+    .tag.orange { background: var(--warning-light); border-color: #fde68a; color: #92400e; }
+
+    footer {
+      background: var(--primary-dark);
+      color: rgba(255,255,255,.6);
+      text-align: center;
+      padding: var(--space-6);
+      font-size: .85rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAVIGATION -->
+<nav class="topbar">
+  <a href="index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div>
+    <span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="#modules">Chương Trình</a>
+    <a href="#roadmap">Lộ Trình</a>
+    <a href="modules/module1/index.html" class="active">Bắt Đầu Học →</a>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);padding:6px 16px;border-radius:999px;font-size:.85rem;color:#fde8b4;margin-bottom:24px;">
+        ⚡ SOTA 2026 · Đạt chuẩn Enterprise Production
+      </div>
+      <h1>Làm Chủ AI Agent Harness Engineering</h1>
+      <p class="hero-tagline">
+        Chương trình đào tạo toàn diện cho chuyên gia từ mọi ngành nghề —
+        từ nền tảng đến production-grade enterprise deployment.
+        Không cần kinh nghiệm IT sâu.
+      </p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num">30</div>
+          <div class="hero-stat-label">Module chuyên sâu</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">87</div>
+          <div class="hero-stat-label">Tuần học</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">150+</div>
+          <div class="hero-stat-label">Bài giảng chi tiết</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">30</div>
+          <div class="hero-stat-label">Jupyter Notebooks</div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <a href="modules/module1/index.html" class="btn btn-primary">🚀 Bắt Đầu Module 1</a>
+        <a href="#modules" class="btn btn-outline">Xem chương trình</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- KEY STATS -->
+  <div class="stats-full">
+    <div class="stat-item">
+      <div class="num">65%</div>
+      <div class="label">thất bại AI đến từ lỗi harness, không phải model</div>
+    </div>
+    <div class="stat-item">
+      <div class="num">37%</div>
+      <div class="label">khoảng cách hiệu suất từ lab đến production</div>
+    </div>
+    <div class="stat-item">
+      <div class="num">$196B</div>
+      <div class="label">thị trường agentic AI toàn cầu năm 2034</div>
+    </div>
+    <div class="stat-item">
+      <div class="num">40%</div>
+      <div class="label">ứng dụng enterprise sẽ có AI agent vào cuối 2026</div>
+    </div>
+  </div>
+
+  <!-- WHY THIS COURSE -->
+  <section class="section-bg" style="padding: var(--space-12) 0;">
+    <div class="section-title">
+      <h2>Tại Sao Cần Học Harness Engineering?</h2>
+      <p>Xây dựng model AI tốt chỉ là 35% bài toán. 65% còn lại là harness.</p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card">
+        <span class="why-icon">🏗️</span>
+        <h4>Kỹ Năng Thực Chiến</h4>
+        <p>Học qua dự án thực tế — xây dựng LoanBot cho FinTech Corp từ A đến Z. Mỗi bài học tạo ra một artifact có thể dùng ngay.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-icon">🎯</span>
+        <h4>Cho Mọi Chuyên Ngành</h4>
+        <p>Thiết kế đặc biệt cho chuyên gia từ tài chính, y tế, luật, logistics — không cần nền IT sâu. Mọi khái niệm đều có analogy thực tế.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-icon">🏢</span>
+        <h4>Chuẩn Enterprise</h4>
+        <p>Đáp ứng EU AI Act, ISO 42001, NIST AI RMF. Framework đánh giá 12 metrics từ 100+ deployment thực tế.</p>
+      </div>
+      <div class="why-card">
+        <span class="why-icon">📊</span>
+        <h4>Đo Lường Được</h4>
+        <p>Production Readiness Checklist 3-tier. Biết chính xác khi nào agent của bạn đủ chuẩn đưa vào production.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULES -->
+  <section id="modules" style="padding: var(--space-12) 0;">
+    <div class="section-title" style="padding: 0 var(--space-8) var(--space-8);">
+      <h2>Chương Trình Học</h2>
+      <p>6 module được thiết kế theo trình tự tăng dần, mỗi module xây dựng trên nền tảng trước.</p>
+    </div>
+    <div class="module-grid">
+
+      <a href="modules/module1/index.html" class="module-card m1">
+        <div class="module-badge">✅ Đang mở · Tuần 1–2</div>
+        <span class="module-icon">🧠</span>
+        <h3>Module 1: Nền Tảng</h3>
+        <p>LLM fundamentals, paradigm agentic AI, phương trình Agent = Model + Harness, tool use và MCP protocol.</p>
+        <div class="module-meta">
+          <span>⏱ 2 tuần</span>
+          <span>📖 4 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module2/index.html" class="module-card m2">
+        <div class="module-badge">✅ Đã mở · Tuần 3–5</div>
+        <span class="module-icon">⚙️</span>
+        <h3>Module 2: Kiến Trúc Harness</h3>
+        <p>5-layer architecture, 15-component model, agentic loop, context engineering, memory management.</p>
+        <div class="module-meta">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module3/index.html" class="module-card m3">
+        <div class="module-badge">✅ Đã mở · Tuần 6–7</div>
+        <span class="module-icon">🔬</span>
+        <h3>Module 3: Đánh Giá & Testing</h3>
+        <p>12-metric evaluation harness, CLEAR framework, failure mode injection, LLM-as-judge pipeline.</p>
+        <div class="module-meta">
+          <span>⏱ 2 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module4/index.html" class="module-card m4">
+        <div class="module-badge">✅ Đã mở · Tuần 8–10</div>
+        <span class="module-icon">🚀</span>
+        <h3>Module 4: Production Deployment</h3>
+        <p>Docker, CI/CD Quality Gate, Canary deployment, monitoring, scaling & cost optimization.</p>
+        <div class="module-meta">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module5/index.html" class="module-card m5">
+        <div class="module-badge">✅ Đã mở · Tuần 11–12</div>
+        <span class="module-icon">🛡️</span>
+        <h3>Module 5: Quản Trị & Bảo Mật</h3>
+        <p>EU AI Act, prompt injection defense, data privacy, fairness audit, model card & governance.</p>
+        <div class="module-meta">
+          <span>⏱ 2 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module6/index.html" class="module-card m6">
+        <div class="module-badge">✅ Đã mở · Tuần 13–15</div>
+        <span class="module-icon">🌐</span>
+        <h3>Module 6: Multi-Agent Nâng Cao</h3>
+        <p>Supervisor pattern, LoanBot v2.0 (5 agents), parallel execution, distributed tracing, MCP Protocol.</p>
+        <div class="module-meta">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module7/index.html" class="module-card m7" style="background:linear-gradient(135deg,#1e0a4e 0%,#3b0764 50%,#4c1d95 100%);border-color:#7c3aed;">
+        <div class="module-badge" style="background:rgba(167,139,250,.2);border-color:rgba(167,139,250,.4);color:#c4b5fd;">✅ Đã mở · Tuần 16–18</div>
+        <span class="module-icon">🏢</span>
+        <h3 style="color:#e9d5ff;">Module 7: Enterprise Multi-Agent Department</h3>
+        <p style="color:#c4b5fd;">Agent Registry & ANS, A2A Protocol (Google 2025), State Checkpointing, LangGraph vs AutoGen vs CrewAI, LoanBot v3.0 (8 agents).</p>
+        <div class="module-meta" style="color:#a78bfa;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module8/index.html" class="module-card m8" style="background:linear-gradient(135deg,#042f2e 0%,#0d4f4a 50%,#0f766e 100%);border-color:#0d9488;">
+        <div class="module-badge" style="background:rgba(13,148,136,.2);border-color:rgba(13,148,136,.4);color:#5eead4;">✅ Đã mở · Tuần 19–21</div>
+        <span class="module-icon">🔭</span>
+        <h3 style="color:#ccfbf1;">Module 8: AgentOps & Production Observability</h3>
+        <p style="color:#99f6e4;">OpenTelemetry, Distributed Tracing, SLI/SLO/Error Budget, Arize Phoenix, Langfuse, Grafana Dashboard, LoanBot v3.0 full monitoring.</p>
+        <div class="module-meta" style="color:#2dd4bf;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module9/index.html" class="module-card m9" style="background:linear-gradient(135deg,#450a0a 0%,#7f1d1d 50%,#991b1b 100%);border-color:#b91c1c;">
+        <div class="module-badge" style="background:rgba(185,28,28,.2);border-color:rgba(185,28,28,.4);color:#fca5a5;">✅ Đã mở · Tuần 22–24</div>
+        <span class="module-icon">🛡️</span>
+        <h3 style="color:#fee2e2;">Module 9: Agent Security & Red Teaming</h3>
+        <p style="color:#fca5a5;">OWASP LLM Top 10, Prompt Injection, SSRF, Excessive Agency, Defense In Depth (4 layers), ToolCallValidator, SecurityHarness, Automated Adversarial Testing.</p>
+        <div class="module-meta" style="color:#f87171;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module10/index.html" class="module-card m10" style="background:linear-gradient(135deg,#1c0a00 0%,#451a03 50%,#92400e 100%);border-color:#d97706;">
+        <div class="module-badge" style="background:rgba(217,119,6,.2);border-color:rgba(217,119,6,.4);color:#fde68a;">✅ Đã mở · Tuần 25–27</div>
+        <span class="module-icon">💰</span>
+        <h3 style="color:#fef3c7;">Module 10: Cost Optimization & Performance Engineering</h3>
+        <p style="color:#fde68a;">Token Economics, Prompt Caching (90% off), Semantic Cache, Batch API (50% off), Intelligent Model Routing, TCO & ROI Calculator, Budget Alerts.</p>
+        <div class="module-meta" style="color:#fbbf24;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module11/index.html" class="module-card m11" style="background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#4f46e5 100%);border-color:#6366f1;">
+        <div class="module-badge" style="background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.4);color:#c7d2fe;">✅ Đã mở · Tuần 28–30</div>
+        <span class="module-icon">🤝</span>
+        <h3 style="color:#e0e7ff;">Module 11: Human-in-the-Loop Design & Enterprise Workflow Integration</h3>
+        <p style="color:#c7d2fe;">EU AI Act Art.14, HITL Triggers (4 loại), Multi-Level Approval Workflow, SLA Tracking, XAI Explanation Cards, NotificationHub (Slack/Email/SMS), Feedback Loop & Drift Detection.</p>
+        <div class="module-meta" style="color:#a5b4fc;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module12/index.html" class="module-card m12" style="background:linear-gradient(135deg,#4c0519 0%,#9f1239 50%,#e11d48 100%);border-color:#fb7185;">
+        <div class="module-badge" style="background:rgba(225,29,72,.2);border-color:rgba(225,29,72,.4);color:#fecdd3;">✅ Đã mở · Tuần 31–33</div>
+        <span class="module-icon">📊</span>
+        <h3 style="color:#ffe4e6;">Module 12: Agent Evaluation & Continuous Improvement</h3>
+        <p style="color:#fecdd3;">Golden Dataset (100 cases), LLM-as-Judge (5 criteria rubric), Position/Verbosity Bias, A/B Testing với Statistical Significance, Regression Suite CI/CD, RAGAS Metrics, Goodhart's Law.</p>
+        <div class="module-meta" style="color:#fda4af;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module13/index.html" class="module-card m13" style="background:linear-gradient(135deg,#022c22 0%,#065f46 50%,#10b981 100%);border-color:#6ee7b7;">
+        <div class="module-badge" style="background:rgba(16,185,129,.2);border-color:rgba(16,185,129,.4);color:#6ee7b7;">✅ Đã mở · Tuần 34–36</div>
+        <span class="module-icon">🏗️</span>
+        <h3 style="color:#d1fae5;">Module 13: Agent Orchestration Patterns & Advanced Architectures</h3>
+        <p style="color:#a7f3d0;">Fan-Out/Fan-In (52% latency reduction), Map-Reduce cho 50K apps/tháng, Saga Pattern (distributed rollback), Dynamic Router (3 execution paths), asyncio Semaphore chống Thundering Herd.</p>
+        <div class="module-meta" style="color:#6ee7b7;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module14/index.html" class="module-card m14" style="background:linear-gradient(135deg,#2e0836 0%,#701a75 50%,#d946ef 100%);border-color:#e879f9;">
+        <div class="module-badge" style="background:rgba(217,70,239,.2);border-color:rgba(217,70,239,.4);color:#e879f9;">✅ Đã mở · Tuần 37–39</div>
+        <span class="module-icon">🧠</span>
+        <h3 style="color:#fae8ff;">Module 14: Agent Memory Systems & RAG Architecture</h3>
+        <p style="color:#e879f9;">4-tier memory (Sensory/Short/Long-term/Procedural), RAG pipeline (Index→Retrieve→Augment→Generate), Vector Store design, Semantic Cache (40% hit rate), Quality Gate (Faithfulness ≥ 0.85).</p>
+        <div class="module-meta" style="color:#d946ef;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module15/index.html" class="module-card m15" style="background:linear-gradient(135deg,#431407 0%,#7c2d12 50%,#ea580c 100%);border-color:#fdba74;">
+        <div class="module-badge" style="background:rgba(234,88,12,.2);border-color:rgba(234,88,12,.4);color:#fdba74;">✅ Đã mở · Tuần 40–42</div>
+        <span class="module-icon">🔧</span>
+        <h3 style="color:#ffedd5;">Module 15: Tool Use Mastery & Enterprise Integration</h3>
+        <p style="color:#fdba74;">Agentic loop (tool_use → execute → tool_result), parallel tool calling (61% latency reduction), Token Bucket rate limiting, Pydantic schema validation, Circuit Breaker pattern cho 5 LoanBot enterprise tools.</p>
+        <div class="module-meta" style="color:#ea580c;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module16/index.html" class="module-card m16" style="background:linear-gradient(135deg,#1a2e05 0%,#365314 50%,#84cc16 100%);border-color:#bef264;">
+        <div class="module-badge" style="background:rgba(132,204,22,.15);border-color:rgba(132,204,22,.4);color:#bef264;">✅ Đã mở · Tuần 43–45</div>
+        <span class="module-icon">✍️</span>
+        <h3 style="color:#ecfccb;">Module 16: Prompt Engineering & Advanced Prompting</h3>
+        <p style="color:#bef264;">5-layer system prompt (Role/Context/Tools/Constraints/Format), Chain-of-Thought reasoning cho LoanBot, Few-shot exemplar design, Structured output parsing, Self-critique loop và A/B prompt testing.</p>
+        <div class="module-meta" style="color:#84cc16;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module17/index.html" class="module-card m17" style="background:linear-gradient(135deg,#082f49 0%,#075985 50%,#0ea5e9 100%);border-color:#7dd3fc;">
+        <div class="module-badge" style="background:rgba(14,165,233,.15);border-color:rgba(14,165,233,.4);color:#7dd3fc;">✅ Đã mở · Tuần 46–48</div>
+        <span class="module-icon">📄</span>
+        <h3 style="color:#e0f2fe;">Module 17: Multi-Modal Agents & Document Intelligence</h3>
+        <p style="color:#7dd3fc;">Claude Vision API cho payslip/bank statement/property deed, Document Intelligence Pipeline (Classify→Extract→Validate→Cross-check), Collateral Verification Chain (4 links), Tamper detection, Income pattern analysis. LoanBot v3.3 xử lý 6 documents trong 90 giây.</p>
+        <div class="module-meta" style="color:#0ea5e9;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module18/index.html" class="module-card m18" style="background:linear-gradient(135deg,#500724 0%,#831843 50%,#ec4899 100%);border-color:#f9a8d4;">
+        <div class="module-badge" style="background:rgba(236,72,153,.15);border-color:rgba(236,72,153,.4);color:#f9a8d4;">✅ Đã mở · Tuần 49–51</div>
+        <span class="module-icon">🌐</span>
+        <h3 style="color:#fce7f3;">Module 18: LLM Gateway & Enterprise Infrastructure</h3>
+        <p style="color:#f9a8d4;">LLM Gateway architecture, round-robin key pool, exponential backoff failover, sliding window quota per team, priority queue (P1/P2/P3), intelligent model routing (haiku vs sonnet), SLA monitoring P99, cost attribution by department. LoanBot v3.4 — 99.9% uptime.</p>
+        <div class="module-meta" style="color:#ec4899;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module19/index.html" class="module-card m19" style="background:linear-gradient(135deg,#2e1065 0%,#4a1d96 50%,#a855f7 100%);border-color:#d8b4fe;">
+        <div class="module-badge" style="background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.4);color:#d8b4fe;">✅ Đã mở · Tuần 52–54</div>
+        <span class="module-icon">⚖️</span>
+        <h3 style="color:#f3e8ff;">Module 19: AI Compliance & Regulatory Governance</h3>
+        <p style="color:#d8b4fe;">EU AI Act High-Risk classification cho LoanBot, 7 nghĩa vụ Art.9–15, Article 22 GDPR, TT39/2016 & NĐ13/2023, explainability engine (local + counterfactual), immutable audit trail (hash chain), bias assessment, Model Card generator. LoanBot v3.5 — EU AI Act compliant.</p>
+        <div class="module-meta" style="color:#a855f7;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module20/index.html" class="module-card m20" style="background:linear-gradient(135deg,#422006 0%,#713f12 50%,#eab308 100%);border-color:#fde047;">
+        <div class="module-badge" style="background:rgba(234,179,8,.15);border-color:rgba(234,179,8,.4);color:#fef08a;">✅ Đã mở · Tuần 55–57</div>
+        <span class="module-icon">🧪</span>
+        <h3 style="color:#fefce8;">Module 20: Agent Testing & Quality Assurance</h3>
+        <p style="color:#fde047;">Testing pyramid 4-tầng cho AI agents: Unit (500+ tests) → Integration → E2E → Chaos. Golden dataset 200 cases với expert validation, property-based testing (6 invariants: monotonicity, hallucination, schema), regression drift detection, CI/CD quality gate, chaos engineering với fault injection. TDD cho LoanBot.</p>
+        <div class="module-meta" style="color:#eab308;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module21/index.html" class="module-card m21" style="background:linear-gradient(135deg,#0c1f36 0%,#1e3a5f 55%,#38bdf8 100%);border-color:#7dd3fc;">
+        <div class="module-badge" style="background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:#7dd3fc;">✅ Đã mở · Tuần 58–60</div>
+        <span class="module-icon">⚡</span>
+        <h3 style="color:#f0f9ff;">Module 21: Real-time & Streaming Agents</h3>
+        <p style="color:#7dd3fc;">Streaming architecture: SSE vs WebSocket vs gRPC — chọn đúng protocol. FastAPI StreamingResponse với Claude API stream (TTFB 0.3s thay vì 18s). WebSocket bidirectional session cho Live Q&A với conversation context. Streaming tool calls: accumulate input_json_delta → execute. Backpressure với asyncio.Queue: slow client detection và graceful drop.</p>
+        <div class="module-meta" style="color:#38bdf8;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module22/index.html" class="module-card m22" style="background:linear-gradient(135deg,#431407 0%,#7f1d1d 55%,#f97316 100%);border-color:#fdba74;">
+        <div class="module-badge" style="background:rgba(249,115,22,.15);border-color:rgba(249,115,22,.4);color:#fdba74;">✅ Đã mở · Tuần 61–63</div>
+        <span class="module-icon">🔬</span>
+        <h3 style="color:#fff7ed;">Module 22: Fine-tuning & Model Specialization</h3>
+        <p style="color:#fdba74;">Khi nào fine-tune LoanBot vs prompt engineering: decision framework 5 điều kiện + ROI calculator break-even analysis. LoRA/QLoRA: chỉ train 0.1% params (B·A matrices), giảm cost từ $10,000 xuống $50. Synthetic data generation từ production logs với PII anonymization. Evaluation 4 chiều + catastrophic forgetting detection. Model registry, shadow mode, canary deployment 5%→25%→100% với automated rollback.</p>
+        <div class="module-meta" style="color:#f97316;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module23/index.html" class="module-card m23" style="background:linear-gradient(135deg,#042f2e 0%,#134e4a 55%,#2dd4bf 100%);border-color:#99f6e4;">
+        <div class="module-badge" style="background:rgba(45,212,191,.15);border-color:rgba(45,212,191,.4);color:#99f6e4;">✅ Đã mở · Tuần 64–66</div>
+        <span class="module-icon">🧠</span>
+        <h3 style="color:#f0fdfa;">Module 23: Agent Reasoning & Planning</h3>
+        <p style="color:#99f6e4;">Chain-of-Thought: few-shot CoT tăng accuracy 73%→89% trên borderline cases — dùng 2-3 worked examples để đảm bảo model check đúng factors. ReAct: Thought→Action→Observation loop với circuit breaker sau 2 tool failures. Tree-of-Thought: explore 3 branches (Conservative/Moderate/Progressive) khi có conflicting signals, Beam Search top-k. HTN Planning: dependency graph với failure strategies (abort/skip/escalate). Self-Reflection: Constitutional AI 5 principles để detect geographic bias, missing refs, overthinking.</p>
+        <div class="module-meta" style="color:#2dd4bf;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module24/index.html" class="module-card m24" style="background:linear-gradient(135deg,#2e1065 0%,#4c1d95 55%,#a78bfa 100%);border-color:#c4b5fd;">
+        <div class="module-badge" style="background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:#c4b5fd;">✅ Đã mở · Tuần 67–69</div>
+        <span class="module-icon">📚</span>
+        <h3 style="color:#f5f3ff;">Module 24: Agent Knowledge & Epistemics</h3>
+        <p style="color:#c4b5fd;">Hallucination detection: 3-layer pipeline — citation verifier (điều khoản tồn tại?), numeric bounds checker (giá trị hợp lệ?), self-consistency sampling (agreement ≥2/3?). Uncertainty quantification: Monte Carlo sampling, ECE calibration. RAG faithfulness: faithfulness ≥0.90 + relevance ≥0.80. Knowledge boundary: Johari Window 4 ô — Known Known → answer; Known Unknown → decline & redirect; Uncertain → hedge + suggest verify. Knowledge freshness: temporal hedge cho time-sensitive info, staleness monitor với severity (OK/MEDIUM/HIGH).</p>
+        <div class="module-meta" style="color:#a78bfa;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module25/index.html" class="module-card m25" style="background:linear-gradient(135deg,#082f49 0%,#0c4a6e 55%,#38bdf8 100%);border-color:#7dd3fc;">
+        <div class="module-badge" style="background:rgba(56,189,248,.15);border-color:rgba(56,189,248,.4);color:#7dd3fc;">✅ Đã mở · Tuần 70–72</div>
+        <span class="module-icon">⚡</span>
+        <h3 style="color:#f0f9ff;">Module 25: Agent Orchestration at Scale</h3>
+        <p style="color:#7dd3fc;">Stateless agent design: mọi state trong Redis → bất kỳ worker nào cũng handle bất kỳ request. Message queue: Redis Streams consumer group, at-least-once + idempotency, DLQ sau MAX_RETRIES. Saga Pattern: forward steps + compensating transactions khi fail — S3 fail → C2+C1 compensate. Auto-scaling: Little's Law L=λ×W → size worker fleet; queue-depth trigger với cooldown. Distributed tracing: correlation ID xuyên suốt tất cả services, span collection, p99 latency SLO ≤8s.</p>
+        <div class="module-meta" style="color:#38bdf8;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module26/index.html" class="module-card m26" style="background:linear-gradient(135deg,#3b0764 0%,#701a75 55%,#e879f9 100%);border-color:#d946ef;">
+        <div class="module-badge" style="background:rgba(232,121,249,.15);border-color:rgba(232,121,249,.4);color:#e879f9;">✅ Đã mở · Tuần 73–75</div>
+        <span class="module-icon">🗣️</span>
+        <h3 style="color:#fdf4ff;">Module 26: Multi-Agent Debate & Consensus</h3>
+        <p style="color:#f0abfc;">Condorcet Jury Theorem: panel accuracy tăng khi thêm independent agents (p&gt;0.5). 4 consensus mechanisms: Majority Vote, Weighted Vote, Borda Count, Delphi. Devil's Advocate Pattern: stress-test decisions, ngăn echo chamber. 5-agent panel: Optimist + Balanced + Pessimist + Regulator (veto) + Auditor. Meta-Arbitrator: synthesis + audit trail đầy đủ cho regulatory compliance.</p>
+        <div class="module-meta" style="color:#e879f9;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module27/index.html" class="module-card m27" style="background:linear-gradient(135deg,#451a03 0%,#78350f 55%,#fbbf24 100%);border-color:#fcd34d;">
+        <div class="module-badge" style="background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.4);color:#fbbf24;">✅ Đã mở · Tuần 76–78</div>
+        <span class="module-icon">🔄</span>
+        <h3 style="color:#fffbeb;">Module 27: Agent Self-Improvement & Meta-Learning</h3>
+        <p style="color:#fde68a;">Self-Improvement Loop: Deploy → Monitor → Analyze → Update → A/B Test. Ground truth pipeline: thu thập 30-day loan outcomes. Error taxonomy: Type I (default loss 180M/case) vs Type II (opportunity 42M/case) — Business Cost Matrix. Threshold optimization grid search. Bayesian persona rebalancing. Shadow mode → Canary 5% → Gradual rollout với power analysis (n≥640/arm).</p>
+        <div class="module-meta" style="color:#fbbf24;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module28/index.html" class="module-card m28" style="background:linear-gradient(135deg,#042f2e 0%,#134e4a 55%,#2dd4bf 100%);border-color:#5eead4;">
+        <div class="module-badge" style="background:rgba(45,212,191,.15);border-color:rgba(45,212,191,.4);color:#2dd4bf;">✅ Đã mở · Tuần 79–81</div>
+        <span class="module-icon">⚖️</span>
+        <h3 style="color:#f0fdfa;">Module 28: Agent Governance & Ethical AI Frameworks</h3>
+        <p style="color:#99f6e4;">3-Tier Governance Framework: Operational → Tactical → Strategic. RACI Matrix: AI là Responsible, CRO là Accountable. EU AI Act High-Risk (Annex III 5b). Bias Detection: 80% rule, Demographic Parity, Equalized Odds, Fairness Impossibility Theorem. XAI: Counterfactual Explanation, Natural Language Explanation. Compliance Evidence Package cho NHNN + EU AI Act Art. 86. Ethics Escalation: HALT khi disparity &lt;0.60.</p>
+        <div class="module-meta" style="color:#2dd4bf;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module29/index.html" class="module-card m29" style="background:linear-gradient(135deg,#052e16 0%,#14532d 55%,#4ade80 100%);border-color:#86efac;">
+        <div class="module-badge" style="background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.4);color:#4ade80;">✅ Đã mở · Tuần 82–84</div>
+        <span class="module-icon">💰</span>
+        <h3 style="color:#f0fdf4;">Module 29: Agent Economics & ROI Analysis</h3>
+        <p style="color:#bbf7d0;">ROI Framework: TCO → Benefits → Net Savings → Payback 5.5 ngày. Token Economics: 3 tiers — Haiku (54 VNĐ/case) → 3-agent Sonnet (518 VNĐ) → 5-agent panel (1.150 VNĐ). Scaling: break-even ~6.250 cases/month, marginal cost 115 VNĐ vs 175K VNĐ human. 3-Year NPV Calculator + Sensitivity Analysis (Monte Carlo). Value Dashboard: Leading (PSI, Type I, confidence) + Lagging (default rate, monthly savings) KPIs.</p>
+        <div class="module-meta" style="color:#4ade80;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+      <a href="modules/module30/index.html" class="module-card m30" style="background:linear-gradient(135deg,#0d0b26 0%,#1e1b4b 55%,#818cf8 100%);border-color:#a5b4fc;">
+        <div class="module-badge" style="background:rgba(129,140,248,.15);border-color:rgba(165,180,252,.4);color:#818cf8;">🆕 CAPSTONE · Tuần 85–87</div>
+        <span class="module-icon">🚀</span>
+        <h3 style="color:#eef2ff;">Module 30: Future of AI Agents — Capstone</h3>
+        <p style="color:#c7d2fe;">AI Landscape 2026–2030: cost-per-token giảm 100× → new viable markets. Advanced Capabilities: Computer-Use Agents, Long-Context (1M+ tokens), Extended Thinking, Real-time Learning, MCP Ecosystem. Agent-to-Agent Trust Protocol: mutual TLS + JWT credential tokens. Centaur Model: Human strategic + AI operational. Career Paths: 4 career tracks + skill gap analysis. LoanBot v5.0 Full Capstone Pipeline: ecosystem + debate + governance + XAI + ROI.</p>
+        <div class="module-meta" style="color:#818cf8;">
+          <span>⏱ 3 tuần</span>
+          <span>📖 5 bài giảng</span>
+          <span>🔬 1 notebook</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap" class="section-bg">
+    <div class="section-title" style="padding: var(--space-12) var(--space-8) var(--space-8);">
+      <h2>Lộ Trình Xuyên Suốt: FinTech Corp & LoanBot</h2>
+      <p>Một ví dụ thực tế duy nhất — xuyên suốt tất cả 30 module — để học dễ hơn và nhất quán hơn.</p>
+    </div>
+    <div class="roadmap">
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:var(--primary);">1</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>Giới thiệu FinTech Corp & Bài Toán</h4>
+          <p>50,000 hồ sơ vay/tháng, 200 nhân viên thẩm định, mục tiêu: LoanBot xử lý trong 5 phút thay vì 3–5 ngày. Định nghĩa các tools cần thiết.</p>
+          <div class="roadmap-tags">
+            <span class="tag blue">Module 1</span>
+            <span class="tag">LLM</span>
+            <span class="tag">Tool Use</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:#7c3aed;">2</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>Xây Dựng Harness Cho LoanBot</h4>
+          <p>Thiết kế 5-layer harness: Tool Registry (5 tools), Memory cho session, Context Builder, Guardrail cho hạn mức vay, Observability.</p>
+          <div class="roadmap-tags">
+            <span class="tag purple">Module 2</span>
+            <span class="tag">Harness Architecture</span>
+            <span class="tag">Context</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:#0891b2;">3</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>Đánh Giá LoanBot Trước Production</h4>
+          <p>Xây evaluation harness 12 metrics. Test: Tool Selection Accuracy cho 5 tools của LoanBot. Inject failure modes: context drift sau 10+ bước.</p>
+          <div class="roadmap-tags">
+            <span class="tag blue">Module 3</span>
+            <span class="tag">12-Metric Framework</span>
+            <span class="tag">Failure Injection</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:#059669;">4</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>Deploy LoanBot Lên Production</h4>
+          <p>CI/CD pipeline, zero-downtime deployment, autoscaling cho peak hours (8–9h sáng), cost monitoring (< $0.05/hồ sơ), rollback procedure.</p>
+          <div class="roadmap-tags">
+            <span class="tag green">Module 4</span>
+            <span class="tag">MLOps</span>
+            <span class="tag">Scaling</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:#d97706;">5</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>Governance & Compliance Cho LoanBot</h4>
+          <p>EU AI Act compliance cho AI hỗ trợ quyết định tín dụng (high-risk). Human-in-the-loop cho khoản vay > 500 triệu. Full audit trail.</p>
+          <div class="roadmap-tags">
+            <span class="tag orange">Module 5</span>
+            <span class="tag">EU AI Act</span>
+            <span class="tag">Audit Trail</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:#dc2626;">6</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>LoanBot Multi-Agent System</h4>
+          <p>Scale thành hệ thống đa agent: LoanBot Supervisor điều phối CreditAgent, IncomeAgent, RiskAgent, ReportAgent chạy song song. RL fine-tuning.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;">Module 6</span>
+            <span class="tag">Multi-Agent</span>
+            <span class="tag">RL Fine-tuning</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#7c3aed,#4c1d95);">7</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🏢 LoanBot v3.0 — Enterprise Department (SOTA 2025)</h4>
+          <p>Agent Registry + ANS (DNS cho agents), A2A Protocol (Google 4/2025), State Checkpointing & Resume, LangGraph vs AutoGen v0.4 vs CrewAI, 8-agent department: ComplianceAgent + FraudAgent + AuditAgent mới.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#ede9fe;border-color:#c4b5fd;color:#5b21b6;">Module 7</span>
+            <span class="tag">Agent Registry</span>
+            <span class="tag">A2A Protocol</span>
+            <span class="tag">Checkpointing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#0d9488,#0f766e);">8</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🔭 LoanBot v3.0 + Full Observability Stack (AgentOps)</h4>
+          <p>Thêm OpenTelemetry tracing xuyên 8 agents, Prometheus metrics, SLI/SLO/Error Budget định nghĩa, Arize Phoenix + Langfuse self-hosted, Grafana dashboard, SLO-based alerting. MTTD từ 47 phút xuống 2.3 phút.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#ccfbf1;border-color:#5eead4;color:#0f766e;">Module 8</span>
+            <span class="tag">OpenTelemetry</span>
+            <span class="tag">SLO / Error Budget</span>
+            <span class="tag">Grafana</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#b91c1c,#7f1d1d);">9</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🛡️ LoanBot v3.0 + Security Harness 4-Layer (Red Teaming)</h4>
+          <p>OWASP LLM Top 10 với LoanBot examples, Direct & Indirect Prompt Injection, Excessive Agency, SSRF via tool args. Implement 4-layer defense: PromptSanitizer → ToolCallValidator → OutputValidator → SecurityMonitor. Adversarial test suite 5 attack vectors — 100% defense coverage.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fee2e2;border-color:#fca5a5;color:#991b1b;">Module 9</span>
+            <span class="tag">OWASP LLM Top 10</span>
+            <span class="tag">Prompt Injection</span>
+            <span class="tag">Defense In Depth</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#d97706,#92400e);">10</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>💰 LoanBot v3.0 + Cost Optimization (ROI Engineering)</h4>
+          <p>Token economics và cost attribution per agent. Prompt Caching (90% off cached tokens). 3-layer cache: L1 Prompt → L2 Semantic → L3 Result. Anthropic Batch API (50% discount). Intelligent Model Routing: Haiku default, Sonnet cho complex cases. TCO $537/tháng vs manual $730K — ROI 135.820%.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fef3c7;border-color:#fde68a;color:#92400e;">Module 10</span>
+            <span class="tag">Token Economics</span>
+            <span class="tag">Prompt Caching</span>
+            <span class="tag">ROI Calculator</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#4f46e5,#3730a3);">11</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🤝 LoanBot v3.0 + Human-in-the-Loop Design (Enterprise Workflow)</h4>
+          <p>EU AI Act Art.14 human oversight requirement. 4 HITL triggers: Amount, Fraud, Borderline Score, Regulatory. Multi-level approval: Loan Officer (8h) → Branch Manager (4h) → Credit Committee (24h). XAI Explanation Cards với factor contributions. Idempotent NotificationHub (Slack/Email/SMS/Webhook). FeedbackCollector & DriftDetector → Virtuous Learning Loop → LoanBot v3.1.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#eef2ff;border-color:#a5b4fc;color:#3730a3;">Module 11</span>
+            <span class="tag">HITL Design</span>
+            <span class="tag">Approval Workflow</span>
+            <span class="tag">XAI</span>
+            <span class="tag">Feedback Loop</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#e11d48,#9f1239);">12</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>📊 LoanBot v3.0 + Evaluation Engineering (Continuous Improvement)</h4>
+          <p>Evaluation Gap và 4 chiều đánh giá: Correctness, Helpfulness, Safety, Efficiency. Golden Dataset 100 hồ sơ với expert labels. LLM-as-Judge: 5-criterion rubric, position/verbosity bias mitigations. A/B Test: v2 vs v3.0 với chi-squared p-value và Cohen's h. Regression Suite với CI/CD gate (accuracy ≥ 94%, judge ≥ 4.0). RAGAS metrics. Goodhart's Law và EDD (Evaluation-Driven Development).</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fff1f2;border-color:#fda4af;color:#9f1239;">Module 12</span>
+            <span class="tag">Golden Dataset</span>
+            <span class="tag">LLM-as-Judge</span>
+            <span class="tag">A/B Testing</span>
+            <span class="tag">RAGAS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#10b981,#065f46);">13</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🏗️ LoanBot v3.1 + Orchestration Patterns (Advanced Architectures)</h4>
+          <p>DAG-based dependency analysis: Credit/Income/Fraud agents chạy Fan-Out song song, giảm latency 52% (7.8s → 3.7s). Map-Reduce cho 50.000 hồ sơ/tháng với PortfolioReducer và Batch API (50% off). Saga Pattern cho distributed loan disbursement với compensating transactions. Dynamic Router: 3 execution paths (Fast/Standard/Full) dựa trên complexity_score() — tiết kiệm 40% cost.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#ecfdf5;border-color:#6ee7b7;color:#065f46;">Module 13</span>
+            <span class="tag">Fan-Out/Fan-In</span>
+            <span class="tag">Map-Reduce</span>
+            <span class="tag">Saga Pattern</span>
+            <span class="tag">Dynamic Routing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#d946ef,#701a75);">14</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🧠 LoanBot v3.1 + Memory Systems & RAG Architecture</h4>
+          <p>4-tier memory model: Sensory (context window 200K), Short-term (Redis session), Long-term (Qdrant vector store 15.000 chunks), Procedural (tool patterns). RAG pipeline: Index → Retrieve → Rerank (top-20→5) → Augment → Generate. Semantic Cache (cosine ≥ 0.95, 40% hit rate). Quality Gate: Faithfulness ≥ 0.85 trước khi serve — failed responses trigger HITL. TokenBudget: phân bổ 200K cho RAG + history + output.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fdf4ff;border-color:#e879f9;color:#701a75;">Module 14</span>
+            <span class="tag">RAG Pipeline</span>
+            <span class="tag">Vector Store</span>
+            <span class="tag">Semantic Cache</span>
+            <span class="tag">Faithfulness Gate</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#ea580c,#7c2d12);">15</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🔧 LoanBot v3.2 + Tool Use Mastery & Enterprise Integration</h4>
+          <p>Agentic loop hoàn chỉnh: tool_use → execute → tool_result → model tiếp tục. 5 LoanBot enterprise tools: CreditBureau (24h cache), ComplianceTool (critical, always fresh), IncomeVerification (30d cache), PropertyValuation (7d cache), NotificationTool (idempotent). Parallel execution: CreditBureau + Compliance + Income + Property = 2.1s thay vì 5.4s (61% reduction). Pydantic validation: schema → runtime enforcement. Circuit Breaker: CLOSED → OPEN (5 failures) → HALF-OPEN (trial) → recovery.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fff7ed;border-color:#fdba74;color:#7c2d12;">Module 15</span>
+            <span class="tag">Tool Calling API</span>
+            <span class="tag">Parallel Execution</span>
+            <span class="tag">Circuit Breaker</span>
+            <span class="tag">Schema Validation</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#84cc16,#365314);">16</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>✍️ LoanBot v3.2 + Prompt Engineering & Advanced Prompting</h4>
+          <p>5-layer system prompt: Role (authority levels) + Context (regulatory framework TT39/QĐ493) + Tools (when/why to call each) + Constraints (hard rules: score&lt;450, DTI&gt;65%) + Format (JSON schema LoanDecisionOutput). Chain-of-Thought: Hard Rules Gate → Risk Factor Analysis → Aggregate → Decision. Few-shot: 3 exemplars (APPROVE+REJECT+HITL). Self-critique loop cho borderline cases (risk 0.35–0.65). A/B test: v1 vague (63% consistency) → v2 structured (94% consistency).</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f7fee7;border-color:#bef264;color:#365314;">Module 16</span>
+            <span class="tag">System Prompt</span>
+            <span class="tag">Chain-of-Thought</span>
+            <span class="tag">Few-Shot</span>
+            <span class="tag">Structured Output</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#0ea5e9,#075985);">17</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>📄 LoanBot v3.3 + Multi-Modal Agents & Document Intelligence</h4>
+          <p>Claude Vision API xử lý 6 document types: CCCD (99.1%), payslip (97.2%), bank statement (94.8%), property deed (96.1%), tax cert, loan contract. Pipeline: Classify → Extract → Validate (confidence thresholds) → Cross-check (income discrepancy &lt;10%) → Collateral Chain (4 links: Identity + Encumbrance + Address + Area). Document tamper detection: round numbers, zero deductions, metadata mismatch. LoanBot v3.3: 90s automatic processing vs 3–5 ngày manual. Auto-decision 78%, HITL 22%.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f0f9ff;border-color:#7dd3fc;color:#075985;">Module 17</span>
+            <span class="tag">Vision API</span>
+            <span class="tag">Document Intelligence</span>
+            <span class="tag">Cross-check Engine</span>
+            <span class="tag">Tamper Detection</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#ec4899,#831843);">18</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🌐 LoanBot v3.4 + LLM Gateway & Enterprise Infrastructure</h4>
+          <p>LLM Gateway: lớp trung gian xử lý auth, round-robin load balancing (3 primary + 2 backup API keys), exponential backoff retry, response caching. Quota management: sliding window per department. Health check proactive (phát hiện degraded keys trước khi ảnh hưởng production). Priority queue P1/P2/P3: VIP được xử lý trước batch. Intelligent routing: haiku cho clear cases, sonnet cho borderline. SLA monitoring: P99 ≤ 5s, error rate ≤ 0.1%. Cost attribution by team — basis cho charge-back. LoanBot v3.4: 99.9% uptime, $441/tháng savings từ smart routing.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fdf2f8;border-color:#f9a8d4;color:#831843;">Module 18</span>
+            <span class="tag">LLM Gateway</span>
+            <span class="tag">Load Balancing</span>
+            <span class="tag">Failover</span>
+            <span class="tag">SLA Monitoring</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#a855f7,#4a1d96);">19</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>⚖️ LoanBot v3.5 + AI Compliance & Regulatory Governance</h4>
+          <p>EU AI Act: phân loại High-Risk (Annex III), 7 nghĩa vụ Art.9–15 (risk management, data governance, model card, audit trail, transparency, human oversight, robustness). GDPR Article 22: quyền không bị quyết định hoàn toàn tự động — LoanBot PHẢI có human review option. TT39/2016 + NĐ13/2023 (VN regulations). Explainability: local + counterfactual ("nếu điểm tín dụng tăng 70 điểm, bạn sẽ được chấp thuận"). Immutable audit trail với hash chain. Bias assessment: disparity ratio. Model Card auto-generator. Pseudonymization: giải quyết conflict GDPR erasure vs 5-year audit retention.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#faf5ff;border-color:#d8b4fe;color:#4a1d96;">Module 19</span>
+            <span class="tag">EU AI Act</span>
+            <span class="tag">GDPR Art.22</span>
+            <span class="tag">Explainability</span>
+            <span class="tag">Audit Trail</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#eab308,#713f12);">20</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🧪 LoanBot v3.5 + Agent Testing & Quality Assurance</h4>
+          <p>Testing pyramid 4-tầng cho AI agents: Unit Tests (500+, on commit) → Integration (150+, per PR) → E2E (30+, per release) → Chaos (5+, monthly). Golden dataset 200 cases được loan officers senior verify. Property-based testing: 6 invariants (monotonicity, hallucination, schema, blacklist, confidence, regulation). Regression drift detection: alert khi >2% change. CI/CD quality gate: 5 stages, auto-block deployment. Chaos Engineering: fault injection, thundering herd, concurrent requests. TDD cho AI: write failing test first, then implement rule.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fefce8;border-color:#fde047;color:#713f12;">Module 20</span>
+            <span class="tag">Testing Pyramid</span>
+            <span class="tag">Golden Dataset</span>
+            <span class="tag">Chaos Engineering</span>
+            <span class="tag">CI/CD Gate</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#38bdf8,#1e3a5f);">21</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>⚡ LoanBot v3.5 + Real-time & Streaming Agents</h4>
+          <p>Streaming architecture: SSE (Server-Sent Events) cho browser dashboard — TTFB 0.3s thay vì 18s batch. FastAPI StreamingResponse + Claude API async streaming. WebSocket bidirectional cho Live Q&A: analyst gửi questions trong khi LoanBot vẫn đang stream analysis. Streaming tool calls: accumulate input_json_delta → parse JSON → execute CIC query → continue stream. Backpressure với asyncio.Queue(maxsize=100): block producer khi consumer chậm, detect slow clients, graceful drop. ConversationManager: sliding window + summary để fit context window sau 10+ turns.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f0f9ff;border-color:#7dd3fc;color:#1e3a5f;">Module 21</span>
+            <span class="tag">SSE</span>
+            <span class="tag">WebSocket</span>
+            <span class="tag">Streaming Tools</span>
+            <span class="tag">Backpressure</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#f97316,#7f1d1d);">22</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🔬 LoanBot v3.6 + Fine-tuning & Model Specialization</h4>
+          <p>Decision framework: 5 điều kiện nên fine-tune + ROI calculator (break-even = Training Cost ÷ Monthly Savings). LoRA/QLoRA: chỉ train B·A matrices (0.1% params), QLoRA thêm 4-bit quantization → training trên consumer GPU $50 thay vì $10,000+. Synthetic data generation từ 300K production cases với PII anonymization (hash, round, province only). Early stopping: val_acc giảm = overfitting signal, restore best checkpoint. 4-dimension evaluation: domain accuracy ≥95%, JSON compliance ≥99%, general capability ≥85%, latency p50 <2s. Disparate impact analysis: 4/5 rule để detect geographic bias. Model registry + shadow mode + canary deployment 5%→25%→100% với rollback tự động.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fff7ed;border-color:#fdba74;color:#7f1d1d;">Module 22</span>
+            <span class="tag">LoRA/QLoRA</span>
+            <span class="tag">Fine-tuning</span>
+            <span class="tag">Canary Deploy</span>
+            <span class="tag">Bias Detection</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#2dd4bf,#134e4a);">23</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🧠 LoanBot v3.6 + Agent Reasoning & Planning</h4>
+          <p>Chain-of-Thought few-shot: 2-3 worked examples buộc model check credit score → DTI → employment → tổng hợp — accuracy borderline cases tăng 73%→89%. ReAct pattern: Thought→Action→Observation loop với circuit breaker sau 2 consecutive tool failures. Tree-of-Thought: generate 3 branches (Conservative/Moderate/Progressive), score theo policy fit (0-10), Beam Search top-k để reduce computation O(b^d)→O(k×d). HTN Planning: dependency graph, failure strategies per step (abort/skip/escalate), cascade SKIP khi dep failed. Self-Reflection: 5 Constitutional AI principles — geographic discrimination check, regulation ref required, confidence calibration, balanced explanation, REVIEW must specify documents. Smart routing: direct (clear cases) → CoT (borderline) → ReAct (need external info) → ToT (conflicting signals).</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f0fdfa;border-color:#99f6e4;color:#134e4a;">Module 23</span>
+            <span class="tag">Chain-of-Thought</span>
+            <span class="tag">ReAct</span>
+            <span class="tag">Tree-of-Thought</span>
+            <span class="tag">Self-Reflection</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#a78bfa,#4c1d95);">24</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>📚 LoanBot v3.7 + Agent Knowledge & Epistemics</h4>
+          <p>Johari Window: phân loại query thành Known Known (answer directly) → Known Unknown (decline & redirect) → Uncertain (hedge + suggest verify). Hallucination detection 3 layers: citation verifier (TT39 max 27 điều — Điều 65 không tồn tại?), numeric bounds (lãi suất 1%–36%/năm), self-consistency sampling (agreement ≥2/3 → deliver, &lt;2/3 → escalate). Uncertainty quantification: Monte Carlo sampling 5-10 lần, ECE calibration — khi nói "90% confident" có thực sự đúng 90% không? RAG faithfulness: faithfulness ≥0.90 + relevance ≥0.80, grounded generation — chỉ cite retrieved context. Knowledge freshness: staleness monitor (NHNN interest rate: 14-day threshold), temporal hedge auto-add cho time-sensitive info.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f5f3ff;border-color:#c4b5fd;color:#4c1d95;">Module 24</span>
+            <span class="tag">Epistemic Humility</span>
+            <span class="tag">Hallucination Detection</span>
+            <span class="tag">RAG Faithfulness</span>
+            <span class="tag">Calibration</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#38bdf8,#0c4a6e);">25</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>⚡ LoanBot v3.8 + Agent Orchestration at Scale</h4>
+          <p>Stateless worker design: all state in Redis (dedup lock, CIC cache, atomic counters) → 10 workers interchangeable. Redis Streams consumer group: at-least-once delivery, PEL tracking, DLQ after MAX_RETRIES=3. Saga Pattern: S1 reserve → S2 CIC → S3 decision → S4 notify → S5 audit; khi fail: compensating transactions ngược (C3→C2→C1). Auto-scaling với Little's Law: L=λ×W → peak 12000 req/hr cần 11 workers vs off-peak 2 workers. Distributed tracing: correlation ID + span collection, p99 SLO &lt;8s; SLO monitor alert khi queue_depth &gt;200.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f0f9ff;border-color:#7dd3fc;color:#0c4a6e;">Module 25</span>
+            <span class="tag">Redis Streams</span>
+            <span class="tag">Saga Pattern</span>
+            <span class="tag">Little's Law</span>
+            <span class="tag">Distributed Tracing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#e879f9,#701a75);">26</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🗣️ LoanBot v3.9 + Multi-Agent Debate & Consensus</h4>
+          <p>Condorcet Jury Theorem: P(panel correct) = 1−(1−p)^n với p&gt;0.5, n agents độc lập. 4 consensus mechanisms: Majority Vote, Weighted Vote (RegulatorAgent w=1.5), Borda Count, Delphi multi-round. Devil's Advocate Pattern: stress-test quyết định, ngăn echo chamber (diversity index &lt;0.3 cảnh báo). 5-agent panel cho high-value cases (&gt;2B VNĐ). Meta-Arbitrator: đánh giá argument quality, không chỉ count votes — compliance veto overrides majority. Audit trail đầy đủ per-agent cho NHNN regulatory compliance.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fdf4ff;border-color:#d946ef;color:#701a75;">Module 26</span>
+            <span class="tag">Condorcet Theorem</span>
+            <span class="tag">Borda Count</span>
+            <span class="tag">Devil's Advocate</span>
+            <span class="tag">Meta-Arbitrator</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#fbbf24,#78350f);">27</div>
+          <div class="roadmap-line"></div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🔄 LoanBot v4.0 + Self-Improvement & Meta-Learning</h4>
+          <p>Self-Improvement Loop: Deploy → Monitor (5.200 ground truth outcomes/tháng) → Analyze (Error Taxonomy: Type I 180M/case vs Type II 42M/case) → Update → A/B Test → Re-deploy. Threshold Optimization: grid search (200 configs) tìm DTI ceiling 0.42 thay vì 0.45 → giảm Type I từ 18% xuống 8%. Bayesian Weight Update: PessimistAgent 81% accuracy → weight 1.2→1.39. PSI drift monitor: PSI &gt;0.25 trigger retraining. Shadow mode → Canary 5% → rollout 25%→50%→100% với power analysis n≥640/arm, p&lt;0.05.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#fffbeb;border-color:#fcd34d;color:#78350f;">Module 27</span>
+            <span class="tag">PSI Drift Monitor</span>
+            <span class="tag">Business Cost Matrix</span>
+            <span class="tag">Bayesian Weight</span>
+            <span class="tag">A/B Testing</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#2dd4bf,#134e4a);">28</div>
+        </div>
+        <div class="roadmap-body">
+          <h4>⚖️ LoanBot v4.0 + AI Governance & Ethical Frameworks</h4>
+          <p>NHNN phát công văn sau khi phát hiện rural bias (44.8% vs 68.2% urban). FinTech Corp xây 3-Tier Governance: Operational (daily automated), Tactical (monthly review), Strategic (quarterly board). Policy Engine: GP-001 Demographic Parity (CRITICAL), GP-003 Explainability Coverage (100% requirement). FairnessAuditor: 80% rule, Equalized Odds gap, Fairness Impossibility Theorem. XAI: Feature Importance + Counterfactual ("nếu employment ≥ 12mo → APPROVE") + NL Explanation letter tiếng Việt. Compliance Evidence Package: EU AI Act Art. 86 + GDPR Art. 22 + TT39/2016. EthicsEscalationEngine: disparity &lt;0.60 → HALT trong 1h. Ethics Review Board: advisory power, CEO override cần documentation bằng văn bản.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f0fdfa;border-color:#5eead4;color:#134e4a;">Module 28</span>
+            <span class="tag">80% Disparate Impact Rule</span>
+            <span class="tag">Counterfactual XAI</span>
+            <span class="tag">EU AI Act Art. 86</span>
+            <span class="tag">RACI Matrix</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#4ade80,#14532d);">29</div>
+        </div>
+        <div class="roadmap-body">
+          <h4>💰 LoanBot v4.0 + Agent Economics & ROI Analysis</h4>
+          <p>Board yêu cầu justify 2.3 tỷ VNĐ investment trong LoanBot. FinTech Corp build full business case: Payback 5.5 ngày (tiết kiệm 12.677 tỷ/tháng vs đầu tư 2.3 tỷ). Token Economics: 3 decision tiers — Haiku clear cases (54 VNĐ), 3-agent Sonnet borderline (518 VNĐ), 5-agent high-value (1.150 VNĐ) → weighted average 115 VNĐ/case. Scaling: break-even 6.250 cases/month, marginal cost 115 VNĐ vs 175K human — rural expansion trivial with AI. 3-Year NPV model với 12% WACC. Monte Carlo sensitivity (1.000 scenarios): 99.8% probability positive ROI. Value Dashboard: leading (PSI, Type I, confidence) + lagging (default rate, monthly savings) KPIs for continuous ROI tracking.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#f0fdf4;border-color:#86efac;color:#14532d;">Module 29</span>
+            <span class="tag">Token Budget Manager</span>
+            <span class="tag">NPV Calculator</span>
+            <span class="tag">Monte Carlo Sensitivity</span>
+            <span class="tag">Value Dashboard</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-line"></div>
+
+      <div class="roadmap-item">
+        <div class="roadmap-left">
+          <div class="roadmap-circle" style="background:linear-gradient(135deg,#818cf8,#1e1b4b);">30</div>
+        </div>
+        <div class="roadmap-body">
+          <h4>🚀 LoanBot v5.0 Vision + Capstone Graduation</h4>
+          <p>FinTech Corp 2028: LoanBot v5.0 xử lý 5 triệu hồ sơ/tháng, cross-border ASEAN operations. Advanced capabilities: Computer-Use Agents (điều khiển BHXH portal UI), Long-Context 1M+ tokens (full 5-year customer history in single context), Extended Thinking (System 2 reasoning cho borderline cases), Real-time In-Context Learning. Agent Ecosystem: LoanBot ↔ Credit Bureau AI ↔ Tax Authority AI ↔ Central Bank AI ↔ ASEAN Fraud AI qua MCP protocol + mutual TLS trust. Centaur Model: 200 nhân viên → 35 AI Oversight roles, salary 3×. Capstone Integration Lab: Full LoanBot v5.0 pipeline combining tất cả M1–M30 concepts. Career Path Assessment: AI Engineer / AI PM / Ethics Officer / MLOps.</p>
+          <div class="roadmap-tags">
+            <span class="tag" style="background:#eef2ff;border-color:#a5b4fc;color:#1e1b4b;">Module 30 · Capstone</span>
+            <span class="tag">MCP Ecosystem</span>
+            <span class="tag">Extended Thinking</span>
+            <span class="tag">Agent Trust Protocol</span>
+            <span class="tag">Centaur Model</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section style="background:linear-gradient(135deg,var(--primary-dark),var(--primary));padding:var(--space-12) var(--space-8);text-align:center;">
+    <h2 style="color:#fff;font-size:2rem;margin-bottom:var(--space-4);">Sẵn Sàng Bắt Đầu?</h2>
+    <p style="color:rgba(255,255,255,.8);font-size:1.1rem;max-width:500px;margin:0 auto var(--space-6);">Module 1 đang mở. Bắt đầu với bài giảng đầu tiên — không cần cài đặt gì, chỉ cần trình duyệt.</p>
+    <a href="modules/module1/index.html" class="btn btn-primary" style="font-size:1.1rem;padding:14px 32px;">
+      🚀 Vào Module 1: Nền Tảng
+    </a>
+  </section>
+
+  <footer>
+    <p>AI Agent Harness Training · SOTA 2026 · Dành cho Enterprise Production</p>
+    <p style="margin-top:8px;font-size:.75rem;">FinTech Corp & LoanBot v5.0 · 30 Module · EU AI Act Art.86 · GDPR Art.22 · OWASP LLM Top 10 · OpenTelemetry · Defense In Depth · Token Economics · HITL Design · LLM-as-Judge · Fan-Out/Fan-In · Saga Pattern · RAG · Vector Store · Tool Use · Prompt Engineering · Document Intelligence · LLM Gateway · AI Compliance · Agent Testing & QA · Real-time Streaming · Fine-tuning LoRA/QLoFA · CoT/ReAct/ToT Reasoning · Epistemic Humility · Redis Streams · Multi-Agent Debate · Self-Improvement Loop · AI Governance · 80% Disparate Impact · Counterfactual XAI · NPV/ROI Analysis · Payback 5.5 Ngày · MCP Ecosystem · Agent Trust Protocol · Extended Thinking · Centaur Model · LoanBot v5.0 Capstone</p>
+  </footer>
+
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

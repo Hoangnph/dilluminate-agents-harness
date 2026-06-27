@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 1 — AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    body { background: var(--bg); }
+    .quiz-wrapper { max-width: 780px; margin: 0 auto; padding: calc(var(--topbar-height) + 32px) var(--space-6) var(--space-16); }
+
+    .quiz-header {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff; border-radius: var(--radius-xl);
+      padding: var(--space-8); margin-bottom: var(--space-6); text-align: center;
+    }
+    .quiz-header h1 { color: #fff; font-size: 1.75rem; margin-bottom: var(--space-2); }
+    .quiz-header p  { color: rgba(255,255,255,.8); }
+
+    .question-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: var(--space-6);
+      margin-bottom: var(--space-5); transition: var(--transition);
+    }
+    .question-card.correct { border-color: var(--success); background: #f0fdf4; }
+    .question-card.wrong   { border-color: var(--danger);  background: #fff1f2; }
+
+    .question-number {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text-muted); margin-bottom: var(--space-3);
+    }
+    .question-text { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: var(--space-4); line-height: 1.5; }
+
+    .options { display: flex; flex-direction: column; gap: var(--space-2); }
+
+    .option-btn {
+      display: flex; align-items: flex-start; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg);
+      border: 1.5px solid var(--border); background: var(--surface);
+      cursor: pointer; transition: var(--transition); text-align: left;
+      font-size: .9rem; color: var(--text);
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--primary-light); background: var(--info-light); }
+    .option-btn:disabled { cursor: default; }
+    .option-btn.selected-correct { border-color: var(--success); background: var(--success-light); color: #14532d; font-weight: 600; }
+    .option-btn.selected-wrong   { border-color: var(--danger);  background: var(--danger-light);  color: #991b1b; }
+    .option-btn.reveal-correct   { border-color: var(--success); background: var(--success-light); color: #14532d; }
+
+    .option-key {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--surface-2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 700; flex-shrink: 0;
+    }
+    .option-btn.selected-correct .option-key { background: var(--success); color: #fff; border-color: var(--success); }
+    .option-btn.selected-wrong   .option-key { background: var(--danger);  color: #fff; border-color: var(--danger); }
+    .option-btn.reveal-correct   .option-key { background: var(--success); color: #fff; border-color: var(--success); }
+
+    .explanation {
+      margin-top: var(--space-4); padding: var(--space-4);
+      border-radius: var(--radius-lg); border-left: 3px solid;
+      display: none; font-size: .9rem; line-height: 1.6;
+    }
+    .explanation.show { display: block; }
+    .explanation.correct { border-color: var(--success); background: #f0fdf4; color: #14532d; }
+    .explanation.wrong   { border-color: var(--danger);  background: #fff1f2; color: #991b1b; }
+
+    .quiz-progress {
+      display: flex; align-items: center; gap: var(--space-4);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); padding: var(--space-4) var(--space-6);
+      margin-bottom: var(--space-6); position: sticky; top: var(--topbar-height); z-index: 10;
+    }
+    .quiz-score { font-weight: 800; font-size: 1.1rem; }
+    .quiz-score span { color: var(--primary); }
+    .quiz-result {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+      color: #fff; border-radius: var(--radius-xl); padding: var(--space-8);
+      text-align: center; margin-top: var(--space-8); display: none;
+    }
+    .quiz-result.show { display: block; }
+    .result-score { font-size: 4rem; font-weight: 800; color: var(--accent); }
+    .result-label { font-size: 1.2rem; margin-bottom: var(--space-4); }
+    .result-msg   { color: rgba(255,255,255,.8); margin-bottom: var(--space-6); }
+    .submit-all-btn {
+      display: block; width: 100%; padding: var(--space-4);
+      background: var(--primary); color: #fff; border: none;
+      border-radius: var(--radius-lg); font-size: 1rem; font-weight: 700;
+      cursor: pointer; margin-top: var(--space-6); transition: var(--transition);
+    }
+    .submit-all-btn:hover { background: var(--primary-dark); }
+    .submit-all-btn:disabled { background: var(--border-dark); cursor: default; }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="index.html">← Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Notebook</a>
+  </div>
+</nav>
+
+<div class="quiz-wrapper">
+
+  <div class="quiz-header">
+    <h1>📝 Quiz Ôn Tập — Module 1: Nền Tảng</h1>
+    <p>15 câu hỏi kiểm tra hiểu biết về LLM, Agentic AI, Agent = Model + Harness, và Tool Use</p>
+  </div>
+
+  <!-- Sticky progress -->
+  <div class="quiz-progress">
+    <div>
+      <div class="quiz-score">Điểm: <span id="score-display">0</span> / <span id="total-display">15</span></div>
+      <div style="font-size:.8rem;color:var(--text-muted)">Trả lời <span id="answered-display">0</span> / 15 câu</div>
+    </div>
+    <div style="flex:1">
+      <div class="progress-bar"><div class="progress-fill" id="quiz-progress-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div id="quiz-container"></div>
+
+  <button class="submit-all-btn" id="submit-btn" disabled>Xem kết quả</button>
+
+  <!-- Result panel -->
+  <div class="quiz-result" id="result-panel">
+    <div class="result-score" id="result-score-num">0/15</div>
+    <div class="result-label" id="result-label"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="index.html" class="btn btn-outline" style="border-color:rgba(255,255,255,.4)">← Xem lại bài giảng</a>
+      <button onclick="resetQuiz()" class="btn btn-primary">🔄 Làm lại</button>
+      <a href="lab.ipynb" download class="btn btn-primary">🔬 Vào Lab Notebook</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "LLM hoạt động bằng cơ chế nào ở mức cơ bản nhất?",
+    opts: [
+      "Tra cứu câu trả lời trong database tri thức cố định",
+      "Dự đoán token tiếp theo dựa trên xác suất từ dữ liệu huấn luyện",
+      "Kết nối internet để tìm kiếm thông tin theo thời gian thực",
+      "Chạy các rule logic được lập trình sẵn bởi kỹ sư"
+    ],
+    correct: 1,
+    explain: "✅ Đúng! LLM hoạt động bằng cách dự đoán token tiếp theo (next token prediction). Dù nghe đơn giản, khi thực hiện ở quy mô đủ lớn với đủ dữ liệu, cơ chế này tạo ra khả năng suy luận phức tạp đáng kinh ngạc. LLM không tra cứu database cố định và không có internet."
+  },
+  {
+    q: "FinTech Corp cần LoanBot xử lý hồ sơ vay. Tại sao LLM đơn thuần KHÔNG ĐỦ cho nhiệm vụ này?",
+    opts: [
+      "Vì LLM quá chậm, không đạt tốc độ 5 phút/hồ sơ",
+      "Vì LLM không thể đọc tiếng Việt",
+      "Vì LLM không thể truy cập database tín dụng thực tế, tính toán DTI chính xác, hoặc lưu kết quả",
+      "Vì LLM quá đắt tiền để dùng cho tài chính"
+    ],
+    correct: 2,
+    explain: "✅ Đúng! LLM là bộ não suy luận nhưng không thể hành động thực tế: không truy cập CIC database, không tính toán số học chính xác, không lưu kết quả vào hệ thống. Đây là lý do cần Harness với Tool Orchestration."
+  },
+  {
+    q: "Trong context của LLM, 'hallucination' là gì?",
+    opts: [
+      "Khi LLM xử lý chậm do quá tải",
+      "Khi LLM từ chối trả lời câu hỏi nhạy cảm",
+      "Khi LLM tạo ra thông tin nghe có vẻ đúng nhưng hoàn toàn bịa đặt",
+      "Khi LLM bị tấn công bởi prompt injection"
+    ],
+    correct: 2,
+    explain: "✅ Hallucination là rủi ro nguy hiểm nhất: LLM tạo ra thông tin sai lệch với độ tự tin cao. Với LoanBot, nếu không có tool verification, nó có thể bịa ra điểm tín dụng 750 cho khách hàng không có dữ liệu — dẫn đến phê duyệt khoản vay sai."
+  },
+  {
+    q: "Điểm khác biệt cốt lõi giữa AI Agent (Thế hệ 3) và LLM Chatbot (Thế hệ 2) là gì?",
+    opts: [
+      "Agent dùng model mạnh hơn Chatbot",
+      "Agent có thể hành động chủ động (gọi tools, thực hiện tasks), không chỉ trả lời câu hỏi",
+      "Agent không cần training data",
+      "Agent chạy offline không cần internet"
+    ],
+    correct: 1,
+    explain: "✅ Đúng! LLM Chatbot chỉ hiểu và trả lời (reactive). AI Agent chủ động lập kế hoạch và thực hiện hành động qua vòng lặp Perceive→Think→Act→Observe. LoanBot không chỉ giải thích quy trình vay — nó thực sự tra cứu CIC, xác minh thu nhập, và tạo báo cáo."
+  },
+  {
+    q: "Vòng lặp Agentic Loop của LoanBot diễn ra theo thứ tự nào?",
+    opts: [
+      "Act → Think → Observe → Perceive",
+      "Think → Perceive → Act → Observe",
+      "Perceive → Think → Act → Observe",
+      "Observe → Act → Think → Perceive"
+    ],
+    correct: 2,
+    explain: "✅ Perceive → Think → Act → Observe là thứ tự đúng. LoanBot: (1) Nhận hồ sơ vay, (2) Lên kế hoạch: cần check credit → income → blacklist → DTI, (3) Gọi tool check_credit_score, (4) Quan sát kết quả score=720 → quyết định bước tiếp theo."
+  },
+  {
+    q: "Phương trình nền tảng của AI Agent engineering là gì?",
+    opts: [
+      "Agent = LLM + Prompt",
+      "Agent = Model + Harness",
+      "Agent = Data + Algorithm",
+      "Agent = API + Database"
+    ],
+    correct: 1,
+    explain: "✅ Agent = Model + Harness là phương trình cốt lõi. Model là bộ não (stateless token predictor). Harness là toàn bộ môi trường vận hành: tool orchestration, memory, guardrails, observability. Không có harness, model chỉ là bộ não trong sa mạc."
+  },
+  {
+    q: "Theo nghiên cứu từ 100+ enterprise deployments, bao nhiêu % thất bại AI đến từ lỗi Harness?",
+    opts: ["25%", "35%", "50%", "65%"],
+    correct: 3,
+    explain: "✅ 65% thất bại enterprise AI đến từ Harness Defects — cụ thể là Context Drift, Schema Misalignment, và State Degradation. Chỉ 35% đến từ lỗi model/thiết kế. Đây là lý do chương trình này tập trung vào harness engineering."
+  },
+  {
+    q: "Năm 2025–2026 được gọi là kỷ nguyên gì trong lịch sử phát triển kỹ thuật AI?",
+    opts: [
+      "Prompt Engineering",
+      "Context Engineering",
+      "Harness Engineering",
+      "Model Engineering"
+    ],
+    correct: 2,
+    explain: "✅ Ba kỷ nguyên: Prompt Engineering (2022-23) → Context Engineering (2024-25) → Harness Engineering (2025-26). Harness Engineering tập trung xây dựng toàn bộ môi trường vận hành cho agent, không chỉ tối ưu hóa đầu vào."
+  },
+  {
+    q: "Model LLM được mô tả là 'stateless'. Điều này có nghĩa là gì?",
+    opts: [
+      "Model không cần cài đặt state (trạng thái) khởi động",
+      "Model không lưu thông tin giữa các lần xử lý — mỗi request là độc lập",
+      "Model chạy trên nhiều server song song",
+      "Model không có trạng thái lỗi (error state)"
+    ],
+    correct: 1,
+    explain: "✅ Stateless có nghĩa là mỗi lần gọi model là độc lập hoàn toàn. LoanBot không tự nhớ hồ sơ khách hàng A từ 5 phút trước. Memory management phải được Harness xử lý — một trong 5 tầng bắt buộc của production harness."
+  },
+  {
+    q: "Trong LoanBot, tool 'verify_income' cần những input gì?",
+    opts: [
+      "Chỉ cần customer_id",
+      "customer_id và declared_income",
+      "customer_id, national_id, và employer_code",
+      "declared_income và loan_amount"
+    ],
+    correct: 1,
+    explain: "✅ verify_income nhận customer_id (để tra hệ thống) và declared_income (thu nhập khách hàng khai báo, để so sánh với thu nhập thực tế từ BHXH). Output trả về: verified_income, income_sources, confidence."
+  },
+  {
+    q: "MCP Protocol được ví như gì trong thế giới phần cứng máy tính?",
+    opts: [
+      "CPU — đơn vị xử lý trung tâm",
+      "RAM — bộ nhớ tạm thời",
+      "Cổng USB — chuẩn kết nối universal",
+      "Hard drive — lưu trữ dài hạn"
+    ],
+    correct: 2,
+    explain: "✅ MCP (Model Context Protocol) là 'USB chuẩn cho AI tools'. Trước MCP, mỗi cặp agent-tool cần custom integration code riêng. MCP chuẩn hóa việc discovery, schema validation, routing, và error handling — giúp LoanBot kết nối với mọi MCP Server mà không cần code mới."
+  },
+  {
+    q: "Tool 'check_blacklist' của LoanBot thuộc mức độ rủi ro nào và được kiểm soát ra sao?",
+    opts: [
+      "🔴 Critical — cần human review trước khi gọi",
+      "🟡 Write — cần validate dữ liệu đầu vào",
+      "🟢 Read-only — tự động, không cần approve",
+      "🔴 Critical — chỉ manager mới được gọi"
+    ],
+    correct: 2,
+    explain: "✅ check_blacklist là read-only tool (chỉ đọc dữ liệu, không ghi). Nó được xử lý tự động không cần approval. Ngược lại, approve_loan với khoản vay >500 triệu là Critical action, bắt buộc human review."
+  },
+  {
+    q: "Context Window là gì? Giới hạn của nó ảnh hưởng thế nào đến LoanBot?",
+    opts: [
+      "Màn hình hiển thị giao diện người dùng của LoanBot",
+      "Số lượng tool calls tối đa trong một session",
+      "Lượng văn bản LLM có thể xử lý cùng lúc — nếu hồ sơ quá dài, LoanBot mất thông tin đầu",
+      "Giới hạn thời gian xử lý mỗi hồ sơ"
+    ],
+    correct: 2,
+    explain: "✅ Context window là 'bộ nhớ làm việc' tức thời của LLM — ví dụ 128,000 tokens (~100,000 từ). Nếu hồ sơ vay cộng với lịch sử tool calls vượt giới hạn này, LoanBot sẽ 'quên' thông tin đầu hội thoại — dẫn đến Context Drift, một trong những failure mode phổ biến nhất."
+  },
+  {
+    q: "FinTech Corp muốn mở rộng LoanBot để xử lý song song nhiều hồ sơ phức tạp. Kiến trúc phù hợp là gì?",
+    opts: [
+      "Single Agent với nhiều context window",
+      "Multi-Agent System với Supervisor và nhiều specialized agents",
+      "Nhiều LLM model khác nhau chạy độc lập",
+      "Một LLM model lớn hơn"
+    ],
+    correct: 1,
+    explain: "✅ Multi-Agent System (Module 6): LoanBot Supervisor điều phối CreditAgent + IncomeAgent + RiskAgent + ReportAgent chạy song song. Single Agent v1 đủ cho Module 1-5. Multi-Agent giải quyết throughput cao và ca phức tạp hơn."
+  },
+  {
+    q: "Khi nào LoanBot nên yêu cầu Human-in-the-Loop review thay vì tự quyết định?",
+    opts: [
+      "Mọi hồ sơ đều cần human review",
+      "Chỉ khi LoanBot gặp lỗi kỹ thuật",
+      "Khi khoản vay lớn (>500 triệu), ca không tiêu chuẩn, hoặc hành động critical không thể đảo ngược",
+      "Khi khách hàng yêu cầu"
+    ],
+    correct: 2,
+    explain: "✅ Human-in-the-Loop là Guardrail quan trọng: với khoản vay >500 triệu VNĐ, trường hợp đặc biệt, hoặc bất kỳ hành động critical nào không thể đảo ngược — LoanBot phải dừng và chờ human approval. Đây là yêu cầu của EU AI Act với AI high-risk systems (Module 5)."
+  }
+];
+
+let score = 0;
+let answered = 0;
+const userAnswers = new Array(questions.length).fill(null);
+
+function renderQuestions() {
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-card" id="qcard-${i}">
+      <div class="question-number">Câu ${i + 1} / ${questions.length}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt, j) => `
+          <button class="option-btn" id="opt-${i}-${j}" onclick="selectAnswer(${i}, ${j})">
+            <div class="option-key">${'ABCD'[j]}</div>
+            <span>${opt}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="explanation" id="exp-${i}"></div>
+    </div>
+  `).join('');
+  document.getElementById('total-display').textContent = questions.length;
+}
+
+function selectAnswer(qIdx, optIdx) {
+  if (userAnswers[qIdx] !== null) return; // already answered
+  userAnswers[qIdx] = optIdx;
+  answered++;
+
+  const card = document.getElementById(`qcard-${qIdx}`);
+  const exp  = document.getElementById(`exp-${qIdx}`);
+  const q    = questions[qIdx];
+  const isCorrect = optIdx === q.correct;
+
+  // Disable all options for this question
+  for (let j = 0; j < q.opts.length; j++) {
+    const btn = document.getElementById(`opt-${qIdx}-${j}`);
+    btn.disabled = true;
+    if (j === optIdx) {
+      btn.classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+    }
+    if (!isCorrect && j === q.correct) {
+      btn.classList.add('reveal-correct');
+    }
+  }
+
+  card.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  exp.textContent = q.explain;
+  exp.classList.add('show', isCorrect ? 'correct' : 'wrong');
+
+  if (isCorrect) score++;
+
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('answered-display').textContent = answered;
+  document.getElementById('quiz-progress-fill').style.width = (answered / questions.length * 100) + '%';
+
+  if (answered === questions.length) {
+    document.getElementById('submit-btn').disabled = false;
+  }
+}
+
+function showResult() {
+  const pct = Math.round(score / questions.length * 100);
+  const panel = document.getElementById('result-panel');
+  document.getElementById('result-score-num').textContent = `${score}/${questions.length}`;
+  let label, msg;
+  if (pct >= 90) {
+    label = '🏆 Xuất sắc! Bạn đã nắm vững Module 1';
+    msg   = 'Hiểu biết tốt về LLM, Agentic AI, và Harness Engineering. Sẵn sàng tiến vào Module 2: Kiến Trúc Harness!';
+  } else if (pct >= 70) {
+    label = '✅ Tốt! Đã hiểu các khái niệm cốt lõi';
+    msg   = 'Hãy xem lại các câu sai và đọc lại phần giải thích. Sau đó làm Jupyter Notebook để củng cố kiến thức.';
+  } else if (pct >= 50) {
+    label = '📖 Cần ôn tập thêm';
+    msg   = 'Khuyến nghị đọc lại bài giảng Module 1, đặc biệt là Bài 3 (Agent = Model + Harness) và Bài 4 (Tool Use). Sau đó thử lại quiz.';
+  } else {
+    label = '🔄 Nên đọc lại bài giảng trước';
+    msg   = 'Đừng nản lòng! Đọc lại các bài giảng với sự chú ý đặc biệt vào các callout box và key points. Kiến thức này sẽ nền tảng cho toàn bộ chương trình.';
+  }
+  document.getElementById('result-label').textContent = label;
+  document.getElementById('result-msg').textContent = msg;
+  panel.classList.add('show');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Save progress
+  localStorage.setItem('quiz_m1_score', score);
+  localStorage.setItem('quiz_m1_date', new Date().toLocaleDateString('vi-VN'));
+}
+
+function resetQuiz() {
+  score = 0; answered = 0;
+  userAnswers.fill(null);
+  renderQuestions();
+  document.getElementById('score-display').textContent = '0';
+  document.getElementById('answered-display').textContent = '0';
+  document.getElementById('quiz-progress-fill').style.width = '0%';
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('result-panel').classList.remove('show');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('submit-btn').addEventListener('click', showResult);
+renderQuestions();
+</script>
+</body>
+</html>

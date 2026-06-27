@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 10 — Cost Optimization & Agent Performance Engineering</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m10-primary: #92400e;
+      --m10-accent:  #d97706;
+      --m10-light:   #fef3c7;
+      --m10-border:  #fcd34d;
+    }
+    .lesson-header { background: linear-gradient(135deg, #451a03 0%, #92400e 50%, #b45309 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fef3c7; }
+    .lesson-header p { color: #fde68a; }
+    .sidebar-nav a.active { background: var(--m10-light); border-left: 3px solid var(--m10-accent); color: var(--m10-primary); }
+    .sidebar-nav a:hover { color: var(--m10-primary); }
+
+    .cost-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+      margin: var(--space-6) 0;
+    }
+    .cost-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      text-align: center;
+    }
+    .cost-card.haiku  { border-top: 3px solid #16a34a; }
+    .cost-card.sonnet { border-top: 3px solid #2563eb; }
+    .cost-card.opus   { border-top: 3px solid #7c3aed; }
+    .cost-card .model-name { font-weight: 800; font-size: 1rem; margin-bottom: var(--space-2); }
+    .cost-card .price-main { font-size: 1.6rem; font-weight: 800; color: var(--m10-primary); }
+    .cost-card .price-sub  { font-size: .8rem; color: var(--text-muted); }
+    .cost-card .perf-tag   { display: inline-block; margin-top: var(--space-2); padding: 2px 8px; border-radius: var(--radius-full); font-size: .75rem; font-weight: 700; }
+
+    .cache-tier {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+      border: 1px solid;
+    }
+    .cache-tier.l1 { background: #f0fdf4; border-color: #86efac; }
+    .cache-tier.l2 { background: #eff6ff; border-color: #93c5fd; }
+    .cache-tier.l3 { background: var(--m10-light); border-color: var(--m10-border); }
+    .cache-tier .tier-label { font-weight: 800; font-size: 1.1rem; min-width: 32px; }
+    .cache-tier .tier-name  { font-weight: 700; color: var(--primary-dark); }
+    .cache-tier .tier-stat  { margin-left: auto; font-size: .85rem; color: var(--text-muted); }
+
+    .roi-table { width: 100%; border-collapse: collapse; margin: var(--space-5) 0; font-size: .9rem; }
+    .roi-table th { background: linear-gradient(135deg, #451a03, #92400e); color: #fef3c7; padding: var(--space-3) var(--space-4); text-align: left; }
+    .roi-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); }
+    .roi-table tr:hover td { background: var(--m10-light); }
+    .roi-table .highlight { color: var(--m10-primary); font-weight: 700; }
+    .roi-table .total-row td { background: var(--m10-light); font-weight: 700; border-top: 2px solid var(--m10-border); }
+
+    .optimization-step {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+    }
+    .opt-num {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: var(--m10-accent);
+      color: #fff; font-weight: 800;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .saving-badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+      padding: 2px 10px;
+      border-radius: var(--radius-full);
+      font-size: .8rem;
+      font-weight: 700;
+    }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m10-light);color:var(--m10-primary);border-color:var(--m10-border);">MODULE 10</div>
+    <div class="sidebar-title">Cost Optimization & Performance</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Token Economics</a>
+      <a href="#lesson2">L2. Caching Strategies</a>
+      <a href="#lesson3">L3. Intelligent Model Routing</a>
+      <a href="#lesson4">L4. Parallel & Batch Processing</a>
+      <a href="#lesson5">L5. LoanBot Cost Dashboard</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m10-accent);">📝 Quiz Module 10</a>
+      <a href="lab.ipynb" download style="color:var(--m10-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module9/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 9: Security</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 10 · Tuần 25–27</span>
+      <h1>💰 Cost Optimization & Agent Performance Engineering</h1>
+      <p>Từ LoanBot "chạy được" đến LoanBot "chạy hiệu quả" — tối ưu chi phí, tăng tốc độ, đảm bảo ROI rõ ràng cho Ban lãnh đạo.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>💰 Chi phí thực tế</span>
+      </div>
+    </div>
+
+    <!-- ===== LESSON 1 ===== -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Token Economics — Hiểu Chi Phí Của Mỗi Agent Call</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu cách LLM providers tính tiền theo token, không phải theo request</li>
+          <li>Tính được chi phí thực tế mỗi agent call của LoanBot v3.0</li>
+          <li>Biết cách phân tích cost breakdown để tìm đúng bottleneck</li>
+          <li>So sánh chi phí các model (Haiku/Sonnet/Opus) để chọn đúng cho từng agent</li>
+        </ul>
+      </div>
+
+      <p>Sau Module 8 (Observability), bạn đã biết cách đo latency và error rate. Nhưng có một metric quan trọng không kém mà nhiều team bỏ qua: <strong>chi phí thực tế của mỗi quyết định</strong>. LoanBot v3.0 với 8 agents — mỗi hồ sơ tốn bao nhiêu tiền? ROI so với manual processing (350.000 VNĐ/hồ sơ) là bao nhiêu?</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Token là gì?</div>
+        <p>LLM providers tính tiền theo <strong>token</strong>, không phải ký tự hay từ. 1 token ≈ 4 ký tự tiếng Anh ≈ 2–3 ký tự tiếng Việt. Anthropic Claude phân biệt <strong>input tokens</strong> (prompt + context bạn gửi) và <strong>output tokens</strong> (response Claude trả về). Output tokens thường đắt hơn input tokens 3×–5×.</p>
+      </div>
+
+      <h3>1.1 Bảng Giá Các Model Claude (2025)</h3>
+
+      <div class="cost-grid">
+        <div class="cost-card haiku">
+          <div class="model-name" style="color:#16a34a;">claude-haiku-4-5</div>
+          <div class="price-main">$0.25</div>
+          <div class="price-sub">/ 1M input tokens</div>
+          <div class="price-main" style="margin-top:4px;">$1.25</div>
+          <div class="price-sub">/ 1M output tokens</div>
+          <span class="perf-tag" style="background:#dcfce7;color:#15803d;">⚡ Fastest · Cheapest</span>
+        </div>
+        <div class="cost-card sonnet">
+          <div class="model-name" style="color:#2563eb;">claude-sonnet-4-6</div>
+          <div class="price-main">$3.00</div>
+          <div class="price-sub">/ 1M input tokens</div>
+          <div class="price-main" style="margin-top:4px;">$15.00</div>
+          <div class="price-sub">/ 1M output tokens</div>
+          <span class="perf-tag" style="background:#dbeafe;color:#1d4ed8;">⚖️ Balanced</span>
+        </div>
+        <div class="cost-card opus">
+          <div class="model-name" style="color:#7c3aed;">claude-opus-4-8</div>
+          <div class="price-main">$15.00</div>
+          <div class="price-sub">/ 1M input tokens</div>
+          <div class="price-main" style="margin-top:4px;">$75.00</div>
+          <div class="price-sub">/ 1M output tokens</div>
+          <span class="perf-tag" style="background:#ede9fe;color:#5b21b6;">🧠 Most Capable</span>
+        </div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot v3.0 Cost Baseline</div>
+        <p>FinTech Corp chạy LoanBot v3.0 với <strong>claude-haiku-4-5</strong> (tất cả 8 agents). Trung bình mỗi hồ sơ:</p>
+        <ul>
+          <li>Input tokens tổng: ~12.000 tokens (system prompt 800 × 8 agents + context)</li>
+          <li>Output tokens tổng: ~2.400 tokens (kết quả mỗi agent ~300 tokens)</li>
+          <li>Chi phí/hồ sơ: (12K × $0.25 + 2.4K × $1.25) / 1.000.000 = <strong>$0.006 ≈ 150 VNĐ</strong></li>
+          <li>Chi phí 50.000 hồ sơ/tháng: $300/tháng ≈ 7.500.000 VNĐ</li>
+          <li>Chi phí manual: 50.000 × 350.000 = <strong>17.500.000.000 VNĐ/tháng</strong></li>
+        </ul>
+        <p><strong>ROI: Tiết kiệm 17.492.500.000 VNĐ/tháng — LoanBot tự hoàn vốn trong &lt; 1 ngày.</strong></p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Công thức tính chi phí mỗi agent call</div>
+        <div class="formula-text">Cost = (InputTokens × InputPrice + OutputTokens × OutputPrice) / 1,000,000</div>
+        <div class="formula-desc">Tính cho từng agent riêng → sum up → cost per loan application</div>
+      </div>
+
+      <h3>1.2 Phân Tích Token của Từng Agent</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot Token Cost Breakdown per Agent</title>
+          <defs>
+            <linearGradient id="inputGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#bfdbfe"/>
+              <stop offset="100%" style="stop-color:#93c5fd"/>
+            </linearGradient>
+            <linearGradient id="outputGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#fbbf24"/>
+              <stop offset="100%" style="stop-color:#f59e0b"/>
+            </linearGradient>
+          </defs>
+          <!-- Background -->
+          <rect width="760" height="360" fill="#fafafa" rx="12"/>
+          <text x="380" y="30" text-anchor="middle" font-size="14" font-weight="700" fill="#451a03">Token Cost Breakdown — LoanBot v3.0 (claude-haiku-4-5)</text>
+          <!-- Legend -->
+          <rect x="480" y="45" width="14" height="14" fill="#93c5fd" rx="3"/>
+          <text x="498" y="56" font-size="11" fill="#374151">Input tokens</text>
+          <rect x="570" y="45" width="14" height="14" fill="#fbbf24" rx="3"/>
+          <text x="588" y="56" font-size="11" fill="#374151">Output tokens</text>
+
+          <!-- Y axis label -->
+          <text x="20" y="180" text-anchor="middle" font-size="11" fill="#6b7280" transform="rotate(-90, 20, 180)">Tokens per call</text>
+
+          <!-- Agents -->
+          <!-- CreditAgent: input 1200, output 300 -->
+          <text x="86" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Credit</text>
+          <rect x="62" y="195" width="28" height="110" fill="url(#inputGrad)" rx="3"/>
+          <rect x="92" y="267" width="28" height="38" fill="url(#outputGrad)" rx="3"/>
+          <text x="86" y="192" text-anchor="middle" font-size="9" fill="#1d4ed8">1.2k</text>
+
+          <!-- IncomeAgent: input 1400, output 350 -->
+          <text x="171" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Income</text>
+          <rect x="147" y="178" width="28" height="127" fill="url(#inputGrad)" rx="3"/>
+          <rect x="177" y="261" width="28" height="44" fill="url(#outputGrad)" rx="3"/>
+          <text x="171" y="175" text-anchor="middle" font-size="9" fill="#1d4ed8">1.4k</text>
+
+          <!-- FraudAgent: input 1600, output 250 -->
+          <text x="256" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Fraud</text>
+          <rect x="232" y="160" width="28" height="145" fill="url(#inputGrad)" rx="3"/>
+          <rect x="262" y="274" width="28" height="31" fill="url(#outputGrad)" rx="3"/>
+          <text x="256" y="157" text-anchor="middle" font-size="9" fill="#1d4ed8">1.6k</text>
+
+          <!-- RiskAgent: input 2000, output 400 -->
+          <text x="341" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Risk</text>
+          <rect x="317" y="118" width="28" height="187" fill="url(#inputGrad)" rx="3"/>
+          <rect x="347" y="255" width="28" height="50" fill="url(#outputGrad)" rx="3"/>
+          <text x="341" y="115" text-anchor="middle" font-size="9" fill="#1d4ed8">2.0k</text>
+          <text x="361" y="246" text-anchor="middle" font-size="9" fill="#b45309">400</text>
+
+          <!-- ComplianceAgent: input 1800, output 300 -->
+          <text x="426" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Comply</text>
+          <rect x="402" y="139" width="28" height="166" fill="url(#inputGrad)" rx="3"/>
+          <rect x="432" y="267" width="28" height="38" fill="url(#outputGrad)" rx="3"/>
+          <text x="426" y="136" text-anchor="middle" font-size="9" fill="#1d4ed8">1.8k</text>
+
+          <!-- ReportAgent: input 1200, output 600 -->
+          <text x="511" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Report</text>
+          <rect x="487" y="195" width="28" height="110" fill="url(#inputGrad)" rx="3"/>
+          <rect x="517" y="230" width="28" height="75" fill="url(#outputGrad)" rx="3"/>
+          <text x="511" y="192" text-anchor="middle" font-size="9" fill="#1d4ed8">1.2k</text>
+          <text x="531" y="222" text-anchor="middle" font-size="9" fill="#b45309">600</text>
+
+          <!-- AuditAgent: input 1000, output 200 -->
+          <text x="596" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Audit</text>
+          <rect x="572" y="213" width="28" height="92" fill="url(#inputGrad)" rx="3"/>
+          <rect x="602" y="280" width="28" height="25" fill="url(#outputGrad)" rx="3"/>
+          <text x="596" y="210" text-anchor="middle" font-size="9" fill="#1d4ed8">1.0k</text>
+
+          <!-- Supervisor: input 1800, output 300 -->
+          <text x="681" y="315" text-anchor="middle" font-size="10" fill="#374151" font-weight="700">Super.</text>
+          <rect x="657" y="139" width="28" height="166" fill="url(#inputGrad)" rx="3"/>
+          <rect x="687" y="267" width="28" height="38" fill="url(#outputGrad)" rx="3"/>
+          <text x="681" y="136" text-anchor="middle" font-size="9" fill="#1d4ed8">1.8k</text>
+
+          <!-- Baseline -->
+          <line x1="40" y1="305" x2="730" y2="305" stroke="#9ca3af" stroke-width="1" stroke-dasharray="4,4"/>
+          <text x="42" y="302" font-size="9" fill="#6b7280">0</text>
+          <!-- Cost annotation for RiskAgent -->
+          <rect x="290" y="75" width="140" height="28" fill="#fef3c7" rx="6" stroke="#fcd34d"/>
+          <text x="360" y="87" text-anchor="middle" font-size="10" fill="#92400e">⚡ RiskAgent = Most Expensive</text>
+          <text x="360" y="98" text-anchor="middle" font-size="9" fill="#92400e">Output-heavy = reasoning agent</text>
+          <line x1="341" y1="103" x2="341" y2="113" stroke="#b45309" stroke-width="1.5" marker-end="url(#arr)"/>
+          <defs>
+            <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+              <path d="M0,0 L6,3 L0,6 Z" fill="#b45309"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="diagram-title">Hình 1: Token usage per agent — RiskAgent tốn nhiều nhất do cần reasoning output dài hơn</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Nếu LoanBot switch từ Haiku ($0.25/$1.25 per 1M) sang Sonnet ($3/$15 per 1M) cho RiskAgent (2000 input + 400 output tokens), chi phí tăng bao nhiêu lần?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Haiku: (2000×0.25 + 400×1.25)/1M = $0.001. Sonnet: (2000×3 + 400×15)/1M = $0.012. Tăng 12× về chi phí. Đây là lý do cần Intelligent Routing — Sonnet chỉ dùng khi thực sự cần reasoning phức tạp.
+        </div>
+      </div>
+
+      <h3>1.3 Cost Attribution: Ai "tốn tiền" nhất?</h3>
+
+      <p>Trong Module 8, bạn đã đo latency per agent. Chi phí cũng cần được attributed tương tự — mỗi agent phải "trả lời" cho phần chi phí của mình. Pattern này gọi là <strong>Cost Attribution</strong>.</p>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-comment"># Cost attribution: gắn chi phí vào từng agent span</span>
+<span class="code-keyword">def</span> <span class="code-function">calculate_agent_cost</span>(
+    model: <span class="code-type">str</span>,
+    input_tokens: <span class="code-type">int</span>,
+    output_tokens: <span class="code-type">int</span>
+) -> <span class="code-type">float</span>:
+    <span class="code-comment"># Giá mỗi model (USD per token)</span>
+    PRICING = {
+        <span class="code-string">"claude-haiku-4-5-20251001"</span>:   (<span class="code-number">0.25e-6</span>, <span class="code-number">1.25e-6</span>),
+        <span class="code-string">"claude-sonnet-4-6"</span>:           (<span class="code-number">3.0e-6</span>,  <span class="code-number">15.0e-6</span>),
+        <span class="code-string">"claude-opus-4-8"</span>:             (<span class="code-number">15.0e-6</span>, <span class="code-number">75.0e-6</span>),
+    }
+    in_price, out_price = PRICING.get(model, (<span class="code-number">0</span>, <span class="code-number">0</span>))
+    <span class="code-keyword">return</span> input_tokens * in_price + output_tokens * out_price
+
+<span class="code-comment"># LoanBot cost report per hồ sơ</span>
+<span class="code-keyword">def</span> <span class="code-function">cost_report</span>(trace: <span class="code-type">dict</span>) -> <span class="code-type">dict</span>:
+    costs = {}
+    <span class="code-keyword">for</span> span <span class="code-keyword">in</span> trace[<span class="code-string">"spans"</span>]:
+        agent = span[<span class="code-string">"agent.name"</span>]
+        costs[agent] = calculate_agent_cost(
+            span[<span class="code-string">"llm.model"</span>],
+            span[<span class="code-string">"llm.tokens.input"</span>],
+            span[<span class="code-string">"llm.tokens.output"</span>]
+        )
+    costs[<span class="code-string">"total"</span>] = <span class="code-function">sum</span>(costs.values())
+    <span class="code-keyword">return</span> costs</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 2 ===== -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Caching Strategies — Giảm 60–80% Chi Phí</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu 3 lớp caching cho LLM systems (Prompt Cache, Semantic Cache, Result Cache)</li>
+          <li>Tính được cache breakeven point và cache hit rate cần thiết</li>
+          <li>Implement Anthropic Prompt Caching với 5-minute TTL</li>
+          <li>Biết khi nào KHÔNG nên cache (fresh data requirements)</li>
+        </ul>
+      </div>
+
+      <p>Caching là kỹ thuật tiết kiệm chi phí hiệu quả nhất cho LLM agents. Với LoanBot, system prompts của 8 agents <strong>gần như không đổi</strong> giữa các hồ sơ — đây là cơ hội cache lý tưởng. Anthropic hỗ trợ <strong>Prompt Caching</strong> với 90% discount cho cached tokens.</p>
+
+      <h3>2.1 Ba Lớp Caching</h3>
+
+      <div class="cache-tier l1">
+        <div class="tier-label" style="color:#16a34a;">L1</div>
+        <div>
+          <div class="tier-name">Prompt Cache (Provider-side)</div>
+          <div style="font-size:.85rem;color:#374151;margin-top:2px;">Anthropic giữ KV cache của system prompt trong 5 phút. 90% discount trên cached tokens. TTL auto-reset mỗi request.</div>
+        </div>
+        <div class="tier-stat"><span class="saving-badge">-90% cost</span></div>
+      </div>
+
+      <div class="cache-tier l2">
+        <div class="tier-label" style="color:#2563eb;">L2</div>
+        <div>
+          <div class="tier-name">Semantic Cache (Application-side)</div>
+          <div style="font-size:.85rem;color:#374151;margin-top:2px;">Embed input → tìm trong vector store → nếu similarity > 0.95 → return cached response. Áp dụng cho CIC queries giống nhau.</div>
+        </div>
+        <div class="tier-stat"><span class="saving-badge">-30–50%</span></div>
+      </div>
+
+      <div class="cache-tier l3">
+        <div class="tier-label" style="color:#92400e;">L3</div>
+        <div>
+          <div class="tier-name">Result Cache (Business Logic)</div>
+          <div style="font-size:.85rem;color:#374151;margin-top:2px;">Cache kết quả cuối (credit decision) cho cùng customer_id trong 24h. Không cần re-run pipeline nếu re-apply ngay.</div>
+        </div>
+        <div class="tier-stat"><span class="saving-badge">-10–20%</span></div>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Nhân viên ngân hàng và bộ nhớ</div>
+        <p>Hình dung Prompt Cache như nhân viên đã <strong>đọc sẵn quy trình</strong> trước ca làm việc — không cần đọc lại cho mỗi khách. Semantic Cache như nhớ rằng "ông A và ông B có cùng profile nên quyết định giống nhau". Result Cache như ghi vào sổ: "khách C đã được duyệt sáng nay, không cần thẩm định lại".</p>
+      </div>
+
+      <h3>2.2 Anthropic Prompt Caching — Cách Implement</h3>
+
+      <p>Anthropic Prompt Caching hoạt động bằng cách đánh dấu phần nào của prompt nên được cache. Phần được cache phải <strong>nằm ở đầu message</strong> và ít thay đổi nhất.</p>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">import</span> anthropic
+
+client = anthropic.Anthropic()
+
+<span class="code-comment"># System prompt của CreditAgent — gần như không đổi giữa các hồ sơ</span>
+CREDIT_SYSTEM_PROMPT = <span class="code-string">"""Bạn là CreditAgent của LoanBot v3.0...
+[800 tokens của instructions, scoring rules, output schema]
+Đây là phần KHÔNG ĐỔI giữa các hồ sơ."""</span>
+
+<span class="code-keyword">def</span> <span class="code-function">call_credit_agent_with_cache</span>(loan_application: <span class="code-type">dict</span>) -> <span class="code-type">dict</span>:
+    response = client.messages.create(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        max_tokens=<span class="code-number">500</span>,
+        system=[
+            {
+                <span class="code-string">"type"</span>: <span class="code-string">"text"</span>,
+                <span class="code-string">"text"</span>: CREDIT_SYSTEM_PROMPT,
+                <span class="code-comment"># Đánh dấu để cache phần này</span>
+                <span class="code-string">"cache_control"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"ephemeral"</span>}
+            }
+        ],
+        messages=[
+            {
+                <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+                <span class="code-comment"># Phần này THAY ĐỔI mỗi hồ sơ — không cache</span>
+                <span class="code-string">"content"</span>: f<span class="code-string">"Thẩm định hồ sơ: {loan_application}"</span>
+            }
+        ]
+    )
+    <span class="code-comment"># Check cache performance</span>
+    usage = response.usage
+    cache_hit = usage.cache_read_input_tokens > <span class="code-number">0</span>
+    print(f<span class="code-string">"Cache: {'HIT ✅' if cache_hit else 'MISS ❌'} | "</span>
+          f<span class="code-string">"Saved: {usage.cache_read_input_tokens} tokens"</span>)
+    <span class="code-keyword">return</span> response</code></pre>
+      </div>
+
+      <h3>2.3 Cache Breakeven Analysis</h3>
+
+      <div class="key-formula">
+        <div class="formula-label">Cache Breakeven Point</div>
+        <div class="formula-text">Min Cache Hits = Cache Setup Cost / (Normal Cost − Cached Cost)</div>
+        <div class="formula-desc">Ví dụ: Setup cost 800 tokens × $0.25/1M = $0.0002 | Savings/hit = 800 × ($0.25−$0.025)/1M = $0.00018 | Breakeven = 2 hits</div>
+      </div>
+
+      <p>Với Anthropic Prompt Caching: breakeven chỉ sau <strong>2 lần hit</strong>. Với LoanBot xử lý 50.000 hồ sơ/tháng, TTL 5 phút, throughput ~115 hồ sơ/giờ → cache hit rate ≈ 95% trong giờ cao điểm. <strong>Tiết kiệm thực tế: ~60% total cost.</strong></p>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Semantic Caching với Redis Vector Store
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Semantic Cache dùng embedding model để tìm queries giống nhau. Thay vì exact-match key, dùng cosine similarity:</p>
+          <ol class="process-steps">
+            <li><strong>Embed query</strong> — Gọi embedding model (nhỏ, rẻ hơn LLM) cho customer profile</li>
+            <li><strong>Vector search</strong> — Tìm trong Redis Vector Store: có cached result nào với similarity > 0.95?</li>
+            <li><strong>Cache hit</strong> — Return cached result, không call LLM</li>
+            <li><strong>Cache miss</strong> — Call LLM, store result + embedding vào cache với TTL 24h</li>
+          </ol>
+          <p>Áp dụng tốt cho CreditAgent (CIC score ít thay đổi trong ngày), không áp dụng cho FraudAgent (real-time fraud signals thay đổi liên tục).</p>
+        </div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">FraudAgent của LoanBot KHÔNG nên dùng Result Cache (L3). Tại sao?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> FraudAgent check real-time signals: blacklist được update liên tục, velocity patterns thay đổi theo giờ. Nếu cache result 24h, LoanBot có thể approve người vừa bị thêm vào blacklist 1 giờ trước. Fresh data requirement trumps cost savings. L1 Prompt Cache vẫn OK vì chỉ cache system instructions, không cache kết quả.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 3 ===== -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Intelligent Model Routing — Dùng Đúng Model Cho Đúng Task</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao không phải agent nào cũng cần model mạnh nhất</li>
+          <li>Thiết kế routing logic dựa trên task complexity</li>
+          <li>Implement TaskRouter cho LoanBot v3.0</li>
+          <li>Tính toán cost savings từ intelligent routing</li>
+        </ul>
+      </div>
+
+      <p>Dùng <strong>claude-opus-4-8</strong> cho tất cả agents giống như thuê chuyên gia tiến sĩ để... check xem email có đúng format không. Intelligent Routing giải quyết điều này: match <em>task complexity</em> với <em>model capability</em>.</p>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Task Complexity Taxonomy</div>
+        <table style="width:100%;font-size:.85rem;border-collapse:collapse;">
+          <tr style="background:#fef3c7;">
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">Complexity</th>
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">Đặc điểm</th>
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">Model</th>
+            <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">LoanBot Agent</th>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><strong style="color:#16a34a;">LOW</strong></td>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">Extraction, classification, schema validation</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">Haiku</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">AuditAgent, ReportAgent</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><strong style="color:#2563eb;">MEDIUM</strong></td>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">Multi-factor analysis, pattern recognition</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">Haiku (fast) or Sonnet (edge cases)</td>
+            <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">CreditAgent, IncomeAgent, FraudAgent</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;"><strong style="color:#7c3aed;">HIGH</strong></td>
+            <td style="padding:6px 10px;">Complex multi-step reasoning, edge cases, large loans</td>
+            <td style="padding:6px 10px;">Sonnet</td>
+            <td style="padding:6px 10px;">RiskAgent (loans &gt; 1 tỷ), ComplianceAgent</td>
+          </tr>
+        </table>
+      </div>
+
+      <h3>3.1 TaskRouter — Implement</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg">
+          <title>Intelligent Model Router Flow for LoanBot</title>
+          <rect width="760" height="280" fill="#fffbeb" rx="12"/>
+          <text x="380" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#451a03">Intelligent Model Router — LoanBot v3.0</text>
+          <!-- Task Input -->
+          <rect x="30" y="48" width="120" height="44" fill="#fff" stroke="#fcd34d" stroke-width="2" rx="8"/>
+          <text x="90" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Loan Task</text>
+          <text x="90" y="80" text-anchor="middle" font-size="10" fill="#6b7280">+ Agent Type</text>
+          <!-- Arrow -->
+          <line x1="150" y1="70" x2="190" y2="70" stroke="#b45309" stroke-width="2" marker-end="url(#arrowAmber)"/>
+          <defs>
+            <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#b45309"/>
+            </marker>
+          </defs>
+          <!-- Router -->
+          <rect x="190" y="48" width="120" height="44" fill="#fef3c7" stroke="#b45309" stroke-width="2" rx="8"/>
+          <text x="250" y="66" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Task Router</text>
+          <text x="250" y="80" text-anchor="middle" font-size="10" fill="#6b7280">complexity_score()</text>
+          <!-- Three branches -->
+          <line x1="310" y1="58" x2="370" y2="36" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="310" y1="70" x2="370" y2="70" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="310" y1="82" x2="370" y2="104" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+          <!-- Haiku box -->
+          <rect x="370" y="18" width="140" height="40" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" rx="8"/>
+          <text x="440" y="33" text-anchor="middle" font-size="10" font-weight="700" fill="#15803d">Haiku (Low)</text>
+          <text x="440" y="46" text-anchor="middle" font-size="9" fill="#4b7c59">Audit, Report, simple</text>
+          <text x="564" y="36" text-anchor="middle" font-size="9" fill="#15803d" font-weight="700">$0.006/call</text>
+
+          <!-- Haiku-Sonnet box -->
+          <rect x="370" y="50" width="140" height="40" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5" rx="8"/>
+          <text x="440" y="65" text-anchor="middle" font-size="10" font-weight="700" fill="#1d4ed8">Haiku→Sonnet (Mid)</text>
+          <text x="440" y="78" text-anchor="middle" font-size="9" fill="#3b5c9c">Credit, Income, Fraud</text>
+          <text x="564" y="68" text-anchor="middle" font-size="9" fill="#1d4ed8" font-weight="700">$0.012/call</text>
+
+          <!-- Sonnet box -->
+          <rect x="370" y="82" width="140" height="40" fill="#fdf4ff" stroke="#c4b5fd" stroke-width="1.5" rx="8"/>
+          <text x="440" y="97" text-anchor="middle" font-size="10" font-weight="700" fill="#6d28d9">Sonnet (High)</text>
+          <text x="440" y="110" text-anchor="middle" font-size="9" fill="#5b21b6">Risk &gt;1B, Compliance</text>
+          <text x="564" y="100" text-anchor="middle" font-size="9" fill="#6d28d9" font-weight="700">$0.072/call</text>
+
+          <!-- Lines to output -->
+          <line x1="510" y1="38" x2="570" y2="70" stroke="#9ca3af" stroke-width="1"/>
+          <line x1="510" y1="70" x2="570" y2="70" stroke="#9ca3af" stroke-width="1"/>
+          <line x1="510" y1="102" x2="570" y2="70" stroke="#9ca3af" stroke-width="1"/>
+          <!-- Output -->
+          <rect x="570" y="50" width="140" height="40" fill="#fef3c7" stroke="#b45309" stroke-width="2" rx="8"/>
+          <text x="640" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="#92400e">Routed Call</text>
+          <text x="640" y="78" text-anchor="middle" font-size="10" fill="#6b7280">Optimal model</text>
+
+          <!-- Stats bar -->
+          <rect x="30" y="155" width="700" height="100" fill="#fff" stroke="#fcd34d" stroke-width="1" rx="8"/>
+          <text x="380" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#92400e">Cost Comparison — 50.000 hồ sơ/tháng</text>
+          <text x="75" y="200" text-anchor="middle" font-size="10" fill="#374151">All Haiku</text>
+          <rect x="30" y="205" width="140" height="22" fill="#86efac" rx="4"/>
+          <text x="100" y="220" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">$300/tháng</text>
+          <text x="255" y="200" text-anchor="middle" font-size="10" fill="#374151">All Sonnet</text>
+          <rect x="170" y="205" width="480" height="22" fill="#93c5fd" rx="4"/>
+          <text x="410" y="220" text-anchor="middle" font-size="10" font-weight="700" fill="#1e3a5f">$6.000/tháng (20×)</text>
+          <text x="680" y="200" text-anchor="middle" font-size="10" fill="#374151">Routed</text>
+          <rect x="650" y="205" width="60" height="22" fill="#fbbf24" rx="4"/>
+          <text x="680" y="220" text-anchor="middle" font-size="10" font-weight="700" fill="#451a03">$380</text>
+          <text x="380" y="246" text-anchor="middle" font-size="10" fill="#6b7280">Intelligent Routing: +27% cost vs All-Haiku nhưng quality tốt hơn cho edge cases</text>
+        </svg>
+        <div class="diagram-title">Hình 2: Intelligent Model Router — routing logic và cost comparison</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">class</span> <span class="code-function">TaskRouter</span>:
+    <span class="code-comment">"""Route loan tasks đến model phù hợp dựa trên complexity."""</span>
+
+    <span class="code-comment"># Model mặc định cho từng agent</span>
+    DEFAULT_MODEL = {
+        <span class="code-string">"AuditAgent"</span>:      <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        <span class="code-string">"ReportAgent"</span>:     <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        <span class="code-string">"CreditAgent"</span>:     <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        <span class="code-string">"IncomeAgent"</span>:     <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        <span class="code-string">"FraudAgent"</span>:      <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        <span class="code-string">"RiskAgent"</span>:       <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+        <span class="code-string">"ComplianceAgent"</span>: <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+    }
+
+    <span class="code-keyword">def</span> <span class="code-function">complexity_score</span>(self, task: <span class="code-type">dict</span>) -> <span class="code-type">float</span>:
+        <span class="code-comment"># Tính complexity 0.0–1.0 dựa trên đặc điểm hồ sơ</span>
+        score = <span class="code-number">0.0</span>
+        loan_amount = task.get(<span class="code-string">"loan_amount_vnd"</span>, <span class="code-number">0</span>)
+        <span class="code-keyword">if</span> loan_amount > <span class="code-number">1_000_000_000</span>:   score += <span class="code-number">0.4</span>  <span class="code-comment"># > 1 tỷ VNĐ</span>
+        <span class="code-keyword">elif</span> loan_amount > <span class="code-number">500_000_000</span>: score += <span class="code-number">0.2</span>  <span class="code-comment"># > 500 triệu</span>
+        <span class="code-keyword">if</span> task.get(<span class="code-string">"fraud_signals"</span>):     score += <span class="code-number">0.2</span>
+        <span class="code-keyword">if</span> task.get(<span class="code-string">"is_self_employed"</span>):  score += <span class="code-number">0.15</span>
+        <span class="code-keyword">if</span> task.get(<span class="code-string">"foreign_income"</span>):    score += <span class="code-number">0.25</span>
+        <span class="code-keyword">return</span> <span class="code-function">min</span>(score, <span class="code-number">1.0</span>)
+
+    <span class="code-keyword">def</span> <span class="code-function">route</span>(self, agent_name: <span class="code-type">str</span>, task: <span class="code-type">dict</span>) -> <span class="code-type">str</span>:
+        score = self.<span class="code-function">complexity_score</span>(task)
+        default = self.DEFAULT_MODEL[agent_name]
+        <span class="code-comment"># Chỉ upgrade nếu task phức tạp VÀ agent cần reasoning</span>
+        needs_reasoning = agent_name <span class="code-keyword">in</span> {<span class="code-string">"RiskAgent"</span>, <span class="code-string">"ComplianceAgent"</span>}
+        <span class="code-keyword">if</span> score > <span class="code-number">0.5</span> <span class="code-keyword">and</span> needs_reasoning:
+            <span class="code-keyword">return</span> <span class="code-string">"claude-sonnet-4-6"</span>  <span class="code-comment"># Upgrade cho hồ sơ phức tạp</span>
+        <span class="code-keyword">return</span> default</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 4 ===== -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Parallel Execution & Batch API — Tăng Throughput, Giảm Chi Phí</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tác động của parallel vs sequential execution lên latency và cost</li>
+          <li>Biết khi nào dùng Anthropic Batch API (50% discount)</li>
+          <li>Thiết kế mixed strategy cho LoanBot: real-time + batch</li>
+          <li>Tính ROI của việc defer non-urgent tasks sang batch processing</li>
+        </ul>
+      </div>
+
+      <h3>4.1 Parallel Execution — Tại Sao Phase Design Quan Trọng</h3>
+
+      <p>LoanBot v3.0 đã implement <code>asyncio.gather()</code> trong Module 7. Đây là tối ưu latency — nhưng nó cũng ảnh hưởng đến cost pattern. Parallel calls tạo burst load → có thể trigger rate limiting → retry costs. Sequential giảm burst nhưng tăng latency.</p>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Rate Limit = Hidden Cost</div>
+        <p>Khi 8 agents call Anthropic API đồng thời (asyncio.gather), bạn có thể hit <strong>rate limit</strong> (tokens per minute). Response: 429 → retry với exponential backoff → thêm latency + wasted compute. Giải pháp: implement <strong>token bucket rate limiter</strong> trước khi gọi API.</p>
+      </div>
+
+      <h3>4.2 Anthropic Batch API — 50% Cost Reduction</h3>
+
+      <p>Anthropic cung cấp <strong>Message Batches API</strong>: gửi nhiều requests trong 1 batch, Anthropic xử lý async và trả kết quả trong vòng 24 giờ. Đổi lại: <strong>50% discount</strong> trên tất cả token costs.</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Batch vs Real-time Strategy</div>
+        <p>Không phải mọi task đều cần real-time response. LoanBot có thể split:</p>
+        <ul>
+          <li><strong>Real-time pipeline</strong> (latency-sensitive): Hồ sơ VIP, deadline hôm nay → $0.006/hồ sơ</li>
+          <li><strong>Batch pipeline</strong> (overnight): Hồ sơ regular, re-check quarterly, audit reports → $0.003/hồ sơ</li>
+        </ul>
+        <p>30–40% hồ sơ có thể batch → tiết kiệm thêm 15–20% tổng chi phí.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">import</span> anthropic
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime, timedelta
+
+client = anthropic.Anthropic()
+
+<span class="code-keyword">def</span> <span class="code-function">submit_batch_credit_checks</span>(applications: <span class="code-type">list</span>) -> <span class="code-type">str</span>:
+    <span class="code-comment">"""Gửi nhiều hồ sơ sang Batch API — 50% cheaper, kết quả trong 24h."""</span>
+    requests = []
+    <span class="code-keyword">for</span> app <span class="code-keyword">in</span> applications:
+        requests.append({
+            <span class="code-string">"custom_id"</span>: app[<span class="code-string">"loan_id"</span>],  <span class="code-comment"># Track từng hồ sơ</span>
+            <span class="code-string">"params"</span>: {
+                <span class="code-string">"model"</span>: <span class="code-string">"claude-haiku-4-5-20251001"</span>,
+                <span class="code-string">"max_tokens"</span>: <span class="code-number">500</span>,
+                <span class="code-string">"messages"</span>: [{
+                    <span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+                    <span class="code-string">"content"</span>: f<span class="code-string">"Phân tích tín dụng: {app}"</span>
+                }]
+            }
+        })
+    <span class="code-comment"># Submit batch — return batch_id để poll sau</span>
+    batch = client.beta.messages.batches.create(requests=requests)
+    print(f<span class="code-string">"Batch submitted: {batch.id} | {len(requests)} applications"</span>)
+    print(f<span class="code-string">"Expected completion: {datetime.now() + timedelta(hours=24)}"</span>)
+    <span class="code-keyword">return</span> batch.id
+
+<span class="code-keyword">def</span> <span class="code-function">collect_batch_results</span>(batch_id: <span class="code-type">str</span>) -> <span class="code-type">dict</span>:
+    <span class="code-comment"># Gọi sau khi batch done (poll hoặc webhook)</span>
+    results = {}
+    <span class="code-keyword">for</span> result <span class="code-keyword">in</span> client.beta.messages.batches.results(batch_id):
+        loan_id = result.custom_id
+        <span class="code-keyword">if</span> result.result.type == <span class="code-string">"succeeded"</span>:
+            results[loan_id] = result.result.message.content[<span class="code-number">0</span>].text
+    <span class="code-keyword">return</span> results</code></pre>
+      </div>
+
+      <h3>4.3 Mixed Strategy cho LoanBot v3.0</h3>
+
+      <ol class="process-steps">
+        <li>
+          <strong>Priority Classification</strong>
+          <p>Khi nhận hồ sơ: nếu loan &gt; 1 tỷ HOẶC khách VIP HOẶC deadline trong ngày → Real-time pipeline. Còn lại → queue cho batch.</p>
+        </li>
+        <li>
+          <strong>Real-time Pipeline</strong>
+          <p>asyncio.gather() như Module 7, với Rate Limiter và Prompt Caching. Target: xử lý trong 5 giây.</p>
+        </li>
+        <li>
+          <strong>Batch Queue</strong>
+          <p>Gom hồ sơ batch trong ngày, submit Batch API lúc 22:00, nhận kết quả 6:00 hôm sau. Cost: 50% of real-time.</p>
+        </li>
+        <li>
+          <strong>Result Merge</strong>
+          <p>Loan officer nhận notification buổi sáng với kết quả batch đã processed. Real-time kết quả hiển thị ngay khi submit.</p>
+        </li>
+      </ol>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Nếu FinTech Corp xử lý 50.000 hồ sơ/tháng, 35% là batch-eligible (regular customers, không urgent), Batch API giảm cost như thế nào?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Baseline: 50.000 × $0.006 = $300/tháng. Batch portion: 17.500 hồ sơ × $0.003 (50% off) = $52.5. Real-time portion: 32.500 × $0.006 = $195. Total: $247.5/tháng. Tiết kiệm: $52.5/tháng (17.5%). Nhỏ nhưng không cần thay đổi code logic — chỉ add routing layer.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+    </section>
+
+    <!-- ===== LESSON 5 ===== -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: LoanBot Cost Dashboard & ROI Report</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Thiết kế Cost Dashboard cho LoanBot v3.0 đủ để báo cáo lên Ban lãnh đạo</li>
+          <li>Tính toán Total Cost of Ownership (TCO) bao gồm API + infrastructure</li>
+          <li>Implement budget alerts tự động khi cost vượt ngưỡng</li>
+          <li>Tạo ROI report hoàn chỉnh với payback period</li>
+        </ul>
+      </div>
+
+      <h3>5.1 Cost Dashboard Mockup</h3>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot Cost Dashboard — Tháng 6/2026</title>
+          <rect width="760" height="340" fill="#0f172a" rx="12"/>
+          <text x="380" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#fbbf24">💰 LoanBot Cost Dashboard — Tháng 6/2026</text>
+          <!-- KPI Cards -->
+          <rect x="20" y="42" width="170" height="70" fill="#1e293b" rx="8" stroke="#334155"/>
+          <text x="105" y="60" text-anchor="middle" font-size="10" fill="#94a3b8">Total API Cost</text>
+          <text x="105" y="85" text-anchor="middle" font-size="22" font-weight="800" fill="#34d399">$247</text>
+          <text x="105" y="102" text-anchor="middle" font-size="9" fill="#6b7280">↓ 17.5% vs tháng trước</text>
+
+          <rect x="200" y="42" width="170" height="70" fill="#1e293b" rx="8" stroke="#334155"/>
+          <text x="285" y="60" text-anchor="middle" font-size="10" fill="#94a3b8">Cost/Application</text>
+          <text x="285" y="85" text-anchor="middle" font-size="22" font-weight="800" fill="#60a5fa">$0.005</text>
+          <text x="285" y="102" text-anchor="middle" font-size="9" fill="#6b7280">≈ 125 VNĐ/hồ sơ</text>
+
+          <rect x="380" y="42" width="170" height="70" fill="#1e293b" rx="8" stroke="#334155"/>
+          <text x="465" y="60" text-anchor="middle" font-size="10" fill="#94a3b8">Manual Alternative</text>
+          <text x="465" y="85" text-anchor="middle" font-size="22" font-weight="800" fill="#f87171">$730K</text>
+          <text x="465" y="102" text-anchor="middle" font-size="9" fill="#6b7280">50K × 350K VNĐ</text>
+
+          <rect x="560" y="42" width="170" height="70" fill="#1e293b" rx="8" stroke="#334155"/>
+          <text x="645" y="60" text-anchor="middle" font-size="10" fill="#94a3b8">Monthly Savings</text>
+          <text x="645" y="85" text-anchor="middle" font-size="22" font-weight="800" fill="#fbbf24">$729,753</text>
+          <text x="645" y="102" text-anchor="middle" font-size="9" fill="#6b7280">ROI: 295,465%</text>
+
+          <!-- Per-agent cost bar chart -->
+          <text x="25" y="135" font-size="11" font-weight="700" fill="#e2e8f0">Chi phí theo Agent</text>
+          <!-- Bars: RiskAgent highest -->
+          <text x="60" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Credit</text>
+          <rect x="30" y="220" width="60" height="50" fill="#60a5fa" rx="3"/>
+          <text x="60" y="217" text-anchor="middle" font-size="9" fill="#60a5fa">$34</text>
+
+          <text x="145" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Income</text>
+          <rect x="115" y="200" width="60" height="70" fill="#60a5fa" rx="3"/>
+          <text x="145" y="197" text-anchor="middle" font-size="9" fill="#60a5fa">$41</text>
+
+          <text x="230" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Fraud</text>
+          <rect x="200" y="215" width="60" height="55" fill="#60a5fa" rx="3"/>
+          <text x="230" y="212" text-anchor="middle" font-size="9" fill="#60a5fa">$38</text>
+
+          <text x="315" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Risk</text>
+          <rect x="285" y="155" width="60" height="115" fill="#fbbf24" rx="3"/>
+          <text x="315" y="152" text-anchor="middle" font-size="9" fill="#fbbf24" font-weight="700">$68 ⚠️</text>
+
+          <text x="400" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Comply</text>
+          <rect x="370" y="195" width="60" height="75" fill="#60a5fa" rx="3"/>
+          <text x="400" y="192" text-anchor="middle" font-size="9" fill="#60a5fa">$43</text>
+
+          <text x="485" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Report</text>
+          <rect x="455" y="225" width="60" height="45" fill="#34d399" rx="3"/>
+          <text x="485" y="222" text-anchor="middle" font-size="9" fill="#34d399">$12</text>
+
+          <text x="570" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Audit</text>
+          <rect x="540" y="235" width="60" height="35" fill="#34d399" rx="3"/>
+          <text x="570" y="232" text-anchor="middle" font-size="9" fill="#34d399">$8</text>
+
+          <text x="655" y="275" text-anchor="middle" font-size="9" fill="#94a3b8">Supervisor</text>
+          <rect x="625" y="215" width="60" height="55" fill="#60a5fa" rx="3"/>
+          <text x="655" y="212" text-anchor="middle" font-size="9" fill="#60a5fa">$35</text>
+
+          <!-- Budget line -->
+          <line x1="20" y1="175" x2="740" y2="175" stroke="#ef4444" stroke-width="1" stroke-dasharray="6,4"/>
+          <text x="720" y="172" text-anchor="end" font-size="9" fill="#ef4444">Budget limit</text>
+
+          <text x="380" y="305" text-anchor="middle" font-size="10" fill="#94a3b8">💡 RiskAgent tốn nhất — cân nhắc optimize với caching hoặc pre-filtering</text>
+          <line x1="20" y1="270" x2="740" y2="270" stroke="#334155" stroke-width="1" stroke-dasharray="4,4"/>
+        </svg>
+        <div class="diagram-title">Hình 3: LoanBot Cost Dashboard — RiskAgent là bottleneck cost, cần optimize tiếp</div>
+      </div>
+
+      <h3>5.2 Total Cost of Ownership (TCO)</h3>
+
+      <table class="roi-table">
+        <tr>
+          <th>Cost Category</th>
+          <th>Monthly (USD)</th>
+          <th>Monthly (VNĐ)</th>
+          <th>Ghi chú</th>
+        </tr>
+        <tr>
+          <td>Anthropic API (LLM calls)</td>
+          <td class="highlight">$247</td>
+          <td>~6.175.000 đ</td>
+          <td>50% batch + prompt caching</td>
+        </tr>
+        <tr>
+          <td>Cloud compute (orchestrator)</td>
+          <td>$80</td>
+          <td>~2.000.000 đ</td>
+          <td>2× t3.medium AWS</td>
+        </tr>
+        <tr>
+          <td>Database & Redis Cache</td>
+          <td>$40</td>
+          <td>~1.000.000 đ</td>
+          <td>RDS + ElastiCache</td>
+        </tr>
+        <tr>
+          <td>Observability (Phoenix self-hosted)</td>
+          <td>$20</td>
+          <td>~500.000 đ</td>
+          <td>Free tier + storage</td>
+        </tr>
+        <tr>
+          <td>External APIs (CIC, verification)</td>
+          <td>$150</td>
+          <td>~3.750.000 đ</td>
+          <td>50K queries × $0.003</td>
+        </tr>
+        <tr class="total-row">
+          <td>TOTAL TCO</td>
+          <td class="highlight">$537/tháng</td>
+          <td class="highlight">13.425.000 đ</td>
+          <td>≈ 268 VNĐ/hồ sơ</td>
+        </tr>
+        <tr class="total-row">
+          <td>Manual cost</td>
+          <td>$730.000/tháng</td>
+          <td>17.500.000.000 đ</td>
+          <td>350.000 đ/hồ sơ</td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>NET SAVINGS</strong></td>
+          <td class="highlight">$729.463/tháng</td>
+          <td class="highlight">18.236.575.000 đ</td>
+          <td><span class="saving-badge">ROI: 135,820%</span></td>
+        </tr>
+      </table>
+
+      <h3>5.3 Budget Alerts — Tự động hóa Cost Governance</h3>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> Optional
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">BudgetConfig</span>:
+    monthly_limit_usd: <span class="code-type">float</span> = <span class="code-number">400.0</span>
+    warning_threshold: <span class="code-type">float</span> = <span class="code-number">0.75</span>  <span class="code-comment"># Alert tại 75%</span>
+    critical_threshold: <span class="code-type">float</span> = <span class="code-number">0.90</span>  <span class="code-comment"># Alert tại 90%</span>
+    per_loan_limit_usd: <span class="code-type">float</span> = <span class="code-number">0.02</span>  <span class="code-comment"># Anomaly nếu 1 hồ sơ > $0.02</span>
+
+<span class="code-keyword">class</span> <span class="code-function">CostGovernor</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, config: BudgetConfig):
+        self.config = config
+        self._monthly_spend = <span class="code-number">0.0</span>
+        self._loan_costs = []
+
+    <span class="code-keyword">def</span> <span class="code-function">record_and_check</span>(self, loan_id: <span class="code-type">str</span>, cost_usd: <span class="code-type">float</span>) -> Optional[<span class="code-type">str</span>]:
+        <span class="code-comment"># Ghi nhận chi phí và kiểm tra ngưỡng</span>
+        self._monthly_spend += cost_usd
+        self._loan_costs.append(cost_usd)
+        pct = self._monthly_spend / self.config.monthly_limit_usd
+
+        <span class="code-keyword">if</span> cost_usd > self.config.per_loan_limit_usd:
+            <span class="code-keyword">return</span> f<span class="code-string">"🚨 ANOMALY [{loan_id}]: ${cost_usd:.4f} > limit ${self.config.per_loan_limit_usd}"</span>
+        <span class="code-keyword">if</span> pct >= self.config.critical_threshold:
+            <span class="code-keyword">return</span> f<span class="code-string">"🚨 CRITICAL: Monthly budget {pct:.0%} used (${self._monthly_spend:.2f})"</span>
+        <span class="code-keyword">if</span> pct >= self.config.warning_threshold:
+            <span class="code-keyword">return</span> f<span class="code-string">"⚠️ WARNING: Monthly budget {pct:.0%} used (${self._monthly_spend:.2f})"</span>
+        <span class="code-keyword">return</span> <span class="code-keyword">None</span>  <span class="code-comment"># Trong budget</span></code></pre>
+      </div>
+
+      <h3>5.4 Optimization Roadmap — Thứ Tự Ưu Tiên</h3>
+
+      <div class="optimization-step">
+        <div class="opt-num">1</div>
+        <div>
+          <strong>Enable Prompt Caching (Haiku)</strong>
+          <span class="saving-badge" style="margin-left:8px;">-$60/tháng</span>
+          <p style="margin:4px 0 0;font-size:.9rem;color:var(--text-muted);">Effort: 2 giờ code. Thêm <code>cache_control</code> vào system prompts. Breakeven: ngay request thứ 2.</p>
+        </div>
+      </div>
+      <div class="optimization-step">
+        <div class="opt-num">2</div>
+        <div>
+          <strong>Batch non-urgent applications (Batch API)</strong>
+          <span class="saving-badge" style="margin-left:8px;">-$52/tháng</span>
+          <p style="margin:4px 0 0;font-size:.9rem;color:var(--text-muted);">Effort: 1 ngày. Route 35% hồ sơ sang batch queue. 50% discount.</p>
+        </div>
+      </div>
+      <div class="optimization-step">
+        <div class="opt-num">3</div>
+        <div>
+          <strong>Intelligent Model Routing (Haiku default, Sonnet for complex)</strong>
+          <span class="saving-badge" style="margin-left:8px;">Quality +, Cost neutral</span>
+          <p style="margin:4px 0 0;font-size:.9rem;color:var(--text-muted);">Effort: 3 ngày. TaskRouter implementation. Không giảm cost nhiều nhưng tăng quality cho edge cases.</p>
+        </div>
+      </div>
+      <div class="optimization-step">
+        <div class="opt-num">4</div>
+        <div>
+          <strong>Semantic Cache cho CreditAgent CIC queries</strong>
+          <span class="saving-badge" style="margin-left:8px;">-$20/tháng</span>
+          <p style="margin:4px 0 0;font-size:.9rem;color:var(--text-muted);">Effort: 1 tuần. Redis Vector Store + embedding model. Chỉ áp dụng cho Credit, không cho Fraud.</p>
+        </div>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Optimization Pareto</div>
+        <p>80% cost savings đến từ 20% effort: <strong>Prompt Caching + Batch API</strong> (Steps 1–2) tiết kiệm $112/tháng với chỉ 1–2 ngày implement. Steps 3–4 cần nhiều effort hơn nhưng returns giảm dần. Ưu tiên steps 1–2 ngay, đánh giá lại steps 3–4 sau 3 tháng.</p>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 10</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m10-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m10-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m10-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đơn vị xử lý văn bản của LLM. 1 token ≈ 4 ký tự tiếng Anh.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Caching</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic cache KV state của prompt, 90% discount cho cached tokens. TTL 5 phút.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semantic Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache dựa trên embedding similarity thay vì exact-match key.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Result Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache kết quả business logic (loan decision) theo time window.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Batch API</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic Message Batches: async xử lý nhiều requests, 50% cost discount, kết quả trong 24h.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Task Router</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Component quyết định model nào xử lý task dựa trên complexity score.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Complexity Score</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số 0.0–1.0 đánh giá độ phức tạp của task, dùng để route model selection.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost Attribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gắn chi phí cụ thể vào từng agent/task để phân tích bottleneck.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TCO (Total Cost of Ownership)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tổng chi phí thực tế: API + compute + DB + monitoring + external APIs.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Rate Limit</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giới hạn tokens/minute hoặc requests/minute của API provider.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Bucket</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Algorithm rate limiting: bucket chứa tokens, mỗi request tiêu tokens, tự refill theo thời gian.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cache Hit Rate</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">% requests được phục vụ từ cache thay vì gọi LLM. Cần &gt;50% để có ROI tốt.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Budget Alert</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cảnh báo tự động khi chi phí vượt ngưỡng định trước (warning: 75%, critical: 90%).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Breakeven Point</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số cache hits tối thiểu để chi phí setup caching được bù đắp.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Cost-Quality Tradeoff</td><td style="padding:8px 12px;">Cân bằng giữa chi phí (dùng model rẻ hơn) và quality (dùng model mạnh hơn) cho từng task.</td></tr>
+      </table>
+
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module9/index.html" class="btn btn-outline">← Module 9: Security</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 10 →</a>
+    </div>
+
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

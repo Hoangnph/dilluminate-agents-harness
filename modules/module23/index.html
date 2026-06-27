@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 23 — Agent Reasoning & Planning</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m23-primary: #134e4a;
+      --m23-accent:  #2dd4bf;
+      --m23-light:   #f0fdfa;
+      --m23-border:  #99f6e4;
+    }
+    .lesson-header { background: linear-gradient(135deg, #042f2e 0%, #134e4a 55%, #2dd4bf 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #f0fdfa; }
+    .lesson-header p { color: #99f6e4; }
+    .sidebar-nav a.active { background: var(--m23-light); border-left: 3px solid var(--m23-accent); color: var(--m23-primary); }
+    .sidebar-nav a:hover { color: var(--m23-primary); }
+
+    .reasoning-step {
+      display: flex; gap: var(--space-3); margin-bottom: var(--space-3);
+      align-items: flex-start;
+    }
+    .step-num {
+      min-width: 28px; height: 28px; border-radius: 50%;
+      background: var(--m23-primary); color: #f0fdfa;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+    }
+    .step-content { flex: 1; }
+    .step-label { font-size: .75rem; font-weight: 700; color: var(--m23-primary); text-transform: uppercase; letter-spacing: .06em; }
+    .step-text { font-size: .875rem; color: var(--text-secondary); margin-top: 2px; line-height: 1.55; }
+
+    .react-box {
+      background: #042f2e; border-radius: var(--radius-lg); padding: var(--space-4);
+      margin: var(--space-3) 0; border: 1px solid #134e4a;
+    }
+    .react-thought { color: #99f6e4; font-size: .825rem; }
+    .react-action  { color: #2dd4bf; font-size: .825rem; font-weight: 600; }
+    .react-obs     { color: #fde047; font-size: .825rem; }
+    .react-label   { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m23-light);color:var(--m23-primary);border-color:var(--m23-border);">MODULE 23</div>
+    <div class="sidebar-title">Agent Reasoning & Planning</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Chain-of-Thought Reasoning</a>
+      <a href="#lesson2">L2. ReAct: Reason + Act</a>
+      <a href="#lesson3">L3. Tree-of-Thought</a>
+      <a href="#lesson4">L4. Planning Agents</a>
+      <a href="#lesson5">L5. Self-Reflection & Critique</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m23-accent);">📝 Quiz Module 23</a>
+      <a href="lab.ipynb" download style="color:var(--m23-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module22/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 22: Fine-tuning</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 23 · Tuần 64–66</span>
+      <h1>🧠 Agent Reasoning & Planning</h1>
+      <p>LoanBot v3.6 đạt 97% accuracy trên clear-cut cases. Nhưng 12% hồ sơ borderline cần multi-step reasoning: kiểm tra nhiều nguồn, weigh conflicting signals, plan approval sequence. Module này dạy các kỹ thuật giúp LoanBot "suy nghĩ" thay vì chỉ "phân loại".</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🧠 Reasoning Patterns</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Chain-of-Thought — Dạy LoanBot "Suy Nghĩ Từng Bước"</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu tại sao CoT cải thiện accuracy trên complex cases (từ 73% → 89%)</li>
+          <li>Phân biệt Zero-shot CoT vs Few-shot CoT vs Auto-CoT</li>
+          <li>Thiết kế CoT prompt cho LoanBot borderline cases</li>
+          <li>Biết khi nào CoT hữu ích và khi nào không cần thiết</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Loan Officer vs Rubber Stamp</div>
+        <p><strong>Không có CoT</strong> = nhân viên "rubber stamp": nhìn credit score → bấm APPROVE/REJECT ngay. Nhanh nhưng sai nhiều trên borderline cases. <strong>Với CoT</strong> = loan officer thực sự: "Score 635 — borderline. Nhưng DTI 0.38 — OK. Employment 24 tháng — stable. Loan-to-income 3.2x — trong giới hạn. Chưa có negative CIC record 3 năm. Xét tổng thể: APPROVE với điều kiện." Kết quả tốt hơn vì quá trình reasoning bắt buộc model phải xem xét từng yếu tố trước khi kết luận.</p>
+      </div>
+
+      <h3>Tại Sao CoT Hiệu Quả?</h3>
+
+      <p>Nghiên cứu của Wei et al. (2022) chứng minh: CoT cải thiện accuracy trên arithmetic, commonsense, và symbolic reasoning tasks. Cơ chế: khi model phải "write out" từng bước, nó tạo ra intermediate states trong activation space — giống như "working memory" giúp tránh shortcut reasoning. Với LoanBot: complex loan decisions đòi hỏi kết hợp 6-8 factors — CoT buộc model xem xét tất cả thay vì pattern-match trực tiếp.</p>
+
+      <div class="key-formula">
+        <div class="formula-label">Zero-shot CoT (Wei et al.)</div>
+        <div class="formula-text">"Hãy suy nghĩ từng bước trước khi đưa ra quyết định."</div>
+        <div class="formula-desc">Chỉ thêm một câu — nhưng accuracy tăng 18-40% trên complex reasoning tasks. Đây là kỹ thuật đơn giản nhất và hiệu quả nhất để bắt đầu.</div>
+      </div>
+
+      <h3>3 Loại CoT cho LoanBot</h3>
+
+      <div style="display:grid;gap:var(--space-4);margin:var(--space-4) 0;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;color:var(--m23-primary);margin-bottom:var(--space-2);">1. Zero-shot CoT — "Hãy suy nghĩ từng bước"</p>
+          <p style="font-size:.875rem;color:var(--text-secondary);">Thêm instruction vào cuối prompt. Không cần examples. Tốt cho one-off complex cases. Nhược điểm: model tự quyết định "bước" là gì — đôi khi miss critical factors.</p>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--m23-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;color:var(--m23-primary);margin-bottom:var(--space-2);">2. Few-shot CoT — Ví dụ mẫu với reasoning chain</p>
+          <p style="font-size:.875rem;color:var(--text-secondary);">Cung cấp 2-3 examples với full reasoning chain. Model học structure của reasoning. Tốt nhất cho LoanBot — đảm bảo model luôn check credit score, DTI, employment, CIC theo đúng thứ tự. Tốn thêm ~500 tokens per request.</p>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <p style="font-weight:700;color:var(--m23-primary);margin-bottom:var(--space-2);">3. Auto-CoT — Tự động generate reasoning chains</p>
+          <p style="font-size:.875rem;color:var(--text-secondary);">Dùng model để generate CoT examples từ training data → dùng những examples đó làm few-shot. Tự động hóa quá trình tạo training examples. Tốt khi có nhiều loại cases khác nhau cần coverage.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Few-shot CoT prompt cho LoanBot borderline case)</span>
+        <pre><code><span class="code-keyword">def</span> <span class="code-function">build_cot_prompt</span>(application: dict) -> <span class="code-type">str</span>:
+    <span class="code-comment">"""Build few-shot CoT prompt with 2 worked examples."""</span>
+    few_shot_examples = <span class="code-string">"""
+=== VÍ DỤ 1: Hồ sơ rõ ràng cần APPROVE ===
+Hồ sơ: Credit Score 720, DTI 0.28, Employment 48 tháng, Khoản vay 200M VNĐ
+
+Reasoning từng bước:
+1. Credit Score: 720 > 650 (ngưỡng tốt) ✓
+2. DTI: 0.28 < 0.40 (thấp, an toàn) ✓
+3. Employment: 48 tháng (4 năm, ổn định) ✓
+4. Loan-to-income: Cần xem xét — 200M/month_income. Với employment stable, assumable OK ✓
+5. Quy định TT39/2016 Điều 9: Đủ điều kiện ✓
+6. Tổng hợp: TẤT CẢ indicators positive, risk thấp.
+Quyết định: APPROVE, confidence 0.97
+
+=== VÍ DỤ 2: Hồ sơ borderline cần REVIEW ===
+Hồ sơ: Credit Score 618, DTI 0.43, Employment 8 tháng, Khoản vay 150M VNĐ
+
+Reasoning từng bước:
+1. Credit Score: 618 — borderline (600-650 zone) ⚠️
+2. DTI: 0.43 — cao (40-45% borderline zone) ⚠️
+3. Employment: 8 tháng — ngắn, risk cao ⚠️
+4. Tổng hợp: 3/4 indicators borderline hoặc weak.
+5. Theo NĐ13/2023 Điều 15: cases với 2+ borderline factors cần senior review
+Quyết định: REVIEW, cần chứng minh thu nhập bổ sung, confidence 0.82
+"""</span>
+
+    <span class="code-keyword">return</span> <span class="code-string">f"""Bạn là LoanBot — hệ thống thẩm định tín dụng của FinTech Corp.
+
+{few_shot_examples}
+
+=== HỒ SƠ MỚI CẦN THẨM ĐỊNH ===
+Hồ sơ: Credit Score {application['credit_score']}, DTI {application['dti']},
+Employment {application['employment_months']} tháng, Khoản vay {application['loan_amount_vnd']:,} VNĐ
+
+Hãy thực hiện reasoning từng bước (giống các ví dụ trên), sau đó đưa ra quyết định dưới dạng JSON:
+{{"decision": "APPROVE|REJECT|REVIEW", "confidence": 0.0-1.0, "explanation": "...", "regulation_refs": ["..."]}}"""</span>
+
+<span class="code-comment"># Borderline case — without CoT: 73% accuracy; with few-shot CoT: 89%</span>
+borderline_app = {
+    <span class="code-string">"credit_score"</span>: <span class="code-number">638</span>,
+    <span class="code-string">"dti"</span>: <span class="code-number">0.41</span>,
+    <span class="code-string">"employment_months"</span>: <span class="code-number">14</span>,
+    <span class="code-string">"loan_amount_vnd"</span>: <span class="code-number">120_000_000</span>,
+}
+prompt = <span class="code-function">build_cot_prompt</span>(borderline_app)
+<span class="code-function">print</span>(<span class="code-string">f"Prompt length: {len(prompt.split())} words"</span>)
+<span class="code-function">print</span>(<span class="code-string">"CoT prompt ready — model will reason step-by-step before deciding"</span>)</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot cần xử lý 50,000 hồ sơ/tháng. Áp dụng CoT cho TẤT CẢ 50K hồ sơ hay chỉ cho 12% borderline? Trả lời và giải thích chi phí/lợi ích.</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Chỉ dùng CoT cho 12% borderline (6,000 hồ sơ/tháng). Lý do: 88% clear-cut cases (score >700 hoặc <500) không cần reasoning — instant APPROVE/REJECT đúng với >99% accuracy. CoT thêm ~500 tokens = tốn thêm $0.003/request. Áp dụng cho tất cả 50K = +$150/tháng chi phí token không cần thiết. Strategy tối ưu: route qua classifier đầu tiên → nếu score 580-680 hoặc DTI 0.38-0.45 → apply CoT; còn lại → fast path. Tiết kiệm 88% CoT cost trong khi vẫn capture toàn bộ accuracy gain trên borderline cases.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: ReAct Pattern — Reasoning + Acting trong Vòng Lặp</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu ReAct = interleave Thought → Action → Observation trong loop</li>
+          <li>Implement ReAct loop cho LoanBot: reason → call CIC → reason lại với kết quả</li>
+          <li>Biết khi nào dừng loop: kết quả đủ confidence hoặc max iterations</li>
+          <li>Debug ReAct traces: phát hiện khi agent bị stuck trong loop vô ích</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: ReAct (Yao et al., 2022)</div>
+        <p><strong>ReAct</strong> = <strong>Re</strong>asoning + <strong>Act</strong>ing. Thay vì reasoning một lần rồi act, agent xen kẽ: Thought (lý luận về tình huống) → Action (gọi tool/API) → Observation (đọc kết quả) → Thought (cập nhật hiểu biết) → Action... cho đến khi có đủ thông tin để kết luận. LoanBot dùng ReAct để: (1) Thought: "Score 638, cần xem CIC history"; (2) Action: call CIC API; (3) Observation: "Không có nợ xấu, 2 khoản vay đang trả đúng hạn"; (4) Thought: "CIC tốt, bù đắp DTI borderline → APPROVE"; (5) Final Answer: quyết định với đầy đủ context.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>ReAct Loop cho LoanBot: Thought → Action → Observation cycle với exit conditions</title>
+          <defs>
+            <marker id="arr23" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#2dd4bf"/>
+            </marker>
+            <marker id="arr23r" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#fde047"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#042f2e" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0fdfa">ReAct Loop: LoanBot Thẩm Định Hồ Sơ Borderline</text>
+
+          <!-- Thought box -->
+          <rect x="25" y="35" width="130" height="70" fill="#134e4a" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="90" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#2dd4bf">💭 THOUGHT</text>
+          <text x="90" y="76" text-anchor="middle" font-size="8" fill="#99f6e4">"Score 638, DTI 0.41</text>
+          <text x="90" y="88" text-anchor="middle" font-size="8" fill="#99f6e4">borderline. Cần CIC."</text>
+
+          <!-- Arrow T→A -->
+          <line x1="155" y1="70" x2="195" y2="70" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr23)"/>
+
+          <!-- Action box -->
+          <rect x="198" y="35" width="130" height="70" fill="#134e4a" rx="8" stroke="#f97316" stroke-width="1.5"/>
+          <text x="263" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#f97316">⚡ ACTION</text>
+          <text x="263" y="76" text-anchor="middle" font-size="8" fill="#fdba74">call_cic_api(</text>
+          <text x="263" y="88" text-anchor="middle" font-size="8" fill="#fdba74">"KH_A3B2C1")</text>
+
+          <!-- Arrow A→O -->
+          <line x1="328" y1="70" x2="368" y2="70" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr23)"/>
+
+          <!-- Observation box -->
+          <rect x="371" y="35" width="145" height="70" fill="#134e4a" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="443" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#fde047">👁 OBSERVATION</text>
+          <text x="443" y="76" text-anchor="middle" font-size="8" fill="#f0fdfa">0 nợ xấu · 2 loans</text>
+          <text x="443" y="88" text-anchor="middle" font-size="8" fill="#f0fdfa">trả đúng hạn 18m</text>
+
+          <!-- Arrow O→T2 (loop back) -->
+          <path d="M443,105 L443,130 L90,130 L90,105" stroke="#2dd4bf" stroke-width="1.5" fill="none" marker-end="url(#arr23)"/>
+          <text x="266" y="145" text-anchor="middle" font-size="8" fill="#99f6e4">→ update reasoning với new info</text>
+
+          <!-- Thought 2 (updated) -->
+          <rect x="25" y="108" width="130" height="55" fill="#134e4a" rx="8" stroke="#2dd4bf" stroke-width="1"/>
+          <text x="90" y="128" text-anchor="middle" font-size="8" font-weight="700" fill="#2dd4bf">💭 THOUGHT 2</text>
+          <text x="90" y="142" text-anchor="middle" font-size="8" fill="#99f6e4">"CIC tốt → bù DTI"</text>
+          <text x="90" y="154" text-anchor="middle" font-size="8" fill="#99f6e4">→ APPROVE safe"</text>
+
+          <!-- Exit: Final Answer -->
+          <rect x="543" y="35" width="200" height="130" fill="#0f3d36" rx="8" stroke="#86efac" stroke-width="1.5"/>
+          <text x="643" y="58" text-anchor="middle" font-size="10" font-weight="700" fill="#86efac">✅ FINAL ANSWER</text>
+          <text x="643" y="76" text-anchor="middle" font-size="8" fill="#f0fdfa">confidence ≥ 0.85</text>
+          <text x="643" y="90" text-anchor="middle" font-size="8" fill="#f0fdfa">OR max 4 iterations</text>
+          <text x="643" y="110" text-anchor="middle" font-size="9" font-weight="700" fill="#2dd4bf">APPROVE</text>
+          <text x="643" y="125" text-anchor="middle" font-size="8" fill="#99f6e4">conf: 0.88</text>
+          <text x="643" y="140" text-anchor="middle" font-size="8" fill="#99f6e4">CIC OK bù DTI border</text>
+          <text x="643" y="155" text-anchor="middle" font-size="8" fill="#fde047">Ref: TT39/2016 Đ.9</text>
+
+          <!-- Arrow to Final -->
+          <line x1="516" y1="70" x2="540" y2="70" stroke="#86efac" stroke-width="2" marker-end="url(#arr23)"/>
+          <text x="528" y="85" text-anchor="middle" font-size="7" fill="#64748b">exit</text>
+        </svg>
+        <div class="diagram-title">Hình 1: ReAct loop cho LoanBot. Thought 1 nhận ra cần CIC data → Action gọi API → Observation nhận kết quả → Thought 2 cập nhật assessment → Final Answer. Exit khi confidence ≥ 0.85 hoặc sau 4 iterations.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (ReAct Loop với max iterations và exit conditions)</span>
+        <pre><code><span class="code-keyword">import</span> anthropic, json
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">ReActStep</span>:
+    step_type: <span class="code-type">str</span>   <span class="code-comment"># thought | action | observation | answer</span>
+    content: <span class="code-type">str</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotReAct</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, client: anthropic.Anthropic, max_iterations: <span class="code-type">int</span> = <span class="code-number">4</span>):
+        self.client = client
+        self.max_iter = max_iterations
+        self.tools = self.<span class="code-function">_define_tools</span>()
+
+    <span class="code-keyword">def</span> <span class="code-function">_define_tools</span>(self) -> List[dict]:
+        <span class="code-keyword">return</span> [
+            {<span class="code-string">"name"</span>: <span class="code-string">"query_cic"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Query CIC (Credit Information Center) for customer credit history"</span>,
+             <span class="code-string">"input_schema"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"object"</span>, <span class="code-string">"properties"</span>: {<span class="code-string">"customer_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}}, <span class="code-string">"required"</span>: [<span class="code-string">"customer_id"</span>]}},
+            {<span class="code-string">"name"</span>: <span class="code-string">"check_blacklist"</span>, <span class="code-string">"description"</span>: <span class="code-string">"Check if customer is on FinTech Corp blacklist"</span>,
+             <span class="code-string">"input_schema"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"object"</span>, <span class="code-string">"properties"</span>: {<span class="code-string">"customer_id"</span>: {<span class="code-string">"type"</span>: <span class="code-string">"string"</span>}}, <span class="code-string">"required"</span>: [<span class="code-string">"customer_id"</span>]}},
+        ]
+
+    <span class="code-keyword">def</span> <span class="code-function">_execute_tool</span>(self, tool_name: <span class="code-type">str</span>, tool_input: dict) -> <span class="code-type">str</span>:
+        <span class="code-comment"># Mock tool execution — in production connects to real CIC API</span>
+        <span class="code-keyword">if</span> tool_name == <span class="code-string">"query_cic"</span>:
+            <span class="code-keyword">return</span> json.dumps({<span class="code-string">"bad_debt_count"</span>: <span class="code-number">0</span>, <span class="code-string">"active_loans"</span>: <span class="code-number">2</span>, <span class="code-string">"on_time_payments_pct"</span>: <span class="code-number">97.5</span>})
+        <span class="code-keyword">elif</span> tool_name == <span class="code-string">"check_blacklist"</span>:
+            <span class="code-keyword">return</span> json.dumps({<span class="code-string">"blacklisted"</span>: <span class="code-keyword">False</span>})
+        <span class="code-keyword">return</span> <span class="code-string">'{"error": "unknown tool"}'</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">run</span>(self, application: dict) -> dict:
+        <span class="code-comment">"""Execute ReAct loop: Thought→Action→Observation until answer or max_iter."""</span>
+        messages = [{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: self.<span class="code-function">_build_initial_prompt</span>(application)}]
+        trace: List[ReActStep] = []
+
+        <span class="code-keyword">for</span> iteration <span class="code-keyword">in</span> <span class="code-function">range</span>(self.max_iter):
+            response = self.client.messages.<span class="code-function">create</span>(
+                model=<span class="code-string">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="code-number">1024</span>,
+                tools=self.tools, messages=messages
+            )
+
+            <span class="code-comment"># Extract text reasoning (Thought)</span>
+            text_parts = [b.text <span class="code-keyword">for</span> b <span class="code-keyword">in</span> response.content <span class="code-keyword">if</span> <span class="code-function">hasattr</span>(b, <span class="code-string">'text'</span>)]
+            <span class="code-keyword">if</span> text_parts:
+                trace.<span class="code-function">append</span>(<span class="code-function">ReActStep</span>(<span class="code-string">"thought"</span>, text_parts[<span class="code-number">0</span>]))
+
+            <span class="code-comment"># No tool use = model has enough info for final answer</span>
+            <span class="code-keyword">if</span> response.stop_reason == <span class="code-string">"end_turn"</span>:
+                <span class="code-keyword">break</span>
+
+            <span class="code-comment"># Execute all tool calls (Actions → Observations)</span>
+            tool_results = []
+            <span class="code-keyword">for</span> block <span class="code-keyword">in</span> response.content:
+                <span class="code-keyword">if</span> block.type == <span class="code-string">"tool_use"</span>:
+                    trace.<span class="code-function">append</span>(<span class="code-function">ReActStep</span>(<span class="code-string">"action"</span>, <span class="code-string">f"{block.name}({block.input})"</span>))
+                    obs = self.<span class="code-function">_execute_tool</span>(block.name, block.input)
+                    trace.<span class="code-function">append</span>(<span class="code-function">ReActStep</span>(<span class="code-string">"observation"</span>, obs))
+                    tool_results.<span class="code-function">append</span>({<span class="code-string">"type"</span>: <span class="code-string">"tool_result"</span>, <span class="code-string">"tool_use_id"</span>: block.id, <span class="code-string">"content"</span>: obs})
+
+            messages += [{<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: response.content},
+                         {<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: tool_results}]
+
+        <span class="code-keyword">return</span> {<span class="code-string">"trace"</span>: trace, <span class="code-string">"iterations"</span>: iteration + <span class="code-number">1</span>}
+
+    <span class="code-keyword">def</span> <span class="code-function">_build_initial_prompt</span>(self, app: dict) -> <span class="code-type">str</span>:
+        <span class="code-keyword">return</span> <span class="code-string">f"""Thẩm định hồ sơ vay sau, sử dụng tools nếu cần thêm thông tin:
+Customer ID: {app['customer_id']} | Credit Score: {app['credit_score']}
+DTI: {app['dti']} | Employment: {app['employment_months']} tháng
+Khoản vay: {app['loan_amount_vnd']:,} VNĐ
+
+Sau khi thu thập đủ thông tin, đưa ra quyết định JSON:
+{{"decision": "APPROVE|REJECT|REVIEW", "confidence": 0.0-1.0, "explanation": "...", "regulation_refs": ["..."]}}"""</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Tree-of-Thought — Khám Phá Nhiều Hướng Suy Luận</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu ToT = explore multiple reasoning paths, evaluate, chọn tốt nhất</li>
+          <li>Biết khi nào ToT cần thiết (vs CoT đơn giản)</li>
+          <li>Implement Breadth-First ToT cho complex loan decisions</li>
+          <li>Design evaluation function để score từng reasoning branch</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Tree-of-Thought (Yao et al., 2023)</div>
+        <p><strong>CoT</strong>: một path duy nhất từ problem → answer. <strong>ToT</strong>: branching — tại mỗi bước, generate nhiều possible thoughts, evaluate chúng, tiếp tục từ thought tốt nhất. Giống như: loan officer viết 3 draft assessments theo 3 góc nhìn khác nhau (conservative/moderate/aggressive), sau đó chọn assessment cân bằng nhất. Với LoanBot: dùng ToT khi có conflicting signals — VD: credit score tốt (APPROVE signal) nhưng employment mới 3 tháng (REJECT signal) — ToT explore cả hai branches trước khi quyết định.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 195" xmlns="http://www.w3.org/2000/svg">
+          <title>Tree-of-Thought: LoanBot khám phá 3 reasoning branches — Conservative, Moderate, Progressive — rồi vote/select best</title>
+          <defs>
+            <marker id="arr23t" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+              <path d="M0,0 L7,3.5 L0,7 Z" fill="#99f6e4"/>
+            </marker>
+          </defs>
+          <rect width="760" height="195" fill="#042f2e" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0fdfa">Tree-of-Thought: Conflicting Signals (Score OK, Employment Mới)</text>
+
+          <!-- Root problem -->
+          <rect x="290" y="32" width="180" height="42" fill="#134e4a" rx="8" stroke="#2dd4bf" stroke-width="2"/>
+          <text x="380" y="53" text-anchor="middle" font-size="9" fill="#f0fdfa">Score 655, DTI 0.35, Employment 3m</text>
+          <text x="380" y="66" text-anchor="middle" font-size="9" font-weight="700" fill="#2dd4bf">Conflicting Signals: Cần ToT</text>
+
+          <!-- Branch lines -->
+          <line x1="320" y1="74" x2="120" y2="110" stroke="#99f6e4" stroke-width="1.5" marker-end="url(#arr23t)"/>
+          <line x1="380" y1="74" x2="380" y2="110" stroke="#99f6e4" stroke-width="1.5" marker-end="url(#arr23t)"/>
+          <line x1="440" y1="74" x2="640" y2="110" stroke="#99f6e4" stroke-width="1.5" marker-end="url(#arr23t)"/>
+
+          <!-- Branch 1: Conservative -->
+          <rect x="20" y="113" width="195" height="60" fill="#7f1d1d" rx="8" stroke="#f97316" stroke-width="1"/>
+          <text x="117" y="131" text-anchor="middle" font-size="9" font-weight="700" fill="#fdba74">Branch A: Conservative</text>
+          <text x="117" y="145" text-anchor="middle" font-size="8" fill="#fca5a5">"Employment 3m = high risk</text>
+          <text x="117" y="157" text-anchor="middle" font-size="8" fill="#fca5a5">Cần 12m minimum" → REJECT</text>
+          <text x="117" y="170" text-anchor="middle" font-size="8" fill="#f97316">Score: 6.2/10</text>
+
+          <!-- Branch 2: Moderate -->
+          <rect x="283" y="113" width="195" height="60" fill="#134e4a" rx="8" stroke="#2dd4bf" stroke-width="2"/>
+          <text x="380" y="131" text-anchor="middle" font-size="9" font-weight="700" fill="#2dd4bf">Branch B: Moderate ✅</text>
+          <text x="380" y="145" text-anchor="middle" font-size="8" fill="#f0fdfa">"Score 655 + DTI 0.35 tốt</text>
+          <text x="380" y="157" text-anchor="middle" font-size="8" fill="#f0fdfa">Employment mới → REVIEW + docs"</text>
+          <text x="380" y="170" text-anchor="middle" font-size="8" fill="#2dd4bf">Score: 8.7/10 ← SELECTED</text>
+
+          <!-- Branch 3: Progressive -->
+          <rect x="546" y="113" width="195" height="60" fill="#1e3a5f" rx="8" stroke="#7dd3fc" stroke-width="1"/>
+          <text x="643" y="131" text-anchor="middle" font-size="9" font-weight="700" fill="#7dd3fc">Branch C: Progressive</text>
+          <text x="643" y="145" text-anchor="middle" font-size="8" fill="#93c5fd">"Score 655 = đủ, approve</text>
+          <text x="643" y="157" text-anchor="middle" font-size="8" fill="#93c5fd">employment sẽ ổn định"</text>
+          <text x="643" y="170" text-anchor="middle" font-size="8" fill="#7dd3fc">Score: 5.8/10</text>
+        </svg>
+        <div class="diagram-title">Hình 2: ToT cho conflicting signals. LoanBot generates 3 reasoning branches (Conservative/Moderate/Progressive), scores từng branch theo policy fit, chọn Branch B (REVIEW + request docs) với score 8.7/10.</div>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Khi Nào KHÔNG Dùng ToT</div>
+        <p>ToT tốn gấp 3-5x tokens và latency so với CoT đơn giản. Chỉ dùng ToT khi: (1) có conflicting signals rõ ràng; (2) decision có impact cao (khoản vay lớn, edge case chưa từng gặp); (3) team muốn audit reasoning process. 90% cases của LoanBot: dùng CoT hoặc direct decision. 8% borderline: dùng CoT. Chỉ 2% complex conflicting cases: dùng ToT.</p>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Beam Search trong ToT — chọn top-k branches
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p>Thay vì explore tất cả branches (tốn kém), dùng Beam Search: chỉ giữ <strong>top-k branches tốt nhất</strong> ở mỗi depth level. Với LoanBot ToT, k=2: generate 3 thoughts → evaluate → keep 2 best → expand 2 → evaluate → keep 2 best → final answer từ best leaf. Beam search giảm complexity từ O(b^d) xuống O(k×d) trong đó b=branching factor, d=depth, k=beam width.</p>
+          <p>Implementation: sau khi generate n thoughts, dùng một "evaluator prompt" riêng: <em>"Trong 3 reasoning branches sau, branch nào phù hợp nhất với TT39/2016 và chính sách FinTech Corp? Score 1-10 và giải thích."</em> → chọn top-k để tiếp tục.</p>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Planning Agents — Lập Kế Hoạch Nhiều Bước</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt Reactive agents (phản ứng) vs Deliberative agents (lập kế hoạch)</li>
+          <li>Implement PDDL-style planning cho LoanBot approval workflow</li>
+          <li>Dùng HTN (Hierarchical Task Network) để decompose complex tasks</li>
+          <li>Handle plan failures: replan khi tool call thất bại</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot Phải Lập Kế Hoạch</div>
+        <p>Khách hàng FC-2024-007: khoản vay 800M VNĐ (>500M threshold). Workflow phức tạp:</p>
+        <ol style="font-size:.875rem;margin-top:var(--space-2);">
+          <li>Query CIC → kiểm tra credit history</li>
+          <li>Verify employment với employer database</li>
+          <li>Calculate loan-to-income với income verification</li>
+          <li>Check collateral value (nếu có)</li>
+          <li>Escalate to Senior Loan Officer nếu bất kỳ step nào borderline</li>
+          <li>Generate formal approval letter với tất cả required disclosures</li>
+        </ol>
+        <p>Reactive approach: làm từng bước không cần plan — dễ miss steps, không handle failures. <strong>Planning approach</strong>: tạo plan trước, execute theo plan, replan nếu cần.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Hierarchical Task Planning cho Large Loan Approval)</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional, Callable
+<span class="code-keyword">from</span> enum <span class="code-keyword">import</span> Enum
+
+<span class="code-keyword">class</span> <span class="code-function">TaskStatus</span>(Enum):
+    PENDING = <span class="code-string">"pending"</span>
+    IN_PROGRESS = <span class="code-string">"in_progress"</span>
+    COMPLETED = <span class="code-string">"completed"</span>
+    FAILED = <span class="code-string">"failed"</span>
+    SKIPPED = <span class="code-string">"skipped"</span>
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">PlanStep</span>:
+    step_id: <span class="code-type">str</span>
+    name: <span class="code-type">str</span>
+    tool: <span class="code-type">str</span>
+    params: dict
+    required: bool = <span class="code-keyword">True</span>
+    depends_on: List[<span class="code-type">str</span>] = field(default_factory=list)
+    status: TaskStatus = TaskStatus.PENDING
+    result: Optional[dict] = <span class="code-keyword">None</span>
+    failure_strategy: <span class="code-type">str</span> = <span class="code-string">"abort"</span>  <span class="code-comment"># abort | skip | replan | escalate</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanApprovalPlanner</span>:
+    <span class="code-keyword">def</span> <span class="code-function">create_plan</span>(self, application: dict) -> List[PlanStep]:
+        <span class="code-comment">"""Generate approval plan based on loan amount and profile."""</span>
+        loan_amount = application.<span class="code-function">get</span>(<span class="code-string">"loan_amount_vnd"</span>, <span class="code-number">0</span>)
+        has_collateral = application.<span class="code-function">get</span>(<span class="code-string">"has_collateral"</span>, <span class="code-keyword">False</span>)
+
+        plan = [
+            <span class="code-function">PlanStep</span>(<span class="code-string">"S1"</span>, <span class="code-string">"Kiểm tra blacklist"</span>, <span class="code-string">"check_blacklist"</span>,
+                     {<span class="code-string">"customer_id"</span>: application[<span class="code-string">"customer_id"</span>]},
+                     required=<span class="code-keyword">True</span>, failure_strategy=<span class="code-string">"abort"</span>),
+
+            <span class="code-function">PlanStep</span>(<span class="code-string">"S2"</span>, <span class="code-string">"Query CIC history"</span>, <span class="code-string">"query_cic"</span>,
+                     {<span class="code-string">"customer_id"</span>: application[<span class="code-string">"customer_id"</span>]},
+                     depends_on=[<span class="code-string">"S1"</span>], failure_strategy=<span class="code-string">"escalate"</span>),
+
+            <span class="code-function">PlanStep</span>(<span class="code-string">"S3"</span>, <span class="code-string">"Verify employment"</span>, <span class="code-string">"verify_employment"</span>,
+                     {<span class="code-string">"employer_id"</span>: application.<span class="code-function">get</span>(<span class="code-string">"employer_id"</span>)},
+                     depends_on=[<span class="code-string">"S1"</span>], failure_strategy=<span class="code-string">"skip"</span>),
+        ]
+
+        <span class="code-comment"># Large loan (>500M): add extra verification steps</span>
+        <span class="code-keyword">if</span> loan_amount > <span class="code-number">500_000_000</span>:
+            plan.<span class="code-function">append</span>(<span class="code-function">PlanStep</span>(
+                <span class="code-string">"S4"</span>, <span class="code-string">"Income verification"</span>, <span class="code-string">"verify_income"</span>,
+                {<span class="code-string">"customer_id"</span>: application[<span class="code-string">"customer_id"</span>]},
+                depends_on=[<span class="code-string">"S2"</span>, <span class="code-string">"S3"</span>], required=<span class="code-keyword">True</span>, failure_strategy=<span class="code-string">"abort"</span>
+            ))
+        <span class="code-keyword">if</span> has_collateral:
+            plan.<span class="code-function">append</span>(<span class="code-function">PlanStep</span>(
+                <span class="code-string">"S5"</span>, <span class="code-string">"Collateral appraisal"</span>, <span class="code-string">"appraise_collateral"</span>,
+                {<span class="code-string">"collateral_id"</span>: application.<span class="code-function">get</span>(<span class="code-string">"collateral_id"</span>)},
+                depends_on=[<span class="code-string">"S1"</span>], failure_strategy=<span class="code-string">"escalate"</span>
+            ))
+
+        plan.<span class="code-function">append</span>(<span class="code-function">PlanStep</span>(
+            <span class="code-string">"S_final"</span>, <span class="code-string">"Generate decision"</span>, <span class="code-string">"make_decision"</span>,
+            {}, depends_on=[s.step_id <span class="code-keyword">for</span> s <span class="code-keyword">in</span> plan], failure_strategy=<span class="code-string">"abort"</span>
+        ))
+        <span class="code-keyword">return</span> plan
+
+    <span class="code-keyword">def</span> <span class="code-function">execute_plan</span>(self, plan: List[PlanStep], executor) -> dict:
+        <span class="code-comment">"""Execute plan respecting dependencies. Replan on failure."""</span>
+        results = {}
+        <span class="code-keyword">for</span> step <span class="code-keyword">in</span> plan:
+            <span class="code-comment"># Check all dependencies completed</span>
+            deps_ok = <span class="code-function">all</span>(results.<span class="code-function">get</span>(d, {}).<span class="code-function">get</span>(<span class="code-string">"status"</span>) == <span class="code-string">"ok"</span> <span class="code-keyword">for</span> d <span class="code-keyword">in</span> step.depends_on)
+            <span class="code-keyword">if</span> <span class="code-keyword">not</span> deps_ok:
+                step.status = TaskStatus.SKIPPED
+                <span class="code-keyword">continue</span>
+
+            step.status = TaskStatus.IN_PROGRESS
+            result = executor(step.tool, step.params)
+            <span class="code-keyword">if</span> result.<span class="code-function">get</span>(<span class="code-string">"status"</span>) == <span class="code-string">"ok"</span>:
+                step.status = TaskStatus.COMPLETED
+                results[step.step_id] = result
+            <span class="code-keyword">else</span>:
+                step.status = TaskStatus.FAILED
+                <span class="code-keyword">if</span> step.failure_strategy == <span class="code-string">"abort"</span> <span class="code-keyword">and</span> step.required:
+                    <span class="code-keyword">return</span> {<span class="code-string">"decision"</span>: <span class="code-string">"REJECT"</span>, <span class="code-string">"reason"</span>: <span class="code-string">f"Critical step {step.name} failed"</span>}
+                <span class="code-keyword">elif</span> step.failure_strategy == <span class="code-string">"escalate"</span>:
+                    <span class="code-keyword">return</span> {<span class="code-string">"decision"</span>: <span class="code-string">"REVIEW"</span>, <span class="code-string">"reason"</span>: <span class="code-string">f"Escalate: {step.name} needs manual verification"</span>}
+        <span class="code-keyword">return</span> results.<span class="code-function">get</span>(<span class="code-string">"S_final"</span>, {<span class="code-string">"decision"</span>: <span class="code-string">"REVIEW"</span>, <span class="code-string">"reason"</span>: <span class="code-string">"Plan incomplete"</span>})</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Trong plan của LoanBot, Step S3 (Verify Employment) fail với lỗi "employer database timeout". failure_strategy = "skip". Điều gì xảy ra tiếp theo trong plan execution? Step S_final có chạy không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Với failure_strategy="skip", S3 được đánh dấu FAILED nhưng execution tiếp tục (không abort). S4 (Income Verification) depends_on=[S2, S3] — vì S3 FAILED (không phải COMPLETED), S4 sẽ bị SKIPPED (deps_ok = False). S_final depends_on tất cả steps — vì S3 và S4 không COMPLETED, S_final cũng bị SKIPPED. Result: plan trả về fallback {"decision": "REVIEW", "reason": "Plan incomplete"} — đúng behavior vì thiếu employment verification cho loan lớn. Alternative tốt hơn: trong real implementation, S3 failure strategy nên là "escalate" (không phải "skip") để trigger manual review thay vì âm thầm bỏ qua.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Self-Reflection & Critique — LoanBot Tự Kiểm Tra</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement Self-Reflection: LoanBot review quyết định của chính nó</li>
+          <li>Dùng Constitutional AI critique để check bias và fairness</li>
+          <li>Multi-agent debate: hai LoanBot instances tranh luận để reach consensus</li>
+          <li>Biết khi nào self-reflection improve accuracy và khi nào gây overthinking</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Self-Reflection Loop</div>
+        <p><strong>Self-Reflection</strong>: sau khi generate initial answer, model đọc lại answer của mình và hỏi "Quyết định này có vấn đề gì không?" → generate critique → revise nếu cần. Với LoanBot: (1) Generate initial decision → (2) Critique: "Quyết định này có discrimination không? Có consistent với TT39/2016 không? Có missing information nào không?" → (3) Nếu critique phát hiện issue → revise decision. Yếu điểm: model đôi khi không tự phát hiện được bias của mình. Cần external critique prompt hoặc Constitutional AI principles làm rubric.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Self-Reflection với Constitutional AI Principles)</span>
+        <pre><code><span class="code-keyword">CONSTITUTIONAL_PRINCIPLES</span> = [
+    <span class="code-string">"Quyết định không được dựa trên province/vùng miền của khách hàng (geographic discrimination)"</span>,
+    <span class="code-string">"Quyết định phải cite ít nhất 1 regulation reference (TT39/2016 hoặc NĐ13/2023)"</span>,
+    <span class="code-string">"Confidence phải phù hợp với evidence — không claim 0.99 confidence trên borderline case"</span>,
+    <span class="code-string">"Explanation phải mention tất cả negative factors, không chỉ positive"</span>,
+    <span class="code-string">"REVIEW decision phải specify chính xác tài liệu cần bổ sung"</span>,
+]
+
+<span class="code-keyword">async def</span> <span class="code-function">self_reflect_and_critique</span>(
+    client: anthropic.AsyncAnthropic,
+    application: dict,
+    initial_decision: dict
+) -> dict:
+    <span class="code-comment">"""Apply Constitutional AI self-critique to initial loan decision."""</span>
+    principles_text = <span class="code-string">"\n"</span>.<span class="code-function">join</span>(<span class="code-string">f"{i+1}. {p}"</span> <span class="code-keyword">for</span> i, p <span class="code-keyword">in</span> <span class="code-function">enumerate</span>(CONSTITUTIONAL_PRINCIPLES))
+
+    critique_prompt = <span class="code-string">f"""Bạn là LoanBot Quality Reviewer. Kiểm tra quyết định sau:
+
+Application: {application}
+Initial Decision: {initial_decision}
+
+Kiểm tra theo 5 nguyên tắc Constitutional AI:
+{principles_text}
+
+Với mỗi nguyên tắc, đánh giá: PASS hoặc FAIL và lý do.
+Nếu có bất kỳ FAIL nào → revise quyết định.
+
+Output JSON:
+{{"critiques": [{{"principle_id": 1, "status": "PASS|FAIL", "reason": "..."}}],
+  "has_issues": true|false,
+  "revised_decision": {{...}} (chỉ khi has_issues=true, format giống initial_decision)
+}}"""</span>
+
+    response = <span class="code-keyword">await</span> client.messages.<span class="code-function">create</span>(
+        model=<span class="code-string">"claude-haiku-4-5-20251001"</span>, max_tokens=<span class="code-number">1024</span>,
+        messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>: critique_prompt}]
+    )
+    critique_result = json.<span class="code-function">loads</span>(response.content[<span class="code-number">0</span>].text)
+
+    <span class="code-keyword">if</span> critique_result.<span class="code-function">get</span>(<span class="code-string">"has_issues"</span>):
+        <span class="code-comment"># Return revised decision if critique found problems</span>
+        revised = critique_result.<span class="code-function">get</span>(<span class="code-string">"revised_decision"</span>, initial_decision)
+        revised[<span class="code-string">"_critique_applied"</span>] = <span class="code-keyword">True</span>
+        revised[<span class="code-string">"_critiques"</span>] = critique_result[<span class="code-string">"critiques"</span>]
+        <span class="code-keyword">return</span> revised
+    <span class="code-keyword">return</span> initial_decision  <span class="code-comment"># no issues: original decision stands</span></code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 23</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m23-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m23-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m23-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chain-of-Thought (CoT)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kỹ thuật prompting buộc model viết ra reasoning steps trước khi đưa ra kết luận. Tăng accuracy 18-40% trên complex tasks.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Zero-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">CoT chỉ bằng instruction "hãy suy nghĩ từng bước" — không cần examples. Đơn giản nhất.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">CoT với 2-3 worked examples có full reasoning chain. Tốt nhất cho structured domains như loan assessment.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ReAct</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Reasoning + Acting: interleave Thought→Action→Observation trong loop cho đến khi có đủ info để kết luận.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tree-of-Thought (ToT)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Generate nhiều reasoning branches, evaluate từng branch, chọn tốt nhất. Dùng cho conflicting signals.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Beam Search</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">ToT variant: chỉ giữ top-k branches tốt nhất ở mỗi depth → giảm computation từ O(b^d) xuống O(k×d).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Reactive Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent phản ứng trực tiếp với stimuli không có plan. Nhanh nhưng dễ miss steps trong complex workflows.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Deliberative Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent tạo plan trước khi act. Tốt hơn cho multi-step workflows với dependencies và failure handling.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">HTN Planning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hierarchical Task Network: decompose complex task thành subtasks có thứ tự và dependencies.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Reflection</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model review quyết định của chính nó, generate critique, revise nếu phát hiện vấn đề.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Constitutional AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Critique model output dựa trên explicit principles/rules. Anthropic dùng để align Claude; LoanBot dùng để check bias và compliance.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Overthinking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi CoT/ToT làm giảm accuracy vì model bắt đầu doubt đáp án đúng. Thường xảy ra với simple tasks — dùng direct prompting tốt hơn.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ReAct Trace</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Log đầy đủ Thought/Action/Observation của ReAct loop — dùng để debug, audit, và improve agent.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Failure Strategy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Policy khi plan step fail: abort (stop), skip (continue), escalate (human review), replan (adjust plan).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Multi-Agent Debate</td><td style="padding:8px 12px;">2+ LLM instances argue opposing positions → reach consensus. Improves factual accuracy on contested questions.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module22/index.html" class="btn btn-outline">← Module 22: Fine-tuning</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 23 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 11 — Human-in-the-Loop Design</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --quiz-primary: #3730a3; --quiz-accent: #6366f1; --quiz-light: #eef2ff; }
+    .quiz-header { background: linear-gradient(135deg, #1e1b4b, #3730a3, #4f46e5); }
+    .quiz-header h1 { color: #e0e7ff; }
+    .quiz-header p { color: #c7d2fe; }
+    .option-btn:hover { border-color: var(--quiz-accent); background: var(--quiz-light); }
+    .option-btn.selected { border-color: var(--quiz-accent); background: var(--quiz-light); color: var(--quiz-primary); }
+    .option-btn.correct { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+    .option-btn.wrong { background: #fee2e2; border-color: #dc2626; color: #991b1b; }
+    .progress-fill { background: linear-gradient(90deg, #4f46e5, #818cf8); }
+    .btn-submit, .btn-next { background: var(--quiz-primary); }
+    .btn-submit:hover, .btn-next:hover { background: var(--quiz-accent); }
+    .score-badge { background: linear-gradient(135deg, #3730a3, #6366f1); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-container">
+  <div class="quiz-header">
+    <div class="module-tag" style="color:#c7d2fe;">MODULE 11 · QUIZ</div>
+    <h1>🤝 Human-in-the-Loop Design</h1>
+    <p>15 câu hỏi · HITL Patterns · Approval Workflow · XAI · Enterprise Integration · Feedback Loop</p>
+  </div>
+
+  <div class="quiz-progress">
+    <div class="progress-text"><span id="currentQ">1</span> / 15</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+
+  <div class="quiz-body" id="quizBody"></div>
+  <div class="quiz-result hidden" id="quizResult"></div>
+</div>
+
+<script>
+const questions = [
+  // === L1: HITL Patterns (3 câu) ===
+  {
+    id: 1, lesson: "L1",
+    q: "EU AI Act Điều 14 (Art.14) yêu cầu gì đối với LoanBot của FinTech Corp?",
+    opts: [
+      "A. LoanBot phải được phát triển bởi nhà thầu EU",
+      "B. Phải có human oversight có thể hiểu, giám sát và overrule AI output",
+      "C. LoanBot chỉ được xử lý hồ sơ dưới 100M VNĐ",
+      "D. AI phải giải thích quyết định bằng ngôn ngữ toán học"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. EU AI Act Art.14 yêu cầu \"human oversight measures\" cho High-Risk AI: phải có người có thẩm quyền có thể hiểu output, giám sát liên tục, và override khi cần. A sai — EU Act không yêu cầu EU-origin vendor. C sai — không có giới hạn amount trong Art.14 (amount trigger là policy nội bộ). D sai — giải thích toán học không phải yêu cầu bắt buộc; natural language explanation mới quan trọng."
+  },
+  {
+    id: 2, lesson: "L1",
+    q: "LoanBot nhận hồ sơ FC-2024-002 (credit score 580, loan 200M VNĐ). FraudAgent trả về fraud_probability = 0.15. Trigger nào kích hoạt HITL?",
+    opts: [
+      "A. Trigger 1 (Loan Amount > 500M)",
+      "B. Trigger 2 (Fraud signal > 0.3)",
+      "C. Trigger 3 (Borderline score 560–680)",
+      "D. Không có trigger nào — auto process"
+    ],
+    correct: 2,
+    explanation: "Đáp án C. Score 580 nằm trong borderline zone 560–680 → Trigger 3. Loan 200M < 500M → Trigger 1 không kích hoạt. Fraud 0.15 < 0.3 → Trigger 2 không kích hoạt. Không có regulatory flag → Trigger 4 không kích hoạt. Kết quả: HITL với SLA 8h (Level 1 — Loan Officer). Đây là hồ sơ của khách hàng borderline điển hình cần human judgment."
+  },
+  {
+    id: 3, lesson: "L1",
+    q: "Automation bias trong HITL là gì và tại sao nguy hiểm cho FinTech Corp?",
+    opts: [
+      "A. Loan officer mất quá nhiều thời gian review mỗi hồ sơ",
+      "B. AI chạy quá nhanh khiến hệ thống quá tải",
+      "C. Loan officer follow AI recommendation dù AI sai, vì tin tưởng quá mức vào automation",
+      "D. AI tự động phê duyệt hồ sơ không qua workflow"
+    ],
+    correct: 2,
+    explanation: "Đáp án C. Automation bias (Goddard et al., 2012): con người có xu hướng defer to AI recommendation ngay cả khi AI sai. Nguy hiểm vì: loan officer là lá chắn cuối cùng — nếu họ rubber-stamp AI, HITL không có giá trị thực. GDPR Art.22 yêu cầu meaningful human review, không phải formality. Solution: UI design có chủ ý — delay AI verdict, require pre-commitment, add friction cho override."
+  },
+
+  // === L2: Approval Workflow (3 câu) ===
+  {
+    id: 4, lesson: "L2",
+    q: "Hồ sơ loan 800M VNĐ với fraud_probability = 0.05 được assign cho Loan Officer L1. SLA là bao nhiêu?",
+    opts: [
+      "A. 8 giờ (Level 1 standard)",
+      "B. 4 giờ (Level 2 — vì loan > 500M)",
+      "C. 24 giờ (Level 3 — Credit Committee)",
+      "D. 1 giờ — emergency vì amount cao"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Loan 800M > 500M VNĐ → Level 2 approval (Branch Manager), SLA = 4 giờ. Level 1 (8h) chỉ cho loan < 500M. Level 3 (24h) cho loan > 2 tỷ. Loan amount là yếu tố quyết định approval level, không phải fraud_probability (0.05 thấp, không phải fraud trigger). Branch Manager có authority limit cao hơn Loan Officer."
+  },
+  {
+    id: 5, lesson: "L2",
+    q: "Loan officer review hồ sơ FC-2024-004 (AI recommend: APPROVE). Loan officer APPROVE. HITLCase ghi nhận status gì?",
+    opts: [
+      "A. AI_OVERRIDE",
+      "B. APPROVED",
+      "C. IN_REVIEW",
+      "D. ESCALATED"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Loan officer đồng ý với AI (cả hai đều APPROVE) → status = APPROVED. AI_OVERRIDE chỉ xảy ra khi human_decision != ai_recommendation. IN_REVIEW là trạng thái đang xem xét, chưa có quyết định. ESCALATED xảy ra khi SLA breach. Code trong HITLCase.human_decide(): nếu decision == ai_recommendation → APPROVED hoặc REJECTED; nếu khác → AI_OVERRIDE."
+  },
+  {
+    id: 6, lesson: "L2",
+    q: "Tại sao phải log AI_OVERRIDE events và không chỉ log quyết định cuối cùng?",
+    opts: [
+      "A. Để tính lương loan officer dựa trên số lần override",
+      "B. Override là training signal: accumulated overrides → fine-tuning dataset + drift detection",
+      "C. Để AI biết khi nào không cần chạy pipeline",
+      "D. Để CRM cập nhật customer profile tự động"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Override logs có 4 mục đích quan trọng: (1) Training data: override = labeled example — AI sai ở đâu, human đúng tại sao; (2) Drift detection: override rate tăng → model cần retrain; (3) EU AI Act compliance: audit trail bắt buộc; (4) Segment analysis: overrides tập trung ở self-employed → model yếu ở segment đó → targeted improvement. Chỉ log quyết định cuối bỏ mất signal quý giá về model weaknesses."
+  },
+
+  // === L3: XAI (3 câu) ===
+  {
+    id: 7, lesson: "L3",
+    q: "GDPR Điều 22 (Art.22) liên quan đến LoanBot như thế nào?",
+    opts: [
+      "A. Yêu cầu LoanBot encrypt toàn bộ customer data",
+      "B. Khách hàng có quyền yêu cầu giải thích cho quyết định automated có ảnh hưởng significant",
+      "C. LoanBot không được xử lý dữ liệu của công dân EU",
+      "D. Yêu cầu lưu data trong EU-based servers"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. GDPR Art.22 'Right to explanation': khi một quyết định automated (bao gồm credit decision) có significant effect, người dùng có quyền: (1) không bị subject to fully automated decision; (2) nhận meaningful explanation về logic của AI; (3) yêu cầu human review. Điều này là lý do LoanBot phải có HITL và ExplanationGenerator — không chỉ tuân thủ EU AI Act mà còn GDPR."
+  },
+  {
+    id: 8, lesson: "L3",
+    q: "Trong Explanation Card của LoanBot, 'factor contribution' là gì?",
+    opts: [
+      "A. Số lần mỗi agent được gọi trong pipeline",
+      "B. Mức độ đóng góp của từng yếu tố vào quyết định AI (tương tự SHAP values)",
+      "C. Cost của mỗi API call trong pipeline",
+      "D. Điểm tin cậy của từng agent trong multi-agent system"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Factor contribution (tương tự SHAP — SHapley Additive exPlanations): mỗi feature (credit score, DTI, income, history...) có contribution score dương hoặc âm. Dương = push toward APPROVE, Âm = push toward REJECT. Loan officer nhìn vào bar chart của factors để hiểu TẠI SAO AI đưa ra recommendation, không chỉ biết kết quả. Đây là core của XAI trong tín dụng."
+  },
+  {
+    id: 9, lesson: "L3",
+    q: "Kỹ thuật nào chống automation bias HIỆU QUẢ NHẤT trong HITL UI design?",
+    opts: [
+      "A. Hiển thị AI verdict ngay đầu trang để loan officer đánh giá nhanh",
+      "B. Require pre-commitment: loan officer chọn inclined before seeing AI verdict",
+      "C. Tắt AI recommendation cho hồ sơ borderline",
+      "D. Giới hạn loan officer mỗi ngày chỉ được override tối đa 2 lần"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Pre-commitment (Skitka et al., 2000) là technique hiệu quả nhất: yêu cầu loan officer ghi nhận initial assessment TRƯỚC khi xem AI verdict. Khi họ đã committed, họ evaluate AI verdict critically thay vì defer automatically. A là ngược lại — showing verdict first triggers automation bias. C mất benefit của AI. D arbitrary limit không giải quyết root cause (bias trong evaluation process)."
+  },
+
+  // === L4: Enterprise Integration (3 câu) ===
+  {
+    id: 10, lesson: "L4",
+    q: "NotificationHub gửi Slack notification cho cùng một HITL case 3 lần (do retry). Tại sao loan officer chỉ nhận 1 tin?",
+    opts: [
+      "A. Slack tự động deduplicate messages",
+      "B. NotificationHub dùng idempotency key (hash của case_id) để không gửi duplicate",
+      "C. LoanBot rate limit 1 notification mỗi 10 phút",
+      "D. Loan officer manually block duplicate notifications trong Slack settings"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Idempotency: NotificationHub tính MD5 hash của '{case_id}-hitl' và lưu trong sent_ids set. Trước khi send, check: nếu notif_id đã trong set → return False (skip). Đây là pattern quan trọng trong distributed systems — retry là bình thường (network failure, timeout), nhưng effect phải xảy ra đúng 1 lần. Slack không tự deduplicate — cần application-level idempotency."
+  },
+  {
+    id: 11, lesson: "L4",
+    q: "Khi nào nên gửi SMS alert trong HITL workflow của FinTech Corp?",
+    opts: [
+      "A. Ngay khi có HITL case mới — mọi lúc",
+      "B. Khi SLA đạt 75% (loan officer chưa review) — urgent escalation",
+      "C. Khi loan officer override AI recommendation",
+      "D. Khi loan amount > 1 tỷ VNĐ"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. SMS là kênh high-urgency — dùng khi loan officer chưa review và SLA sắp hết (75% elapsed). Slack notification khi case mới (non-intrusive). Email cho manager CC và formal record. SMS breach-warning là escalation signal: nếu SLA = 8h, SMS tại 6h (75% = 6h) → loan officer có 2h cuối để quyết định trước khi auto-escalate lên Level 2. Tránh SMS spam bằng cách chỉ dùng cho SLA breach."
+  },
+  {
+    id: 12, lesson: "L4",
+    q: "FraudAgent phát hiện fraud_probability = 0.35 cho hồ sơ đang processing. NotificationHub phải làm gì NGAY LẬP TỨC?",
+    opts: [
+      "A. Chờ pipeline hoàn tất rồi notify bình thường",
+      "B. Notify HITL ngay lập tức, đồng thời freeze hồ sơ không cho auto-approve",
+      "C. Tự động reject hồ sơ và notify khách hàng",
+      "D. Gửi report lên Credit Committee và đợi response"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Fraud signal (> 0.3) = Trigger 2 — HITL immediate, không chờ pipeline. Tại sao không chờ? Vì các bước sau (RiskAgent, ComplianceAgent) có thể vô tình give positive signals nếu không có fraud context, leading to false approval. Freeze hồ sơ ngăn race condition: pipeline đang chạy nhưng HITL chưa complete. C sai — human phải decide, không auto-reject. D sai — Credit Committee cho amount > 2 tỷ, không phải fraud trigger."
+  },
+
+  // === L5: Feedback Loop (3 câu) ===
+  {
+    id: 13, lesson: "L5",
+    q: "Override rate của LoanBot tháng này là 8% (bình thường 3%). FeedbackCollector nên làm gì?",
+    opts: [
+      "A. Ignore — variance tháng bình thường",
+      "B. Trigger retraining signal vì 8% > 1.5 × 3% (threshold)",
+      "C. Fire tất cả loan officers vì override rate cao",
+      "D. Tăng ngưỡng HITL để ít case hơn"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. should_trigger_retraining() check: current (8%) > baseline (3%) × 1.5 = 4.5%. 8% > 4.5% → True → trigger retraining. Retraining signal không có nghĩa là retrain ngay — đây là alert để ML team investigate: (1) Xem segment nào có override nhiều nhất; (2) Thu thập override reasons; (3) Quyết định retrain hay adjust thresholds. A sai — 8% gần 3× bình thường, cần investigate. D sai — tăng threshold chỉ giảm HITL rate, không giải quyết model quality."
+  },
+  {
+    id: 14, lesson: "L5",
+    q: "Model drift trong LoanBot có nghĩa là gì và dấu hiệu nhận biết?",
+    opts: [
+      "A. Model bị hack, weights bị thay đổi bởi hacker",
+      "B. Model performance giảm khi data distribution thực tế thay đổi theo thời gian",
+      "C. Model chạy chậm hơn do infrastructure issues",
+      "D. Model bị prompt injection liên tục"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Model drift: khi distribution của loan applications thực tế thay đổi (ví dụ: post-COVID, nhiều self-employed hơn; lạm phát thay đổi income patterns) nhưng model không được update → predictions kém chính xác. Dấu hiệu: override rate tăng, overrides tập trung ở một segment, AI confidence giảm đều. Solution: FeedbackCollector.segment_drift_analysis() → identify yếu segment → targeted retraining với new data."
+  },
+  {
+    id: 15, lesson: "L5",
+    q: "Điều gì làm cho 'Virtuous Learning Loop' của LoanBot trở thành competitive advantage bền vững?",
+    opts: [
+      "A. Vì AI model đắt tiền và competitors không đủ khả năng mua",
+      "B. Mỗi HITL override là training data — sau mỗi vòng, model sát hơn với expert judgment thực tế, tạo ra data moat",
+      "C. Vì loop chạy nhanh hơn đối thủ",
+      "D. Vì FinTech Corp có nhiều loan officers hơn competitors"
+    ],
+    correct: 1,
+    explanation: "Đáp án B. Virtuous loop tạo data moat (competitive advantage từ proprietary data): (1) LoanBot → HITL cases → human overrides; (2) Overrides = labeled data unique to FinTech Corp's expert judgment; (3) Fine-tuning → LoanBot v3.1 (ít overrides); (4) Lặp lại → model ngày càng tiệm cận judgment của loan officers tốt nhất. Competitors không thể mua dataset này vì nó đến từ domain expertise + context của FinTech Corp. Đây là lý do HITL không chỉ là compliance — nó là strategic asset."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = [];
+
+function render() {
+  const q = questions[current];
+  const pct = ((current + 1) / questions.length * 100).toFixed(2);
+  document.getElementById('currentQ').textContent = current + 1;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  document.getElementById('quizBody').innerHTML = `
+    <div class="question-card">
+      <div class="question-meta">
+        <span class="q-number">Câu ${q.id}</span>
+        <span class="q-lesson">${q.lesson}</span>
+      </div>
+      <div class="question-text">${q.q}</div>
+      <div class="options-grid">
+        ${q.opts.map((o, i) => `
+          <button class="option-btn" data-idx="${i}" onclick="selectOpt(this, ${i})">
+            ${o}
+          </button>`).join('')}
+      </div>
+      <div class="quiz-action">
+        <button class="btn-submit" id="submitBtn" disabled onclick="submitAnswer()">Kiểm tra đáp án</button>
+      </div>
+      <div class="explanation-box hidden" id="explBox"></div>
+    </div>`;
+}
+
+function selectOpt(el, idx) {
+  if (document.getElementById('submitBtn').disabled === false && el.classList.contains('selected')) return;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('submitBtn').disabled = false;
+  el.dataset.chosen = idx;
+}
+
+function submitAnswer() {
+  const chosen = document.querySelector('.option-btn.selected');
+  if (!chosen) return;
+  const idx = parseInt(chosen.dataset.idx);
+  const q = questions[current];
+  const isCorrect = idx === q.correct;
+  if (isCorrect) score++;
+  answered.push(isCorrect);
+
+  document.querySelectorAll('.option-btn').forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('correct');
+    else if (i === idx && !isCorrect) b.classList.add('wrong');
+  });
+
+  const eb = document.getElementById('explBox');
+  eb.classList.remove('hidden');
+  eb.innerHTML = `
+    <div class="expl-verdict ${isCorrect ? 'correct' : 'wrong'}">
+      ${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng'}
+    </div>
+    <div class="expl-text">${q.explanation}</div>`;
+
+  document.getElementById('submitBtn').textContent = current < questions.length - 1 ? 'Câu tiếp theo →' : 'Xem kết quả';
+  document.getElementById('submitBtn').onclick = nextQuestion;
+}
+
+function nextQuestion() {
+  current++;
+  if (current >= questions.length) showResult();
+  else render();
+}
+
+function showResult() {
+  document.getElementById('quizBody').classList.add('hidden');
+  const pct = Math.round(score / questions.length * 100);
+  const grade = pct >= 90 ? 'Xuất sắc 🏆' : pct >= 75 ? 'Tốt ✅' : pct >= 60 ? 'Cần ôn thêm 📚' : 'Cần học lại 🔄';
+  const res = document.getElementById('quizResult');
+  res.classList.remove('hidden');
+  res.innerHTML = `
+    <div class="result-card">
+      <div class="score-badge">${score}/${questions.length}</div>
+      <div class="score-pct">${pct}%</div>
+      <div class="score-grade">${grade}</div>
+      <div class="score-breakdown">
+        ${answers_breakdown()}
+      </div>
+      <div class="result-actions">
+        <button onclick="location.reload()" class="btn-retry">🔄 Làm lại</button>
+        <a href="index.html" class="btn-review">📖 Ôn bài</a>
+        <a href="../module12/index.html" class="btn btn-primary" style="text-decoration:none;">Module 12: Evaluation →</a>
+      </div>
+    </div>`;
+}
+
+function answers_breakdown() {
+  return questions.map((q, i) => `
+    <span class="ans-dot ${answered[i] ? 'correct' : 'wrong'}" title="Câu ${i+1}: ${q.lesson}">
+      ${answered[i] ? '✓' : '✗'}
+    </span>`).join('');
+}
+
+render();
+</script>
+</body>
+</html>

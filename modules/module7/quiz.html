@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 7 — Enterprise Multi-Agent Department</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .quiz-wrap { max-width: 780px; margin: 0 auto; padding: var(--space-6); }
+    .quiz-header { background: linear-gradient(135deg,#4c1d95,#7c3aed); color:#fff; border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-8); text-align:center; }
+    .quiz-header h1 { font-size:1.75rem; color:#fff; margin-bottom:var(--space-2); }
+    .quiz-header p  { color:rgba(255,255,255,.8); margin:0; }
+    .q-card { background: var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:var(--space-6); margin-bottom:var(--space-5); }
+    .q-num  { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:var(--space-2); }
+    .q-text { font-size:1rem; font-weight:600; color:var(--primary-dark); margin-bottom:var(--space-4); line-height:1.6; }
+    .q-opts { list-style:none; padding:0; margin:0; }
+    .q-opts li { margin-bottom:var(--space-2); }
+    .q-opts label { display:flex; align-items:flex-start; gap:var(--space-3); padding:var(--space-3) var(--space-4); border:1.5px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:var(--transition); font-size:.925rem; }
+    .q-opts label:hover { background:var(--info-light); border-color:var(--info); }
+    .q-opts input[type=radio] { margin-top:2px; flex-shrink:0; accent-color:var(--primary); }
+    .q-opts label.correct  { background:var(--success-light); border-color:var(--success); color:#14532d; }
+    .q-opts label.wrong    { background:var(--danger-light);  border-color:var(--danger);  color:#991b1b; }
+    .q-opts label.missed   { background:#fef9c3; border-color:#fde047; }
+    .feedback { display:none; margin-top:var(--space-4); padding:var(--space-4); border-radius:var(--radius); font-size:.9rem; line-height:1.6; border-left:3px solid; }
+    .feedback.show { display:block; }
+    .feedback.ok  { background:var(--success-light); border-color:var(--success); color:#14532d; }
+    .feedback.ko  { background:var(--danger-light);  border-color:var(--danger);  color:#991b1b; }
+    .q-submit { margin-top:var(--space-4); background:var(--primary); color:#fff; border:none; padding:var(--space-3) var(--space-6); border-radius:var(--radius); cursor:pointer; font-size:.9rem; font-weight:600; font-family:var(--font-sans); transition:var(--transition); }
+    .q-submit:hover { background:var(--primary-dark); }
+    .q-submit:disabled { opacity:.5; cursor:default; }
+    .progress-bar-wrap { background:var(--border); border-radius:var(--radius-full); height:8px; margin-bottom:var(--space-6); }
+    .progress-bar-fill { background:linear-gradient(90deg,#7c3aed,#a855f7); height:100%; border-radius:var(--radius-full); transition:width .4s ease; }
+    .score-box { background:linear-gradient(135deg,#4c1d95,#7c3aed); color:#fff; border-radius:var(--radius-xl); padding:var(--space-10); text-align:center; display:none; }
+    .score-num { font-size:4rem; font-weight:800; color:var(--accent); }
+    .score-label { font-size:1.1rem; color:rgba(255,255,255,.8); margin:var(--space-2) 0 var(--space-6); }
+    code { background:rgba(99,102,241,.1); color:#4338ca; padding:1px 5px; border-radius:3px; font-size:.9em; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-wrap" style="margin-top:calc(var(--topbar-height) + var(--space-6))">
+  <div class="quiz-header">
+    <h1>📝 Quiz Module 7</h1>
+    <p>Enterprise Multi-Agent Department · 15 câu hỏi · Kiểm tra kiến thức SOTA</p>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="prog" style="width:0%"></div>
+  </div>
+
+  <div id="quiz-body"></div>
+  <div class="score-box" id="score-box">
+    <div style="font-size:3rem;margin-bottom:var(--space-4)">🏢</div>
+    <div class="score-num" id="score-num">0/15</div>
+    <div class="score-label" id="score-label">Đang tính điểm...</div>
+    <a href="index.html" style="display:inline-block;margin-top:var(--space-4);background:var(--accent);color:var(--primary-dark);padding:var(--space-3) var(--space-8);border-radius:var(--radius-full);font-weight:800;text-decoration:none;">📖 Xem lại bài giảng</a>
+  </div>
+</div>
+
+<script>
+const QS = [
+  {
+    q: "FinTech Corp muốn thêm MarketingAgent vào LoanBot v3.0. Với kiến trúc Agent Registry, bước nào là KHÔNG cần thiết?",
+    opts: [
+      "Tạo Capability Card với capabilities=['send_offer','marketing']",
+      "Sửa code của IntelligentSupervisor để import MarketingAgent",
+      "Đăng ký agent vào AgentRegistry với TTL và health endpoint",
+      "Test MarketingAgent độc lập trước khi register"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! Với Registry pattern, Supervisor KHÔNG cần biết tên cụ thể của agent. Supervisor chỉ query 'tôi cần capability: send_offer'. Registry tự resolve. Không cần sửa Supervisor code — đây là ưu điểm lớn nhất của pattern này."
+  },
+  {
+    q: "Capability Card của một agent trong ANS (Agent Name Service) KHÔNG bao gồm thông tin nào?",
+    opts: [
+      "SLA cam kết (ví dụ: 300ms maximum latency)",
+      "Tên cá nhân của developer đã viết agent",
+      "Input/output schema để validation",
+      "Health endpoint để registry monitoring"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! Capability Card tập trung vào thông tin kỹ thuật: capabilities, SLA, cost, schema, health_endpoint, TTL. Thông tin về developer không liên quan đến routing và discovery."
+  },
+  {
+    q: "Theo nghiên cứu 2025, vấn đề #1 khiến multi-agent systems thất bại khi scale là:",
+    opts: [
+      "LLM không đủ thông minh để hiểu task phức tạp",
+      "Chi phí API quá cao khi chạy nhiều agents",
+      "State Management — agent mất state khi restart, không resume được",
+      "Network latency giữa các agents quá cao"
+    ],
+    ans: 2,
+    fb: "✅ Đúng! State Management là vấn đề số 1 — 73% major incidents trong multi-agent systems xuất phát từ cascading failures liên quan đến state loss. Giải pháp: checkpoint trước mỗi external API call."
+  },
+  {
+    q: "A2A Protocol (Google, 4/2025) giải quyết vấn đề gì mà cách giao tiếp agent cũ không làm được?",
+    opts: [
+      "Cho phép agent gọi LLM nhanh hơn",
+      "Chuẩn hóa task handoffs với state tracking end-to-end, không mất context",
+      "Giúp agent hiểu tiếng Việt tốt hơn",
+      "Giảm số lượng tokens cần thiết cho mỗi agent"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! A2A chuẩn hóa: Task object (không custom JSON), Agent Card (capability discovery), TaskState machine (tracking end-to-end), Artifacts (kết quả không bị mất khi handoff). Trước A2A: mỗi team tự build custom integration, dễ mất context khi chuyển giao."
+  },
+  {
+    q: "TTL-based lease trong Agent Registry có nghĩa là gì?",
+    opts: [
+      "Agent được phép làm việc tối đa TTL giây mỗi lần",
+      "Agent phải renew heartbeat trước khi TTL hết — nếu crash, tự động bị xóa khỏi pool",
+      "Registry xóa agent sau TTL ngày để giải phóng bộ nhớ",
+      "Agent chỉ được gọi tối đa TTL lần mỗi giờ"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! TTL (Time-To-Live) lease hoạt động như 'hợp đồng ngắn hạn': agent phải renew (gửi heartbeat) trước khi TTL hết — thường 300 giây. Nếu agent crash và không renew, Registry tự động deregister — không cần DevOps can thiệp thủ công."
+  },
+  {
+    q: "LoanBot v3.0 checkpoint state trước khi gọi CIC API. Sau đó server crash. Khi restart, điều gì xảy ra với hồ sơ đang xử lý?",
+    opts: [
+      "Hồ sơ bị hủy — khách hàng phải submit lại",
+      "Supervisor gọi lại toàn bộ pipeline từ đầu",
+      "Supervisor load checkpoint, bỏ qua CIC call (dùng cached score), tiếp tục từ Income check",
+      "Hệ thống đợi 24 giờ trước khi retry"
+    ],
+    ans: 2,
+    fb: "✅ Đúng! Checkpoint/Resume: Supervisor đọc TaskState từ DB, thấy checkpoint={step:2, credit_score:720, tools_called:['check_credit']}. KHÔNG gọi CIC lần 2 (score đã cached). Tiếp tục từ Income check. Khách hàng không biết có incident."
+  },
+  {
+    q: "Framework nào phù hợp nhất cho use case: 'Cần ship prototype trong 1 tuần, team 2 người, workflow cấu trúc rõ ràng'?",
+    opts: [
+      "LangGraph — vì có state persistence tốt nhất",
+      "AutoGen v0.4 — vì async actor model nhanh nhất",
+      "CrewAI — fastest time-to-value, built-in governance, Crew+Task mental model đơn giản",
+      "Anthropic SDK thuần — vì không vendor lock-in"
+    ],
+    ans: 2,
+    fb: "✅ Đúng! CrewAI = fastest time-to-value. Crew (agents) + Tasks + Process là mental model rõ ràng nhất cho non-ML engineers. Built-in RBAC và audit trail. 63% Fortune 500 dùng. Prototype trong vài giờ, production trong vài ngày."
+  },
+  {
+    q: "AutoGen v0.4 được redesign hoàn toàn tháng 1/2025 để chuyển sang mô hình nào?",
+    opts: [
+      "Graph-based orchestration với nodes và edges",
+      "Event-Driven Actor Model — agents giao tiếp qua async messages, không blocking",
+      "Hierarchical supervisor với fixed team structure",
+      "Pipeline sequential — agent A xong thì agent B mới bắt đầu"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! AutoGen v0.4 redesign sang Actor Model: mỗi agent là một 'actor' nhận và gửi messages bất đồng bộ. Không blocking — agents không đợi nhau. Throughput cao hơn nhiều so với synchronous patterns như LangGraph."
+  },
+  {
+    q: "LoanBot v3.0 có 8 agents. Trong Phase 1, agents nào chạy SONG SONG (asyncio.gather)?",
+    opts: [
+      "RiskAgent + ComplianceAgent",
+      "CreditAgent + IncomeAgent + FraudAgent",
+      "ReportAgent + AuditAgent",
+      "Tất cả 8 agents chạy song song"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! Phase 1 (parallel): CreditAgent + IncomeAgent + FraudAgent chạy đồng thời vì độc lập nhau. Phase 2: RiskAgent + ComplianceAgent (cần kết quả Phase 1). Phase 3: ReportAgent + AuditAgent. Supervisor không thể song song tất cả vì có dependencies."
+  },
+  {
+    q: "ComplianceAgent trong LoanBot v3.0 có nhiệm vụ chính là gì?",
+    opts: [
+      "Tính toán điểm tín dụng theo model nội bộ",
+      "Kiểm tra EU AI Act Article 14 (HITL requirement) và Art.12 (audit logging) trước mỗi quyết định",
+      "Gửi thông báo kết quả cho khách hàng",
+      "Phát hiện pattern gian lận trong hồ sơ"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! ComplianceAgent = 'cảnh sát nội bộ' của phòng ban. Trước khi RiskAgent ra quyết định, ComplianceAgent check: (1) HITL required không? (loan > 500M VNĐ), (2) Audit trail đã đủ chưa?, (3) AI Disclosure đã có chưa?. Nếu không pass → block quyết định."
+  },
+  {
+    q: "73% incidents lớn trong multi-agent enterprise systems xuất phát từ:",
+    opts: [
+      "Model LLM trả lời sai",
+      "Chi phí API vượt budget",
+      "Cascading Failures — một agent chậm làm sập toàn bộ hệ thống",
+      "Thiếu training data chất lượng"
+    ],
+    ans: 2,
+    fb: "✅ Đúng! Cascading failure = 'domino effect' trong multi-agent: CIC API chậm → CreditAgent timeout → Supervisor không nhận được kết quả → toàn bộ workflow bị block. Giải pháp: circuit breaker (đã học M2) + bulkheads (isolate agent pools) + timeout cứng."
+  },
+  {
+    q: "MCP (Model Context Protocol) khác với A2A Protocol như thế nào?",
+    opts: [
+      "MCP và A2A là cùng một protocol, khác tên",
+      "MCP là chuẩn agent-to-tool (Anthropic), A2A là chuẩn agent-to-agent (Google)",
+      "MCP chỉ dùng cho Claude, A2A dùng cho GPT-4",
+      "MCP là protocol cũ, A2A là phiên bản mới hơn"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! Hai protocols có mục đích khác nhau: MCP (Anthropic) = chuẩn cho agent kết nối với tools (GitHub, Slack, Postgres, Notion...). A2A (Google) = chuẩn cho agent giao tiếp với agent khác (peer handoffs, task delegation). Một hệ thống production cần CẢ HAI."
+  },
+  {
+    q: "Trong ANS, khi Supervisor query 'capability: credit_check', Registry trả về kết quả dựa trên:",
+    opts: [
+      "Tên agent được đặt bởi developer",
+      "SLA + health status + cost — agents phù hợp nhất được sort lên đầu",
+      "Thứ tự đăng ký vào registry (first-in, first-out)",
+      "Random selection để load balancing"
+    ],
+    ans: 1,
+    fb: "✅ Đúng! Registry không chỉ filter theo capability — nó sort theo: (1) Health = HEALTHY, (2) SLA trong budget, (3) Cost thấp nhất. Supervisor nhận danh sách sorted và chọn agent tốt nhất. Điều này tự động implement load balancing và cost optimization."
+  },
+  {
+    q: "AuditAgent trong LoanBot v3.0 cần lưu log trong bao lâu, theo quy định nào?",
+    opts: [
+      "6 tháng — theo tiêu chuẩn ISO 27001",
+      "1 năm — theo quy định PDPA của Việt Nam",
+      "3 năm — theo EU AI Act Article 12 về record keeping",
+      "10 năm — theo tiêu chuẩn ngân hàng quốc tế"
+    ],
+    ans: 2,
+    fb: "✅ Đúng! EU AI Act Article 12 yêu cầu High-Risk AI systems lưu logs tối thiểu 3 năm. Mỗi quyết định phải có: trace_id, inputs, outputs, model version, timestamp, reviewer (nếu HITL). Immutable — không được sửa, chỉ append."
+  },
+  {
+    q: "Theo số liệu 2025, tỷ lệ doanh nghiệp scale multi-agent thành công là bao nhiêu? Nguyên nhân thất bại chính là gì?",
+    opts: [
+      "80% thành công — chủ yếu thất bại do chi phí LLM",
+      "50% thành công — chủ yếu do thiếu developer giỏi AI",
+      "23% thành công — chủ yếu do hardcoded architecture, state management kém, cascading failures",
+      "10% thành công — chủ yếu do LLM không đủ thông minh"
+    ],
+    ans: 2,
+    fb: "✅ Đúng! Chỉ 23% doanh nghiệp scale thành công (McKinsey 2025). 3 nguyên nhân chính: (1) Hardcoded architecture không flex khi thêm agents, (2) State management kém → mất data khi crash, (3) Cascading failures không có circuit breaker. Module 7 giải quyết cả 3 vấn đề này."
+  }
+];
+
+let answered = 0, score = 0;
+const total = QS.length;
+
+function render() {
+  const body = document.getElementById('quiz-body');
+  body.innerHTML = QS.map((q, i) => `
+    <div class="q-card" id="card-${i}">
+      <div class="q-num">Câu ${i+1} / ${total}</div>
+      <div class="q-text">${q.q}</div>
+      <ul class="q-opts">
+        ${q.opts.map((o, j) => `
+          <li><label id="lbl-${i}-${j}">
+            <input type="radio" name="q${i}" value="${j}" id="r-${i}-${j}"> ${o}
+          </label></li>`).join('')}
+      </ul>
+      <button class="q-submit" onclick="submit(${i})" id="btn-${i}">Xác nhận</button>
+      <div class="feedback" id="fb-${i}"></div>
+    </div>`).join('');
+}
+
+function submit(i) {
+  const sel = document.querySelector(`input[name="q${i}"]:checked`);
+  if (!sel) { alert('Vui lòng chọn một đáp án.'); return; }
+  const chosen = +sel.value;
+  const q = QS[i];
+  const fb = document.getElementById(`fb-${i}`);
+  const btn = document.getElementById(`btn-${i}`);
+  btn.disabled = true;
+  document.querySelectorAll(`input[name="q${i}"]`).forEach(r => r.disabled = true);
+
+  q.opts.forEach((_, j) => {
+    const lbl = document.getElementById(`lbl-${i}-${j}`);
+    if (j === q.ans) lbl.classList.add('correct');
+    else if (j === chosen && chosen !== q.ans) lbl.classList.add('wrong');
+  });
+
+  const ok = chosen === q.ans;
+  if (ok) score++;
+  fb.className = `feedback show ${ok ? 'ok' : 'ko'}`;
+  fb.innerHTML = ok
+    ? `<strong>✅ Chính xác!</strong><br>${q.fb}`
+    : `<strong>❌ Chưa đúng.</strong> Đáp án đúng: <strong>${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</strong><br><br>${q.fb}`;
+
+  answered++;
+  document.getElementById('prog').style.width = Math.round((answered/total)*100)+'%';
+  if (answered === total) showScore();
+}
+
+function showScore() {
+  setTimeout(() => {
+    const box = document.getElementById('score-box');
+    box.style.display = 'block';
+    document.getElementById('score-num').textContent = `${score}/${total}`;
+    const pct = Math.round((score/total)*100);
+    let msg = '';
+    if (pct >= 90) msg = '🏆 Xuất sắc! Bạn đã nắm vững kiến trúc Enterprise Multi-Agent Department!';
+    else if (pct >= 70) msg = '✅ Tốt! Bạn đã hiểu các pattern SOTA. Ôn lại phần Agent Registry và A2A Protocol.';
+    else msg = '📖 Cần ôn tập thêm. Xem lại bài giảng, đặc biệt phần State Management và Framework comparison.';
+    document.getElementById('score-label').textContent = `${pct}% — ${msg}`;
+    box.scrollIntoView({behavior:'smooth'});
+  }, 300);
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 28 — Agent Governance & Ethical AI Frameworks</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m28-primary: #134e4a;
+      --m28-accent: #2dd4bf;
+      --m28-light: #f0fdfa;
+      --m28-border: #5eead4;
+    }
+    .quiz-hero { background: linear-gradient(135deg, #042f2e 0%, #134e4a 60%, #2dd4bf 100%); padding: var(--space-12) var(--space-6); text-align: center; }
+    .quiz-hero-content h1 { color: #f0fdfa; font-size: 2rem; margin-bottom: var(--space-3); }
+    .quiz-hero-content p { color: #99f6e4; font-size: 1.1rem; }
+    .module-tag { display: inline-block; background: rgba(45,212,191,.2); color: #2dd4bf; border: 1px solid #2dd4bf; padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 700; letter-spacing: .08em; margin-bottom: var(--space-3); }
+    .quiz-stats { display: flex; gap: var(--space-4); justify-content: center; margin-top: var(--space-4); flex-wrap: wrap; }
+    .quiz-stats span { background: rgba(45,212,191,.15); color: #99f6e4; padding: 6px 16px; border-radius: 20px; font-size: .85rem; }
+    .quiz-container { max-width: 780px; margin: 0 auto; padding: var(--space-8) var(--space-4); }
+    .quiz-progress { margin-bottom: var(--space-6); }
+    .quiz-progress-text { font-size: .85rem; color: var(--text-muted); margin-bottom: var(--space-2); text-align: right; }
+    .quiz-progress-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, #134e4a, #2dd4bf); border-radius: 3px; transition: width .4s ease; }
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-4); box-shadow: var(--shadow-sm); }
+    .question-meta { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); }
+    .question-number { background: var(--m28-light); color: var(--m28-primary); border: 1px solid var(--m28-border); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; flex-shrink: 0; }
+    .question-difficulty { font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+    .diff-easy   { background: #dcfce7; color: #166534; }
+    .diff-medium { background: #fef9c3; color: #854d0e; }
+    .diff-hard   { background: #fce7f3; color: #831843; }
+    .question-text { font-size: 1rem; font-weight: 600; line-height: 1.6; color: var(--text-primary); margin-bottom: var(--space-4); }
+    .options-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+    .option-btn { width: 100%; text-align: left; padding: var(--space-3) var(--space-4); border: 1.5px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); cursor: pointer; font-size: .9rem; line-height: 1.5; transition: all .15s ease; color: var(--text-primary); }
+    .option-btn:hover:not(:disabled) { border-color: var(--m28-accent); background: var(--m28-light); }
+    .option-btn.correct  { border-color: #16a34a; background: #dcfce7; color: #166534; font-weight: 600; }
+    .option-btn.wrong    { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+    .option-btn.missed   { border-color: #16a34a; background: #f0fdf4; color: #166534; }
+    .feedback-box { margin-top: var(--space-4); padding: var(--space-4); border-radius: var(--radius-lg); font-size: .9rem; line-height: 1.6; display: none; }
+    .feedback-box.correct-fb { background: #dcfce7; border: 1px solid #86efac; color: #166534; }
+    .feedback-box.wrong-fb   { background: #fef2f2; border: 1px solid #fca5a5; color: #991b1b; }
+    .next-btn { margin-top: var(--space-4); display: none; }
+    .quiz-result { text-align: center; padding: var(--space-8); }
+    .result-score { font-size: 3rem; font-weight: 800; color: var(--m28-primary); }
+    .result-label { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .result-breakdown { display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-8); flex-wrap: wrap; }
+    .breakdown-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-4); min-width: 120px; }
+    .breakdown-num  { font-size: 1.5rem; font-weight: 700; }
+    .breakdown-desc { font-size: .8rem; color: var(--text-muted); }
+    .next-module-cta { background: linear-gradient(135deg, #134e4a, #2dd4bf); color: white; border-radius: var(--radius-xl); padding: var(--space-6); margin-top: var(--space-6); }
+    .next-module-cta h3 { color: white; margin-bottom: var(--space-2); }
+    .next-module-cta p { color: #ccfbf1; font-size: .9rem; margin-bottom: var(--space-4); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">← Bài giảng</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="quiz-hero">
+  <div class="quiz-hero-content">
+    <span class="module-tag">MODULE 28 · QUIZ</span>
+    <h1>⚖️ Agent Governance & Ethical AI Frameworks</h1>
+    <p>15 câu hỏi · Phủ đều 5 lessons · ~20 phút</p>
+    <div class="quiz-stats">
+      <span>5 câu dễ</span><span>7 câu trung bình</span><span>3 câu khó</span>
+    </div>
+  </div>
+</div>
+
+<div class="quiz-container">
+  <div class="quiz-progress">
+    <div class="quiz-progress-text">Câu <span id="currentQ">1</span> / 15</div>
+    <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="progressFill" style="width:6.67%"></div></div>
+  </div>
+  <div id="quizArea"></div>
+  <div id="resultArea" style="display:none" class="quiz-result">
+    <div class="result-score" id="scoreDisplay"></div>
+    <div class="result-label" id="resultLabel"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-item"><div class="breakdown-num" id="correctCount" style="color:#16a34a;"></div><div class="breakdown-desc">Câu đúng</div></div>
+      <div class="breakdown-item"><div class="breakdown-num" id="wrongCount" style="color:#dc2626;"></div><div class="breakdown-desc">Câu sai</div></div>
+      <div class="breakdown-item"><div class="breakdown-num" id="scorePercent" style="color:#134e4a;"></div><div class="breakdown-desc">Điểm số</div></div>
+    </div>
+    <div class="next-module-cta">
+      <h3>🎉 Hoàn thành Module 28!</h3>
+      <p>Bạn đã nắm vững AI Governance Framework, bias detection, XAI explainability, regulatory compliance và ethics escalation paths — toàn bộ nền tảng để triển khai LoanBot một cách có trách nhiệm trong môi trường production.</p>
+      <a href="../module29/index.html" class="btn btn-primary" style="background:white;color:#134e4a;">→ Module 29: Agent Economics & ROI Analysis</a>
+    </div>
+    <div style="margin-top:var(--space-4);">
+      <button class="btn btn-outline" onclick="restartQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn btn-outline" style="margin-left:8px;">📖 Ôn lại bài</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // LESSON 1: Governance Framework (Q1–Q3)
+  {
+    q: "Trong RACI Matrix của FinTech Corp, ai là người 'Accountable' (A) cho quyết định phê duyệt vay của LoanBot?",
+    opts: ["LoanBot AI Agent", "AI Engineer xây dựng agent", "Chief Risk Officer (CRO)", "Data Scientist huấn luyện model"],
+    ans: 2, diff: "easy",
+    fb: "Đúng! Accountable (A) là người chịu trách nhiệm pháp lý trước tổ chức và cơ quan quản lý khi có sự cố. LoanBot là Responsible (R — thực hiện task), CRO là Accountable (A — answer for it). AI Engineer và Data Scientist là Responsible trong scope kỹ thuật. Khi NHNN phạt FinTech Corp, họ phạt người đại diện chịu accountability — không phải AI system."
+  },
+  {
+    q: "FinTech Corp's Governance Charter policy GP-001 (Demographic Parity) thuộc Operational, Tactical, hay Strategic layer?",
+    opts: ["Operational Layer — daily automated checks", "Tactical Layer — monthly review cycle", "Strategic Layer — quarterly board review", "Không thuộc layer nào — governance policies bên ngoài 3-tier"],
+    ans: 0, diff: "easy",
+    fb: "Đúng! Demographic Parity metric cần daily automated monitoring (review_frequency_days=7 trong code, cũng là gần nhất). Một policy CRITICAL như bias violation cần phát hiện nhanh nhất có thể — Operational Layer với automated daily checks là đúng. Nếu vi phạm phát hiện → escalate lên Tactical → Strategic → NHNN theo escalation_path định nghĩa trong GovernancePolicy."
+  },
+  {
+    q: "EU AI Act classify LoanBot (credit scoring AI) vào risk category nào?",
+    opts: ["Minimal Risk — chỉ cần self-regulation", "Limited Risk — cần transparency obligation", "High Risk — cần full documentation, logging, human oversight", "Unacceptable Risk — bị cấm hoàn toàn"],
+    ans: 2, diff: "easy",
+    fb: "Đúng! EU AI Act Annex III, Category 5b: AI dùng trong credit scoring và creditworthiness assessment = High-Risk. High-Risk AI yêu cầu: Risk Management System (Art. 9), Data Governance (Art. 10), Technical Documentation (Art. 11), Logging (Art. 12), Human Oversight (Art. 14), Accuracy/Robustness (Art. 15), và Right to Explanation (Art. 86). Unacceptable Risk (bị cấm) là social scoring, real-time biometric surveillance — không phải credit AI."
+  },
+
+  // LESSON 2: Bias Detection & Fairness (Q4–Q6)
+  {
+    q: "Trong fairness audit của LoanBot, rural borrowers có approval rate 44.8% vs urban 68.2%. Disparity ratio = 0.657. Theo 80% rule, điều này có nghĩa gì?",
+    opts: ["PASS — 65.7% vẫn cao hơn threshold 50%", "FAIL — 65.7% thấp hơn minimum 80% required", "PASS — chênh lệch tuyệt đối 23.4% là acceptable", "Cần thêm data để kết luận"],
+    ans: 1, diff: "easy",
+    fb: "Đúng! 80% rule (từ Equal Credit Opportunity Act và EU AI Act): approval_rate_protected / approval_rate_reference ≥ 0.80. Rural/Urban = 44.8/68.2 = 0.657 = 65.7% — thấp hơn minimum 80%. FAIL. Không phải so sánh tuyệt đối (23.4%) mà là ratio. Kết quả này là legal violation theo ECOA/EU AI Act — FinTech Corp phải có remediation plan ngay."
+  },
+  {
+    q: "Fairness Impossibility Theorem nói rằng Demographic Parity và Equalized Odds KHÔNG thể cùng satisfied khi nào?",
+    opts: ["Khi model không đủ lớn (underfitting)", "Khi base rates (true positive rates) khác nhau giữa groups", "Khi dataset không đủ lớn", "Khi model dùng nhiều features quá"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Fairness Impossibility Theorem (Chouldechova 2017, Kleinberg 2016): không thể simultaneously satisfy Demographic Parity + Equalized Odds + Calibration khi base rates (prevalence) khác nhau giữa groups. Nếu Group A có default rate 15% và Group B có 8% — một model accurate sẽ automatically có different approval rates (vi phạm Demographic Parity) hoặc different error rates (vi phạm Equalized Odds). Model size và data size không liên quan — đây là mathematical impossibility. FinTech Corp phải choose: prioritize Equalized Odds (fair process) hay Demographic Parity (equal outcomes)."
+  },
+  {
+    q: "LoanBot reject rural borrowers nhiều hơn vì employment_months thấp hơn (seasonal work). Đây là loại bias gì?",
+    opts: ["Direct Discrimination — dùng trực tiếp 'location' feature", "Proxy Discrimination — dùng feature correlates với protected attribute", "Algorithmic Bias — lỗi trong training algorithm", "Historical Bias — dataset quá cũ"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Proxy Discrimination: model không dùng 'location' hoặc 'rural/urban' trực tiếp — nhưng dùng employment_months, vốn correlates mạnh với rural status do seasonal employment patterns. Kết quả discriminatory dù không intentional. Khác với Direct Discrimination (explicit use of protected attribute). Fix: separate employment tenure thresholds cho seasonal vs permanent workers, consider alternative data sources (utility payments, mobile money). Historical Bias là bias trong training data labels — khác loại."
+  },
+
+  // LESSON 3: Explainability & XAI (Q7–Q9)
+  {
+    q: "Counterfactual explanation cho FC-2024-004 là gì?",
+    opts: ["Feature importance ranking: employment là driver chính", "Probability: 73% confidence rằng REVIEW là đúng", "Nếu employment ≥ 12 tháng hoặc có collateral → decision flip sang APPROVE", "SHAP values cho từng feature trong quyết định"],
+    ans: 2, diff: "easy",
+    fb: "Đúng! Counterfactual explanation trả lời câu hỏi: 'Bạn cần thay đổi GÌ ÍT NHẤT để decision flip?' Cho FC-2024-004: (1) Tăng employment từ 8 lên 12 tháng [MODERATE feasibility], (2) Giảm DTI từ 0.42 xuống 0.38 [HARD], (3) Cung cấp 1 tài sản đảm bảo [EASY — if customer has assets]. Đây là actionable — khách hàng biết cụ thể phải làm gì. Feature importance (options A) và SHAP (option D) là global/local attribution methods — giải thích tại sao decision made, không phải how to change it."
+  },
+  {
+    q: "EU AI Act Art. 86 và GDPR Art. 22 đều yêu cầu gì cho automated credit decisions?",
+    opts: ["Cần approval từ Human Credit Officer cho mỗi quyết định", "Khách hàng có quyền yêu cầu explanation về quyết định tự động ảnh hưởng đến họ", "AI chỉ được đưa ra recommendations, không được final decisions", "Phải disclose training data sources cho regulatory"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! GDPR Art. 22 (Right to not be subject to solely automated decisions + right to explanation) và EU AI Act Art. 86 (right to explanation for AI decisions) đều yêu cầu: khách hàng phải có khả năng request meaningful explanation cho bất kỳ automated decision nào ảnh hưởng đến họ. FinTech Corp phải có /explain endpoint. Không phải: (A) mọi quyết định cần human approval — chỉ applicable khi customer requests; (C) AI có thể make final decisions nhưng phải explainable; (D) training data disclosure là riêng biệt."
+  },
+  {
+    q: "LoanBotExplainer dùng claude-haiku-4-5-20251001 để generate Natural Language Explanation. Tại sao dùng Haiku thay vì Sonnet hay Opus?",
+    opts: ["Haiku có better language quality cho tiếng Việt", "Haiku nhanh hơn và rẻ hơn — explanation generation là high-volume, low-complexity task", "Haiku có built-in fairness checks cho credit decisions", "Sonnet và Opus không support tiếng Việt"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Đây là cost-performance optimization: NLE generation = simple task (convert structured data thành readable Vietnamese letter, template-like). Haiku: fastest + cheapest. LoanBot xử lý 50K hồ sơ/tháng — nếu dùng Sonnet/Opus cho mỗi explanation letter → chi phí tăng 5-10x không cần thiết. Rule: use simplest, fastest model sufficient for the task. Sonnet/Opus reserved cho complex reasoning (multi-agent debate). Cả 3 models đều support tiếng Việt tốt."
+  },
+
+  // LESSON 4: Regulatory Compliance (Q10–Q12)
+  {
+    q: "ComplianceReporter của FinTech Corp generate evidence package cho NHNN audit. Policy GP-003 (Explanation Coverage) yêu cầu threshold = 1.00. Nếu hệ thống chỉ đạt explanation_coverage = 0.97, status là gì?",
+    opts: ["COMPLIANT — 97% là acceptable cho real-world systems", "PARTIAL — cần note nhưng không critical", "NON_COMPLIANT — 100% là hard requirement", "Cần manual review từ CRO mới kết luận"],
+    ans: 2, diff: "medium",
+    fb: "Đúng! Trong code: ev_type == 'EXPLAINABILITY' and metrics.get('explanation_coverage', 0) < 1.0 → status = 'NON_COMPLIANT'. EU AI Act Art. 86 + GDPR Art. 22 là legal requirements — không có gray area. 97% nghĩa là 3% cases không có explanation → vi phạm right-to-explanation của những khách hàng đó. NHNN sẽ flag này là violation. Fix ngay: generate explanations retroactively cho missing cases. Trong production: explanation generation phải synchronous với decision, không async."
+  },
+  {
+    q: "FinTech Corp có headquarter tại Việt Nam nhưng cần comply EU AI Act. Tại sao?",
+    opts: ["EU AI Act chỉ applicable cho companies có office ở EU", "EU AI Act áp dụng khi AI system outputs được dùng ở EU — extraterritorial scope", "FinTech Corp chọn comply tự nguyện để nâng chuẩn", "Chỉ NHNN là mandatory — EU AI Act là optional"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! EU AI Act có extraterritorial scope (giống GDPR): applicable khi AI system outputs được used by EU users HOẶC when the AI system provider places AI outputs on the EU market — regardless of where company is headquartered. Nếu FinTech Corp có bất kỳ khách hàng EU nào, hoặc nếu data về EU residents được processed → EU AI Act applies. Precedent từ GDPR: Google, Meta phải comply dù US-based. Comply early = competitive advantage + avoid €30M fines."
+  },
+  {
+    q: "NHNN yêu cầu FinTech Corp cung cấp 'evidence package' cho audit. Tài liệu nào QUAN TRỌNG NHẤT để prove Right to Explanation compliance (EU AI Act Art. 86)?",
+    opts: ["Model Card với accuracy metrics và training data description", "Decision logs với timestamps và agent reasoning chains", "Explanation records: generated explanations + customer delivery confirmations", "Fairness audit reports với disparity ratios"],
+    ans: 2, diff: "hard",
+    fb: "Đúng! Right to Explanation (Art. 86) yêu cầu: (1) Explanation phải được generated, (2) Explanation phải được delivered to customer, (3) Có evidence rằng cả 2 happened. Explanation records với customer delivery confirmations directly prove Art. 86 compliance. Model Card (A) proves Art. 11 Technical Documentation. Decision logs (B) proves Art. 12 logging — nhưng không prove explanation was actually given to customer. Fairness reports (D) proves Art. 10 Data Governance. Mỗi loại covers different article — nhưng cho Art. 86 specifically, (C) là most direct evidence."
+  },
+
+  // LESSON 5: Ethics Review Board (Q13–Q15)
+  {
+    q: "Ethics Review Board của FinTech Corp có advisory power, không có veto. Khi board recommend 'không deploy LoanBot v4.0 vì fairness concerns', CEO quyết định vẫn deploy. Điều gì phải xảy ra?",
+    opts: ["Deploy bình thường — board chỉ advisory", "CEO phải document bằng văn bản tại sao ignore recommendation + sign off", "Board có quyền escalate lên NHNN để block deployment", "Deploy nhưng cần send notification cho Ethics Board"],
+    ans: 1, diff: "medium",
+    fb: "Đúng! Advisory power ≠ toothless. Khi CEO overrides Ethics Board recommendation, họ phải explicitly justify bằng văn bản — tạo accountability paper trail. Nếu deploy và sau đó có incident → paper trail shows CEO knowingly overrode ethics warning. Điều này creates personal accountability và legal exposure. 'Advisory' có nghĩa board không block — nhưng 'ignoring without documentation' là different từ 'considered and overrode with justification'. Board không có NHNN escalation rights trực tiếp trong scenario này — NHNN escalation triggered by policy violations, not board disagreements."
+  },
+  {
+    q: "EthicsEscalationEngine evaluate một hồ sơ và thấy: disparity_ratio = 0.55 (severe), có active NHNN inquiry. Escalation level là gì?",
+    opts: ["ALERT — gửi email cho AI Team", "HUMAN_REVIEW — assign cho Credit Officer", "ETHICS_BOARD — schedule board review session", "HALT — dừng AI decisions trong affected segment ngay lập tức"],
+    ans: 3, diff: "hard",
+    fb: "Đúng! Trong code: disparity_ratio < 0.60 → trigger HALT. Logic: max_level = EscalationLevel.HALT (highest level). Dù cũng có NHNN inquiry trigger → ETHICS_BOARD, nhưng HALT > ETHICS_BOARD (5 > 4 trong Enum). Kết quả: HALT wins. Rationale: disparity 0.55 = 45% approval gap — legal violation với concrete harm đang xảy ra. Phải dừng ngay để không tiếp tục gây harm trong khi investigate. Timeline: action trong vòng 1h (tightest SLA). NHNN inquiry dealt with trong Ethics Board review — nhưng first, stop the bleeding."
+  },
+  {
+    q: "Sau khi FinTech Corp phát hiện rural bias (disparity 0.657), Ethics Incident Response nào là đúng theo thứ tự?",
+    opts: ["Fix code ngay → Retrain model → Deploy v4.1 → Notify customers", "Announce publicly → Fix code → Deploy fix → Apologize", "Halt affected segment → Root cause analysis → Manual review affected cases → Fix + notify customers → Post-mortem", "Notify NHNN trước → Sau đó halt → Sau đó investigate"],
+    ans: 2, diff: "hard",
+    fb: "Đúng! Ethics Incident Response 4-phase: (1) CONTAIN (0–4h): Halt AI decisions trong affected segment NGAY — stop ongoing harm; (2) INVESTIGATE (4–48h): Root cause analysis, quantify scope; (3) REMEDIATE (48–168h): Manual review affected cases, fix root cause, notify affected customers với explanation và reconsideration offer; (4) PREVENT: Post-mortem, update governance, new monitoring. Sequence là contain first — không announce (A creates panic without solution), không go to NHNN first (B, C wrong sequence) — fix internally first, then regulatory disclosure if required. Customers notification happens in Remediation, not before Fix."
+  }
+];
+
+let currentIndex = 0;
+let score = 0;
+let answered = Array(questions.length).fill(false);
+
+function renderQuestion(idx) {
+  const q = questions[idx];
+  document.getElementById('currentQ').textContent = idx + 1;
+  document.getElementById('progressFill').style.width = `${((idx + 1) / questions.length) * 100}%`;
+  const area = document.getElementById('quizArea');
+  area.innerHTML = `
+    <div class="question-card">
+      <div class="question-meta">
+        <div class="question-number">${idx + 1}</div>
+        <span class="question-difficulty diff-${q.diff}">${q.diff === 'easy' ? 'Dễ' : q.diff === 'medium' ? 'Trung bình' : 'Khó'}</span>
+      </div>
+      <div class="question-text">${q.q}</div>
+      <ul class="options-list">
+        ${q.opts.map((opt, i) => `<li><button class="option-btn" onclick="selectAnswer(${i}, ${q.ans}, this)">${String.fromCharCode(65+i)}. ${opt}</button></li>`).join('')}
+      </ul>
+      <div class="feedback-box" id="fb${idx}"></div>
+      <div class="next-btn" id="next${idx}">
+        <button class="btn btn-primary" onclick="nextQuestion()">${idx < questions.length - 1 ? 'Câu tiếp theo →' : 'Xem kết quả'}</button>
+      </div>
+    </div>`;
+}
+
+function selectAnswer(chosen, correct, btn) {
+  if (answered[currentIndex]) return;
+  answered[currentIndex] = true;
+  const card = btn.closest('.question-card');
+  const buttons = card.querySelectorAll('.option-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === correct) b.classList.add('correct');
+    else if (i === chosen && chosen !== correct) b.classList.add('wrong');
+  });
+  const fb = document.getElementById(`fb${currentIndex}`);
+  const isCorrect = chosen === correct;
+  if (isCorrect) score++;
+  fb.className = `feedback-box ${isCorrect ? 'correct-fb' : 'wrong-fb'}`;
+  fb.innerHTML = `<strong>${isCorrect ? '✅ Chính xác!' : `❌ Chưa đúng. Đáp án là ${String.fromCharCode(65+correct)}.`}</strong><br><br>${questions[currentIndex].fb}`;
+  fb.style.display = 'block';
+  document.getElementById(`next${currentIndex}`).style.display = 'block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex >= questions.length) showResult();
+  else renderQuestion(currentIndex);
+}
+
+function showResult() {
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('progressFill').closest('.quiz-progress').style.display = 'none';
+  const pct = Math.round((score / questions.length) * 100);
+  const resultArea = document.getElementById('resultArea');
+  resultArea.style.display = 'block';
+  document.getElementById('scoreDisplay').textContent = `${score}/${questions.length}`;
+  document.getElementById('correctCount').textContent = score;
+  document.getElementById('wrongCount').textContent = questions.length - score;
+  document.getElementById('scorePercent').textContent = `${pct}%`;
+  const labels = [[12,'🏆 Xuất sắc! Bạn đã master AI Governance.'], [9,'👍 Tốt! Nắm vững core concepts.'], [6,'📖 Ổn. Ôn lại Bias Detection và XAI.'],[0,'💪 Cần học lại từ đầu module.']];
+  document.getElementById('resultLabel').textContent = labels.find(([t]) => score >= t)[1];
+}
+
+function restartQuiz() {
+  currentIndex = 0; score = 0; answered = Array(questions.length).fill(false);
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  document.getElementById('progressFill').closest('.quiz-progress').style.display = 'block';
+  renderQuestion(0);
+}
+
+renderQuestion(0);
+</script>
+</body>
+</html>

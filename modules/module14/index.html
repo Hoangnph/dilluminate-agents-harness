@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 14 — Agent Memory Systems & RAG Architecture</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m14-primary: #701a75;
+      --m14-accent:  #d946ef;
+      --m14-light:   #fdf4ff;
+      --m14-border:  #e879f9;
+    }
+    .lesson-header { background: linear-gradient(135deg, #2e0836 0%, #701a75 50%, #d946ef 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #fae8ff; }
+    .lesson-header p { color: #e879f9; }
+    .sidebar-nav a.active { background: var(--m14-light); border-left: 3px solid var(--m14-accent); color: var(--m14-primary); }
+    .sidebar-nav a:hover { color: var(--m14-primary); }
+
+    .memory-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); margin: var(--space-5) 0;
+    }
+    .memory-card {
+      padding: var(--space-4); border-radius: var(--radius-lg); border: 1px solid;
+    }
+    .memory-card.sensory    { background: #eff6ff; border-color: #93c5fd; }
+    .memory-card.shortterm  { background: #fdf4ff; border-color: #e879f9; }
+    .memory-card.longterm   { background: #ecfdf5; border-color: #6ee7b7; }
+    .memory-card.procedural { background: #fff7ed; border-color: #fed7aa; }
+    .memory-card h4 { font-size: .9rem; font-weight: 700; margin-bottom: var(--space-2); }
+    .memory-card p  { font-size: .82rem; color: var(--text-muted); margin: 0; }
+    .memory-card .badge { font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full); margin-bottom: var(--space-2); display: inline-block; }
+
+    .rag-step {
+      display: flex; align-items: flex-start; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4); background: var(--m14-light);
+      border-left: 3px solid var(--m14-accent); border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+      margin-bottom: var(--space-3);
+    }
+    .rag-step .step-num { font-weight: 700; color: var(--m14-primary); min-width: 1.5rem; }
+    .rag-step .step-body strong { display: block; font-size: .9rem; margin-bottom: 2px; }
+    .rag-step .step-body p { font-size: .84rem; color: var(--text-muted); margin: 0; }
+
+    .chunk-strategy {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-3); margin: var(--space-4) 0;
+    }
+    .chunk-card {
+      padding: var(--space-3); border-radius: var(--radius-lg); border: 1px solid var(--border); text-align: center;
+    }
+    .chunk-card h5 { font-size: .85rem; font-weight: 700; margin-bottom: var(--space-1); }
+    .chunk-card p  { font-size: .78rem; color: var(--text-muted); margin: 0; }
+
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m14-light);color:var(--m14-primary);border-color:var(--m14-border);">MODULE 14</div>
+    <div class="sidebar-title">Memory & RAG</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Memory Taxonomy</a>
+      <a href="#lesson2">L2. RAG Architecture</a>
+      <a href="#lesson3">L3. Vector Store Design</a>
+      <a href="#lesson4">L4. Memory Management</a>
+      <a href="#lesson5">L5. Production RAG</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m14-accent);">📝 Quiz Module 14</a>
+      <a href="lab.ipynb" download style="color:var(--m14-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module13/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 13: Orchestration</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 14 · Tuần 37–39</span>
+      <h1>🧠 Agent Memory Systems & RAG Architecture</h1>
+      <p>Làm thế nào LoanBot nhớ được 5 năm lịch sử hồ sơ, 500 quy định pháp lý, và context của mỗi customer — mà không vượt quá context window. RAG = bộ nhớ dài hạn cho agents.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🧠 Memory-first design</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Memory Taxonomy — 4 Loại Bộ Nhớ Của Agent</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt 4 loại memory: Sensory, Short-term, Long-term, Procedural</li>
+          <li>Nhận biết memory bottleneck trong LoanBot v3.0</li>
+          <li>Hiểu tại sao context window KHÔNG thể thay thế persistent memory</li>
+          <li>Thiết kế memory architecture cho enterprise AI system</li>
+        </ul>
+      </div>
+
+      <p>LoanBot v3.0 mỗi lần xử lý hồ sơ đều bắt đầu "từ đầu" — không nhớ gì về customer từ lần trước. FC-2024-004 (Phạm Thị D) đã gửi 3 hồ sơ trong 6 tháng; mỗi lần RiskAgent phải re-analyze từ đầu, không tận dụng insight lần trước. Đây là <strong>stateless memory problem</strong>.</p>
+
+      <div class="memory-grid">
+        <div class="memory-card sensory">
+          <span class="badge" style="background:#dbeafe;color:#1e40af;">⚡ Sensory Memory</span>
+          <h4>Context Window (Input Buffer)</h4>
+          <p>Token stream hiện tại trong một inference call. LoanBot: 200K tokens = ~150 trang. Mất khi inference xong. Analog: những gì bạn đang đọc ngay lúc này.</p>
+        </div>
+        <div class="memory-card shortterm">
+          <span class="badge" style="background:#fae8ff;color:#701a75;">💬 Short-term Memory</span>
+          <h4>Conversation / Session State</h4>
+          <p>Message history trong một session. LoanBot: context qua 3–5 turns khi loan officer trao đổi với AI. Mất khi session end. Analog: cuộc hội thoại đang diễn ra.</p>
+        </div>
+        <div class="memory-card longterm">
+          <span class="badge" style="background:#dcfce7;color:#15803d;">📚 Long-term Memory</span>
+          <h4>Vector Store + Database</h4>
+          <p>Persistent knowledge: 5 năm lịch sử quyết định, customer profiles, regulation embeddings. LoanBot cần đây để nhớ FC-2024-004 đã bị từ chối 3 lần và lý do. Không mất.</p>
+        </div>
+        <div class="memory-card procedural">
+          <span class="badge" style="background:#ffedd5;color:#9a3412;">⚙️ Procedural Memory</span>
+          <h4>Tool Use Patterns + Fine-tuned Weights</h4>
+          <p>"Kỹ năng" — cách dùng tools, workflow patterns. LoanBot: biết khi nào gọi CreditBureau API, khi nào escalate to HITL. Encoded trong model weights hoặc system prompt.</p>
+        </div>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: The Memory Bottleneck</div>
+        <p>Context window của claude-haiku-4-5-20251001 là 200K tokens — nghe có vẻ lớn nhưng: 1 customer profile = ~500 tokens, 50.000 customers = 25M tokens — không thể fit. 500 quy định pháp lý = ~2M tokens — quá giới hạn. Giải pháp: chỉ retrieve những gì <em>relevant</em> vào context lúc cần — đây là RAG (Retrieval-Augmented Generation).</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>LoanBot Memory Architecture — 4 memory tiers và cách chúng interact</title>
+          <defs>
+            <marker id="arrMem" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#d946ef"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#1a0a1e" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fae8ff">LoanBot v3.1 — 4-Tier Memory Architecture</text>
+
+          <!-- Tier labels -->
+          <rect x="15"  y="38" width="170" height="130" fill="#172554" rx="8" stroke="#3b82f6" stroke-width="1"/>
+          <text x="100" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#bfdbfe">⚡ SENSORY</text>
+          <text x="100" y="70" text-anchor="middle" font-size="8" fill="#93c5fd">Context Window</text>
+          <text x="100" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">200K tokens</text>
+          <text x="100" y="98" text-anchor="middle" font-size="8" fill="#93c5fd">Current inference only</text>
+          <text x="100" y="112" text-anchor="middle" font-size="8" fill="#64748b">Lifespan: 1 call</text>
+          <text x="100" y="126" text-anchor="middle" font-size="8" fill="#64748b">Cost: $0.00025/1K tok</text>
+          <text x="100" y="145" text-anchor="middle" font-size="8" fill="#3b82f6">Loan context: prompt</text>
+          <text x="100" y="157" text-anchor="middle" font-size="8" fill="#3b82f6">+ retrieved chunks</text>
+
+          <rect x="200" y="38" width="170" height="130" fill="#2e1065" rx="8" stroke="#d946ef" stroke-width="1"/>
+          <text x="285" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#fae8ff">💬 SHORT-TERM</text>
+          <text x="285" y="70" text-anchor="middle" font-size="8" fill="#e879f9">Session / Conversation</text>
+          <text x="285" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">~10–50 messages</text>
+          <text x="285" y="98" text-anchor="middle" font-size="8" fill="#e879f9">Officer ↔ LoanBot</text>
+          <text x="285" y="112" text-anchor="middle" font-size="8" fill="#64748b">Lifespan: 1 session</text>
+          <text x="285" y="126" text-anchor="middle" font-size="8" fill="#64748b">Storage: Redis TTL=8h</text>
+          <text x="285" y="145" text-anchor="middle" font-size="8" fill="#d946ef">Loan negotiation</text>
+          <text x="285" y="157" text-anchor="middle" font-size="8" fill="#d946ef">review history</text>
+
+          <rect x="385" y="38" width="170" height="130" fill="#052e16" rx="8" stroke="#10b981" stroke-width="1"/>
+          <text x="470" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">📚 LONG-TERM</text>
+          <text x="470" y="70" text-anchor="middle" font-size="8" fill="#6ee7b7">Vector Store + DB</text>
+          <text x="470" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Unlimited</text>
+          <text x="470" y="98" text-anchor="middle" font-size="8" fill="#6ee7b7">Customer profiles</text>
+          <text x="470" y="112" text-anchor="middle" font-size="8" fill="#64748b">Lifespan: Permanent</text>
+          <text x="470" y="126" text-anchor="middle" font-size="8" fill="#64748b">Storage: Qdrant/pgvector</text>
+          <text x="470" y="145" text-anchor="middle" font-size="8" fill="#10b981">5yr loan history</text>
+          <text x="470" y="157" text-anchor="middle" font-size="8" fill="#10b981">500 regulations</text>
+
+          <rect x="570" y="38" width="175" height="130" fill="#431407" rx="8" stroke="#f97316" stroke-width="1"/>
+          <text x="657" y="55" text-anchor="middle" font-size="9" font-weight="700" fill="#fed7aa">⚙️ PROCEDURAL</text>
+          <text x="657" y="70" text-anchor="middle" font-size="8" fill="#fb923c">Tool Skills + Weights</text>
+          <text x="657" y="84" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">Implicit</text>
+          <text x="657" y="98" text-anchor="middle" font-size="8" fill="#fb923c">When to call APIs</text>
+          <text x="657" y="112" text-anchor="middle" font-size="8" fill="#64748b">Lifespan: Model version</text>
+          <text x="657" y="126" text-anchor="middle" font-size="8" fill="#64748b">Encoded: prompt + FT</text>
+          <text x="657" y="145" text-anchor="middle" font-size="8" fill="#f97316">HITL escalation</text>
+          <text x="657" y="157" text-anchor="middle" font-size="8" fill="#f97316">workflow patterns</text>
+        </svg>
+        <div class="diagram-title">Hình 1: LoanBot 4-Tier Memory — mỗi tier có đặc điểm, lifespan, và use case khác nhau. Long-term memory (vector store) là trọng tâm của Module 14.</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot cần nhớ rằng "3 tháng trước, FC-2024-004 đã bị từ chối vì income không đủ". Đây là loại memory nào? Được lưu ở đâu?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Đây là <strong>Long-term Memory</strong> — thông tin tồn tại vượt qua session boundary (3 tháng). Phải được lưu trong <strong>vector store hoặc database</strong> (e.g., Qdrant với embedding của loan decision, hoặc PostgreSQL table loan_decisions). Không thể lưu trong context window (mất sau inference) hay Redis (TTL ngắn). Khi FC-2024-004 submit hồ sơ mới, RAG system retrieve historical decisions và inject vào context của RiskAgent.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: RAG Architecture — Retrieval-Augmented Generation</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu cơ chế RAG: Index → Retrieve → Augment → Generate</li>
+          <li>Phân biệt Naive RAG vs Advanced RAG (HyDE, Reranking, Multi-Query)</li>
+          <li>Thiết kế RAG pipeline cho LoanBot regulation search</li>
+          <li>Đo lường chất lượng RAG với RAGAS metrics</li>
+        </ul>
+      </div>
+
+      <p><strong>RAG</strong> (Retrieval-Augmented Generation) là pattern cho phép LLM truy cập knowledge bên ngoài training data. Thay vì "nhớ" tất cả — LLM <em>retrieve</em> thông tin relevant, đọc nó, rồi generate response. LoanBot dùng RAG để: (1) tìm quy định liên quan đến từng loại hồ sơ, (2) tra cứu precedents từ lịch sử quyết định tương tự.</p>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: RAG như thẩm phán tra cứu luật</div>
+        <p>Một thẩm phán giỏi không nhớ hết tất cả bộ luật. Khi xét xử một case, họ tra cứu (<em>retrieve</em>) các điều luật liên quan, đọc (<em>augment context</em>), rồi ra phán quyết (<em>generate</em>). RiskAgent của LoanBot làm đúng như vậy: retrieve các quy định của NHNN liên quan đến hồ sơ vay 300M VNĐ, đọc chúng, rồi generate risk assessment. Không cần nhớ hết — chỉ cần retrieve đúng.</p>
+      </div>
+
+      <h3>2.1 RAG Pipeline: 4 Bước Cốt Lõi</h3>
+
+      <div class="rag-step">
+        <div class="step-num">①</div>
+        <div class="step-body">
+          <strong>Index — Xây dựng Vector Index</strong>
+          <p>Offline: chunk documents (regulations, loan policies, historical decisions) → embed thành vectors → lưu vào vector store. LoanBot: 500 văn bản quy định → ~15.000 chunks → 15.000 embeddings 1536-dim.</p>
+        </div>
+      </div>
+      <div class="rag-step">
+        <div class="step-num">②</div>
+        <div class="step-body">
+          <strong>Retrieve — Tìm kiếm Semantic</strong>
+          <p>Online: embed query (loan application) → vector similarity search → top-K most relevant chunks. LoanBot: "hồ sơ vay 300M VNĐ, tài sản thế chấp là bất động sản" → retrieve 5 regulation chunks về collateral requirements.</p>
+        </div>
+      </div>
+      <div class="rag-step">
+        <div class="step-num">③</div>
+        <div class="step-body">
+          <strong>Augment — Inject vào Context</strong>
+          <p>Ghép retrieved chunks vào system prompt: "Given these regulations: [chunk1] [chunk2]... assess the following loan application...". Context window giờ chứa relevant knowledge thay vì toàn bộ knowledge base.</p>
+        </div>
+      </div>
+      <div class="rag-step">
+        <div class="step-num">④</div>
+        <div class="step-body">
+          <strong>Generate — LLM tạo Answer</strong>
+          <p>RiskAgent generate assessment dựa trên (1) loan data + (2) retrieved regulation chunks. Output: recommendation với citations đến cụ thể điều khoản nào → auditable, explainable.</p>
+        </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+          <title>RAG Pipeline cho LoanBot — Index offline, Retrieve/Augment/Generate online</title>
+          <defs>
+            <marker id="arrRAG" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#d946ef"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#1a0a1e" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fae8ff">LoanBot RAG Pipeline — Offline Indexing + Online Retrieval</text>
+
+          <!-- Offline lane -->
+          <rect x="15" y="34" width="350" height="80" fill="#0f172a" rx="8" stroke="#334155"/>
+          <text x="190" y="50" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">OFFLINE (one-time / periodic)</text>
+
+          <rect x="25"  y="58" width="100" height="46" fill="#1e293b" rx="6" stroke="#334155"/>
+          <text x="75"  y="77" text-anchor="middle" font-size="8" font-weight="700" fill="#e2e8f0">Documents</text>
+          <text x="75"  y="91" text-anchor="middle" font-size="7" fill="#64748b">500 regulations</text>
+          <text x="75"  y="103" text-anchor="middle" font-size="7" fill="#64748b">5yr history</text>
+
+          <line x1="125" y1="81" x2="143" y2="81" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+          <rect x="145" y="58" width="80" height="46" fill="#2e1065" rx="6" stroke="#7e22ce"/>
+          <text x="185" y="77" text-anchor="middle" font-size="8" font-weight="700" fill="#e9d5ff">Chunker</text>
+          <text x="185" y="91" text-anchor="middle" font-size="7" fill="#a78bfa">512 token</text>
+          <text x="185" y="103" text-anchor="middle" font-size="7" fill="#a78bfa">chunks</text>
+
+          <line x1="225" y1="81" x2="243" y2="81" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+          <rect x="245" y="58" width="80" height="46" fill="#312e81" rx="6" stroke="#6366f1"/>
+          <text x="285" y="77" text-anchor="middle" font-size="8" font-weight="700" fill="#e0e7ff">Embedder</text>
+          <text x="285" y="91" text-anchor="middle" font-size="7" fill="#a5b4fc">text-embed</text>
+          <text x="285" y="103" text-anchor="middle" font-size="7" fill="#a5b4fc">-3-small</text>
+
+          <line x1="325" y1="81" x2="343" y2="81" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+
+          <!-- Vector Store (spans both lanes) -->
+          <rect x="345" y="34" width="120" height="165" fill="#065f46" rx="8" stroke="#10b981" stroke-width="2"/>
+          <text x="405" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">Vector</text>
+          <text x="405" y="75" text-anchor="middle" font-size="10" font-weight="700" fill="#d1fae5">Store</text>
+          <text x="405" y="92" text-anchor="middle" font-size="8" fill="#a7f3d0">Qdrant</text>
+          <text x="405" y="106" text-anchor="middle" font-size="7" fill="#6ee7b7">15,000 vectors</text>
+          <text x="405" y="120" text-anchor="middle" font-size="7" fill="#6ee7b7">1536-dim</text>
+          <text x="405" y="134" text-anchor="middle" font-size="7" fill="#6ee7b7">cosine similarity</text>
+          <text x="405" y="155" text-anchor="middle" font-size="8" fill="#34d399">↕ read/write</text>
+          <text x="405" y="169" text-anchor="middle" font-size="7" fill="#34d399">Index + Search</text>
+          <text x="405" y="183" text-anchor="middle" font-size="7" fill="#34d399">via REST API</text>
+
+          <!-- Online lane -->
+          <rect x="15" y="124" width="320" height="80" fill="#0f172a" rx="8" stroke="#334155"/>
+          <text x="160" y="140" text-anchor="middle" font-size="9" font-weight="700" fill="#64748b">ONLINE (per loan application)</text>
+
+          <rect x="25"  y="152" width="80" height="40" fill="#1a0a1e" rx="6" stroke="#d946ef"/>
+          <text x="65"  y="168" text-anchor="middle" font-size="8" font-weight="700" fill="#fae8ff">Loan App</text>
+          <text x="65"  y="180" text-anchor="middle" font-size="7" fill="#e879f9">query text</text>
+
+          <line x1="105" y1="172" x2="123" y2="172" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+          <rect x="125" y="152" width="80" height="40" fill="#312e81" rx="6" stroke="#6366f1"/>
+          <text x="165" y="168" text-anchor="middle" font-size="8" font-weight="700" fill="#e0e7ff">Embedder</text>
+          <text x="165" y="180" text-anchor="middle" font-size="7" fill="#a5b4fc">query vec</text>
+
+          <line x1="205" y1="172" x2="223" y2="172" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+          <rect x="225" y="152" width="80" height="40" fill="#2e1065" rx="6" stroke="#7e22ce"/>
+          <text x="265" y="168" text-anchor="middle" font-size="8" font-weight="700" fill="#e9d5ff">Reranker</text>
+          <text x="265" y="180" text-anchor="middle" font-size="7" fill="#a78bfa">top-K=5</text>
+
+          <line x1="305" y1="172" x2="343" y2="172" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+
+          <!-- Online retrieval from vector store -->
+          <line x1="465" y1="172" x2="503" y2="172" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+
+          <!-- Augment + Generate -->
+          <rect x="505" y="60" width="105" height="60" fill="#1a0a1e" rx="6" stroke="#d946ef"/>
+          <text x="557" y="82" text-anchor="middle" font-size="9" font-weight="700" fill="#fae8ff">Augment</text>
+          <text x="557" y="96" text-anchor="middle" font-size="7" fill="#e879f9">prompt +</text>
+          <text x="557" y="108" text-anchor="middle" font-size="7" fill="#e879f9">retrieved chunks</text>
+
+          <rect x="505" y="140" width="105" height="60" fill="#065f46" rx="6" stroke="#10b981"/>
+          <text x="557" y="162" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">Generate</text>
+          <text x="557" y="176" text-anchor="middle" font-size="7" fill="#6ee7b7">RiskAgent</text>
+          <text x="557" y="188" text-anchor="middle" font-size="7" fill="#6ee7b7">assessment</text>
+
+          <line x1="557" y1="120" x2="557" y2="138" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+
+          <!-- Final output -->
+          <rect x="625" y="80" width="120" height="100" fill="#1e293b" rx="8" stroke="#475569"/>
+          <text x="685" y="105" text-anchor="middle" font-size="9" font-weight="700" fill="#e2e8f0">RAG Output</text>
+          <text x="685" y="120" text-anchor="middle" font-size="7" fill="#94a3b8">Assessment +</text>
+          <text x="685" y="132" text-anchor="middle" font-size="7" fill="#94a3b8">Citations to</text>
+          <text x="685" y="144" text-anchor="middle" font-size="7" fill="#94a3b8">regulations</text>
+          <text x="685" y="162" text-anchor="middle" font-size="8" fill="#10b981">✓ Auditable</text>
+          <text x="685" y="174" text-anchor="middle" font-size="8" fill="#10b981">✓ Explainable</text>
+
+          <line x1="610" y1="155" x2="623" y2="155" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrRAG)"/>
+        </svg>
+        <div class="diagram-title">Hình 2: LoanBot RAG Pipeline — Offline indexing 15.000 vectors; Online: embed query → vector search → rerank → augment context → RiskAgent generate grounded assessment với citations</div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Vector Store Design — Chunking, Embedding, Indexing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Chọn chunking strategy phù hợp với từng loại document</li>
+          <li>Hiểu embedding models và khi nào dùng fine-tuned embeddings</li>
+          <li>Thiết kế collection schema cho Qdrant / pgvector</li>
+          <li>Implement hybrid search (dense + sparse) cho production LoanBot</li>
+        </ul>
+      </div>
+
+      <h3>3.1 Chunking Strategy</h3>
+
+      <div class="chunk-strategy">
+        <div class="chunk-card" style="border-color:#93c5fd;">
+          <h5>📏 Fixed-Size Chunking</h5>
+          <p>512 tokens với 50 token overlap. Đơn giản, predictable. Phù hợp: unstructured text, general docs. Nhược: cắt giữa câu, mất ngữ cảnh.</p>
+        </div>
+        <div class="chunk-card" style="border-color:#6ee7b7;">
+          <h5>📄 Semantic Chunking</h5>
+          <p>Chunk theo paragraph/section boundaries. Giữ nguyên ngữ nghĩa. Phù hợp: regulations, legal docs. LoanBot dùng cho 500 văn bản quy định.</p>
+        </div>
+        <div class="chunk-card" style="border-color:#e879f9;">
+          <h5>🔵 Hierarchical Chunking</h5>
+          <p>Parent + child chunks. Parent = section (2K tokens), child = sub-section (512 tokens). Retrieve child, augment với parent context. Best for complex docs.</p>
+        </div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: LoanBot Regulation Knowledge Base</div>
+        <p>FinTech Corp có 500 văn bản quy định từ NHNN (Ngân hàng Nhà nước), 200 nội quy nội bộ, và 5 năm lịch sử quyết định (30.000 cases). Chunking strategy:</p>
+        <ul>
+          <li><strong>Regulations (NHNN):</strong> Hierarchical chunking — circular → article → clause. Metadata: circular_number, effective_date, applies_to_loan_type.</li>
+          <li><strong>Internal policy:</strong> Semantic chunking theo section. Metadata: policy_version, applicable_amount_range.</li>
+          <li><strong>Historical decisions:</strong> Fixed-size per case record. Metadata: loan_id, decision, credit_score, amount, date, outcome (default/not).</li>
+        </ul>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Dict, Optional
+<span class="code-keyword">import</span> hashlib, textwrap
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">Chunk</span>:
+    chunk_id:    <span class="code-type">str</span>
+    content:     <span class="code-type">str</span>
+    metadata:    Dict           <span class="code-comment"># filterable fields</span>
+    parent_id:   Optional[<span class="code-type">str</span>]  <span class="code-comment"># for hierarchical chunks</span>
+    token_count: <span class="code-type">int</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotChunker</span>:
+    <span class="code-comment">"""Semantic chunker cho LoanBot regulation documents."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">chunk_regulation</span>(self, doc_text: <span class="code-type">str</span>, metadata: Dict) -> List[Chunk]:
+        <span class="code-comment"># Split theo điều khoản (Điều 1, Điều 2...)</span>
+        sections = self.<span class="code-function">_split_by_articles</span>(doc_text)
+        chunks   = []
+        <span class="code-keyword">for</span> i, section <span class="code-keyword">in</span> enumerate(sections):
+            content = section.strip()
+            <span class="code-keyword">if</span> len(content) < <span class="code-number">50</span>:
+                <span class="code-keyword">continue</span>  <span class="code-comment"># bỏ qua section quá ngắn</span>
+            chunk_id = hashlib.<span class="code-function">md5</span>(content.<span class="code-function">encode</span>()).<span class="code-function">hexdigest</span>()[:<span class="code-number">12</span>]
+            chunks.<span class="code-function">append</span>(Chunk(
+                chunk_id   = chunk_id,
+                content    = content,
+                metadata   = {**metadata, <span class="code-string">'article_index'</span>: i + <span class="code-number">1</span>},
+                parent_id  = metadata.get(<span class="code-string">'circular_number'</span>),
+                token_count = len(content.<span class="code-function">split</span>()) * <span class="code-number">4</span> // <span class="code-number">3</span>  <span class="code-comment"># estimate</span>
+            ))
+        <span class="code-keyword">return</span> chunks
+
+    <span class="code-keyword">def</span> <span class="code-function">chunk_loan_decision</span>(self, decision: Dict) -> Chunk:
+        <span class="code-comment"># Mỗi loan decision = 1 chunk, structured text</span>
+        content = (
+            f<span class="code-string">"Loan Decision Record\n"</span>
+            f<span class="code-string">"ID: {decision['loan_id']} | Date: {decision['date']}\n"</span>
+            f<span class="code-string">"Customer: credit_score={decision['credit_score']} "
+            f"income={decision['income_vnd']}\n"</span>
+            f<span class="code-string">"Amount: {decision['amount_vnd']:,} VNĐ\n"</span>
+            f<span class="code-string">"Decision: {decision['decision']} | Risk: {decision['risk_score']}\n"</span>
+            f<span class="code-string">"Reason: {decision['reason']}\n"</span>
+            f<span class="code-string">"Outcome: {decision.get('outcome', 'pending')}"</span>
+        )
+        chunk_id = hashlib.<span class="code-function">md5</span>(content.<span class="code-function">encode</span>()).<span class="code-function">hexdigest</span>()[:<span class="code-number">12</span>]
+        <span class="code-keyword">return</span> Chunk(
+            chunk_id   = chunk_id,
+            content    = content,
+            metadata   = decision,  <span class="code-comment"># full metadata for filtering</span>
+            parent_id  = <span class="code-keyword">None</span>,
+            token_count = len(content.<span class="code-function">split</span>()) * <span class="code-number">4</span> // <span class="code-number">3</span>
+        )</code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Hybrid Search — Dense + Sparse Retrieval
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <p><strong>Dense search</strong> (vector similarity) giỏi tìm semantic matches — "quy định về thế chấp" match với "collateral requirements". <strong>Sparse search</strong> (BM25/TF-IDF) giỏi tìm exact keyword — "Điều 15 Thông tư 39/2016/TT-NHNN". Production LoanBot dùng <strong>Hybrid Search</strong> với RRF (Reciprocal Rank Fusion) để kết hợp cả hai: dense_score × α + sparse_score × (1-α), thường α = 0.7. Qdrant hỗ trợ hybrid search native từ v1.7.</p>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Memory Management — Context Window Optimization</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu token budget management trong multi-step agent pipelines</li>
+          <li>Implement conversation summarization để duy trì long-term sessions</li>
+          <li>Thiết kế memory compression cho LoanBot review sessions kéo dài</li>
+          <li>Tránh "context pollution" — noise trong context giảm quality</li>
+        </ul>
+      </div>
+
+      <p>LoanBot v3.1 có loan officer review session có thể kéo dài 2–3 giờ với hàng chục turns. Nếu stack tất cả messages vào context window → overflow. Giải pháp: <strong>progressive summarization</strong> — khi context gần đầy, summarize oldest messages và giữ summary.</p>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cảnh báo: Context Pollution</div>
+        <p>Không phải mọi retrieved chunk đều hữu ích. Retrieve 20 chunks rồi nhét tất cả vào context = "context pollution" — model bị distract bởi irrelevant information, <strong>hallucination tăng</strong>, quality giảm. Rule: retrieve top-20, rerank → giữ top-5. Faithfulness score drops 15% khi dùng top-10 thay vì top-5 trong LoanBot benchmarks.</p>
+      </div>
+
+      <h3>4.1 Token Budget Manager</h3>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Tuple
+<span class="code-keyword">import</span> anthropic
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">TokenBudget</span>:
+    <span class="code-comment">"""Token budget cho LoanBot context window (200K total)."""</span>
+    total_limit:     <span class="code-type">int</span> = <span class="code-number">200_000</span>
+    system_reserved: <span class="code-type">int</span> = <span class="code-number">8_000</span>   <span class="code-comment"># system prompt + tools</span>
+    rag_budget:      <span class="code-type">int</span> = <span class="code-number">12_000</span>   <span class="code-comment"># 5 regulation chunks × 2400 tokens</span>
+    history_budget:  <span class="code-type">int</span> = <span class="code-number">20_000</span>   <span class="code-comment"># conversation history</span>
+    loan_data_budget:<span class="code-type">int</span> = <span class="code-number">4_000</span>    <span class="code-comment"># loan application data</span>
+    output_reserved: <span class="code-type">int</span> = <span class="code-number">4_096</span>    <span class="code-comment"># max output tokens</span>
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">available</span>(self) -> <span class="code-type">int</span>:
+        used = (self.system_reserved + self.rag_budget +
+                self.history_budget + self.loan_data_budget + self.output_reserved)
+        <span class="code-keyword">return</span> self.total_limit - used  <span class="code-comment"># safety buffer</span>
+
+<span class="code-keyword">class</span> <span class="code-function">ConversationMemory</span>:
+    <span class="code-comment">"""Rolling window memory với auto-summarization."""</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, budget: TokenBudget, client: anthropic.Anthropic):
+        self.budget   = budget
+        self.client   = client
+        self.messages: List[dict] = []
+        self.summary: <span class="code-type">str</span>  = <span class="code-string">""</span>
+        self._token_est = <span class="code-number">0</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">_estimate_tokens</span>(self, text: <span class="code-type">str</span>) -> <span class="code-type">int</span>:
+        <span class="code-keyword">return</span> len(text) // <span class="code-number">4</span>  <span class="code-comment"># rough estimate: 4 chars/token</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">add_message</span>(self, role: <span class="code-type">str</span>, content: <span class="code-type">str</span>):
+        self.messages.<span class="code-function">append</span>({<span class="code-string">"role"</span>: role, <span class="code-string">"content"</span>: content})
+        self._token_est += self.<span class="code-function">_estimate_tokens</span>(content)
+        <span class="code-keyword">if</span> self._token_est > self.budget.history_budget * <span class="code-number">0.8</span>:
+            self.<span class="code-function">_compress</span>()  <span class="code-comment"># compress when 80% of budget used</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">_compress</span>(self):
+        <span class="code-comment"># Giữ lại 5 messages gần nhất, summarize phần còn lại</span>
+        to_summarize = self.messages[:-<span class="code-number">5</span>]
+        <span class="code-keyword">if not</span> to_summarize: <span class="code-keyword">return</span>
+        conv_text = <span class="code-string">"\n"</span>.<span class="code-function">join</span>(f<span class="code-string">"{m['role']}: {m['content']}"</span> <span class="code-keyword">for</span> m <span class="code-keyword">in</span> to_summarize)
+        response = self.client.messages.<span class="code-function">create</span>(
+            model=<span class="code-string">"claude-haiku-4-5-20251001"</span>,
+            max_tokens=<span class="code-number">500</span>,
+            messages=[{<span class="code-string">"role"</span>: <span class="code-string">"user"</span>, <span class="code-string">"content"</span>:
+                f<span class="code-string">"Summarize this loan review conversation in ≤3 sentences, preserving key decisions:\n{conv_text}"</span>}]
+        )
+        self.summary   = response.content[<span class="code-number">0</span>].text
+        self.messages  = self.messages[-<span class="code-number">5</span>:]  <span class="code-comment"># keep recent messages</span>
+        self._token_est = self.<span class="code-function">_estimate_tokens</span>(self.summary) + sum(
+            self.<span class="code-function">_estimate_tokens</span>(m[<span class="code-string">'content'</span>]) <span class="code-keyword">for</span> m <span class="code-keyword">in</span> self.messages
+        )
+
+    <span class="code-keyword">def</span> <span class="code-function">build_context</span>(self) -> List[dict]:
+        <span class="code-comment"># Prepend summary nếu có, rồi recent messages</span>
+        messages = []
+        <span class="code-keyword">if</span> self.summary:
+            messages.<span class="code-function">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"user"</span>,
+                             <span class="code-string">"content"</span>: f<span class="code-string">"[Previous conversation summary]: {self.summary}"</span>})
+            messages.<span class="code-function">append</span>({<span class="code-string">"role"</span>: <span class="code-string">"assistant"</span>, <span class="code-string">"content"</span>: <span class="code-string">"Understood."</span>})
+        messages.<span class="code-function">extend</span>(self.messages)
+        <span class="code-keyword">return</span> messages</code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Tại sao không thể dùng <code>history_budget = total_limit - system_reserved</code> (dùng hết context cho history)?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> Vì trong mỗi inference call của LoanBot, cần budget cho: (1) RAG retrieved chunks (12K tokens = 5 regulation sections), (2) loan application data (4K), (3) output tokens (4K). Nếu history chiếm hết context, không còn chỗ cho retrieved knowledge → RAG không work. TokenBudget partition rõ ràng từng thành phần: system + rag + history + data + output ≤ 200K. Ngoài ra: "Lost in the middle" problem — context quá dài làm model ignore information ở giữa.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Production RAG — Evaluation, Optimization, Caching</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Evaluate RAG quality với RAGAS: Faithfulness, Relevancy, Precision, Recall</li>
+          <li>Implement semantic caching để giảm 60% redundant retrievals</li>
+          <li>Thiết kế quality gate cho RAG: Faithfulness ≥ 0.85 trước khi serve</li>
+          <li>Xây dựng feedback loop để improve retrieval over time</li>
+        </ul>
+      </div>
+
+      <p>RAG trong production cần đáp ứng hai yêu cầu: <strong>quality</strong> (retrieved information phải accurate, relevant) và <strong>efficiency</strong> (latency thấp, cost thấp). LoanBot RAG target: Faithfulness ≥ 0.85, latency P95 ≤ 800ms, cache hit rate ≥ 40%.</p>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: Faithfulness vs Relevancy</div>
+        <p><strong>Faithfulness</strong>: answer có được grounded trong retrieved contexts không? LoanBot: "Theo Điều 15 TT39, collateral value phải đạt 120% loan amount" — claim này có trong retrieved text không? (0 = hallucinated, 1 = fully grounded). <strong>Answer Relevancy</strong>: retrieved contexts có relevant với query không? Retrieve 5 chunks về "thế chấp" nhưng query là "credit score minimum" → low relevancy. Cả hai cần ≥ 0.85 trong LoanBot để đảm bảo EU AI Act Art.13 transparency requirement.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 180" xmlns="http://www.w3.org/2000/svg">
+          <title>Production RAG Quality Gate — Faithfulness check before serving LoanBot response</title>
+          <defs>
+            <marker id="arrProd" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#d946ef"/>
+            </marker>
+            <marker id="arrFail" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626"/>
+            </marker>
+          </defs>
+          <rect width="760" height="180" fill="#1a0a1e" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#fae8ff">Production RAG Quality Gate — LoanBot v3.1</text>
+
+          <!-- Query -->
+          <rect x="15" y="50" width="90" height="45" fill="#1a0a1e" rx="6" stroke="#d946ef"/>
+          <text x="60" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#fae8ff">Loan Query</text>
+          <text x="60" y="84" text-anchor="middle" font-size="7" fill="#e879f9">+ app data</text>
+
+          <line x1="105" y1="72" x2="128" y2="72" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrProd)"/>
+
+          <!-- Semantic Cache -->
+          <rect x="130" y="40" width="100" height="65" fill="#312e81" rx="6" stroke="#6366f1"/>
+          <text x="180" y="58" text-anchor="middle" font-size="9" font-weight="700" fill="#e0e7ff">Semantic</text>
+          <text x="180" y="72" text-anchor="middle" font-size="9" font-weight="700" fill="#e0e7ff">Cache</text>
+          <text x="180" y="86" text-anchor="middle" font-size="7" fill="#a5b4fc">Redis + cosine</text>
+          <text x="180" y="98" text-anchor="middle" font-size="7" fill="#a5b4fc">sim ≥ 0.95</text>
+
+          <!-- Cache HIT -->
+          <text x="180" y="125" text-anchor="middle" font-size="8" fill="#10b981">HIT ↓ (40%)</text>
+          <line x1="180" y1="105" x2="180" y2="135" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrProd)"/>
+          <rect x="140" y="137" width="80" height="28" fill="#052e16" rx="5"/>
+          <text x="180" y="155" text-anchor="middle" font-size="8" fill="#6ee7b7">Cached response</text>
+
+          <!-- Cache MISS -->
+          <line x1="230" y1="72" x2="248" y2="72" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrProd)"/>
+          <text x="239" y="65" text-anchor="middle" font-size="7" fill="#e879f9">MISS</text>
+
+          <!-- Retrieve -->
+          <rect x="250" y="50" width="90" height="45" fill="#065f46" rx="6" stroke="#10b981"/>
+          <text x="295" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">Retrieve</text>
+          <text x="295" y="84" text-anchor="middle" font-size="7" fill="#6ee7b7">top-20 → rerank</text>
+          <text x="295" y="96" text-anchor="middle" font-size="7" fill="#6ee7b7">→ top-5</text>
+
+          <line x1="340" y1="72" x2="358" y2="72" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrProd)"/>
+
+          <!-- Generate -->
+          <rect x="360" y="50" width="90" height="45" fill="#1a0a1e" rx="6" stroke="#d946ef"/>
+          <text x="405" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#fae8ff">Generate</text>
+          <text x="405" y="84" text-anchor="middle" font-size="7" fill="#e879f9">RiskAgent</text>
+          <text x="405" y="96" text-anchor="middle" font-size="7" fill="#e879f9">+ citations</text>
+
+          <line x1="450" y1="72" x2="468" y2="72" stroke="#d946ef" stroke-width="1.5" marker-end="url(#arrProd)"/>
+
+          <!-- Quality Gate -->
+          <rect x="470" y="40" width="100" height="65" fill="#92400e" rx="6" stroke="#d97706"/>
+          <text x="520" y="60" text-anchor="middle" font-size="9" font-weight="700" fill="#fef3c7">Quality Gate</text>
+          <text x="520" y="74" text-anchor="middle" font-size="7" fill="#fde68a">Faithfulness≥0.85</text>
+          <text x="520" y="86" text-anchor="middle" font-size="7" fill="#fde68a">Relevancy≥0.80</text>
+          <text x="520" y="98" text-anchor="middle" font-size="7" fill="#fde68a">No hallucination</text>
+
+          <!-- PASS -->
+          <line x1="570" y1="65" x2="628" y2="65" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrProd)"/>
+          <text x="599" y="58" text-anchor="middle" font-size="7" fill="#10b981">PASS</text>
+          <rect x="630" y="50" width="115" height="45" fill="#052e16" rx="6" stroke="#10b981"/>
+          <text x="687" y="70" text-anchor="middle" font-size="9" font-weight="700" fill="#d1fae5">Serve + Cache</text>
+          <text x="687" y="84" text-anchor="middle" font-size="7" fill="#6ee7b7">Store in Redis</text>
+          <text x="687" y="96" text-anchor="middle" font-size="7" fill="#6ee7b7">TTL=24h</text>
+
+          <!-- FAIL -->
+          <line x1="520" y1="105" x2="520" y2="140" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arrFail)"/>
+          <text x="540" y="125" text-anchor="middle" font-size="7" fill="#dc2626">FAIL</text>
+          <rect x="440" y="142" width="160" height="28" fill="#450a0a" rx="5" stroke="#f87171"/>
+          <text x="520" y="160" text-anchor="middle" font-size="8" fill="#fca5a5">Fallback: "Cần kiểm tra thủ công" + HITL</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Production RAG Quality Gate — Semantic cache giảm 40% calls; Faithfulness ≥ 0.85 gate; failed responses → HITL thay vì serve hallucination</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python</span>
+        <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">import</span> statistics
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">RAGQualityGate</span>:
+    <span class="code-comment">"""Quality gate: check faithfulness trước khi serve LoanBot RAG response."""</span>
+    faithfulness_min: <span class="code-type">float</span> = <span class="code-number">0.85</span>
+    relevancy_min:    <span class="code-type">float</span> = <span class="code-number">0.80</span>
+    precision_min:    <span class="code-type">float</span> = <span class="code-number">0.75</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">evaluate</span>(self, query: <span class="code-type">str</span>, answer: <span class="code-type">str</span>,
+                    contexts: List[<span class="code-type">str</span>]) -> dict:
+        <span class="code-comment"># Mock RAGAS scores — thực tế gọi RAGAS evaluator</span>
+        scores = self.<span class="code-function">_compute_ragas</span>(query, answer, contexts)
+        passed = (
+            scores[<span class="code-string">'faithfulness'</span>]       >= self.faithfulness_min <span class="code-keyword">and</span>
+            scores[<span class="code-string">'answer_relevancy'</span>]   >= self.relevancy_min    <span class="code-keyword">and</span>
+            scores[<span class="code-string">'context_precision'</span>]  >= self.precision_min
+        )
+        <span class="code-keyword">return</span> {
+            <span class="code-string">'passed'</span>: passed,
+            <span class="code-string">'scores'</span>: scores,
+            <span class="code-string">'action'</span>: <span class="code-string">'serve'</span> <span class="code-keyword">if</span> passed <span class="code-keyword">else</span> <span class="code-string">'hitl_fallback'</span>
+        }
+
+    <span class="code-keyword">def</span> <span class="code-function">_compute_ragas</span>(self, query: <span class="code-type">str</span>,
+                          answer: <span class="code-type">str</span>, contexts: List[<span class="code-type">str</span>]) -> dict:
+        <span class="code-comment"># Simplified mock — real impl calls LLM judge</span>
+        <span class="code-keyword">return</span> {
+            <span class="code-string">'faithfulness'</span>:      <span class="code-number">0.91</span>,
+            <span class="code-string">'answer_relevancy'</span>:  <span class="code-number">0.88</span>,
+            <span class="code-string">'context_precision'</span>: <span class="code-number">0.83</span>,
+            <span class="code-string">'context_recall'</span>:    <span class="code-number">0.79</span>,
+        }</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 14</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m14-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m14-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m14-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RAG (Retrieval-Augmented Generation)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern cho phép LLM truy cập external knowledge: retrieve relevant docs → augment context → generate grounded response.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sensory Memory</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Context window của model trong một inference call. Ephemeral — mất khi call kết thúc.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Long-term Memory</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Persistent storage (vector store + DB) cho knowledge tồn tại qua nhiều sessions và users.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Vector Embedding</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dense numerical representation của text trong high-dimensional space, cho phép semantic similarity search.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cosine Similarity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Metric đo semantic similarity giữa 2 vectors: 1.0 = identical, 0.0 = unrelated, -1.0 = opposite.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chunking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chia document lớn thành các đoạn nhỏ hơn để embed và retrieve. Strategy: fixed-size, semantic, hierarchical.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Reranking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Bước sau initial retrieval: dùng cross-encoder model để re-score và re-order top-K results, giữ top-5.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hybrid Search</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kết hợp dense (vector) và sparse (BM25) retrieval với RRF score fusion để tối ưu recall.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Faithfulness</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAGAS metric: mỗi claim trong answer có được support bởi retrieved context không. 0–1 scale.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Answer Relevancy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAGAS metric: answer có thực sự trả lời câu hỏi gốc không (relevant to query).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Context Pollution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi retrieve quá nhiều irrelevant chunks → model bị distract, hallucination tăng, quality giảm.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semantic Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache lưu query embeddings và responses. Query mới với cosine sim ≥ 0.95 → serve cached response.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Progressive Summarization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi conversation history vượt budget → summarize oldest messages, giữ recent messages + summary.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">HyDE (Hypothetical Document Embeddings)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Advanced RAG: generate hypothetical answer → embed it → use for retrieval. Improves recall for complex queries.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">pgvector</td><td style="padding:8px 12px;">PostgreSQL extension cho vector operations, cho phép store và search embeddings trong existing DB.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module13/index.html" class="btn btn-outline">← Module 13: Orchestration</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 14 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

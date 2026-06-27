@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 25 — Agent Orchestration at Scale</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root {
+      --m25-primary: #0c4a6e;
+      --m25-accent:  #38bdf8;
+      --m25-light:   #f0f9ff;
+      --m25-border:  #7dd3fc;
+    }
+    .lesson-header { background: linear-gradient(135deg, #082f49 0%, #0c4a6e 55%, #38bdf8 100%); }
+    .lesson-header h1, .lesson-header .module-tag { color: #f0f9ff; }
+    .lesson-header p { color: #7dd3fc; }
+    .sidebar-nav a.active { background: var(--m25-light); border-left: 3px solid var(--m25-accent); color: var(--m25-primary); }
+    .sidebar-nav a:hover { color: var(--m25-primary); }
+
+    .queue-box {
+      background: #082f49; border: 1px solid #0369a1; border-radius: var(--radius-lg);
+      padding: var(--space-3) var(--space-4); font-family: monospace; font-size: .8rem;
+      color: #7dd3fc; margin: var(--space-2) 0;
+    }
+    .queue-item {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      margin: 2px; font-size: .75rem; font-weight: 600;
+    }
+    .qi-pending  { background: #1e3a5f; color: #93c5fd; }
+    .qi-running  { background: #14532d; color: #86efac; }
+    .qi-done     { background: #374151; color: #9ca3af; }
+    .diagram-container { margin: var(--space-6) 0; }
+    .diagram-container svg { max-width: 100%; height: auto; }
+    .diagram-title { text-align: center; font-size: .85rem; color: var(--text-muted); margin-top: var(--space-2); font-style: italic; }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+    <a href="../../index.html">Trang chủ</a>
+  </div>
+</nav>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<div class="page-layout">
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:var(--m25-light);color:var(--m25-primary);border-color:var(--m25-border);">MODULE 25</div>
+    <div class="sidebar-title">Agent Orchestration at Scale</div>
+    <nav class="sidebar-nav">
+      <a href="#lesson1" class="active">L1. Distributed Architecture</a>
+      <a href="#lesson2">L2. Message Queue Patterns</a>
+      <a href="#lesson3">L3. Event-Driven Orchestration</a>
+      <a href="#lesson4">L4. Horizontal Scaling</a>
+      <a href="#lesson5">L5. Observability at Scale</a>
+      <a href="quiz.html" style="margin-top:var(--space-4);color:var(--m25-accent);">📝 Quiz Module 25</a>
+      <a href="lab.ipynb" download style="color:var(--m25-accent);">🔬 Lab Notebook</a>
+    </nav>
+    <div style="margin-top:auto;padding-top:var(--space-6);">
+      <a href="../module24/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module 24: Epistemics</a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="lesson-header">
+      <span class="module-tag">MODULE 25 · Tuần 70–72</span>
+      <h1>⚡ Agent Orchestration at Scale</h1>
+      <p>FinTech Corp tăng từ 50K lên 500K hồ sơ/tháng. LoanBot v3.7 đơn lẻ không thể xử lý 10× load trong giờ cao điểm — bị timeout, queue đầy, kết quả không nhất quán. Module này dạy cách thiết kế kiến trúc distributed để LoanBot scale horizontal mà không mất reliability.</p>
+      <div class="lesson-meta">
+        <span>⏱ 3 tuần</span>
+        <span>📖 5 bài giảng</span>
+        <span>🔬 Distributed Systems</span>
+      </div>
+    </div>
+
+    <!-- LESSON 1 -->
+    <section id="lesson1" class="lesson-section">
+      <h2>Bài 1: Distributed Agent Architecture — Từ Monolith đến Fleet</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu vấn đề của monolithic LoanBot khi scale từ 50K → 500K hồ sơ/tháng</li>
+          <li>Phân biệt stateless vs stateful agents và tại sao stateless dễ scale hơn</li>
+          <li>Thiết kế agent fleet với shared state store (Redis) và message broker</li>
+          <li>Tránh 3 anti-patterns phổ biến khi distribute agents: shared mutable state, chatty agents, God coordinator</li>
+        </ul>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 Tình huống: FinTech Corp Scale Problem</div>
+        <p>Tháng 1/2025, FinTech Corp ký hợp đồng với 3 ngân hàng đối tác mới. Volume tăng từ 50K → 500K hồ sơ/tháng. Hệ thống hiện tại:</p>
+        <ul style="font-size:.875rem;margin-top:var(--space-2);">
+          <li><strong>Single LoanBot instance</strong>: 1 container, xử lý tuần tự, max 2,000 hồ sơ/ngày</li>
+          <li><strong>Giờ cao điểm (9–11 giờ sáng)</strong>: 40% traffic dồn vào 2 giờ → timeout 30 giây</li>
+          <li><strong>Bottleneck</strong>: CIC API call mất 2–3 giây/hồ sơ → sequential = 500K × 2.5s = 14.5 ngày xử lý</li>
+          <li><strong>Giải pháp cần</strong>: Parallel processing, queue-based load leveling, stateless agent design</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Stateless vs Stateful Agent</div>
+        <p><strong>Stateful agent</strong>: giữ memory của previous requests trong RAM — dễ implement nhưng không thể scale (instance 1 không biết gì về instance 2). <strong>Stateless agent</strong>: không giữ local state — mọi state đều persist ra external store (Redis, database). Bất kỳ instance nào cũng có thể handle bất kỳ request nào. LoanBot phải stateless để scale: session state → Redis, conversation history → database, model weights → shared read-only mount.</p>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Throughput Scaling Formula</div>
+        <div class="formula-text">Throughput = N_workers × (1 / avg_latency)</div>
+        <div class="formula-desc">Với avg_latency = 2.5s/hồ sơ: 1 worker = 0.4 hồ sơ/s = 34,560/ngày. Để xử lý 500K/tháng = 16,667/ngày → cần ≥1 worker. Nhưng với peak 40% trong 2 giờ → 3,333/giờ = 0.93/giây → cần ≥3 workers để có headroom. Thực tế: deploy 5 workers với auto-scale lên 10 khi queue depth > 100.</div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg">
+          <title>Distributed LoanBot Architecture: API Gateway → Message Queue → Worker Fleet → State Store</title>
+          <defs>
+            <marker id="arr25" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#38bdf8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0f9ff">Distributed LoanBot Architecture — Scale to 500K/month</text>
+
+          <!-- Clients -->
+          <rect x="10" y="40" width="100" height="40" fill="#0c4a6e" rx="6" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="60" y="65" text-anchor="middle" font-size="9" font-weight="700" fill="#7dd3fc">🌐 Clients</text>
+
+          <!-- API Gateway -->
+          <rect x="130" y="35" width="110" height="50" fill="#0c4a6e" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="185" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">API Gateway</text>
+          <text x="185" y="70" text-anchor="middle" font-size="8" fill="#7dd3fc">Rate limit · Auth</text>
+          <text x="185" y="81" text-anchor="middle" font-size="8" fill="#7dd3fc">Load balance</text>
+
+          <line x1="110" y1="60" x2="130" y2="60" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25)"/>
+          <line x1="240" y1="60" x2="260" y2="60" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25)"/>
+
+          <!-- Message Queue -->
+          <rect x="263" y="35" width="120" height="50" fill="#0369a1" rx="8" stroke="#38bdf8" stroke-width="2"/>
+          <text x="323" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">📬 Task Queue</text>
+          <text x="323" y="70" text-anchor="middle" font-size="8" fill="#bae6fd">Redis Streams</text>
+          <text x="323" y="81" text-anchor="middle" font-size="8" fill="#bae6fd">FIFO · ACK</text>
+
+          <!-- Workers -->
+          <rect x="420" y="35" width="100" height="35" fill="#0c4a6e" rx="6" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="470" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#7dd3fc">Worker ×5</text>
+
+          <rect x="420" y="78" width="100" height="35" fill="#0c4a6e" rx="6" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="470" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#7dd3fc">Worker ×5</text>
+
+          <rect x="420" y="121" width="100" height="35" fill="#1e3a5f" rx="6" stroke="#0369a1" stroke-width="1" stroke-dasharray="4,2"/>
+          <text x="470" y="143" text-anchor="middle" font-size="9" fill="#7dd3fc">Auto-scale +5</text>
+
+          <line x1="383" y1="52" x2="420" y2="52" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25)"/>
+          <line x1="383" y1="65" x2="420" y2="95" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25)"/>
+          <line x1="383" y1="72" x2="420" y2="138" stroke="#0369a1" stroke-width="1" stroke-dasharray="4,2" marker-end="url(#arr25)"/>
+
+          <!-- External APIs -->
+          <rect x="545" y="35" width="100" height="35" fill="#134e4a" rx="6" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="595" y="57" text-anchor="middle" font-size="9" font-weight="700" fill="#99f6e4">CIC API</text>
+
+          <rect x="545" y="78" width="100" height="35" fill="#713f12" rx="6" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="595" y="100" text-anchor="middle" font-size="9" font-weight="700" fill="#fef3c7">Blacklist API</text>
+
+          <line x1="520" y1="52" x2="545" y2="52" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arr25)"/>
+          <line x1="520" y1="95" x2="545" y2="95" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr25)"/>
+
+          <!-- Redis State Store -->
+          <rect x="263" y="115" width="120" height="55" fill="#3b0764" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="323" y="137" text-anchor="middle" font-size="9" font-weight="700" fill="#f5f3ff">🗄️ Redis State</text>
+          <text x="323" y="150" text-anchor="middle" font-size="8" fill="#c4b5fd">Session · Cache</text>
+          <text x="323" y="161" text-anchor="middle" font-size="8" fill="#c4b5fd">Dedup · Rate limit</text>
+
+          <line x1="470" y1="113" x2="383" y2="140" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr25)"/>
+
+          <!-- Result DB -->
+          <rect x="545" y="130" width="100" height="40" fill="#0c4a6e" rx="6" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="595" y="155" text-anchor="middle" font-size="9" font-weight="700" fill="#7dd3fc">PostgreSQL</text>
+          <line x1="520" y1="57" x2="550" y2="130" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#arr25)"/>
+
+          <!-- Labels -->
+          <text x="380" y="195" text-anchor="middle" font-size="8" fill="#7dd3fc">① Gateway accepts → ② Queue buffers → ③ Workers parallel-consume → ④ State in Redis → ⑤ Results in DB</text>
+        </svg>
+        <div class="diagram-title">Hình 1: Distributed LoanBot Architecture. API Gateway buffer requests vào Redis Streams. 5 stateless workers consume queue song song, call CIC/Blacklist APIs đồng thời. Session state và cache trong Redis. Auto-scale thêm 5 workers khi queue depth &gt;100.</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Stateless LoanBot Worker — Redis State Pattern)</span>
+        <pre><code><span class="code-keyword">import</span> redis
+<span class="code-keyword">import</span> json
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">LoanBotWorker</span>:
+    <span class="code-comment">"""Stateless worker — zero local state, all state in Redis."""</span>
+    worker_id: <span class="code-type">str</span>
+    redis_client: redis.Redis
+    llm_client: object  <span class="code-comment"># claude client</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">process_task</span>(self, task: dict) -> dict:
+        app_id = task[<span class="code-string">"application_id"</span>]
+
+        <span class="code-comment"># Deduplication: only one worker processes each application</span>
+        lock_key = <span class="code-string">f"lock:app:{app_id}"</span>
+        acquired = self.redis_client.<span class="code-function">set</span>(lock_key, self.worker_id, nx=<span class="code-keyword">True</span>, ex=<span class="code-number">60</span>)
+        <span class="code-keyword">if</span> <span class="code-keyword">not</span> acquired:
+            <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"duplicate_skipped"</span>, <span class="code-string">"app_id"</span>: app_id}
+
+        <span class="code-keyword">try</span>:
+            <span class="code-comment"># Load state from Redis (no local state)</span>
+            cached = self.redis_client.<span class="code-function">get</span>(<span class="code-string">f"cic:cache:{app_id}"</span>)
+            <span class="code-keyword">if</span> cached:
+                cic_result = json.<span class="code-function">loads</span>(cached)
+            <span class="code-keyword">else</span>:
+                cic_result = <span class="code-function">_call_cic_api</span>(task[<span class="code-string">"citizen_id"</span>])
+                <span class="code-comment"># Cache for 24h to avoid redundant CIC calls</span>
+                self.redis_client.<span class="code-function">setex</span>(<span class="code-string">f"cic:cache:{app_id}"</span>, <span class="code-number">86400</span>, json.<span class="code-function">dumps</span>(cic_result))
+
+            <span class="code-comment"># Stateless LLM decision — context fully in task payload</span>
+            decision = <span class="code-function">_make_decision</span>(task, cic_result, self.llm_client)
+
+            <span class="code-comment"># Write result (no local storage — straight to DB)</span>
+            <span class="code-function">_save_result</span>(app_id, decision)
+            <span class="code-keyword">return</span> {<span class="code-string">"status"</span>: <span class="code-string">"completed"</span>, <span class="code-string">"decision"</span>: decision}
+
+        <span class="code-keyword">finally</span>:
+            self.redis_client.<span class="code-function">delete</span>(lock_key)  <span class="code-comment"># Always release lock</span></code></pre>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Anti-Pattern: Shared Mutable State</div>
+        <p><strong>KHÔNG làm</strong>: lưu <code>decisions_today_count</code> trong RAM của worker. Khi scale lên 5 workers, mỗi worker count riêng → total count sai. <strong>ĐÚng</strong>: dùng Redis INCR atomic counter — <code>redis.incr("counter:decisions:2024-11-01")</code>. Redis INCR là atomic, đảm bảo chính xác dù 10 workers cùng increment đồng thời.</p>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 2 -->
+    <section id="lesson2" class="lesson-section">
+      <h2>Bài 2: Message Queue Patterns — Buffering và Load Leveling</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Hiểu 3 delivery guarantees: at-most-once, at-least-once, exactly-once</li>
+          <li>Implement Redis Streams consumer group cho LoanBot task distribution</li>
+          <li>Thiết kế dead letter queue (DLQ) để handle failed tasks</li>
+          <li>Tối ưu batch size và prefetch count cho peak load handling</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: 3 Delivery Guarantees</div>
+        <p><strong>At-most-once</strong>: task được deliver tối đa 1 lần — nếu worker crash giữa chừng, task bị mất. <strong>At-least-once</strong>: task được deliver ít nhất 1 lần — nếu worker crash sau process nhưng trước ACK, task được deliver lại (duplicate risk). <strong>Exactly-once</strong>: mỗi task được xử lý đúng 1 lần — cần idempotency key + deduplication. Với loan decisions: <strong>at-least-once + idempotency</strong> là practical choice. Exactly-once quá phức tạp, at-most-once quá nguy hiểm (mất hồ sơ).</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Redis Streams Consumer Group + DLQ)</span>
+        <pre><code><span class="code-keyword">import</span> redis
+<span class="code-keyword">import</span> json
+<span class="code-keyword">import</span> time
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotQueue</span>:
+    STREAM_KEY  = <span class="code-string">"loan:tasks"</span>
+    GROUP_NAME  = <span class="code-string">"loanbot-workers"</span>
+    DLQ_KEY     = <span class="code-string">"loan:tasks:dlq"</span>
+    MAX_RETRIES = <span class="code-number">3</span>
+    BLOCK_MS    = <span class="code-number">2000</span>   <span class="code-comment"># wait up to 2s for new messages</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, redis_client: redis.Redis):
+        self.r = redis_client
+        <span class="code-function">self._ensure_group_exists</span>()
+
+    <span class="code-keyword">def</span> <span class="code-function">_ensure_group_exists</span>(self):
+        <span class="code-keyword">try</span>:
+            self.r.<span class="code-function">xgroup_create</span>(self.STREAM_KEY, self.GROUP_NAME, id=<span class="code-string">"0"</span>, mkstream=<span class="code-keyword">True</span>)
+        <span class="code-keyword">except</span> redis.ResponseError:
+            <span class="code-keyword">pass</span>  <span class="code-comment"># Group already exists</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">enqueue</span>(self, application: dict) -> <span class="code-type">str</span>:
+        <span class="code-comment">"""Add task to stream, return message ID."""</span>
+        payload = {
+            <span class="code-string">"data"</span>: json.<span class="code-function">dumps</span>(application),
+            <span class="code-string">"enqueued_at"</span>: <span class="code-type">str</span>(time.<span class="code-function">time</span>()),
+            <span class="code-string">"retry_count"</span>: <span class="code-string">"0"</span>,
+        }
+        <span class="code-keyword">return</span> self.r.<span class="code-function">xadd</span>(self.STREAM_KEY, payload)
+
+    <span class="code-keyword">def</span> <span class="code-function">consume</span>(self, worker_id: <span class="code-type">str</span>, batch_size: <span class="code-type">int</span> = <span class="code-number">10</span>) -> List[tuple]:
+        <span class="code-comment">"""Fetch batch of unacknowledged messages for this worker."""</span>
+        messages = self.r.<span class="code-function">xreadgroup</span>(
+            groupname=self.GROUP_NAME,
+            consumername=worker_id,
+            streams={self.STREAM_KEY: <span class="code-string">">"</span>},
+            count=batch_size,
+            block=self.BLOCK_MS
+        )
+        <span class="code-keyword">if</span> <span class="code-keyword">not</span> messages: <span class="code-keyword">return</span> []
+        <span class="code-keyword">return</span> [(msg_id, json.<span class="code-function">loads</span>(data[<span class="code-string">"data"</span>])) <span class="code-keyword">for</span> _, msgs <span class="code-keyword">in</span> messages <span class="code-keyword">for</span> msg_id, data <span class="code-keyword">in</span> msgs]
+
+    <span class="code-keyword">def</span> <span class="code-function">ack</span>(self, message_id: <span class="code-type">str</span>):
+        <span class="code-comment">"""Acknowledge successful processing."""</span>
+        self.r.<span class="code-function">xack</span>(self.STREAM_KEY, self.GROUP_NAME, message_id)
+
+    <span class="code-keyword">def</span> <span class="code-function">nack_with_retry</span>(self, message_id: <span class="code-type">str</span>, error: <span class="code-type">str</span>):
+        <span class="code-comment">"""On failure: increment retry count or send to DLQ."""</span>
+        pending = self.r.<span class="code-function">xpending_range</span>(self.STREAM_KEY, self.GROUP_NAME, <span class="code-string">"-"</span>, <span class="code-string">"+"</span>, <span class="code-number">1</span>, message_id)
+        retry_count = pending[<span class="code-number">0</span>][<span class="code-string">"delivery_count"</span>] <span class="code-keyword">if</span> pending <span class="code-keyword">else</span> <span class="code-number">1</span>
+
+        <span class="code-keyword">if</span> retry_count >= self.MAX_RETRIES:
+            <span class="code-comment"># Move to Dead Letter Queue for manual inspection</span>
+            self.r.<span class="code-function">xadd</span>(self.DLQ_KEY, {<span class="code-string">"original_id"</span>: message_id, <span class="code-string">"error"</span>: error})
+            self.r.<span class="code-function">xack</span>(self.STREAM_KEY, self.GROUP_NAME, message_id)
+        <span class="code-comment"># else: leave in PEL (pending entry list) for re-delivery after visibility timeout</span></code></pre>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">Worker A consume message M1 từ Redis Streams, call CIC API thành công (mất 2.5 giây), rồi crash ngay trước khi <code>xack()</code>. Message M1 sẽ như thế nào sau khi visibility timeout (30 giây) hết?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Gợi ý:</strong> M1 vẫn trong PEL (Pending Entry List) của consumer group, chưa được ACK. Sau visibility timeout 30s, Redis sẽ cho phép Worker B (hoặc recovery process) claim lại M1 bằng <code>xclaim()</code>. Worker B sẽ xử lý lại M1 từ đầu — gọi CIC API lần 2. Đây là at-least-once: M1 được xử lý 2 lần. Để safe: cần idempotency check ở đầu <code>process_task()</code> — kiểm tra kết quả đã tồn tại trong DB chưa trước khi gọi CIC. Nếu đã có → skip và return existing result.
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 3 -->
+    <section id="lesson3" class="lesson-section">
+      <h2>Bài 3: Event-Driven Orchestration — Choreography vs Orchestration</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Phân biệt Orchestration (central coordinator) vs Choreography (event-driven, decentralized)</li>
+          <li>Implement Saga Pattern cho loan approval flow — compensating transactions</li>
+          <li>Handle distributed failure: rollback partial success khi 1 trong 5 steps thất bại</li>
+          <li>Biết khi nào dùng Orchestration (cần visibility) vs Choreography (cần loose coupling)</li>
+        </ul>
+      </div>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Nhạc Trưởng (Orchestration) vs Jazz (Choreography)</div>
+        <p><strong>Orchestration</strong> = có nhạc trưởng (LoanBot Coordinator) chỉ huy: "Bước 1: CIC check → Bước 2: Blacklist → Bước 3: Income..." Nhạc trưởng biết state toàn bộ flow, dễ debug. Nhưng nếu nhạc trưởng ngã → cả buổi dừng lại. <strong>Choreography</strong> = nhạc jazz: mỗi nhạc cụ nghe âm thanh của người kia và react — không cần nhạc trưởng. Service A emit event → Service B nghe và react → emit event → Service C react... Loose coupling, resilient, nhưng khó trace toàn bộ flow khi có lỗi. FinTech Corp dùng Orchestration cho loan flow (cần audit trail đầy đủ) + Choreography cho notifications (fire-and-forget).</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+          <title>Saga Pattern cho Loan Approval: 4 steps với compensating transactions khi failure</title>
+          <defs>
+            <marker id="arr25s" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#38bdf8"/>
+            </marker>
+            <marker id="arr25r" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#f87171"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#f0f9ff">Saga Pattern — Loan Approval with Compensating Transactions</text>
+
+          <!-- Steps -->
+          <rect x="15" y="40" width="130" height="48" fill="#0c4a6e" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="80" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">S1: Reserve Slot</text>
+          <text x="80" y="76" text-anchor="middle" font-size="8" fill="#7dd3fc">Mark app "processing"</text>
+
+          <rect x="163" y="40" width="130" height="48" fill="#0c4a6e" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="228" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">S2: CIC Query</text>
+          <text x="228" y="76" text-anchor="middle" font-size="8" fill="#7dd3fc">Fetch credit report</text>
+
+          <rect x="311" y="40" width="130" height="48" fill="#0c4a6e" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="376" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">S3: LoanBot Decision</text>
+          <text x="376" y="76" text-anchor="middle" font-size="8" fill="#7dd3fc">APPROVE/REJECT/REVIEW</text>
+
+          <rect x="459" y="40" width="130" height="48" fill="#0c4a6e" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="524" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">S4: Notify Customer</text>
+          <text x="524" y="76" text-anchor="middle" font-size="8" fill="#7dd3fc">SMS + Email</text>
+
+          <rect x="607" y="40" width="138" height="48" fill="#166534" rx="8" stroke="#4ade80" stroke-width="1.5"/>
+          <text x="676" y="62" text-anchor="middle" font-size="9" font-weight="700" fill="#f0f9ff">S5: Record Audit</text>
+          <text x="676" y="76" text-anchor="middle" font-size="8" fill="#86efac">Immutable log entry</text>
+
+          <!-- Forward arrows -->
+          <line x1="145" y1="64" x2="163" y2="64" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25s)"/>
+          <line x1="293" y1="64" x2="311" y2="64" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25s)"/>
+          <line x1="441" y1="64" x2="459" y2="64" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25s)"/>
+          <line x1="589" y1="64" x2="607" y2="64" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arr25s)"/>
+
+          <!-- Failure at S3 -->
+          <rect x="311" y="105" width="130" height="35" fill="#7f1d1d" rx="6" stroke="#f87171" stroke-width="1.5"/>
+          <text x="376" y="127" text-anchor="middle" font-size="9" font-weight="700" fill="#fca5a5">❌ S3 Fails</text>
+          <line x1="376" y1="88" x2="376" y2="105" stroke="#f87171" stroke-width="1.5" marker-end="url(#arr25r)"/>
+
+          <!-- Compensating transactions -->
+          <rect x="163" y="155" width="130" height="35" fill="#78350f" rx="6" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="228" y="172" text-anchor="middle" font-size="9" font-weight="700" fill="#fef3c7">C2: Release CIC cache</text>
+          <text x="228" y="183" text-anchor="middle" font-size="7" fill="#fde68a">(compensate S2)</text>
+
+          <rect x="15" y="155" width="130" height="35" fill="#78350f" rx="6" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="80" y="172" text-anchor="middle" font-size="9" font-weight="700" fill="#fef3c7">C1: Release Slot</text>
+          <text x="80" y="183" text-anchor="middle" font-size="7" fill="#fde68a">(compensate S1)</text>
+
+          <line x1="376" y1="140" x2="228" y2="155" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr25r)"/>
+          <line x1="228" y1="155" x2="145" y2="172" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arr25r)"/>
+        </svg>
+        <div class="diagram-title">Hình 2: Saga Pattern — loan approval flow có 5 forward steps. Khi S3 (LoanBot Decision) fail: execute compensating transactions ngược lại — C2 release CIC cache lock, C1 release processing slot. S4 và S5 không cần compensate vì chưa execute.</div>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 4 -->
+    <section id="lesson4" class="lesson-section">
+      <h2>Bài 4: Horizontal Scaling — Auto-Scale và Load Balancing</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement queue-depth-based auto-scaling cho LoanBot worker fleet</li>
+          <li>Thiết kế graceful shutdown: worker drain queue trước khi stop</li>
+          <li>Handle hot-spots: distribute load evenly khi 1 worker quá tải</li>
+          <li>Tính toán optimal worker count dựa trên SLA latency targets</li>
+        </ul>
+      </div>
+
+      <div class="callout concept">
+        <div class="callout-header">📌 Khái niệm: Little's Law — Sizing Worker Fleet</div>
+        <p>Little's Law: <strong>L = λ × W</strong>. L = số tasks trong system (queue + processing). λ = arrival rate (tasks/giây). W = processing time (giây/task). Ví dụ FinTech Corp peak: λ = 3.3 tasks/giây (20K hồ sơ trong 2 giờ), W = 2.5 giây/task. L = 3.3 × 2.5 = 8.25 tasks concurrent. Cần ≥9 workers để giữ queue không grow. Với 20% buffer → deploy <strong>11 workers</strong> ở peak. Off-peak: λ = 0.4/giây → 1 task concurrent → scale down to 2 workers.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Queue-Depth Auto-Scaler)</span>
+        <pre><code><span class="code-keyword">import</span> time
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">AutoScaleConfig</span>:
+    min_workers: <span class="code-type">int</span>     = <span class="code-number">2</span>
+    max_workers: <span class="code-type">int</span>     = <span class="code-number">20</span>
+    scale_up_threshold: <span class="code-type">int</span>   = <span class="code-number">50</span>   <span class="code-comment"># queue depth to add workers</span>
+    scale_down_threshold: <span class="code-type">int</span> = <span class="code-number">5</span>    <span class="code-comment"># queue depth to remove workers</span>
+    cooldown_seconds: <span class="code-type">int</span>    = <span class="code-number">60</span>   <span class="code-comment"># min time between scale events</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotAutoScaler</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, queue: <span class="code-type">LoanBotQueue</span>, config: <span class="code-type">AutoScaleConfig</span>):
+        self.queue = queue
+        self.cfg = config
+        self.current_workers = config.min_workers
+        self.last_scale_time = <span class="code-number">0</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">evaluate</span>(self) -> dict:
+        queue_depth = self.<span class="code-function">_get_queue_depth</span>()
+        now = time.<span class="code-function">time</span>()
+        in_cooldown = (now - self.last_scale_time) < self.cfg.cooldown_seconds
+
+        action = <span class="code-string">"none"</span>
+        <span class="code-keyword">if</span> <span class="code-keyword">not</span> in_cooldown:
+            <span class="code-keyword">if</span> queue_depth > self.cfg.scale_up_threshold <span class="code-keyword">and</span> self.current_workers < self.cfg.max_workers:
+                <span class="code-comment"># Scale up by 2 workers at a time</span>
+                new_count = <span class="code-function">min</span>(self.current_workers + <span class="code-number">2</span>, self.cfg.max_workers)
+                self.<span class="code-function">_spawn_workers</span>(new_count - self.current_workers)
+                self.current_workers = new_count
+                self.last_scale_time = now
+                action = <span class="code-string">f"scale_up → {new_count} workers"</span>
+
+            <span class="code-keyword">elif</span> queue_depth < self.cfg.scale_down_threshold <span class="code-keyword">and</span> self.current_workers > self.cfg.min_workers:
+                <span class="code-comment"># Scale down: send graceful stop signal, workers drain then exit</span>
+                new_count = <span class="code-function">max</span>(self.current_workers - <span class="code-number">1</span>, self.cfg.min_workers)
+                self.<span class="code-function">_graceful_stop_one_worker</span>()
+                self.current_workers = new_count
+                self.last_scale_time = now
+                action = <span class="code-string">f"scale_down → {new_count} workers"</span>
+
+        <span class="code-keyword">return</span> {<span class="code-string">"queue_depth"</span>: queue_depth, <span class="code-string">"workers"</span>: self.current_workers, <span class="code-string">"action"</span>: action}
+
+    <span class="code-keyword">def</span> <span class="code-function">_get_queue_depth</span>(self) -> <span class="code-type">int</span>:
+        info = self.queue.r.<span class="code-function">xinfo_groups</span>(self.queue.STREAM_KEY)
+        <span class="code-keyword">for</span> g <span class="code-keyword">in</span> info:
+            <span class="code-keyword">if</span> g[<span class="code-string">"name"</span>] == self.queue.GROUP_NAME:
+                <span class="code-keyword">return</span> g[<span class="code-string">"pending"</span>] + g[<span class="code-string">"lag"</span>]  <span class="code-comment"># pending + undelivered</span>
+        <span class="code-keyword">return</span> <span class="code-number">0</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">_graceful_stop_one_worker</span>(self):
+        <span class="code-comment"># Set stop flag in Redis — worker checks this flag after each task</span>
+        self.queue.r.<span class="code-function">set</span>(<span class="code-string">"signal:stop_one_worker"</span>, <span class="code-string">"1"</span>, ex=<span class="code-number">120</span>)</code></pre>
+      </div>
+
+      <hr class="lesson-divider">
+    </section>
+
+    <!-- LESSON 5 -->
+    <section id="lesson5" class="lesson-section">
+      <h2>Bài 5: Observability at Scale — Distributed Tracing và Aggregated Metrics</h2>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Implement correlation ID: trace một hồ sơ qua 5+ services</li>
+          <li>Thiết kế distributed tracing với OpenTelemetry cho LoanBot fleet</li>
+          <li>Define SLO/SLI cho distributed system: p99 latency, queue depth, error rate</li>
+          <li>Build operational runbook: khi queue depth &gt;500 thì làm gì</li>
+        </ul>
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🔑 Key Insight: The Three Pillars of Distributed Observability</div>
+        <p><strong>Logs</strong>: ghi lại events với correlation_id — "app-FC-2024-9999 | worker-3 | CIC timeout after 5s". <strong>Metrics</strong>: số đo theo thời gian — queue_depth, worker_throughput, error_rate, p99_latency. <strong>Traces</strong>: end-to-end journey của một request qua nhiều services — từ khi vào Gateway đến khi ra kết quả. Với distributed LoanBot: trace = chain of spans (Gateway → Queue → Worker → CIC → DB), mỗi span có duration và status. Nếu p99 > 10 giây → trace xem span nào slow.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python (Correlation ID + Distributed Tracing Context)</span>
+        <pre><code><span class="code-keyword">import</span> uuid
+<span class="code-keyword">from</span> contextlib <span class="code-keyword">import</span> contextmanager
+<span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
+<span class="code-keyword">from</span> typing <span class="code-keyword">import</span> List, Optional
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">@dataclass</span>
+<span class="code-keyword">class</span> <span class="code-function">TraceSpan</span>:
+    name: <span class="code-type">str</span>
+    correlation_id: <span class="code-type">str</span>
+    trace_id: <span class="code-type">str</span>
+    worker_id: <span class="code-type">str</span>
+    start_time: float = field(default_factory=time.<span class="code-function">time</span>)
+    end_time: Optional[float] = <span class="code-keyword">None</span>
+    status: <span class="code-type">str</span> = <span class="code-string">"in_progress"</span>
+    metadata: dict = field(default_factory=dict)
+
+    <span class="code-keyword">def</span> <span class="code-function">finish</span>(self, status: <span class="code-type">str</span> = <span class="code-string">"ok"</span>, **metadata):
+        self.end_time = time.<span class="code-function">time</span>()
+        self.status = status
+        self.metadata.<span class="code-function">update</span>(metadata)
+
+    <span class="code-keyword">@property</span>
+    <span class="code-keyword">def</span> <span class="code-function">duration_ms</span>(self) -> float:
+        <span class="code-keyword">if</span> self.end_time: <span class="code-keyword">return</span> (<span class="code-function">round</span>((self.end_time - self.start_time) * <span class="code-number">1000</span>, <span class="code-number">1</span>))
+        <span class="code-keyword">return</span> -<span class="code-number">1</span>
+
+<span class="code-keyword">class</span> <span class="code-function">LoanBotTracer</span>:
+    <span class="code-comment">"""Lightweight tracer — correlates spans across worker fleet."""</span>
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self, worker_id: <span class="code-type">str</span>):
+        self.worker_id = worker_id
+        self.spans: List[TraceSpan] = []
+
+    <span class="code-keyword">@contextmanager</span>
+    <span class="code-keyword">def</span> <span class="code-function">span</span>(self, name: <span class="code-type">str</span>, correlation_id: <span class="code-type">str</span>, trace_id: <span class="code-type">str</span> = <span class="code-keyword">None</span>):
+        s = <span class="code-function">TraceSpan</span>(name, correlation_id, trace_id <span class="code-keyword">or</span> str(uuid.<span class="code-function">uuid4</span>()), self.worker_id)
+        self.spans.<span class="code-function">append</span>(s)
+        <span class="code-keyword">try</span>:
+            <span class="code-keyword">yield</span> s
+            s.<span class="code-function">finish</span>(status=<span class="code-string">"ok"</span>)
+        <span class="code-keyword">except</span> <span class="code-function">Exception</span> <span class="code-keyword">as</span> e:
+            s.<span class="code-function">finish</span>(status=<span class="code-string">"error"</span>, error=<span class="code-type">str</span>(e))
+            <span class="code-keyword">raise</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">export</span>(self) -> List[dict]:
+        <span class="code-comment"># In production: send to Jaeger/Zipkin via OTLP exporter</span>
+        <span class="code-keyword">return</span> [{
+            <span class="code-string">"span"</span>: s.name, <span class="code-string">"corr_id"</span>: s.correlation_id,
+            <span class="code-string">"duration_ms"</span>: s.duration_ms, <span class="code-string">"status"</span>: s.status,
+            <span class="code-string">"worker"</span>: s.worker_id, **s.metadata
+        } <span class="code-keyword">for</span> s <span class="code-keyword">in</span> self.spans]
+
+<span class="code-comment"># SLO Definitions</span>
+SLO_TARGETS = {
+    <span class="code-string">"p99_latency_ms"</span>:  <span class="code-number">8000</span>,    <span class="code-comment"># 99% of decisions in <8 seconds</span>
+    <span class="code-string">"error_rate_pct"</span>:  <span class="code-number">0.5</span>,     <span class="code-comment"># <0.5% error rate</span>
+    <span class="code-string">"queue_depth_max"</span>: <span class="code-number">200</span>,     <span class="code-comment"># queue never exceeds 200 pending</span>
+    <span class="code-string">"throughput_min"</span>:  <span class="code-number">500</span>,     <span class="code-comment"># >500 decisions/hour minimum</span>
+}</code></pre>
+      </div>
+
+      <div class="expand-section">
+        <button class="expand-trigger" onclick="toggleExpand(this)" aria-expanded="false">
+          📖 Tìm hiểu thêm: Operational Runbook — Queue Depth Incident Response
+          <span class="expand-icon">▼</span>
+        </button>
+        <div class="expand-content">
+          <ol class="process-steps">
+            <li>
+              <strong>Alert: queue_depth &gt; 200 (WARNING)</strong>
+              <p>Check auto-scaler: đã trigger chưa? Nếu chưa → manual trigger. Check worker health: có worker crash không (<code>xpending</code> count tăng)? Scale up thêm 3 workers.</p>
+            </li>
+            <li>
+              <strong>Alert: queue_depth &gt; 500 (CRITICAL)</strong>
+              <p>Tạm dừng nhận requests mới (circuit breaker at Gateway). Notify team. Spawn max workers (20). Check nếu CIC API slow → switch to backup CIC endpoint. ETA to drain = queue_depth / current_throughput.</p>
+            </li>
+            <li>
+              <strong>Dead Letter Queue có items</strong>
+              <p>Inspect DLQ: mỗi item có original payload + error message. Nếu error = CIC timeout → retry sau 10 phút. Nếu error = malformed data → alert data team, do NOT retry automatically.</p>
+            </li>
+            <li>
+              <strong>Post-incident</strong>
+              <p>Tính Apdex score cho period bị ảnh hưởng. Update runbook với root cause. Nếu incident xảy ra &gt;2 lần/tháng → cần architecture review.</p>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <hr class="lesson-divider">
+
+      <!-- GLOSSARY -->
+      <h2>📚 Glossary Module 25</h2>
+      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+        <tr style="background:var(--m25-light);">
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m25-border);">Thuật ngữ</th>
+          <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m25-border);">Định nghĩa</th>
+        </tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Stateless Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent không giữ local state — mọi state persist ra external store (Redis/DB). Prerequisite của horizontal scaling.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Consumer Group</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: nhóm các consumers cùng consume 1 stream, mỗi message chỉ delivered cho 1 consumer trong group.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">At-least-once Delivery</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Message guarantee: task được deliver ≥1 lần. Cần idempotency để tránh double-processing.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Dead Letter Queue (DLQ)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Queue chứa messages fail sau MAX_RETRIES — để human inspect, không auto-retry để tránh infinite loop.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Saga Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern xử lý distributed transaction: chuỗi steps forward + compensating transactions ngược khi fail.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compensating Transaction</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Action undo effect của step đã success trước đó — VD: release slot nếu downstream step fail.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Central coordinator chỉ huy flow: biết toàn bộ state, dễ audit. Vulnerable: single point of failure.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Choreography</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Decentralized: services react đến events của nhau, không cần coordinator. Resilient nhưng khó trace.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Little's Law</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">L = λ × W: queue length = arrival rate × processing time. Dùng để size worker fleet.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Graceful Shutdown</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Worker finish current task trước khi stop — không drop task giữa chừng khi scale down.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Correlation ID</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Unique identifier gắn vào mọi log/trace của 1 request xuyên suốt tất cả services.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Distributed Tracing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Trace end-to-end journey của request qua nhiều services — chain of spans với duration và status.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLO/SLI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Service Level Objective (target: p99 &lt;8s) vs Service Level Indicator (actual measured value).</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">PEL (Pending Entry List)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: danh sách messages đã delivered nhưng chưa ACK — nếu worker crash, PEL cho biết gì cần re-process.</td></tr>
+        <tr><td style="padding:8px 12px;font-weight:600;">Idempotency</td><td style="padding:8px 12px;">Xử lý cùng task nhiều lần cho ra cùng kết quả — prerequisite để safe retry trong at-least-once systems.</td></tr>
+      </table>
+    </section>
+
+    <div class="bottom-nav">
+      <a href="../module24/index.html" class="btn btn-outline">← Module 24: Epistemics</a>
+      <a href="quiz.html" class="btn btn-primary">📝 Quiz Module 25 →</a>
+    </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>

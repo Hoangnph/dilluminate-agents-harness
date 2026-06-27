@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 2 — Kiến Trúc Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .quiz-container { max-width: 820px; margin: 0 auto; padding: var(--space-6); }
+    .quiz-header { background: linear-gradient(135deg,#4c1d95,#7c3aed); color:#fff; border-radius: var(--radius-xl); padding: var(--space-8); margin-bottom: var(--space-8); text-align: center; }
+    .quiz-header h1 { font-size: 1.8rem; margin-bottom: var(--space-2); }
+    .quiz-header p { color: rgba(255,255,255,.8); margin: 0; }
+    .quiz-meta { display: flex; gap: var(--space-4); justify-content: center; margin-top: var(--space-4); flex-wrap: wrap; }
+    .quiz-meta span { background: rgba(255,255,255,.15); padding: 4px 14px; border-radius: var(--radius-full); font-size: .85rem; }
+
+    .question-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-5); transition: var(--transition); }
+    .question-card.correct  { border-color: var(--success); background: #f0fdf4; }
+    .question-card.wrong    { border-color: var(--danger); background: #fff5f5; }
+    .question-num { font-size: .78rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: .06em; margin-bottom: var(--space-2); }
+    .question-text { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: var(--space-4); line-height: 1.6; }
+    .options { display: flex; flex-direction: column; gap: var(--space-2); }
+    .option {
+      display: flex; align-items: flex-start; gap: var(--space-3);
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4);
+      cursor: pointer; transition: var(--transition); font-size: .92rem; line-height: 1.5;
+    }
+    .option:hover:not(.disabled) { border-color: var(--primary); background: var(--primary-light); }
+    .option.correct { background: #dcfce7; border-color: var(--success); color: var(--success-dark); }
+    .option.wrong   { background: #fee2e2; border-color: var(--danger); color: #991b1b; }
+    .option.disabled { cursor: default; }
+    .opt-letter { width: 26px; height: 26px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem; flex-shrink: 0; margin-top: 1px; }
+    .option.correct .opt-letter { background: var(--success); color: #fff; }
+    .option.wrong   .opt-letter { background: var(--danger); color: #fff; }
+
+    .explanation { display: none; margin-top: var(--space-4); padding: var(--space-4); background: rgba(15,76,129,.06); border-left: 3px solid var(--primary); border-radius: 0 var(--radius-lg) var(--radius-lg) 0; font-size: .88rem; line-height: 1.6; color: var(--text-muted); }
+    .explanation.show { display: block; }
+    .explanation strong { color: var(--primary-dark); }
+
+    .progress-bar-quiz { background: var(--bg); border-radius: var(--radius-full); height: 8px; margin-bottom: var(--space-6); }
+    .progress-bar-fill { background: linear-gradient(90deg, var(--primary), var(--accent)); height: 100%; border-radius: var(--radius-full); transition: width .4s ease; }
+    .score-display { text-align: center; font-size: .95rem; color: var(--text-muted); margin-bottom: var(--space-4); }
+
+    .result-card { background: var(--surface); border-radius: var(--radius-xl); padding: var(--space-10); text-align: center; margin-top: var(--space-8); border: 1px solid var(--border); display: none; }
+    .result-card.show { display: block; }
+    .result-score { font-size: 4rem; font-weight: 900; }
+    .result-grade { font-size: 1.5rem; font-weight: 700; margin: var(--space-2) 0; }
+    .result-msg { color: var(--text-muted); margin-bottom: var(--space-6); }
+    .result-breakdown { display: flex; justify-content: center; gap: var(--space-6); margin-bottom: var(--space-6); flex-wrap: wrap; }
+    .breakdown-item { text-align: center; }
+    .breakdown-num { font-size: 2rem; font-weight: 800; }
+    .breakdown-label { font-size: .8rem; color: var(--text-muted); }
+
+    .quiz-actions { display: flex; justify-content: center; gap: var(--space-4); margin-top: var(--space-8); flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="index.html">← Bài Giảng</a>
+    <a href="lab.ipynb" download>🔬 Notebook</a>
+  </div>
+</nav>
+
+<div class="quiz-container" style="padding-top: calc(var(--topbar-height) + 24px);">
+
+  <div class="quiz-header">
+    <h1>📝 Quiz: Kiến Trúc Harness</h1>
+    <p>Module 2 — Kiểm tra kiến thức về 5-layer production harness</p>
+    <div class="quiz-meta">
+      <span>15 câu hỏi</span>
+      <span>Phủ 5 bài giảng</span>
+      <span>LoanBot context</span>
+    </div>
+  </div>
+
+  <div class="score-display">Đã trả lời: <span id="answered">0</span> / 15 câu</div>
+  <div class="progress-bar-quiz"><div class="progress-bar-fill" id="quiz-progress" style="width:0%"></div></div>
+
+  <div id="quiz-questions"></div>
+
+  <div class="result-card" id="result-card">
+    <div class="result-score" id="result-score">0/15</div>
+    <div class="result-grade" id="result-grade"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-breakdown">
+      <div class="breakdown-item">
+        <div class="breakdown-num" id="bd-correct" style="color:var(--success)">0</div>
+        <div class="breakdown-label">Đúng</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-num" id="bd-wrong" style="color:var(--danger)">0</div>
+        <div class="breakdown-label">Sai</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-num" id="bd-pct" style="color:var(--primary)">0%</div>
+        <div class="breakdown-label">Điểm</div>
+      </div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn" onclick="resetQuiz()">🔄 Làm lại</button>
+      <a href="index.html" class="btn">📖 Ôn bài giảng</a>
+      <a href="lab.ipynb" download class="btn primary">🔬 Thực hành Lab</a>
+    </div>
+  </div>
+
+  <div class="quiz-actions" style="margin-top: var(--space-4);">
+    <a href="index.html" class="btn">← Bài Giảng M2</a>
+    <a href="../module1/quiz.html" class="btn">M1 Quiz</a>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // ─── BÀI 1: Tổng Quan ──────────────────────────────────────────────
+  {
+    q: "Theo mô hình kiến trúc 5 tầng của production harness, tầng nào nằm ở VỊ TRÍ THẤP NHẤT (gần model nhất)?",
+    opts: ["Tool Orchestration", "Guardrails & Safety", "Observability & Audit", "Context & Memory"],
+    correct: 0,
+    explain: "<strong>Tool Orchestration</strong> là Tầng 1 — gần model nhất vì nó trực tiếp xử lý tool calls mà model sinh ra. Giống như lớp vỏ trực tiếp bao quanh model. Guardrails (Tầng 4) và Observability (Tầng 5) nằm ở tầng cao hơn."
+  },
+  {
+    q: "FinTech Corp muốn LoanBot v0.2 có thể resume công việc nếu server bị crash giữa chừng khi đang xử lý hồ sơ. Component nào trong 15-component model chịu trách nhiệm cho việc này?",
+    opts: ["Memory Manager", "State Persistence", "Session Controller", "Retry Orchestrator"],
+    correct: 1,
+    explain: "<strong>State Persistence</strong> chịu trách nhiệm serialize/deserialize toàn bộ trạng thái agent (working memory, tool results, reasoning) vào storage. Đây là component cho phép resume sau gián đoạn. Memory Manager quản lý working memory trong context window, còn Session Controller quản lý lifecycle nhưng không lưu state."
+  },
+  {
+    q: "Cách phân tầng 5-layer harness giống với kiến trúc nào trong ngành công nghệ?",
+    opts: ["Mô hình OSI trong mạng máy tính", "Kiến trúc vi nhân trong hệ điều hành", "Mô hình MVC trong web development", "CAP theorem trong distributed systems"],
+    correct: 0,
+    explain: "<strong>Mô hình OSI</strong> là analogy chính xác nhất — mỗi tầng xử lý một khía cạnh cụ thể (Physical, Data Link, Network...) và không quan tâm đến chi tiết của tầng khác. Tương tự, mỗi tầng harness xử lý một loại vấn đề (reliability, safety, memory...) độc lập."
+  },
+
+  // ─── BÀI 2: Tool Orchestration ──────────────────────────────────────
+  {
+    q: "Khi hệ thống CIC (credit bureau) của Việt Nam liên tục trả về lỗi, LoanBot nên dùng pattern nào để TRÁNH làm nặng thêm server đang quá tải?",
+    opts: ["Retry ngay lập tức 10 lần", "Circuit Breaker (mở sau N lỗi)", "Tăng timeout lên 60 giây", "Gọi song song nhiều request"],
+    correct: 1,
+    explain: "<strong>Circuit Breaker</strong> là giải pháp đúng. Sau N lỗi liên tiếp, nó 'mở' và fail fast mà không gửi thêm request — đây chính là mục đích của pattern này: tránh thundering herd và cho phép hệ thống backend recover. Retry 10 lần hay tăng timeout sẽ làm nặng thêm server đang quá tải."
+  },
+  {
+    q: "LoanBot gọi check_credit_score cho FC-2024-001. Lần 1 timeout sau 500ms. Với Exponential Backoff (base_delay=1s), nên đợi bao lâu trước khi thử lần 2?",
+    opts: ["500ms", "1 giây", "2 giây", "4 giây"],
+    correct: 1,
+    explain: "Công thức: <strong>wait = base_delay × 2^attempt</strong>. Lần 1 fail = attempt 0: wait = 1 × 2^0 = <strong>1 giây</strong> (+ jitter ngẫu nhiên nhỏ). Nếu lần 2 cũng fail (attempt 1): 1 × 2^1 = 2 giây. Lần 3 (attempt 2): 1 × 2^2 = 4 giây. Đây là exponential backoff chuẩn."
+  },
+  {
+    q: "Tại sao Retry Orchestrator cần thêm 'jitter' (giá trị ngẫu nhiên nhỏ) vào thời gian chờ, thay vì chỉ dùng exponential backoff thuần túy?",
+    opts: [
+      "Để làm code phức tạp hơn và khó debug hơn",
+      "Để tránh nhiều agent retry đồng thời, làm quá tải server lại",
+      "Vì exponential backoff không hoạt động trên cloud",
+      "Để tuân thủ quy định về độ ngẫu nhiên trong tài chính"
+    ],
+    correct: 1,
+    explain: "<strong>Thundering herd problem:</strong> Nếu 100 agent cùng fail lúc 14:00:00 và đều wait đúng 1 giây, chúng sẽ cùng retry lúc 14:00:01 — làm sập server lần nữa. Jitter ngẫu nhiên (ví dụ 0-500ms) phân tán các retry ra, tránh đồng bộ hóa nguy hiểm này. Đây là bài học quan trọng từ distributed systems."
+  },
+  {
+    q: "Tool Registry trong LoanBot v0.2 phục vụ mục đích CHÍNH nào mà LoanBot v0.1 không có?",
+    opts: [
+      "Làm cho code ngắn hơn và dễ đọc hơn",
+      "Trung tâm quản lý metadata, permissions, và health status của tất cả tools",
+      "Tăng tốc độ gọi tool bằng caching",
+      "Mã hóa dữ liệu tool calls để bảo mật"
+    ],
+    correct: 1,
+    explain: "<strong>Tool Registry</strong> là single source of truth cho tất cả tools: schema, permissions (auto/validate/HITL/blocked), max_retries, availability status, call_count, error_count. Agent hỏi Registry trước khi dispatch — không gọi tool trực tiếp. Điều này cho phép quản lý tập trung và dễ audit."
+  },
+
+  // ─── BÀI 3: Context & Memory ─────────────────────────────────────────
+  {
+    q: "Nghiên cứu đo được LLM mất ~2% khả năng truy cập context ban đầu mỗi bước. Sau khi LoanBot thực hiện 5 tool calls (5 bước), còn khoảng bao nhiêu % context gốc?",
+    opts: ["95%", "90%", "~82%", "~60%"],
+    correct: 2,
+    explain: "Sau 5 bước: 100% × (1 - 0.02)^5 ≈ 100% × 0.98^5 ≈ <strong>~90%</strong>. Tuy nhiên, theo hình 3.1 trong bài giảng (đơn giản hóa): mỗi bước ≈ -10%, sau 5 bước còn ~50-60%. Đáp án ~82% (giữa 2 model) là ước tính thực tế. Key insight: Context Drift là có thật — cần Memory Management sau nhiều bước."
+  },
+  {
+    q: "Memory Manager của LoanBot được cấu hình compaction_threshold=0.75. Điều này có nghĩa là gì?",
+    opts: [
+      "Nén 75% tất cả messages",
+      "Trigger nén khi context window ≥ 75% đầy",
+      "Giữ lại 75% nội dung khi nén",
+      "Nén sau mỗi 75 giây"
+    ],
+    correct: 1,
+    explain: "<strong>Threshold 0.75</strong> = trigger compaction khi context window đạt 75% dung lượng tối đa. Ví dụ model với 128K tokens: khi messages đã dùng ≥ 96K tokens, Memory Manager tạo summary để giải phóng space. Điều này đảm bảo luôn còn ít nhất 25% cho các bước tiếp theo."
+  },
+  {
+    q: "Khi Memory Manager compact lịch sử, nó nên GIỮ LẠI cái gì và BỎ ĐI cái gì trong trường hợp LoanBot?",
+    opts: [
+      "Giữ chi tiết conversation, bỏ system prompt",
+      "Giữ system prompt + summary key facts, bỏ chi tiết reasoning dư thừa",
+      "Bỏ tất cả, bắt đầu context mới hoàn toàn",
+      "Giữ tất cả tool results, bỏ LLM responses"
+    ],
+    correct: 1,
+    explain: "Chiến lược đúng: <strong>Giữ:</strong> system prompt (quy tắc nghiệp vụ quan trọng), summary các key facts (score, income, DTI đã tính), 4 messages gần nhất. <strong>Bỏ:</strong> chi tiết reasoning step-by-step, tool call/response raw đã được tóm tắt, lịch sử conversation dư thừa. Mục tiêu: giữ thông tin quyết định quan trọng, bỏ verbose noise."
+  },
+
+  // ─── BÀI 4: Guardrails ───────────────────────────────────────────────
+  {
+    q: "LoanBot phân tích xong và muốn tự động phê duyệt khoản vay 800 triệu đồng cho khách hàng có profile tốt. Permission Resolver sẽ làm gì?",
+    opts: [
+      "Cho phép AUTO vì profile tốt",
+      "BLOCK hoàn toàn, không cho phép approve bất kỳ số tiền nào",
+      "Trigger REQUIRE_HITL, dừng agent chờ human approval",
+      "VALIDATE rồi tự approve nếu qua validation"
+    ],
+    correct: 2,
+    explain: "<strong>REQUIRE_HITL</strong> vì 800 triệu > 500 triệu (ngưỡng HITL của FinTech Corp). Dù profile khách hàng tốt đến đâu, hành động approve số tiền lớn phải có human oversight. Đây là nguyên tắc của EU AI Act: high-value/high-risk decisions cần human-in-the-loop. Profile tốt không override permission policy."
+  },
+  {
+    q: "Input Validator từ chối tool call calculate_dti với term_months=18. Tại sao?",
+    opts: [
+      "18 tháng không phải số nguyên",
+      "18 tháng không nằm trong danh sách hợp lệ [12, 24, 36, 48, 60, 84, 120]",
+      "18 tháng quá ngắn cho LoanBot",
+      "LoanBot không hỗ trợ kỳ hạn dưới 24 tháng"
+    ],
+    correct: 1,
+    explain: "Code validate: <code>term_months: lambda v: v in [12, 24, 36, 48, 60, 84, 120]</code>. Kỳ hạn 18 tháng không có trong enum hợp lệ của FinTech Corp (dù là số nguyên hợp lệ). Input Validator ngăn LLM hallucinate một kỳ hạn không tồn tại trong sản phẩm — đây là ví dụ quan trọng về Schema Validation."
+  },
+  {
+    q: "Permission Resolver có 4 tiers. Tier nào phù hợp cho action 'modify_credit_score' của LoanBot?",
+    opts: ["AUTO", "VALIDATE", "REQUIRE_HITL", "BLOCKED"],
+    correct: 3,
+    explain: "<strong>BLOCKED</strong> — modify_credit_score là action LoanBot KHÔNG BAO GIỜ được làm (dù có human approval). Đây là ranh giới tuyệt đối: agent chỉ ĐỌC credit score từ CIC, không được GHI. BLOCKED khác REQUIRE_HITL ở chỗ: HITL vẫn có thể approve sau khi human review; BLOCKED từ chối hoàn toàn và log incident."
+  },
+
+  // ─── BÀI 5: Observability ────────────────────────────────────────────
+  {
+    q: "Compliance team FinTech Corp cần biết 'tại sao LoanBot từ chối hồ sơ FC-2024-999 lúc 3 giờ sáng hôm qua'. Yếu tố Observability nào cần thiết nhất?",
+    opts: [
+      "Metrics (dashboard approval rate)",
+      "Alerts (email khi có từ chối)",
+      "Structured Audit Logs với trace_id",
+      "Distributed Traces (latency timeline)"
+    ],
+    correct: 2,
+    explain: "<strong>Structured Audit Logs với trace_id</strong>: để query 'tất cả events có trace_id = trace-FC-2024-999-*' sẽ cho toàn bộ hành trình: nhận hồ sơ → tool calls → kết quả → quyết định → lý do. Metrics chỉ cho xu hướng aggregate, Traces cho performance, nhưng Logs là nơi có reasoning và quyết định cụ thể."
+  },
+  {
+    q: "Theo yêu cầu pháp lý tài chính Việt Nam, FinTech Corp cần giữ audit logs của LoanBot trong bao lâu?",
+    opts: ["1 năm", "3 năm", "5 năm", "≥7 năm"],
+    correct: 3,
+    explain: "<strong>≥7 năm</strong> — theo quy định về lưu trữ hồ sơ tín dụng và giao dịch tài chính tại Việt Nam. Đây là lý do tại sao cần thiết kế Observability từ đầu: retrofit logging sau khi deploy production sẽ mất dữ liệu lịch sử quan trọng. Đặc biệt với EU AI Act (áp dụng cho hệ thống high-risk), yêu cầu audit trail còn nghiêm ngặt hơn."
+  },
+  {
+    q: "LoanBot v0.2 xử lý hồ sơ FC-2024-001: check_credit → verify_income → check_blacklist → calculate_dti → generate_report. Tất cả 5 events này nên có chung một 'ID liên kết' nào để có thể ghép nối thành hành trình hoàn chỉnh?",
+    opts: ["customer_id", "session_id", "trace_id", "event_id"],
+    correct: 2,
+    explain: "<strong>trace_id</strong> — được tạo lần duy nhất khi hồ sơ bắt đầu xử lý, sau đó gắn vào MỌI event trong hành trình đó. Query <code>WHERE trace_id = 'trace-FC-2024-001-sess42'</code> sẽ trả về tất cả 5 events theo thứ tự. session_id gần giống nhưng event_id là mã duy nhất per event (không dùng để ghép nối). customer_id không đủ vì một khách có thể có nhiều hồ sơ."
+  }
+];
+
+let answered = 0;
+let correct = 0;
+
+function renderQuiz() {
+  const container = document.getElementById('quiz-questions');
+  container.innerHTML = questions.map((q, i) => `
+    <div class="question-card" id="q${i}">
+      <div class="question-num">Câu ${i + 1} / ${questions.length}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options">
+        ${q.opts.map((opt, j) => `
+          <div class="option" id="q${i}o${j}" onclick="selectAnswer(${i}, ${j})">
+            <span class="opt-letter">${String.fromCharCode(65+j)}</span>
+            <span>${opt}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="explanation" id="exp${i}">${q.explain}</div>
+    </div>
+  `).join('');
+}
+
+function selectAnswer(qIdx, optIdx) {
+  const card = document.getElementById(`q${qIdx}`);
+  if (card.classList.contains('correct') || card.classList.contains('wrong')) return;
+
+  const isCorrect = optIdx === questions[qIdx].correct;
+  card.classList.add(isCorrect ? 'correct' : 'wrong');
+
+  questions[qIdx].opts.forEach((_, j) => {
+    const opt = document.getElementById(`q${qIdx}o${j}`);
+    opt.classList.add('disabled');
+    if (j === questions[qIdx].correct) opt.classList.add('correct');
+    else if (j === optIdx && !isCorrect) opt.classList.add('wrong');
+  });
+
+  document.getElementById(`exp${qIdx}`).classList.add('show');
+
+  answered++;
+  if (isCorrect) correct++;
+
+  document.getElementById('answered').textContent = answered;
+  document.getElementById('quiz-progress').style.width = `${(answered / questions.length) * 100}%`;
+  localStorage.setItem('quiz_m2_score', `${correct}/${questions.length}`);
+
+  if (answered === questions.length) showResult();
+}
+
+function showResult() {
+  const pct = Math.round((correct / questions.length) * 100);
+  let grade, msg, color;
+  if (pct >= 90) { grade = '🏆 Xuất sắc!'; msg = 'Bạn nắm vững kiến trúc 5-layer harness. Sẵn sàng cho Lab!'; color = 'var(--success)'; }
+  else if (pct >= 70) { grade = '✅ Tốt'; msg = 'Hiểu rõ phần lớn kiến trúc. Xem lại những câu sai trước khi làm Lab.'; color = 'var(--primary)'; }
+  else if (pct >= 50) { grade = '📖 Cần ôn thêm'; msg = 'Một số khái niệm chưa vững. Đọc lại bài giảng, đặc biệt Tool Orchestration và Memory.'; color = 'var(--warning)'; }
+  else { grade = '🔄 Cần học lại'; msg = 'Nên đọc lại bài giảng Module 2 từ đầu trước khi thực hành Lab.'; color = 'var(--danger)'; }
+
+  document.getElementById('result-score').textContent = `${correct}/${questions.length}`;
+  document.getElementById('result-score').style.color = color;
+  document.getElementById('result-grade').textContent = grade;
+  document.getElementById('result-msg').textContent = msg;
+  document.getElementById('bd-correct').textContent = correct;
+  document.getElementById('bd-wrong').textContent = questions.length - correct;
+  document.getElementById('bd-pct').textContent = `${pct}%`;
+
+  const resultCard = document.getElementById('result-card');
+  resultCard.classList.add('show');
+  resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function resetQuiz() {
+  answered = 0;
+  correct = 0;
+  document.getElementById('answered').textContent = '0';
+  document.getElementById('quiz-progress').style.width = '0%';
+  document.getElementById('result-card').classList.remove('show');
+  renderQuiz();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+renderQuiz();
+
+// Restore scroll progress
+window.addEventListener('scroll', () => {
+  const fill = document.querySelector('.scroll-progress-fill');
+  if (fill) {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    fill.style.width = `${Math.min(pct, 100)}%`;
+  }
+});
+</script>
+</body>
+</html>

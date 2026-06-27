@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Module 16 — Prompt Engineering</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    :root { --m16-primary: #365314; --m16-accent: #84cc16; --m16-light: #f7fee7; --m16-border: #bef264; }
+    .quiz-header { background: linear-gradient(135deg, #1a2e05 0%, #365314 60%, #84cc16 100%); }
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand"><div class="brand-icon">🤖</div><span>AI Agent Harness</span></a>
+  <div class="topbar-nav">
+    <a href="index.html">📖 Bài giảng</a>
+    <a href="lab.ipynb" download>🔬 Lab</a>
+  </div>
+</nav>
+
+<div class="quiz-page">
+  <div class="quiz-header">
+    <div class="quiz-header-content">
+      <span class="quiz-module-tag">MODULE 16</span>
+      <h1>📝 Quiz: Prompt Engineering & Advanced Prompting</h1>
+      <p>15 câu hỏi · 45 phút · Phủ đều 5 lessons</p>
+    </div>
+  </div>
+
+  <div class="quiz-container">
+    <div class="quiz-progress-bar">
+      <div class="quiz-progress-fill" id="quizProgress" style="width:0%"></div>
+    </div>
+    <div class="quiz-progress-text"><span id="currentQ">0</span> / 15 câu</div>
+
+    <div id="quizContent">
+      <div class="quiz-start-screen">
+        <div class="quiz-start-icon">✍️</div>
+        <h2>Prompt Engineering Quiz</h2>
+        <p>Kiểm tra kiến thức về System Prompt Architecture, Chain-of-Thought, Few-Shot Learning, Structured Outputs, và Meta-Prompting cho LoanBot enterprise.</p>
+        <div class="quiz-start-stats">
+          <span>🎯 15 câu hỏi</span>
+          <span>📊 5 dễ · 7 trung · 3 khó</span>
+          <span>⏱ ~45 phút</span>
+        </div>
+        <button class="btn btn-primary btn-lg" onclick="startQuiz()">Bắt đầu Quiz →</button>
+      </div>
+    </div>
+
+    <div id="quizNav" style="display:none;" class="quiz-navigation">
+      <button class="btn btn-outline" onclick="prevQuestion()">← Câu trước</button>
+      <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Câu tiếp →</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+<script>
+const QUESTIONS = [
+  {
+    lesson: 1, difficulty: "easy",
+    q: "LoanBot system prompt nên được đặt ở đâu trong Claude API call?",
+    options: [
+      "Trong user message đầu tiên",
+      "Trong 'system' parameter của API call",
+      "Trong assistant message đầu tiên",
+      "Trong tool schema description"
+    ],
+    answer: 1,
+    explanation: "Đúng: System prompt đặt trong 'system' parameter của client.messages.create() — persistent across tất cả turns. Nếu đặt trong user message, nó không được treated như system-level instruction và có thể bị ignored. Assistant message là model's response, không phải instructions. Tool schema chỉ mô tả tool, không phải overall behavior."
+  },
+  {
+    lesson: 1, difficulty: "easy",
+    q: "Thay đổi nào trong system prompt đã giúp LoanBot tăng decision consistency từ 63% lên 94%?",
+    options: [
+      "Thêm 'please' và 'thank you' để model respectful hơn",
+      "Chuyển từ 50-word vague prompt sang 400-word structured prompt 5 layers",
+      "Đổi sang model đắt tiền hơn (claude-opus thay vì claude-haiku)",
+      "Thêm 'be accurate' vào cuối prompt"
+    ],
+    answer: 1,
+    explanation: "Đúng: Structured 5-layer prompt (Role/Context/Tools/Constraints/Format) với 400 words thay vì 50-word vague prompt là yếu tố quyết định. Same model (claude-haiku-4-5), cùng tools, nhưng prompt structure tốt hơn → consistency 63%→94%. 'Please/thank you' không ảnh hưởng. Đổi model là option nhưng prompt engineering thường cost-effective hơn."
+  },
+  {
+    lesson: 1, difficulty: "medium",
+    q: "Constraint 'KHÔNG approve khi credit_score < 450' nên đặt ở layer nào trong system prompt?",
+    options: [
+      "ROLE layer — vì đây là identity của LoanBot",
+      "CONTEXT layer — vì đây là business context",
+      "CONSTRAINTS layer — đây là hard rule không được vi phạm",
+      "FORMAT layer — vì nó ảnh hưởng đến output"
+    ],
+    answer: 2,
+    explanation: "Đúng: CONSTRAINTS layer chứa hard rules — business rules và regulatory requirements không được vi phạm. credit_score < 450 threshold là business rule (derived từ TT39). ROLE = ai là LoanBot. CONTEXT = background info về FinTech Corp. FORMAT = output structure. Đặt đúng layer giúp model prioritize correctly: constraints có priority cao nhất sau role."
+  },
+  {
+    lesson: 2, difficulty: "easy",
+    q: "Zero-shot CoT trigger phrase đơn giản nhất là gì?",
+    options: [
+      "\"Please be accurate and helpful\"",
+      "\"Let's think step by step\"",
+      "\"You are an expert\"",
+      "\"Think carefully before answering\""
+    ],
+    answer: 1,
+    explanation: "Đúng: 'Let's think step by step' là zero-shot CoT trigger được nghiên cứu nhiều nhất (Kojima et al. 2022). Không cần examples — model hiểu tự generate reasoning chain. 'Please be accurate' là general instruction không trigger CoT. 'You are an expert' là role specification. 'Think carefully' là weaker version, ít consistent hơn 'step by step'."
+  },
+  {
+    lesson: 2, difficulty: "medium",
+    q: "Trong Structured CoT của LoanBot, bước 1 là kiểm tra Hard Rules (Gate). Tại sao phải làm bước này TRƯỚC các bước assessment khác?",
+    options: [
+      "Vì API calls cho tools phải được thực hiện theo thứ tự tuần tự",
+      "Để fail fast — loại bỏ cases vi phạm hard rules mà không cần assess thêm",
+      "Vì hard rules dễ check nhất nên làm trước cho nhanh",
+      "Để warm up model's reasoning trước khi tackle complex factors"
+    ],
+    answer: 1,
+    explanation: "Đúng: Fail-fast principle — nếu customer blacklisted hoặc credit_score < 450, không cần assess income, collateral, DTI... Saves computation, token cost, và tool API calls. Ví dụ FC-2024-003: blacklisted → REJECT ngay sau bước 1, không cần gọi IncomeVerification hay PropertyValuation. Đây cũng là regulatory-safe: compliance gate không thể bị bypass bởi 'good income'."
+  },
+  {
+    lesson: 2, difficulty: "hard",
+    q: "LoanBot dùng Extended Thinking (budget_tokens=10,000) cho FC-2024-002 (borderline, score=580). Cost so với standard request (không thinking) tăng bao nhiêu lần nếu thinking tokens được charge cùng rate với output tokens?",
+    options: [
+      "~2.5x — standard output ~4K tokens, thinking thêm 10K",
+      "~3.5x — standard output ~4K tokens, thinking thêm 10K = 14K total",
+      "~1.5x — thinking tokens được discount 50%",
+      "~10x — thinking tokens charge 10× rate của normal tokens"
+    ],
+    answer: 1,
+    explanation: "Đúng: Standard output ≈ 4K tokens (assessment + JSON). Extended thinking: 10K thinking tokens + 4K output = 14K total output tokens. Cost ratio ≈ 14K / 4K = 3.5x. Tuy nhiên: LoanBot chỉ dùng extended thinking cho borderline cases (risk_score 0.35–0.65), estimated 15–20% của all cases → average overhead thấp hơn. ROI: giảm false approve/reject rate trên borderline cases justify cost."
+  },
+  {
+    lesson: 3, difficulty: "easy",
+    q: "Few-shot exemplars trong LoanBot nên được đặt ở đâu trong Claude API message structure?",
+    options: [
+      "Trong system prompt ở đầu",
+      "Trong tool schemas",
+      "Trong message history (user/assistant pairs) trước actual case",
+      "Sau actual case như reference"
+    ],
+    answer: 2,
+    explanation: "Đúng: Few-shot exemplars đặt trong messages array dưới dạng alternating user/assistant pairs — trước actual loan application. Cấu trúc: [example1_user, example1_assistant, example2_user, example2_assistant, ..., actual_loan_user]. System prompt = always-on instructions. Tool schemas = function definitions. Đặt exemplars sau actual case thì model đã respond rồi — không có tác dụng."
+  },
+  {
+    lesson: 3, difficulty: "medium",
+    q: "FinTech Corp few-shot set có 3 exemplars: 2 APPROVE, 1 REJECT. Vấn đề gì có thể xảy ra?",
+    options: [
+      "Model sẽ chậm hơn vì phải đọc nhiều examples hơn",
+      "Model bị bias về APPROVE — không representative cho HITL và borderline cases",
+      "Không có vấn đề — 3 exemplars là đủ và 2:1 ratio là balanced",
+      "REJECT exemplar sẽ bị ignored vì minority"
+    ],
+    answer: 1,
+    explanation: "Đúng: 2 APPROVE / 1 REJECT set thiếu HITL và REVIEW exemplars. Model học: 'most cases → APPROVE'. Với borderline cases (score 580–650), model sẽ over-approve. FinTech Corp quy tắc: ít nhất 1 REJECT + 1 HITL trong few-shot set. Recommended: 1 APPROVE (clear) + 1 REJECT (hard no) + 1 HITL (uncertain) + optionally 1 REVIEW (borderline). Bias trong exemplars → bias trong production."
+  },
+  {
+    lesson: 3, difficulty: "medium",
+    q: "Khi nào nên dùng few-shot prompting thay vì fine-tuning?",
+    options: [
+      "Khi cần model nhanh hơn 10x trên inference",
+      "Khi có ít hơn 1,000 labeled examples và/hoặc cần update behavior nhanh",
+      "Khi accuracy yêu cầu > 99% — few-shot không đủ precise",
+      "Khi model không hỗ trợ system prompt"
+    ],
+    answer: 1,
+    explanation: "Đúng: Few-shot khi: (1) labeled data ít (<1K examples), (2) cần iterate nhanh (regulations thay đổi, prompt update ngay), (3) nhiều task types khác nhau. Fine-tuning khi: (1) cần very specific style/format model chưa làm được, (2) có >1K high-quality examples, (3) inference cost quan trọng (fine-tuned model smaller). FinTech Corp: few-shot first, fine-tune sau 3 tháng nếu accuracy <85%."
+  },
+  {
+    lesson: 4, difficulty: "easy",
+    q: "LoanBot trả về output bắt đầu bằng ```json. parse_structured_output nên xử lý thế nào?",
+    options: [
+      "Raise ValueError ngay vì đây là invalid format",
+      "Strip markdown code fences trước khi JSON parse",
+      "Pass thẳng vào json.loads — nó tự handle",
+      "Retry với prompt khác"
+    ],
+    answer: 1,
+    explanation: "Đúng: Strip markdown code fences trước: split('\\n', 1)[1].rsplit('```', 1)[0]. Đây là defensive parsing — dù prompt nói 'NO markdown', model vẫn đôi khi thêm code fences. json.loads KHÔNG handle markdown — sẽ raise JSONDecodeError. Raise ValueError ngay là quá strict. Retry là option sau khi stripping, không phải trước. Best practice: strip → parse → validate."
+  },
+  {
+    lesson: 4, difficulty: "medium",
+    q: "LoanDecisionOutput schema yêu cầu 'regulation_refs: [string], không được empty'. Tại sao constraint này quan trọng?",
+    options: [
+      "Để giảm file size khi logging",
+      "EU AI Act Art.13 yêu cầu automated decisions phải có explainable basis",
+      "Vì loan officers thích đọc regulations",
+      "Để tăng model confidence score"
+    ],
+    answer: 1,
+    explanation: "Đúng: EU AI Act Art.13 (transparency for high-risk AI systems) yêu cầu automated creditworthiness decisions phải explainable. regulation_refs = ["TT39/2016 Điều 15", "QĐ493 Nhóm 1"] cho phép: (1) loan officer verify từng claim, (2) customer appeal với specific basis, (3) regulator audit trail. Empty regulation_refs = unauditable decision = compliance violation. Đây cũng là Vietnamese banking law requirement qua TT39."
+  },
+  {
+    lesson: 4, difficulty: "hard",
+    q: "LoanBot schema v1 có 'decision: str'. v2 thêm 'summary_vi: str' (required). Đây có phải breaking change không?",
+    options: [
+      "Không — thêm field không break existing clients",
+      "Có — existing clients không gửi summary_vi → validation fail khi parse v2 output",
+      "Không — chỉ breaking nếu xóa field, không phải thêm",
+      "Có — nhưng chỉ với Python clients, JavaScript handle tốt"
+    ],
+    answer: 1,
+    explanation: "Đúng: Thêm REQUIRED field vào OUTPUT schema = breaking change! Clients parsing v1 JSON sẽ nhận v2 output với summary_vi, nhưng họ chưa handle field đó — có thể fail validation, bị unexpected fields, hoặc business logic bị sai. Non-breaking: thêm OPTIONAL field với default. Breaking migration path: (1) version field trong output ('_schema_version': '2'), (2) run v1 và v2 parser simultaneously, (3) deprecation notice, (4) migrate clients first, then deprecate v1."
+  },
+  {
+    lesson: 5, difficulty: "easy",
+    q: "Self-critique loop trong LoanBot chỉ apply cho cases có risk_score từ 0.35–0.65. Lý do chọn range này là gì?",
+    options: [
+      "Đây là range mà model error rate cao nhất — borderline cases cần extra verification",
+      "Đây là range mà API calls tốn kém nhất",
+      "Đây là regulatory requirement từ NHNN",
+      "Random choice, có thể dùng bất kỳ range nào"
+    ],
+    answer: 0,
+    explanation: "Đúng: risk_score 0.35–0.65 = borderline zone — cases mà model least certain (confidence thấp, factors conflicting). Đây chính là nơi extra verification giá trị nhất: clear cases (score <0.2 hoặc >0.8) không cần critique vì model đã confident. Extra API cost chỉ incur cho ~15–20% borderline cases → ROI tốt: tăng accuracy ở nơi cần nhất, không waste cost cho clear cases."
+  },
+  {
+    lesson: 5, difficulty: "medium",
+    q: "FinTech Corp muốn compress LoanBot system prompt từ 800 tokens xuống 420 tokens. Approach nào safe nhất?",
+    options: [
+      "Xóa tất cả examples trong prompt (giữ only rules)",
+      "Remove constraints layer — model biết luật rồi",
+      "Compress verbose explanations → key-phrase form, giữ nguyên constraints và hard numbers",
+      "Truncate cuối prompt — phần sau ít quan trọng hơn"
+    ],
+    answer: 2,
+    explanation: "Đúng: Safe compression: giữ nguyên constraints (hard rules) và specific numbers (credit_score<450, DTI>65%) vì đây là highest-signal content. Compress verbose context explanations thành key phrases. Xóa examples trong prompt okay nếu có few-shot in messages. NEVER remove constraints — đây là safety layer. NEVER remove hard numbers — model cần exact thresholds. Truncate cuối prompt = lose Format instructions → broken output."
+  },
+  {
+    lesson: 5, difficulty: "hard",
+    q: "LoanBot prompt v1.3 vs v1.4 A/B test trên 500 cases. LLM-as-Judge chấm: v1.4 win 287/500 (57.4%), v1.3 win 213/500 (42.6%). Chi-squared test p=0.003. Kết luận?",
+    options: [
+      "v1.4 tốt hơn nhưng không đủ significant (cần p<0.001)",
+      "v1.4 tốt hơn một cách statistically significant (p=0.003 < 0.05) → promote to production",
+      "Không đủ test cases (cần 1,000+) để conclude",
+      "Chi-squared test không applicable cho prompt comparison"
+    ],
+    answer: 1,
+    explanation: "Đúng: p=0.003 < 0.05 (significance level) → reject null hypothesis → v1.4 statistically significantly better. 57.4% win rate vs 42.6% là meaningful difference với 500 samples. p<0.05 là standard threshold cho A/B decisions. p<0.001 là stricter threshold (dùng cho medical trials) — không required cho prompt experiments. 500 cases đủ statistical power cho 57% win rate. Chi-squared perfectly applicable cho binary win/lose outcomes."
+  }
+];
+
+let currentQuestion = 0;
+let answers = new Array(QUESTIONS.length).fill(null);
+let started = false;
+
+function startQuiz() {
+  started = true;
+  document.getElementById('quizNav').style.display = 'flex';
+  renderQuestion(0);
+}
+
+function renderQuestion(idx) {
+  const q = QUESTIONS[idx];
+  const progress = ((idx + 1) / QUESTIONS.length) * 100;
+  document.getElementById('quizProgress').style.width = progress + '%';
+  document.getElementById('currentQ').textContent = idx + 1;
+
+  const diffColor = { easy: '#16a34a', medium: '#d97706', hard: '#dc2626' };
+  const diffLabel = { easy: 'Dễ', medium: 'Trung bình', hard: 'Khó' };
+
+  let optionsHTML = q.options.map((opt, i) => `
+    <div class="quiz-option ${answers[idx] !== null ? (i === q.answer ? 'correct' : (i === answers[idx] ? 'wrong' : 'disabled')) : ''}"
+         onclick="${answers[idx] === null ? `selectAnswer(${i})` : ''}">
+      <span class="option-letter">${'ABCD'[i]}</span>
+      <span>${opt}</span>
+      ${answers[idx] !== null && i === q.answer ? '<span class="option-check">✓</span>' : ''}
+      ${answers[idx] === i && i !== q.answer ? '<span class="option-x">✗</span>' : ''}
+    </div>
+  `).join('');
+
+  let feedbackHTML = '';
+  if (answers[idx] !== null) {
+    const isCorrect = answers[idx] === q.answer;
+    feedbackHTML = `
+      <div class="quiz-feedback ${isCorrect ? 'feedback-correct' : 'feedback-wrong'}">
+        <div class="feedback-header">${isCorrect ? '✅ Chính xác!' : '❌ Chưa đúng'}</div>
+        <p>${q.explanation}</p>
+      </div>
+    `;
+  }
+
+  document.getElementById('quizContent').innerHTML = `
+    <div class="quiz-question-card">
+      <div class="quiz-meta">
+        <span class="quiz-lesson-badge">Lesson ${q.lesson}</span>
+        <span class="quiz-diff-badge" style="background:${diffColor[q.difficulty]}20;color:${diffColor[q.difficulty]};border:1px solid ${diffColor[q.difficulty]}40;">${diffLabel[q.difficulty]}</span>
+        <span class="quiz-num">Câu ${idx + 1} / ${QUESTIONS.length}</span>
+      </div>
+      <h3 class="quiz-question-text">${q.q}</h3>
+      <div class="quiz-options">${optionsHTML}</div>
+      ${feedbackHTML}
+    </div>
+  `;
+}
+
+function selectAnswer(optionIdx) {
+  if (answers[currentQuestion] !== null) return;
+  answers[currentQuestion] = optionIdx;
+  renderQuestion(currentQuestion);
+}
+
+function nextQuestion() {
+  if (currentQuestion < QUESTIONS.length - 1) {
+    currentQuestion++;
+    renderQuestion(currentQuestion);
+    document.getElementById('nextBtn').textContent = currentQuestion === QUESTIONS.length - 1 ? 'Xem kết quả →' : 'Câu tiếp →';
+  } else {
+    showResults();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestion > 0) {
+    currentQuestion--;
+    renderQuestion(currentQuestion);
+    document.getElementById('nextBtn').textContent = 'Câu tiếp →';
+  }
+}
+
+function showResults() {
+  const correct = answers.filter((a, i) => a === QUESTIONS[i].answer).length;
+  const pct = Math.round((correct / QUESTIONS.length) * 100);
+  const grade = pct >= 90 ? 'A' : pct >= 80 ? 'B' : pct >= 70 ? 'C' : 'D';
+  const gradeColor = pct >= 80 ? '#16a34a' : pct >= 70 ? '#d97706' : '#dc2626';
+  document.getElementById('quizContent').innerHTML = `
+    <div class="quiz-results">
+      <div class="result-score" style="color:${gradeColor}">${correct} / ${QUESTIONS.length}</div>
+      <div class="result-grade" style="background:${gradeColor}20;border:2px solid ${gradeColor};color:${gradeColor};">Grade ${grade}</div>
+      <div class="result-pct">${pct}% chính xác</div>
+      <p class="result-message">${pct >= 85 ? '🎉 Xuất sắc! Bạn đã nắm vững Prompt Engineering cho enterprise LLM agents.' : pct >= 70 ? '👍 Tốt! Ôn lại Lesson 2 (CoT) và Lesson 5 (Meta-Prompting).' : '📖 Cần ôn lại — đặc biệt phần 5-layer system prompt và structured output design.'}</p>
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+        <button class="btn btn-outline" onclick="location.reload()">🔄 Làm lại</button>
+        <a href="index.html" class="btn btn-outline">📖 Ôn bài giảng</a>
+        <a href="../module17/index.html" class="btn btn-primary">Module 17 →</a>
+      </div>
+    </div>
+  `;
+  document.getElementById('quizNav').style.display = 'none';
+}
+</script>
+</body>
+</html>

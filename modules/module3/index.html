@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 3: Đánh Giá & Testing — AI Agent Harness</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <style>
+    .lesson-section { scroll-margin-top: calc(var(--topbar-height) + 12px); }
+    .lesson-divider { border:none; border-top:2px dashed var(--border); margin:var(--space-12) 0; }
+
+    /* Metric cards */
+    .metric-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+      gap:var(--space-3); margin:var(--space-5) 0;
+    }
+    .metric-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); padding:var(--space-4);
+      border-left:4px solid;
+    }
+    .metric-card h5 { font-size:.85rem; margin-bottom:4px; }
+    .metric-card p  { font-size:.78rem; color:var(--text-muted); margin:0; }
+    .metric-card .metric-formula { font-size:.78rem; font-style:italic; margin-top:6px; color:var(--primary); }
+
+    /* Score gauges */
+    .score-gauge-row { display:flex; gap:var(--space-4); flex-wrap:wrap; margin:var(--space-5) 0; }
+    .score-gauge {
+      flex:1; min-width:150px; background:var(--surface);
+      border:1px solid var(--border); border-radius:var(--radius-xl);
+      padding:var(--space-4); text-align:center;
+    }
+    .gauge-value { font-size:2.2rem; font-weight:900; line-height:1; }
+    .gauge-label { font-size:.78rem; color:var(--text-muted); margin-top:4px; }
+    .gauge-bar { height:6px; border-radius:var(--radius-full); margin-top:8px; background:var(--bg); overflow:hidden; }
+    .gauge-fill { height:100%; border-radius:var(--radius-full); transition:width .5s ease; }
+
+    /* CLEAR framework */
+    .clear-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:var(--space-3); margin:var(--space-5) 0; }
+    .clear-card {
+      border-radius:var(--radius-xl); padding:var(--space-5);
+      text-align:center; border:1px solid;
+    }
+    .clear-letter { font-size:2rem; font-weight:900; display:block; }
+    .clear-word   { font-size:.9rem; font-weight:700; display:block; margin:2px 0; }
+    .clear-desc   { font-size:.72rem; }
+
+    /* Failure modes table */
+    .failure-table { width:100%; border-collapse:collapse; margin:var(--space-5) 0; font-size:.88rem; }
+    .failure-table th { background:var(--primary); color:#fff; padding:var(--space-3) var(--space-4); text-align:left; }
+    .failure-table td { border:1px solid var(--border); padding:var(--space-3) var(--space-4); }
+    .failure-table tr:nth-child(even) td { background:var(--bg); }
+    .severity-high   { color:#991b1b; font-weight:700; }
+    .severity-medium { color:#854d0e; font-weight:600; }
+    .severity-low    { color:#065f46; }
+
+    .sidebar-module-title {
+      font-size:.8rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em;
+      color:var(--primary); padding:var(--space-4) var(--space-6) var(--space-2);
+      border-bottom:1px solid var(--border); margin-bottom:var(--space-2);
+    }
+
+    @media (max-width: 768px) {
+      .clear-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body data-module="m3">
+
+<div class="scroll-progress"><div class="scroll-progress-fill"></div></div>
+
+<nav class="topbar">
+  <a href="../../index.html" class="topbar-brand">
+    <div class="brand-icon">🤖</div><span>AI Agent Harness</span>
+  </a>
+  <div class="topbar-nav">
+    <a href="../module2/index.html">← Module 2</a>
+    <a href="quiz.html">📝 Quiz</a>
+    <a href="lab.ipynb" download>🔬 Notebook</a>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-module-tag" style="background:#eff6ff;color:#0f4c81;border-color:#bfdbfe;">MODULE 3</div>
+    <div class="sidebar-title">Đánh Giá & Testing</div>
+    <div class="module-progress" style="margin:12px 16px;padding:12px 14px;">
+      <div class="progress-header">
+        <span>Tiến độ</span><span class="progress-label">0 / 5 bài</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Bài Giảng</div>
+      <a href="#lesson1" class="sidebar-item active" data-lesson="m3-l1">
+        <div class="item-icon">📊</div><span>Bài 1: 12-Metric Framework</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson2" class="sidebar-item" data-lesson="m3-l2">
+        <div class="item-icon">🎯</div><span>Bài 2: Retrieval Metrics</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson3" class="sidebar-item" data-lesson="m3-l3">
+        <div class="item-icon">✍️</div><span>Bài 3: Generation & Agent</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson4" class="sidebar-item" data-lesson="m3-l4">
+        <div class="item-icon">🏭</div><span>Bài 4: Production & CLEAR</span>
+        <div class="status-dot"></div>
+      </a>
+      <a href="#lesson5" class="sidebar-item" data-lesson="m3-l5">
+        <div class="item-icon">🔥</div><span>Bài 5: Failure Injection</span>
+        <div class="status-dot"></div>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Tài Nguyên</div>
+      <a href="quiz.html" class="sidebar-item">
+        <div class="item-icon">📝</div><span>Quiz ôn tập (15 câu)</span>
+      </a>
+      <a href="lab.ipynb" download class="sidebar-item">
+        <div class="item-icon">🔬</div><span>Lab: LoanBot Evaluation</span>
+      </a>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Điều Hướng</div>
+      <a href="../module2/index.html" class="sidebar-item">
+        <div class="item-icon">◀</div><span>Module 2: Kiến Trúc</span>
+      </a>
+      <a href="../module4/index.html" class="sidebar-item">
+        <div class="item-icon">▶</div><span>Module 4: Deployment</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+  <div class="content-inner">
+
+    <!-- HEADER -->
+    <div class="lesson-header" style="background:linear-gradient(135deg,#0f4c81 0%,#1e40af 60%,#3b82f6 100%);">
+      <div class="breadcrumb">
+        <a href="../../index.html" style="color:rgba(255,255,255,.65)">Trang chủ</a>
+        <span>›</span> Module 3
+      </div>
+      <h1>Module 3: Đánh Giá &amp; Testing</h1>
+      <p style="color:rgba(255,255,255,.8);margin-bottom:var(--space-5);max-width:650px;">
+        Đo lường <strong style="color:#bfdbfe">chính xác</strong> những gì agent làm được và không làm được —
+        từ 12-metric framework đến failure injection testing cho LoanBot.
+      </p>
+      <div class="lesson-meta">
+        <span class="meta-badge">⏱ ~4.5 giờ</span>
+        <span class="meta-badge">📖 5 bài giảng</span>
+        <span class="meta-badge">🎯 Mức: Trung bình</span>
+        <span class="meta-badge">📊 12 metrics</span>
+      </div>
+    </div>
+
+    <!-- LEARNING MAP -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-6);">
+      <h4 style="color:var(--primary-dark);margin-bottom:var(--space-4);">🗺️ Bản Đồ Học Tập Module 3</h4>
+      <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:110px;">
+          <div style="background:#0f4c81;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">📊 Bài 1<br><span style="font-weight:400;font-size:.72rem;">12-Metric Framework</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:110px;">
+          <div style="background:#1e40af;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">🎯 Bài 2<br><span style="font-weight:400;font-size:.72rem;">Retrieval Metrics</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:110px;">
+          <div style="background:#1d4ed8;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">✍️ Bài 3<br><span style="font-weight:400;font-size:.72rem;">Generation &amp; Agent</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:110px;">
+          <div style="background:#2563eb;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">🏭 Bài 4<br><span style="font-weight:400;font-size:.72rem;">Production &amp; CLEAR</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:110px;">
+          <div style="background:#3b82f6;color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">🔥 Bài 5<br><span style="font-weight:400;font-size:.72rem;">Failure Injection</span></div>
+        </div>
+        <div style="color:var(--accent);font-size:1.3rem;padding:0 3px;padding-bottom:16px;">→</div>
+        <div style="text-align:center;min-width:100px;">
+          <div style="background:var(--accent-dark);color:#fff;border-radius:var(--radius-lg);padding:var(--space-3);font-weight:700;font-size:.8rem;">🔬 Lab<br><span style="font-weight:400;font-size:.72rem;">Evaluation</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBJECTIVES -->
+    <div class="objectives-box">
+      <h4>🎯 Sau Module 3, bạn sẽ có thể:</h4>
+      <ul>
+        <li>Áp dụng 12-Metric Evaluation Framework vào bất kỳ AI agent nào</li>
+        <li>Tính và giải thích 4 Retrieval Metrics (Precision, Recall, F1, MRR)</li>
+        <li>Đánh giá chất lượng output bằng Generation Metrics và Agent-Specific Metrics</li>
+        <li>Dùng framework CLEAR để track Production Metrics</li>
+        <li>Thiết kế và chạy Failure Injection Tests cho LoanBot</li>
+      </ul>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 1: 12-METRIC FRAMEWORK                         -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson1" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">1</div>
+        <h2>12-Metric Evaluation Framework — Đo Lường Toàn Diện</h2>
+      </div>
+
+      <div class="learning-objective">
+        <h4>🎯 Sau bài này, bạn sẽ:</h4>
+        <ul>
+          <li>Giải thích được 4 nhóm metrics (Retrieval, Generation, Agent, Production) và vai trò từng nhóm</li>
+          <li>Hiểu tại sao chỉ đo một metric là nguy hiểm (accuracy paradox)</li>
+          <li>Biết cách áp dụng 12-metric framework cho LoanBot trong thực tế</li>
+        </ul>
+      </div>
+
+      <h3>1.1 Tại Sao Cần 12 Metrics?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Kiểm tra sức khỏe toàn diện</div>
+        <p>Khi khám sức khỏe định kỳ, bác sĩ không chỉ đo huyết áp — họ kiểm tra đường huyết, cholesterol, BMI, tim mạch, mắt... Mỗi chỉ số phản ánh một khía cạnh khác nhau của sức khỏe.</p>
+        <p style="margin:0">Tương tự, một AI agent cần được đánh giá từ nhiều góc độ: nó tìm thông tin đúng không (Retrieval), tạo output chính xác không (Generation), hành động hiệu quả không (Agent), và vận hành ổn định không (Production). Một metric duy nhất sẽ bỏ sót nhiều vấn đề.</p>
+      </div>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Cạm Bẫy: Chỉ đo "accuracy"</div>
+        <p>Một LoanBot đơn giản từ chối TẤT CẢ hồ sơ sẽ có accuracy cao (vì phần lớn hồ sơ thực sự bị từ chối), nhưng hoàn toàn vô dụng về mặt kinh doanh. Cần nhiều metrics hơn để đánh giá đúng.</p>
+        <p style="margin:0">Đây là <strong>accuracy paradox</strong> — nguy hiểm khi chỉ dùng một metric.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">1.2 Tổng Quan 12 Metrics — 4 Nhóm</h3>
+
+      <!-- SVG: 12-Metric Overview -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 1.1 — 12-Metric Framework: 4 nhóm đánh giá toàn diện mọi khía cạnh của AI agent</title>
+  <rect width="720" height="260" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Group 1: Retrieval -->
+          <rect x="10" y="10" width="165" height="240" rx="12" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="92" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">🎯 Retrieval</text>
+          <text x="92" y="45" text-anchor="middle" font-size="9" fill="#3730a3">(4 metrics)</text>
+          <rect x="22" y="55" width="141" height="30" rx="6" fill="#dbeafe"/>
+          <text x="92" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">M1: Precision@K</text>
+          <text x="92" y="80" text-anchor="middle" font-size="8" fill="#3730a3">Tỷ lệ kết quả đúng trong top K</text>
+          <rect x="22" y="92" width="141" height="30" rx="6" fill="#dbeafe"/>
+          <text x="92" y="105" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">M2: Recall@K</text>
+          <text x="92" y="117" text-anchor="middle" font-size="8" fill="#3730a3">Tỷ lệ tìm được kết quả đúng</text>
+          <rect x="22" y="129" width="141" height="30" rx="6" fill="#dbeafe"/>
+          <text x="92" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">M3: F1 Score</text>
+          <text x="92" y="154" text-anchor="middle" font-size="8" fill="#3730a3">Hài hòa Precision & Recall</text>
+          <rect x="22" y="166" width="141" height="30" rx="6" fill="#dbeafe"/>
+          <text x="92" y="179" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">M4: MRR</text>
+          <text x="92" y="191" text-anchor="middle" font-size="8" fill="#3730a3">Mean Reciprocal Rank</text>
+          <text x="92" y="230" text-anchor="middle" font-size="8" fill="#93c5fd">LoanBot: tìm đúng tool?</text>
+
+          <!-- Group 2: Generation -->
+          <rect x="185" y="10" width="165" height="240" rx="12" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+          <text x="267" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#5b21b6">✍️ Generation</text>
+          <text x="267" y="45" text-anchor="middle" font-size="9" fill="#6d28d9">(3 metrics)</text>
+          <rect x="197" y="55" width="141" height="30" rx="6" fill="#ede9fe"/>
+          <text x="267" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#5b21b6">M5: Faithfulness</text>
+          <text x="267" y="80" text-anchor="middle" font-size="8" fill="#6d28d9">Output dựa trên facts thực</text>
+          <rect x="197" y="92" width="141" height="30" rx="6" fill="#ede9fe"/>
+          <text x="267" y="105" text-anchor="middle" font-size="9" font-weight="700" fill="#5b21b6">M6: Accuracy</text>
+          <text x="267" y="117" text-anchor="middle" font-size="8" fill="#6d28d9">Quyết định đúng tiêu chí</text>
+          <rect x="197" y="129" width="141" height="30" rx="6" fill="#ede9fe"/>
+          <text x="267" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#5b21b6">M7: Completeness</text>
+          <text x="267" y="154" text-anchor="middle" font-size="8" fill="#6d28d9">Đủ thông tin trong báo cáo</text>
+          <text x="267" y="230" text-anchor="middle" font-size="8" fill="#c4b5fd">LoanBot: báo cáo đúng?</text>
+
+          <!-- Group 3: Agent-Specific -->
+          <rect x="360" y="10" width="165" height="240" rx="12" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="442" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#065f46">🤖 Agent</text>
+          <text x="442" y="45" text-anchor="middle" font-size="9" fill="#047857">(3 metrics)</text>
+          <rect x="372" y="55" width="141" height="30" rx="6" fill="#d1fae5"/>
+          <text x="442" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#065f46">M8: Task Success Rate</text>
+          <text x="442" y="80" text-anchor="middle" font-size="8" fill="#047857">% tasks hoàn thành đúng</text>
+          <rect x="372" y="92" width="141" height="30" rx="6" fill="#d1fae5"/>
+          <text x="442" y="105" text-anchor="middle" font-size="9" font-weight="700" fill="#065f46">M9: Tool Efficiency</text>
+          <text x="442" y="117" text-anchor="middle" font-size="8" fill="#047857">Số tool calls tối thiểu cần</text>
+          <rect x="372" y="129" width="141" height="30" rx="6" fill="#d1fae5"/>
+          <text x="442" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#065f46">M10: Error Recovery</text>
+          <text x="442" y="154" text-anchor="middle" font-size="8" fill="#047857">% lỗi tự phục hồi được</text>
+          <text x="442" y="230" text-anchor="middle" font-size="8" fill="#6ee7b7">LoanBot: quy trình đúng?</text>
+
+          <!-- Group 4: Production -->
+          <rect x="535" y="10" width="175" height="240" rx="12" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="622" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#9a3412">🏭 Production</text>
+          <text x="622" y="45" text-anchor="middle" font-size="9" fill="#c2410c">(2 metrics)</text>
+          <rect x="547" y="55" width="151" height="30" rx="6" fill="#fed7aa"/>
+          <text x="622" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#9a3412">M11: Latency P95</text>
+          <text x="622" y="80" text-anchor="middle" font-size="8" fill="#c2410c">95% requests xong trong Xms</text>
+          <rect x="547" y="92" width="151" height="30" rx="6" fill="#fed7aa"/>
+          <text x="622" y="105" text-anchor="middle" font-size="9" font-weight="700" fill="#9a3412">M12: Cost/Request</text>
+          <text x="622" y="117" text-anchor="middle" font-size="8" fill="#c2410c">Chi phí mỗi lần xử lý</text>
+          <text x="622" y="230" text-anchor="middle" font-size="8" fill="#fdba74">LoanBot: có scale không?</text>
+        </svg>
+        <div class="diagram-title">Hình 1.1 — 12-Metric Framework: 4 nhóm đánh giá toàn diện mọi khía cạnh của AI agent</div>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: Target Metrics cho LoanBot</div>
+        <p>Sau khi họp với CTO và Compliance team, FinTech Corp đặt ra các mục tiêu sau:</p>
+        <div class="metric-grid" style="margin:var(--space-3) 0 0;">
+          <div class="metric-card" style="border-left-color:#1e40af">
+            <h5 style="color:#1e40af">M6: Decision Accuracy</h5>
+            <p>≥ 95% quyết định đúng theo tiêu chí nghiệp vụ</p>
+          </div>
+          <div class="metric-card" style="border-left-color:#5b21b6">
+            <h5 style="color:#5b21b6">M8: Task Success Rate</h5>
+            <p>≥ 99% hồ sơ hoàn thành đầy đủ quy trình 5 bước</p>
+          </div>
+          <div class="metric-card" style="border-left-color:#065f46">
+            <h5 style="color:#065f46">M11: Latency P95</h5>
+            <p>≤ 300 giây (5 phút) cho 95% hồ sơ</p>
+          </div>
+          <div class="metric-card" style="border-left-color:#9a3412">
+            <h5 style="color:#9a3412">M12: Cost/Request</h5>
+            <p>≤ 5,000 VNĐ (~$0.20) mỗi hồ sơ</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 1</h4>
+        <ul>
+          <li>12 metrics chia thành 4 nhóm: Retrieval (4), Generation (3), Agent (3), Production (2)</li>
+          <li>Không có metric nào đủ một mình — accuracy paradox: từ chối tất cả có accuracy cao nhưng vô dụng</li>
+          <li>Mỗi business use case có ngưỡng (threshold) khác nhau — FinTech cần accuracy ≥95%, latency ≤300s</li>
+          <li>Đánh giá = So sánh với ground truth (câu trả lời đúng đã biết trước)</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 2: RETRIEVAL METRICS                            -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson2" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">2</div>
+        <h2>Retrieval Metrics — Đo Lường Khả Năng Tìm Kiếm</h2>
+      </div>
+
+      <h3>2.1 Precision & Recall — Cặp Đôi Cổ Điển</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Bộ lọc email spam</div>
+        <p>Bộ lọc spam <em>chính xác cao (Precision cao)</em>: ít email quan trọng bị lọc nhầm, nhưng có thể để lọt nhiều spam. <em>Recall cao</em>: chặn hầu hết spam, nhưng có thể chặn nhầm email quan trọng.</p>
+        <p style="margin:0">Không thể tối đa hóa cả hai cùng lúc — đây là <strong>Precision-Recall trade-off</strong>. F1 Score là điểm cân bằng.</p>
+      </div>
+
+      <!-- SVG: Precision-Recall Trade-off -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 2.1 — Confusion Matrix của LoanBot trên 200 hồ sơ test: P=96.6%, R=94.4%, F1=95.5%</title>
+  <rect width="700" height="200" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Left: 2x2 Matrix -->
+          <text x="170" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#1e293b">Ma Trận Confusion — LoanBot</text>
+          <text x="170" y="38" text-anchor="middle" font-size="9" fill="#64748b">(Quyết định APPROVE/REJECT)</text>
+
+          <!-- Matrix -->
+          <rect x="50" y="45" width="240" height="140" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="110" y="60" text-anchor="middle" font-size="9" fill="#64748b">Dự đoán: APPROVE</text>
+          <text x="230" y="60" text-anchor="middle" font-size="9" fill="#64748b">Dự đoán: REJECT</text>
+
+          <rect x="54" y="63" width="130" height="55" rx="4" fill="#dcfce7" stroke="#86efac"/>
+          <text x="119" y="84" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">TP = 85</text>
+          <text x="119" y="98" text-anchor="middle" font-size="8" fill="#166534">Đúng: nên duyệt, đã duyệt</text>
+
+          <rect x="190" y="63" width="96" height="55" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+          <text x="238" y="84" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">FN = 5</text>
+          <text x="238" y="98" text-anchor="middle" font-size="8" fill="#b91c1c">Sai: nên duyệt, đã từ chối</text>
+
+          <rect x="54" y="124" width="130" height="55" rx="4" fill="#fee2e2" stroke="#fca5a5"/>
+          <text x="119" y="145" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">FP = 3</text>
+          <text x="119" y="159" text-anchor="middle" font-size="8" fill="#b91c1c">Sai: không nên duyệt, đã duyệt</text>
+
+          <rect x="190" y="124" width="96" height="55" rx="4" fill="#dcfce7" stroke="#86efac"/>
+          <text x="238" y="145" text-anchor="middle" font-size="10" font-weight="700" fill="#14532d">TN = 107</text>
+          <text x="238" y="159" text-anchor="middle" font-size="8" fill="#166534">Đúng: không nên duyệt</text>
+
+          <!-- Formulas -->
+          <rect x="318" y="30" width="365" height="155" rx="12" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
+          <text x="500" y="52" text-anchor="middle" font-size="11" font-weight="700" fill="#0369a1">Công Thức Tính</text>
+
+          <text x="338" y="74" font-size="10" font-weight="700" fill="#1e40af">Precision</text>
+          <text x="338" y="88" font-size="10" fill="#0369a1">= TP / (TP + FP) = 85/(85+3) = </text>
+          <text x="596" y="88" font-size="10" font-weight="800" fill="#059669">96.6%</text>
+
+          <text x="338" y="109" font-size="10" font-weight="700" fill="#1e40af">Recall</text>
+          <text x="338" y="123" font-size="10" fill="#0369a1">= TP / (TP + FN) = 85/(85+5) = </text>
+          <text x="596" y="123" font-size="10" font-weight="800" fill="#059669">94.4%</text>
+
+          <text x="338" y="144" font-size="10" font-weight="700" fill="#1e40af">F1 Score</text>
+          <text x="338" y="158" font-size="10" fill="#0369a1">= 2 × (P×R)/(P+R) = </text>
+          <text x="503" y="158" font-size="10" font-weight="800" fill="#059669">95.5%</text>
+          <text x="503" y="172" font-size="9" fill="#64748b">(LoanBot đạt ngưỡng ≥95% ✅)</text>
+        </svg>
+        <div class="diagram-title">Hình 2.1 — Confusion Matrix của LoanBot trên 200 hồ sơ test: P=96.6%, R=94.4%, F1=95.5%</div>
+      </div>
+
+      <div class="key-formula">
+        <div class="formula-label">Công thức F1 Score — cân bằng Precision &amp; Recall</div>
+        <div class="formula-text">F1 = 2 × (P × R) / (P + R)</div>
+        <div class="formula-desc">LoanBot target: F1 ≥ 95% &nbsp;|&nbsp; Precision ≥ 95% &nbsp;|&nbsp; Recall ≥ 94%</div>
+      </div>
+
+      <div class="concept-check">
+        <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
+        <p class="concept-check-q">LoanBot có Precision=90% và Recall=80%. Tính F1 Score. Hệ thống này có đạt ngưỡng ≥95% không?</p>
+        <button class="concept-check-toggle" onclick="toggleConceptCheck(this)">💡 Xem gợi ý</button>
+        <div class="concept-check-answer">
+          <strong>Tính:</strong> F1 = 2 × (0.90 × 0.80) / (0.90 + 0.80) = 2 × 0.72 / 1.70 = 1.44 / 1.70 ≈ <strong>84.7%</strong><br><br>
+          <strong>Kết luận:</strong> Không đạt ngưỡng 95%. Cần cải thiện cả Precision lẫn Recall. Điểm yếu rõ nhất là Recall=80% — LoanBot đang bỏ sót 20% hồ sơ cần phê duyệt, gây thiệt hại kinh doanh cho FinTech Corp.
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">2.2 MRR — Mean Reciprocal Rank</h3>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 MRR là gì?</div>
+        <p>MRR đo mức độ <em>hữu ích</em> của kết quả đầu tiên. Nếu câu trả lời đúng là kết quả đầu tiên → điểm = 1. Là kết quả thứ 2 → điểm = 0.5. Thứ 3 → 0.33.</p>
+        <p style="margin:0">Công thức: <strong>MRR = (1/n) × Σ (1/rank_i)</strong>. Trong LoanBot: MRR đo xem công cụ đúng có được gọi đầu tiên không (check_credit trước verify_income trước...)</p>
+      </div>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: MRR cho Tool Ordering</div>
+        <p>LoanBot được test 5 hồ sơ để xem có gọi tools đúng thứ tự không:</p>
+        <ul style="margin:0">
+          <li>Hồ sơ 1: check_credit_score gọi đầu tiên ✅ → rank=1, điểm=1.0</li>
+          <li>Hồ sơ 2: verify_income gọi trước check_credit ❌ → rank=2, điểm=0.5</li>
+          <li>Hồ sơ 3: check_credit gọi đầu tiên ✅ → rank=1, điểm=1.0</li>
+          <li>Hồ sơ 4: check_blacklist gọi trước check_credit ❌ → rank=2, điểm=0.5</li>
+          <li>Hồ sơ 5: check_credit gọi đầu tiên ✅ → rank=1, điểm=1.0</li>
+        </ul>
+        <p style="margin-top:8px;margin-bottom:0"><strong>MRR = (1 + 0.5 + 1 + 0.5 + 1) / 5 = 0.8 (80%)</strong> — cần cải thiện system prompt để LoanBot nhớ thứ tự đúng hơn.</p>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 2</h4>
+        <ul>
+          <li>Precision = Trong những gì agent nói đúng, bao nhiêu % thực sự đúng? (tránh False Positives)</li>
+          <li>Recall = Trong những gì đúng thực tế, agent tìm được bao nhiêu? (tránh False Negatives)</li>
+          <li>F1 Score = Điểm cân bằng — dùng khi cần hài hòa cả hai</li>
+          <li>MRR = Đo thứ tự quan trọng của kết quả — tool đúng có được gọi đầu tiên không?</li>
+          <li>Với FinTech Corp: FP (duyệt nhầm) tốn tiền; FN (từ chối nhầm) mất khách — cần cân bằng cả hai</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 3: GENERATION & AGENT METRICS                  -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson3" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">3</div>
+        <h2>Generation &amp; Agent Metrics — Đo Lường Chất Lượng Output</h2>
+      </div>
+
+      <h3>3.1 Generation Metrics — Đánh Giá Văn Bản</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Chấm bài kiểm tra luận</div>
+        <p>Khi chấm bài luận, giáo viên kiểm tra: (1) Bài có nói đúng sự thật không? (<em>Faithfulness</em>), (2) Đáp án có đúng yêu cầu đề bài không? (<em>Accuracy</em>), (3) Trả lời có đủ ý không? (<em>Completeness</em>).</p>
+        <p style="margin:0">Báo cáo của LoanBot được đánh giá tương tự: có dựa trên kết quả tool thực không (Faithfulness), quyết định có đúng nghiệp vụ không (Accuracy), báo cáo có đủ thông tin theo yêu cầu compliance không (Completeness).</p>
+      </div>
+
+      <table class="comparison-table">
+        <thead><tr><th>Metric</th><th>Đo Lường</th><th>LoanBot Criteria</th><th>Ngưỡng</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>M5: Faithfulness</strong></td>
+            <td>Output có bịa đặt thông tin không trong context</td>
+            <td>DTI, credit score trong báo cáo = kết quả tool thực</td>
+            <td>≥ 99%</td>
+          </tr>
+          <tr>
+            <td><strong>M6: Accuracy</strong></td>
+            <td>Quyết định đúng theo tiêu chí nghiệp vụ đã định</td>
+            <td>APPROVE iff: score≥650, no-BL, income-verified, DTI≤43%</td>
+            <td>≥ 95%</td>
+          </tr>
+          <tr>
+            <td><strong>M7: Completeness</strong></td>
+            <td>Đủ thông tin theo yêu cầu (checklist)</td>
+            <td>Báo cáo có: customer_id, score, DTI, decision, justification</td>
+            <td>≥ 98%</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:var(--space-6)">3.2 Faithfulness — Chống Hallucination</h3>
+
+      <div class="callout warning">
+        <div class="callout-header">⚠️ Hallucination trong LoanBot — Rủi Ro Tài Chính</div>
+        <p>Trường hợp thực tế đáng lo ngại: LoanBot gọi check_credit_score và nhận được score=620. Nhưng khi generate_report, nó ghi <em>"điểm tín dụng 720, xếp loại thấp"</em> — tức là <strong>bịa số liệu</strong>.</p>
+        <p style="margin:0">Đây là hallucination nghiêm trọng trong tài chính: có thể dẫn đến approve hồ sơ không đủ tiêu chuẩn. Faithfulness score đo tần suất xảy ra điều này.</p>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python — Faithfulness Checker</span>
+<span class="code-keyword">def</span> <span class="code-function">check_faithfulness</span>(tool_results: <span class="code-type">dict</span>, report_content: <span class="code-type">str</span>) -> <span class="code-type">dict</span>:
+    <span class="code-string">"""Kiểm tra báo cáo có fabricate số liệu từ tool results không."""</span>
+    violations = []
+    <span class="code-comment"># Kiểm tra credit score</span>
+    actual_score = tool_results.get(<span class="code-string">"credit_score"</span>, {}).get(<span class="code-string">"score"</span>)
+    <span class="code-keyword">if</span> actual_score <span class="code-keyword">and</span> <span class="code-function">str</span>(actual_score) <span class="code-keyword">not in</span> report_content:
+        violations.append(<span class="code-string">f"Credit score {actual_score} không xuất hiện trong báo cáo"</span>)
+    <span class="code-comment"># Kiểm tra DTI ratio</span>
+    actual_dti = tool_results.get(<span class="code-string">"dti"</span>, {}).get(<span class="code-string">"dti_ratio_pct"</span>)
+    <span class="code-keyword">if</span> actual_dti <span class="code-keyword">and</span> <span class="code-function">str</span>(<span class="code-function">round</span>(actual_dti)) <span class="code-keyword">not in</span> report_content:
+        violations.append(<span class="code-string">f"DTI {actual_dti}% không xuất hiện trong báo cáo"</span>)
+    <span class="code-keyword">return</span> {
+        <span class="code-string">"is_faithful"</span>: <span class="code-function">len</span>(violations) == <span class="code-number">0</span>,
+        <span class="code-string">"violations"</span>:  violations,
+        <span class="code-string">"score"</span>:       <span class="code-number">1.0</span> <span class="code-keyword">if not</span> violations <span class="code-keyword">else</span> <span class="code-number">0.0</span>
+    }
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">3.3 Agent-Specific Metrics — Đặc Thù Agentic AI</h3>
+
+      <div class="metric-grid">
+        <div class="metric-card" style="border-left-color:#065f46">
+          <h5 style="color:#065f46">M8: Task Success Rate</h5>
+          <p>% hồ sơ hoàn thành đầy đủ 5 bước và tạo report. Target: ≥99%</p>
+          <div class="metric-formula">= Tasks Completed / Tasks Attempted</div>
+        </div>
+        <div class="metric-card" style="border-left-color:#065f46">
+          <h5 style="color:#065f46">M9: Tool Efficiency</h5>
+          <p>Số tool calls trung bình. Ideal = 5 (1 per tool). Nếu &gt;7: LoanBot đang gọi dư thừa</p>
+          <div class="metric-formula">= Total Tool Calls / Total Tasks</div>
+        </div>
+        <div class="metric-card" style="border-left-color:#065f46">
+          <h5 style="color:#065f46">M10: Error Recovery</h5>
+          <p>% lỗi tự phục hồi mà không cần intervention. Retry Orchestrator đóng góp trực tiếp</p>
+          <div class="metric-formula">= Auto-recovered Errors / Total Errors</div>
+        </div>
+      </div>
+
+      <!-- SVG: Tool Efficiency Comparison -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 3.1 — Tool Efficiency: LoanBot v0.2 gần optimal (5.4 vs ideal 5.0), cải thiện từ 8.3 của v0.1</title>
+  <rect width="700" height="160" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="350" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Tool Calls per Task — LoanBot v0.1 vs v0.2</text>
+
+          <!-- v0.1 -->
+          <text x="35" y="50" text-anchor="middle" font-size="10" fill="#64748b">LoanBot v0.1</text>
+          <rect x="10" y="58" width="250" height="28" rx="6" fill="#fee2e2" stroke="#fca5a5"/>
+          <text x="135" y="76" text-anchor="middle" font-size="10" fill="#991b1b">avg 8.3 tool calls (includes retries = wasted)</text>
+          <text x="275" y="76" font-size="10" fill="#dc2626" font-weight="700">❌ Inefficient</text>
+
+          <!-- v0.2 -->
+          <text x="35" y="108" text-anchor="middle" font-size="10" fill="#64748b">LoanBot v0.2</text>
+          <rect x="10" y="116" width="170" height="28" rx="6" fill="#dcfce7" stroke="#86efac"/>
+          <text x="85" y="134" text-anchor="middle" font-size="10" fill="#14532d">avg 5.4 tool calls</text>
+          <text x="192" y="134" font-size="10" fill="#15803d" font-weight="700">✅ Near-optimal</text>
+
+          <!-- Ideal line -->
+          <line x1="10" y1="155" x2="168" y2="155" stroke="#0f4c81" stroke-width="1" stroke-dasharray="4 2"/>
+          <text x="172" y="158" font-size="8" fill="#0f4c81">← Ideal: 5.0 (1/tool)</text>
+
+          <!-- Explanation -->
+          <rect x="420" y="40" width="270" height="110" rx="10" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
+          <text x="555" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#0369a1">Tại sao v0.2 hiệu quả hơn?</text>
+          <text x="438" y="78" font-size="9" fill="#0369a1">• Retry tự động không cần human trigger</text>
+          <text x="438" y="93" font-size="9" fill="#0369a1">• Circuit Breaker cắt sớm khi tool fails</text>
+          <text x="438" y="108" font-size="9" fill="#0369a1">• InputValidator ngăn gọi tool với bad params</text>
+          <text x="438" y="123" font-size="9" fill="#0369a1">• System prompt rõ ràng → ít lần thử lại</text>
+          <text x="438" y="140" font-size="9" fill="#0369a1">0.4 calls dư = 1 retry cho CIC timeout</text>
+        </svg>
+        <div class="diagram-title">Hình 3.1 — Tool Efficiency: LoanBot v0.2 gần optimal (5.4 vs ideal 5.0), cải thiện từ 8.3 của v0.1</div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 3</h4>
+        <ul>
+          <li>Faithfulness: output phải chỉ dùng thông tin từ tool results — không bịa đặt số liệu tài chính</li>
+          <li>Accuracy (M6) ≠ Faithfulness (M5): Accuracy đo quyết định đúng tiêu chí, Faithfulness đo output không fabricate</li>
+          <li>Tool Efficiency (M9): avg calls/task — giảm từ 8.3 (v0.1) xuống 5.4 (v0.2) nhờ retry orchestration đúng</li>
+          <li>Error Recovery (M10): v0.2 tự phục hồi 87% errors qua retry — không cần human intervention</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 4: PRODUCTION METRICS & CLEAR                  -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson4" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">4</div>
+        <h2>Production Metrics &amp; CLEAR Framework — Vận Hành Thực Tế</h2>
+      </div>
+
+      <h3>4.1 Framework CLEAR — 5 Trụ Cột Production</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Dashboard xe hơi</div>
+        <p>Khi lái xe, bạn theo dõi: đồng hồ tốc độ, nhiên liệu, nhiệt độ động cơ, cảnh báo áp suất lốp... Mỗi chỉ số này cần nhìn vào đúng thời điểm — không phải tất cả cùng một lúc, nhưng phải đủ để biết xe có ổn không.</p>
+        <p style="margin:0"><strong>CLEAR Framework</strong> là dashboard của production agent: Cost, Latency, Efficacy, Assurance, Reliability — 5 khía cạnh cần monitor liên tục khi LoanBot chạy production.</p>
+      </div>
+
+      <div class="clear-grid">
+        <div class="clear-card" style="background:#eff6ff;border-color:#93c5fd;">
+          <span class="clear-letter" style="color:#1e40af">C</span>
+          <span class="clear-word" style="color:#1e40af">Cost</span>
+          <span class="clear-desc" style="color:#3730a3">Chi phí per request<br>Token usage<br>API calls budget<br><strong>≤$0.20/hồ sơ</strong></span>
+        </div>
+        <div class="clear-card" style="background:#f0fdf4;border-color:#86efac;">
+          <span class="clear-letter" style="color:#065f46">L</span>
+          <span class="clear-word" style="color:#065f46">Latency</span>
+          <span class="clear-desc" style="color:#047857">Thời gian phản hồi<br>P50, P95, P99<br>Tool latency breakdown<br><strong>P95 ≤ 300s</strong></span>
+        </div>
+        <div class="clear-card" style="background:#ede9fe;border-color:#c4b5fd;">
+          <span class="clear-letter" style="color:#5b21b6">E</span>
+          <span class="clear-word" style="color:#5b21b6">Efficacy</span>
+          <span class="clear-desc" style="color:#6d28d9">Decision accuracy<br>Task success rate<br>Approval rate trend<br><strong>Accuracy ≥ 95%</strong></span>
+        </div>
+        <div class="clear-card" style="background:#fef9c3;border-color:#fde047;">
+          <span class="clear-letter" style="color:#854d0e">A</span>
+          <span class="clear-word" style="color:#854d0e">Assurance</span>
+          <span class="clear-desc" style="color:#92400e">Audit log completeness<br>HITL trigger rate<br>Compliance violations<br><strong>Zero violations</strong></span>
+        </div>
+        <div class="clear-card" style="background:#fff7ed;border-color:#fdba74;">
+          <span class="clear-letter" style="color:#9a3412">R</span>
+          <span class="clear-word" style="color:#9a3412">Reliability</span>
+          <span class="clear-desc" style="color:#c2410c">Uptime / availability<br>Error recovery rate<br>Circuit breaker status<br><strong>SLA 99.9%</strong></span>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">4.2 Latency Percentiles — Đo Đúng Cách</h3>
+
+      <div class="callout concept">
+        <div class="callout-header">🔵 Tại sao dùng P95 thay vì Average?</div>
+        <p>Nếu 100 hồ sơ có latency: 99 hồ sơ xử lý trong 30 giây, 1 hồ sơ mất 3000 giây (timeout rồi retry). <strong>Average</strong> = (99×30 + 3000)/100 = 59.7s — nghe ổn nhưng thực ra 1 khách hàng bị waiting 50 phút!</p>
+        <p style="margin:0"><strong>P95 = 30s</strong> (95% hồ sơ xong trong 30s) và <strong>P99 = 3000s</strong> mới phản ánh đúng thực tế. Monitor P95 và P99 để phát hiện outliers nguy hiểm.</p>
+      </div>
+
+      <!-- SVG: Latency Distribution -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 170" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 4.1 — Latency distribution của LoanBot v0.2: P95=210s đạt SLA, P99=480s cần điều tra</title>
+  <rect width="700" height="170" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <text x="350" y="18" text-anchor="middle" font-size="12" font-weight="700" fill="#1e293b">Latency Distribution — LoanBot v0.2 (100 hồ sơ test)</text>
+
+          <!-- Bars -->
+          <g transform="translate(30,30)">
+            <!-- Bar labels -->
+            <text x="40" y="98" text-anchor="middle" font-size="8" fill="#64748b">0-30s</text>
+            <text x="100" y="98" text-anchor="middle" font-size="8" fill="#64748b">30-60s</text>
+            <text x="160" y="98" text-anchor="middle" font-size="8" fill="#64748b">60-90s</text>
+            <text x="220" y="98" text-anchor="middle" font-size="8" fill="#64748b">90-120s</text>
+            <text x="280" y="98" text-anchor="middle" font-size="8" fill="#64748b">120-180s</text>
+            <text x="340" y="98" text-anchor="middle" font-size="8" fill="#64748b">180-300s</text>
+            <text x="400" y="98" text-anchor="middle" font-size="8" fill="#64748b">&gt;300s</text>
+
+            <rect x="10" y="8"  width="60" height="78" rx="4" fill="#10b981"/>
+            <text x="40" y="20" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">42</text>
+            <rect x="70" y="20" width="60" height="66" rx="4" fill="#22c55e"/>
+            <text x="100" y="32" text-anchor="middle" font-size="9" fill="#fff" font-weight="700">35</text>
+            <rect x="130" y="55" width="60" height="31" rx="4" fill="#84cc16"/>
+            <text x="160" y="67" text-anchor="middle" font-size="9" fill="#fff">13</text>
+            <rect x="190" y="74" width="60" height="12" rx="4" fill="#eab308"/>
+            <text x="220" y="83" text-anchor="middle" font-size="8" fill="#fff">5</text>
+            <rect x="250" y="80" width="60" height="6" rx="4" fill="#f97316"/>
+            <text x="280" y="88" text-anchor="middle" font-size="8" fill="#fff">3</text>
+            <rect x="310" y="82" width="60" height="4" rx="4" fill="#ef4444"/>
+            <text x="340" y="90" text-anchor="middle" font-size="8" fill="#fff">1</text>
+            <rect x="370" y="83" width="60" height="3" rx="4" fill="#dc2626"/>
+            <text x="400" y="91" text-anchor="middle" font-size="8" fill="#fff">1</text>
+          </g>
+
+          <!-- P markers -->
+          <line x1="195" y1="30" x2="195" y2="120" stroke="#0f4c81" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <text x="198" y="45" font-size="8" fill="#0f4c81" font-weight="700">P50=45s</text>
+          <line x1="418" y1="30" x2="418" y2="120" stroke="#854d0e" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <text x="421" y="45" font-size="8" fill="#854d0e" font-weight="700">P95=210s</text>
+          <line x1="500" y1="30" x2="500" y2="120" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <text x="503" y="45" font-size="8" fill="#dc2626" font-weight="700">P99=480s</text>
+
+          <text x="350" y="155" text-anchor="middle" font-size="9" fill="#64748b">P50=45s (SLA ✅) | P95=210s (SLA ✅ &lt;300s) | P99=480s (⚠️ cần investigation)</text>
+        </svg>
+        <div class="diagram-title">Hình 4.1 — Latency distribution của LoanBot v0.2: P95=210s đạt SLA, P99=480s cần điều tra</div>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">4.3 Cost Monitoring</h3>
+
+      <div class="callout example">
+        <div class="callout-header">🏢 FinTech Corp: LoanBot Cost Breakdown</div>
+        <div class="stats-row" style="margin:var(--space-3) 0 0;">
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.5rem;color:var(--success)">$0.043</div>
+            <div class="stat-label">Cost trung bình/hồ sơ (v0.2)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.5rem;color:var(--success)">~1,100 VNĐ</div>
+            <div class="stat-label">Quy đổi VNĐ (tỷ giá 25,500)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.5rem;color:var(--primary)">50,000</div>
+            <div class="stat-label">Hồ sơ/tháng FinTech Corp</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" style="font-size:1.5rem;color:var(--primary)">$2,150/tháng</div>
+            <div class="stat-label">Tổng API cost (vs $17.5M/năm cũ)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 4</h4>
+        <ul>
+          <li>CLEAR Framework: Cost, Latency, Efficacy, Assurance, Reliability — 5 trụ cột cần monitor liên tục</li>
+          <li>Dùng P95/P99 thay vì Average cho Latency — average che giấu outliers nguy hiểm</li>
+          <li>Cost monitoring: LoanBot v0.2 đạt $0.043/hồ sơ = 1,100 VNĐ (vs target ≤5,000 VNĐ ✅)</li>
+          <li>Assurance (Audit Completeness) phải = 100% — không được thiếu một event nào trong compliance</li>
+        </ul>
+      </div>
+    </section>
+
+    <hr class="lesson-divider">
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- BÀI 5: FAILURE INJECTION TESTING                   -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <section id="lesson5" class="lesson-section">
+      <div class="section-heading">
+        <div class="section-number">5</div>
+        <h2>Failure Injection Testing — Test Trong Điều Kiện Bất Lợi</h2>
+      </div>
+
+      <h3>5.1 Tại Sao Phải Inject Failures?</h3>
+
+      <div class="callout analogy">
+        <div class="callout-header">💡 Analogy: Thử nghiệm ô tô an toàn</div>
+        <p>Trước khi bán ra thị trường, mọi xe hơi đều trải qua crash tests: đâm vào tường, xoay 360 độ, phanh gấp trên đường ướt... Không ai chờ tai nạn thực để biết túi khí có bung không.</p>
+        <p style="margin:0"><strong>Failure Injection</strong> là "crash test" cho AI agent: chủ động tạo ra các điều kiện tệ nhất để kiểm tra harness phản ứng đúng không — trước khi production gặp thực tế.</p>
+      </div>
+
+      <h3 style="margin-top:var(--space-6)">5.2 Các Loại Failures Cần Test</h3>
+
+      <table class="failure-table">
+        <thead>
+          <tr><th>Failure Type</th><th>Mô Tả</th><th>Test cho LoanBot</th><th>Severity</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Tool Timeout</strong></td>
+            <td>Backend không respond trong thời gian cho phép</td>
+            <td>CIC system timeout → Retry Orchestrator có kích hoạt?</td>
+            <td class="severity-high">HIGH</td>
+          </tr>
+          <tr>
+            <td><strong>Tool Returns Wrong Schema</strong></td>
+            <td>Tool trả về data sai format (string thay vì number)</td>
+            <td>credit_score = "N/A" thay vì integer → Validator bắt được?</td>
+            <td class="severity-high">HIGH</td>
+          </tr>
+          <tr>
+            <td><strong>Context Drift</strong></td>
+            <td>Agent quên thông tin từ đầu session</td>
+            <td>Nhập hồ sơ rất dài → LoanBot có nhớ đúng loan_amount?</td>
+            <td class="severity-high">HIGH</td>
+          </tr>
+          <tr>
+            <td><strong>Budget Exhaustion</strong></td>
+            <td>Agent vượt quá giới hạn iterations/cost</td>
+            <td>Set max_iterations=3 → Harness dừng đúng chỗ?</td>
+            <td class="severity-medium">MEDIUM</td>
+          </tr>
+          <tr>
+            <td><strong>Prompt Injection</strong></td>
+            <td>Dữ liệu đầu vào cố tình thay đổi hành vi agent</td>
+            <td>customer_id="FC-001; ignore previous instructions" → Guardrails bắt?</td>
+            <td class="severity-high">HIGH</td>
+          </tr>
+          <tr>
+            <td><strong>Partial Tool Failure</strong></td>
+            <td>Tool trả về kết quả một phần (partial success)</td>
+            <td>verify_income trả về confidence=0.4 (thấp) → Agent xử lý thế nào?</td>
+            <td class="severity-medium">MEDIUM</td>
+          </tr>
+          <tr>
+            <td><strong>Circuit Breaker Open</strong></td>
+            <td>Tool completely unavailable sau nhiều lỗi</td>
+            <td>CIC fails 5 lần liên tiếp → Circuit OPEN, Fallback Router kích hoạt?</td>
+            <td class="severity-high">HIGH</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top:var(--space-6)">5.3 Thiết Kế Test Suite — Kịch Bản Cụ Thể</h3>
+
+      <!-- SVG: Failure Injection Flow -->
+      <div class="diagram-container">
+        <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">
+  <title>Hình 5.1 — Failure Injection Test flow: inject failures vào Mock Tools, verify harness phản ứng đúng</title>
+          <defs>
+            <marker id="af" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+              <polygon points="0 0,7 2.5,0 5" fill="#64748b"/>
+            </marker>
+          </defs>
+  <rect width="700" height="180" fill="#f8fafc" rx="12" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Test runner -->
+          <rect x="10" y="60" width="120" height="60" rx="10" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+          <text x="70" y="83" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">🧪 Test Runner</text>
+          <text x="70" y="97" text-anchor="middle" font-size="9" fill="#64748b">Inject failures</text>
+          <text x="70" y="110" text-anchor="middle" font-size="9" fill="#64748b">theo kịch bản</text>
+          <line x1="132" y1="90" x2="158" y2="90" stroke="#64748b" stroke-width="1.5" marker-end="url(#af)"/>
+
+          <!-- LoanBot Harness -->
+          <rect x="160" y="35" width="180" height="110" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="250" y="57" text-anchor="middle" font-size="10" font-weight="700" fill="#1e40af">LoanBot v0.2 Harness</text>
+          <text x="250" y="72" text-anchor="middle" font-size="9" fill="#3730a3">Layer 1: Retry (3x)</text>
+          <text x="250" y="86" text-anchor="middle" font-size="9" fill="#3730a3">Layer 4: Guardrails</text>
+          <text x="250" y="100" text-anchor="middle" font-size="9" fill="#3730a3">Layer 5: Audit Log</text>
+          <text x="250" y="114" text-anchor="middle" font-size="9" fill="#3730a3">Budget Tracker</text>
+          <text x="250" y="128" text-anchor="middle" font-size="9" fill="#3730a3">Circuit Breaker</text>
+          <line x1="342" y1="90" x2="368" y2="90" stroke="#64748b" stroke-width="1.5" marker-end="url(#af)"/>
+
+          <!-- Mock Tools with failures -->
+          <rect x="370" y="35" width="140" height="110" rx="10" fill="#1a1f2e" stroke="#334155" stroke-width="1.5"/>
+          <text x="440" y="55" text-anchor="middle" font-size="10" fill="#e2e8f0" font-weight="700">Mock Tools</text>
+          <text x="440" y="70" text-anchor="middle" font-size="9" fill="#ef4444">💥 fail_rate=0.3</text>
+          <text x="440" y="84" text-anchor="middle" font-size="9" fill="#ef4444">💥 timeout=True</text>
+          <text x="440" y="98" text-anchor="middle" font-size="9" fill="#ef4444">💥 wrong_schema</text>
+          <text x="440" y="112" text-anchor="middle" font-size="9" fill="#f59e0b">⚠️ partial_result</text>
+          <text x="440" y="126" text-anchor="middle" font-size="9" fill="#64748b">✅ normal_call</text>
+          <line x1="512" y1="90" x2="538" y2="90" stroke="#64748b" stroke-width="1.5" marker-end="url(#af)"/>
+
+          <!-- Assertion -->
+          <rect x="540" y="50" width="148" height="80" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="614" y="72" text-anchor="middle" font-size="10" font-weight="700" fill="#065f46">Assertions</text>
+          <text x="614" y="87" text-anchor="middle" font-size="9" fill="#047857">✅ Task completed?</text>
+          <text x="614" y="101" text-anchor="middle" font-size="9" fill="#047857">✅ Log recorded?</text>
+          <text x="614" y="115" text-anchor="middle" font-size="9" fill="#047857">✅ No fabrication?</text>
+        </svg>
+        <div class="diagram-title">Hình 5.1 — Failure Injection Test flow: inject failures vào Mock Tools, verify harness phản ứng đúng</div>
+      </div>
+
+      <div class="code-block">
+        <span class="code-label">Python — Failure Injection Test Case</span>
+<span class="code-keyword">def</span> <span class="code-function">test_tool_timeout_recovery</span>(harness):
+    <span class="code-string">"""Test: Harness tự phục hồi khi CIC timeout."""</span>
+    fail_state = {<span class="code-string">"count"</span>: <span class="code-number">0</span>, <span class="code-string">"fail_on"</span>: [<span class="code-number">1</span>, <span class="code-number">2</span>]}  <span class="code-comment"># fail 2 lần đầu</span>
+
+    <span class="code-keyword">def</span> <span class="code-function">flaky_credit</span>(customer_id, include_history=<span class="code-keyword">True</span>):
+        fail_state[<span class="code-string">"count"</span>] += <span class="code-number">1</span>
+        <span class="code-keyword">if</span> fail_state[<span class="code-string">"count"</span>] <span class="code-keyword">in</span> fail_state[<span class="code-string">"fail_on"</span>]:
+            <span class="code-keyword">raise</span> TimeoutError(<span class="code-string">"CIC timeout (injected)"</span>)
+        <span class="code-keyword">return</span> {<span class="code-string">"score"</span>: <span class="code-number">720</span>, <span class="code-string">"risk_level"</span>: <span class="code-string">"thấp"</span>}
+
+    <span class="code-comment"># Inject flaky version</span>
+    harness.registry.get(<span class="code-string">"check_credit_score"</span>)[<span class="code-string">"fn"</span>] = flaky_credit
+
+    <span class="code-comment"># Chạy LoanBot — phải tự phục hồi</span>
+    response, audit = harness.run(<span class="code-string">"Thẩm định FC-2024-001, vay 200tr, 60 tháng"</span>)
+
+    <span class="code-comment"># Assertions</span>
+    <span class="code-keyword">assert</span> response <span class="code-keyword">is not None</span>, <span class="code-string">"Agent phải hoàn thành dù tool fail 2 lần"</span>
+    error_events = [e <span class="code-keyword">for</span> e <span class="code-keyword">in</span> audit <span class="code-keyword">if</span> e[<span class="code-string">"status"</span>] == <span class="code-string">"error"</span>]
+    <span class="code-keyword">assert</span> fail_state[<span class="code-string">"count"</span>] == <span class="code-number">3</span>, <span class="code-string">"Phải retry đúng 3 lần"</span>
+    <span class="code-keyword">print</span>(<span class="code-string">f"✅ Retry test passed: {fail_state['count']} attempts, task completed"</span>)
+      </div>
+
+      <div class="callout key-insight">
+        <div class="callout-header">🎯 Nguyên tắc Failure Injection Testing</div>
+        <ul style="margin:0">
+          <li><strong>Test từng layer độc lập:</strong> test Retry mà không cần HITL, test HITL mà không cần Retry</li>
+          <li><strong>Test combinations:</strong> timeout + wrong schema xảy ra cùng lúc</li>
+          <li><strong>Assert behavior, không chỉ output:</strong> kiểm tra audit log có đúng không, retry count có đúng không</li>
+          <li><strong>Regression suite:</strong> mỗi bug tìm được → thêm test để không tái phát</li>
+        </ul>
+      </div>
+
+      <div class="key-points">
+        <h4>💡 Điểm cốt lõi Bài 5</h4>
+        <ul>
+          <li>Failure Injection = "crash test" trước production — chủ động tạo lỗi thay vì chờ lỗi tự xảy ra</li>
+          <li>7 loại failures cần test: Timeout, Wrong Schema, Context Drift, Budget Exhaustion, Prompt Injection, Partial Failure, Circuit Breaker</li>
+          <li>Mỗi assertion phải kiểm tra cả behavior (retry count, audit logs) chứ không chỉ output cuối</li>
+          <li>Lab notebook implement đầy đủ test suite với LoanBot v0.2</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- GLOSSARY -->
+    <section style="margin:var(--space-10) 0 0;">
+      <div class="section-heading">
+        <div class="section-number" style="background:var(--text-muted);">📖</div>
+        <h2>Thuật Ngữ Quan Trọng Module 3</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--space-3);">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Precision</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Trong những gì model dự đoán là đúng, bao nhiêu % thực sự đúng. Công thức: TP / (TP + FP). Cao = ít false alarms.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Recall</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Trong tất cả trường hợp đúng thực tế, model tìm được bao nhiêu %. Công thức: TP / (TP + FN). Cao = ít miss cases.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">F1 Score</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Harmonic mean của Precision và Recall. F1 = 2PR/(P+R). Dùng khi cần cân bằng cả hai, không ưu tiên bên nào.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">MRR (Mean Reciprocal Rank)</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Đo vị trí của kết quả đúng đầu tiên. MRR=1 nếu luôn ở rank 1, MRR=0.5 nếu luôn rank 2. Đánh giá thứ tự tool calls.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Faithfulness</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Output chỉ sử dụng thông tin từ context thực (tool results), không bịa đặt ("hallucinate") số liệu nào không có trong dữ liệu thực.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Latency P95</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">95% requests hoàn thành trong thời gian này. Ưu việt hơn average vì không bị kéo bởi outliers. Standard SLA metric.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">CLEAR Framework</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Cost + Latency + Efficacy + Assurance + Reliability — 5 trụ cột đánh giá production AI agent. Framework do Anthropic Research đề xuất.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Failure Injection</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Kỹ thuật test chủ động inject các điều kiện lỗi vào mock tools để kiểm tra harness phản ứng đúng trước khi deploy production.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Accuracy Paradox</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Khi dùng một metric duy nhất (accuracy) có thể bị đánh lừa: model từ chối tất cả có accuracy cao trong dataset mất cân bằng.</span>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4);">
+          <strong style="color:var(--primary);">Ground Truth</strong><br>
+          <span style="font-size:.875rem;color:var(--text-muted);">Bộ câu trả lời đúng đã được xác nhận bởi con người, dùng để so sánh với output của agent khi đánh giá. Càng nhiều càng tốt.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE SUMMARY -->
+    <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #93c5fd;border-radius:var(--radius-xl);padding:var(--space-8);margin:var(--space-10) 0;">
+      <h3 style="color:#1e40af;margin-bottom:var(--space-5);">🎓 Tổng Kết Module 3</h3>
+      <p>LoanBot v0.2 đã được đánh giá theo đầy đủ 12 metrics:</p>
+      <div class="score-gauge-row">
+        <div class="score-gauge">
+          <div class="gauge-value" style="color:var(--success)">95.5%</div>
+          <div class="gauge-label">F1 Score (M3)</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:95.5%;background:var(--success)"></div></div>
+        </div>
+        <div class="score-gauge">
+          <div class="gauge-value" style="color:var(--success)">95.0%</div>
+          <div class="gauge-label">Decision Accuracy (M6)</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:95%;background:var(--success)"></div></div>
+        </div>
+        <div class="score-gauge">
+          <div class="gauge-value" style="color:var(--success)">99.1%</div>
+          <div class="gauge-label">Task Success Rate (M8)</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:99.1%;background:var(--success)"></div></div>
+        </div>
+        <div class="score-gauge">
+          <div class="gauge-value" style="color:var(--success)">210s</div>
+          <div class="gauge-label">Latency P95 (M11) ≤300s ✅</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:70%;background:var(--success)"></div></div>
+        </div>
+        <div class="score-gauge">
+          <div class="gauge-value" style="color:var(--success)">$0.043</div>
+          <div class="gauge-label">Cost/Request (M12) ≤$0.20 ✅</div>
+          <div class="gauge-bar"><div class="gauge-fill" style="width:22%;background:var(--success)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="lesson-nav">
+      <a href="../module2/index.html" class="nav-btn">← Module 2: Kiến Trúc</a>
+      <div style="display:flex;gap:12px;">
+        <a href="quiz.html" class="nav-btn">📝 Quiz Module 3</a>
+        <a href="lab.ipynb" download class="nav-btn">🔬 Notebook</a>
+        <a href="../module4/index.html" class="nav-btn primary">Module 4: Deployment →</a>
+      </div>
+    </div>
+
+  </div>
+  </main>
+</div>
+
+<script src="../../assets/js/main.js"></script>
+</body>
+</html>
