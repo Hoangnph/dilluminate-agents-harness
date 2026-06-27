@@ -183,22 +183,30 @@ function initAnimateOnScroll() {
 // ─── Table scroll enhancement ───────────────────────────
 function initTableScroll() {
   document.querySelectorAll('.table-scroll').forEach(wrapper => {
+    // Inject mobile swipe hint label (appears below table on mobile when scrollable)
+    const hint = document.createElement('div');
+    hint.className = 'table-scroll-hint';
+    hint.textContent = '↔ Kéo ngang để xem đầy đủ';
+    wrapper.parentNode.insertBefore(hint, wrapper.nextSibling);
+
     const checkOverflow = () => {
       const isScrollable = wrapper.scrollWidth > wrapper.clientWidth + 4;
       wrapper.classList.toggle('is-scrollable', isScrollable);
+      // Show text hint only on narrow screens
+      hint.style.display = isScrollable && window.innerWidth <= 768 ? 'block' : 'none';
     };
 
-    // Update fade hint position as user scrolls
+    // Update fade hint and scrolled-end class as user scrolls
     wrapper.addEventListener('scroll', () => {
       const atEnd = wrapper.scrollLeft + wrapper.clientWidth >= wrapper.scrollWidth - 8;
       wrapper.classList.toggle('scrolled-end', atEnd);
     }, { passive: true });
 
     checkOverflow();
-    // Re-check on resize
     if (window.ResizeObserver) {
       new ResizeObserver(checkOverflow).observe(wrapper);
     }
+    window.addEventListener('resize', checkOverflow, { passive: true });
   });
 }
 

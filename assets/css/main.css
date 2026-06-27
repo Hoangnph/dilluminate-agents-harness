@@ -512,7 +512,11 @@ table td {
   border-bottom: 1px solid var(--border);
   vertical-align: top;
   color: var(--text);
+  min-width: 120px; /* prevent column collapse on portrait mobile */
 }
+
+/* Code inside table cells must not wrap — forces column width to stay readable */
+table td code { white-space: nowrap; }
 
 table tr:last-child td { border-bottom: none; }
 table tbody tr:nth-child(even) td { background: var(--surface-2); }
@@ -568,15 +572,15 @@ table th[scope="row"] {
   border-radius: 0;
 }
 
-/* Scroll caption below wide tables */
+/* Scroll caption below wide tables — shown by JS when scrollable + mobile */
 .table-scroll-hint {
   font-size: .78rem;
   color: var(--text-muted);
-  text-align: right;
-  margin-top: var(--space-1);
-  display: none; /* shown by JS only when actually scrollable */
+  text-align: center;
+  margin-top: var(--space-2);
+  display: none;
+  letter-spacing: .02em;
 }
-.table-scroll.is-scrollable + .table-scroll-hint { display: block; }
 
 /* ===== COMPARISON TABLE ===== */
 .comparison-table {
