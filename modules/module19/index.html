@@ -578,27 +578,30 @@ THRESHOLDS = {
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 19</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m19-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m19-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m19-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m19-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quy định AI đầu tiên của EU (2024), phân loại AI theo rủi ro và đặt nghĩa vụ tuân thủ. Phạt tối đa €30M hoặc 6% doanh thu.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">High-Risk AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI trong các lĩnh vực quan trọng như tín dụng, tuyển dụng, y tế — chịu 7 nghĩa vụ tuân thủ nặng nề (Annex III).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Annex III</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Danh sách các use cases được phân loại High-Risk trong EU AI Act, bao gồm credit scoring và loan decisions.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Article 22 (GDPR)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quyền không bị quyết định hoàn toàn tự động khi decisions ảnh hưởng significant đến người dùng.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TT39/2016/TT-NHNN</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thông tư NHNN về hoạt động cho vay của TCTD — quy định quy trình thẩm định và thông báo kết quả.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Local Explainability</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giải thích tại sao MỘT quyết định cụ thể được đưa ra — trái với global (model hoạt động tổng thể thế nào).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Counterfactual Explanation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Nếu X khác thì kết quả khác" — giúp applicant biết cụ thể cần làm gì để được chấp thuận.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Audit Trail</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Immutable log mọi quyết định AI — ai quyết định, khi nào, với data gì, kết quả gì. Giữ 5 năm (EU AI Act).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Pseudonymization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xóa PII khỏi record nhưng giữ lại decision data dưới dạng anonymized — giải quyết conflict GDPR vs AI Act.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Card</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tài liệu mô tả đầy đủ AI system: purpose, performance, bias assessment, data governance, compliance. Bắt buộc (Art.11).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">CAIO</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chief AI Officer — vai trò mới trong governance framework, chịu trách nhiệm tuân thủ AI regulations.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Conformity Assessment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đánh giá nội bộ hoặc bên thứ 3 xác nhận High-Risk AI đáp ứng EU AI Act trước khi deploy.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Bias Disparity Ratio</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ approval rate giữa 2 nhóm người dùng — EU AI Act yêu cầu &lt;1.20 (20% difference tolerance).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">NĐ13/2023/NĐ-CP</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Nghị định về bảo vệ dữ liệu cá nhân của Việt Nam — tương đương GDPR nhưng bộ luật VN.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Incident Response Playbook</td><td style="padding:8px 12px;">Quy trình phản ứng khi AI system tạo ra systematic errors — từ detect → contain → remediate → notify.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quy định AI đầu tiên của EU (2024), phân loại AI theo rủi ro và đặt nghĩa vụ tuân thủ. Phạt tối đa €30M hoặc 6% doanh thu.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">High-Risk AI</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI trong các lĩnh vực quan trọng như tín dụng, tuyển dụng, y tế — chịu 7 nghĩa vụ tuân thủ nặng nề (Annex III).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Annex III</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Danh sách các use cases được phân loại High-Risk trong EU AI Act, bao gồm credit scoring và loan decisions.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Article 22 (GDPR)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quyền không bị quyết định hoàn toàn tự động khi decisions ảnh hưởng significant đến người dùng.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TT39/2016/TT-NHNN</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thông tư NHNN về hoạt động cho vay của TCTD — quy định quy trình thẩm định và thông báo kết quả.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Local Explainability</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giải thích tại sao MỘT quyết định cụ thể được đưa ra — trái với global (model hoạt động tổng thể thế nào).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Counterfactual Explanation</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Nếu X khác thì kết quả khác" — giúp applicant biết cụ thể cần làm gì để được chấp thuận.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Audit Trail</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Immutable log mọi quyết định AI — ai quyết định, khi nào, với data gì, kết quả gì. Giữ 5 năm (EU AI Act).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Pseudonymization</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xóa PII khỏi record nhưng giữ lại decision data dưới dạng anonymized — giải quyết conflict GDPR vs AI Act.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Card</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tài liệu mô tả đầy đủ AI system: purpose, performance, bias assessment, data governance, compliance. Bắt buộc (Art.11).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">CAIO</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chief AI Officer — vai trò mới trong governance framework, chịu trách nhiệm tuân thủ AI regulations.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Conformity Assessment</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đánh giá nội bộ hoặc bên thứ 3 xác nhận High-Risk AI đáp ứng EU AI Act trước khi deploy.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Bias Disparity Ratio</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ approval rate giữa 2 nhóm người dùng — EU AI Act yêu cầu &lt;1.20 (20% difference tolerance).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">NĐ13/2023/NĐ-CP</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Nghị định về bảo vệ dữ liệu cá nhân của Việt Nam — tương đương GDPR nhưng bộ luật VN.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Incident Response Playbook</th><td style="padding:8px 12px;">Quy trình phản ứng khi AI system tạo ra systematic errors — từ detect → contain → remediate → notify.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

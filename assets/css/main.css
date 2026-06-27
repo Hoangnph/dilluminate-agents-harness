@@ -517,6 +517,13 @@ table td {
 table tr:last-child td { border-bottom: none; }
 table tbody tr:nth-child(even) td { background: var(--surface-2); }
 table tbody tr:hover td { background: var(--info-light); transition: background .15s ease; }
+/* Row-header cells in glossary/description tables */
+table th[scope="row"] {
+  font-weight: 600;
+  white-space: normal; /* allow wrapping unlike column headers */
+  color: var(--text);
+  background: var(--surface-2);
+}
 
 /* ===== TABLE SCROLL WRAPPER ===== */
 /*

@@ -230,7 +230,8 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
 
       <div class="table-scroll">
 <table class="bias-table">
-        <tr>
+  <thead>
+    <tr>
           <th>Nhóm</th>
           <th>Approval Rate</th>
           <th>Ratio vs Urban</th>
@@ -239,6 +240,8 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
           <th>FPR</th>
           <th>Status</th>
         </tr>
+  </thead>
+  <tbody>
         <tr>
           <td>Đô thị (Urban)</td>
           <td>68.2%</td>
@@ -292,8 +295,8 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
           <td>73.5%</td>
           <td>17.1%</td>
           <td><span class="pass">✓ Baseline</span></td>
-        </tr>
-      </table>
+        </tr>  </tbody>
+</table>
 </div>
 
       <div class="callout warning">
@@ -718,27 +721,30 @@ Yêu cầu: Không kỹ thuật, thân thiện, nêu rõ bước tiếp theo."""
 
       <h2>📚 Glossary Module 28</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m28-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m28-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m28-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m28-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Governance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Framework of policies, processes, và accountability structures đảm bảo AI systems hoạt động safely, ethically, và in compliance with law.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RACI Matrix</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Responsible-Accountable-Consulted-Informed. Clarifies who does what in AI decision chain. A (Accountable) chịu trách nhiệm pháp lý khi có sự cố.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">EU regulation effective 2024 — classify AI systems theo risk (Minimal/Limited/High/Unacceptable). Credit scoring = High-Risk, cần documentation đầy đủ.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Demographic Parity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Fairness metric: approval rate phải bằng nhau giữa các demographic groups. P(approve|group A) ≈ P(approve|group B).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Equalized Odds</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Fairness metric: TPR và FPR phải bằng nhau giữa groups. Stronger than demographic parity — focuses on accuracy equity.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">80% Rule (Disparate Impact)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Approval rate của protected group phải ≥ 80% của reference group. Legal standard from Equal Credit Opportunity Act và EU AI Act.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Proxy Discrimination</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model dùng feature không phải protected attribute nhưng correlates strongly với nó — dẫn đến discriminatory outcomes dù không intentional.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fairness Impossibility</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Theorem: không thể simultaneously satisfy Demographic Parity + Equalized Odds + Calibration khi base rates khác nhau giữa groups.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">XAI (Explainable AI)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Methods để make AI decisions interpretable: LIME (local surrogate), SHAP (feature attribution), counterfactual explanations, natural language explanations.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Counterfactual Explanation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Minimum change" explanation: thay đổi gì ít nhất để quyết định flip. "Nếu employment ≥ 12mo → APPROVE." Actionable cho customer.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Right to Explanation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">GDPR Art. 22 + EU AI Act Art. 86: người dùng có quyền yêu cầu meaningful explanation cho automated decisions affecting them.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Card</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Standardized documentation của AI model: intended use, performance metrics, limitations, fairness metrics, và versioning history.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Ethics Review Board</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cross-functional body (Legal, Risk, Data Science, External Advisor) reviewing AI ethics concerns. Advisory power — khuyến nghị, không veto.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Escalation Path</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Defined chain: AI System → AI Engineer → Risk Manager → CRO → NHNN. Severity determines at which level decision must be made.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Compliance Evidence Package</td><td style="padding:8px 12px;">Tập hợp documents chứng minh compliance với regulations. Bao gồm: decision logs, bias metrics, explainability records, audit trails — generated tự động.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Governance</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Framework of policies, processes, và accountability structures đảm bảo AI systems hoạt động safely, ethically, và in compliance with law.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RACI Matrix</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Responsible-Accountable-Consulted-Informed. Clarifies who does what in AI decision chain. A (Accountable) chịu trách nhiệm pháp lý khi có sự cố.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">EU regulation effective 2024 — classify AI systems theo risk (Minimal/Limited/High/Unacceptable). Credit scoring = High-Risk, cần documentation đầy đủ.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Demographic Parity</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Fairness metric: approval rate phải bằng nhau giữa các demographic groups. P(approve|group A) ≈ P(approve|group B).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Equalized Odds</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Fairness metric: TPR và FPR phải bằng nhau giữa groups. Stronger than demographic parity — focuses on accuracy equity.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">80% Rule (Disparate Impact)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Approval rate của protected group phải ≥ 80% của reference group. Legal standard from Equal Credit Opportunity Act và EU AI Act.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Proxy Discrimination</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model dùng feature không phải protected attribute nhưng correlates strongly với nó — dẫn đến discriminatory outcomes dù không intentional.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fairness Impossibility</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Theorem: không thể simultaneously satisfy Demographic Parity + Equalized Odds + Calibration khi base rates khác nhau giữa groups.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">XAI (Explainable AI)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Methods để make AI decisions interpretable: LIME (local surrogate), SHAP (feature attribution), counterfactual explanations, natural language explanations.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Counterfactual Explanation</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Minimum change" explanation: thay đổi gì ít nhất để quyết định flip. "Nếu employment ≥ 12mo → APPROVE." Actionable cho customer.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Right to Explanation</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">GDPR Art. 22 + EU AI Act Art. 86: người dùng có quyền yêu cầu meaningful explanation cho automated decisions affecting them.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Card</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Standardized documentation của AI model: intended use, performance metrics, limitations, fairness metrics, và versioning history.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Ethics Review Board</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cross-functional body (Legal, Risk, Data Science, External Advisor) reviewing AI ethics concerns. Advisory power — khuyến nghị, không veto.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Escalation Path</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Defined chain: AI System → AI Engineer → Risk Manager → CRO → NHNN. Severity determines at which level decision must be made.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Compliance Evidence Package</th><td style="padding:8px 12px;">Tập hợp documents chứng minh compliance với regulations. Bao gồm: decision logs, bias metrics, explainability records, audit trails — generated tự động.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

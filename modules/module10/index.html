@@ -499,13 +499,16 @@ CREDIT_SYSTEM_PROMPT = <span class="code-string">"""Bạn là CreditAgent của 
       <div class="callout concept">
         <div class="callout-header">📌 Khái niệm: Task Complexity Taxonomy</div>
         <div class="table-scroll">
-<table style="width:100%;font-size:.85rem;border-collapse:collapse;">
-          <tr style="background:#fef3c7;">
+<table style="font-size:.85rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:#fef3c7;">
             <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">Complexity</th>
             <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">Đặc điểm</th>
             <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">Model</th>
             <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #fcd34d;">LoanBot Agent</th>
           </tr>
+  </thead>
+  <tbody>
           <tr>
             <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;"><strong style="color:#16a34a;">LOW</strong></td>
             <td style="padding:6px 10px;border-bottom:1px solid #f3f4f6;">Extraction, classification, schema validation</td>
@@ -523,8 +526,8 @@ CREDIT_SYSTEM_PROMPT = <span class="code-string">"""Bạn là CreditAgent của 
             <td style="padding:6px 10px;">Complex multi-step reasoning, edge cases, large loans</td>
             <td style="padding:6px 10px;">Sonnet</td>
             <td style="padding:6px 10px;">RiskAgent (loans &gt; 1 tỷ), ComplianceAgent</td>
-          </tr>
-        </table>
+          </tr>  </tbody>
+</table>
 </div>
       </div>
 
@@ -840,12 +843,15 @@ client = anthropic.Anthropic()
 
       <div class="table-scroll">
 <table class="roi-table">
-        <tr>
+  <thead>
+    <tr>
           <th>Cost Category</th>
           <th>Monthly (USD)</th>
           <th>Monthly (VNĐ)</th>
           <th>Ghi chú</th>
         </tr>
+  </thead>
+  <tbody>
         <tr>
           <td>Anthropic API (LLM calls)</td>
           <td class="highlight">$247</td>
@@ -893,8 +899,8 @@ client = anthropic.Anthropic()
           <td class="highlight">$729.463/tháng</td>
           <td class="highlight">18.236.575.000 đ</td>
           <td><span class="saving-badge">ROI: 135,820%</span></td>
-        </tr>
-      </table>
+        </tr>  </tbody>
+</table>
 </div>
 
       <h3>5.3 Budget Alerts — Tự động hóa Cost Governance</h3>
@@ -977,27 +983,30 @@ client = anthropic.Anthropic()
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 10</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m10-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m10-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m10-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m10-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đơn vị xử lý văn bản của LLM. 1 token ≈ 4 ký tự tiếng Anh.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Caching</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic cache KV state của prompt, 90% discount cho cached tokens. TTL 5 phút.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semantic Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache dựa trên embedding similarity thay vì exact-match key.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Result Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache kết quả business logic (loan decision) theo time window.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Batch API</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic Message Batches: async xử lý nhiều requests, 50% cost discount, kết quả trong 24h.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Task Router</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Component quyết định model nào xử lý task dựa trên complexity score.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Complexity Score</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số 0.0–1.0 đánh giá độ phức tạp của task, dùng để route model selection.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost Attribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gắn chi phí cụ thể vào từng agent/task để phân tích bottleneck.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TCO (Total Cost of Ownership)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tổng chi phí thực tế: API + compute + DB + monitoring + external APIs.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Rate Limit</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giới hạn tokens/minute hoặc requests/minute của API provider.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Bucket</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Algorithm rate limiting: bucket chứa tokens, mỗi request tiêu tokens, tự refill theo thời gian.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cache Hit Rate</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">% requests được phục vụ từ cache thay vì gọi LLM. Cần &gt;50% để có ROI tốt.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Budget Alert</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cảnh báo tự động khi chi phí vượt ngưỡng định trước (warning: 75%, critical: 90%).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Breakeven Point</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số cache hits tối thiểu để chi phí setup caching được bù đắp.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Cost-Quality Tradeoff</td><td style="padding:8px 12px;">Cân bằng giữa chi phí (dùng model rẻ hơn) và quality (dùng model mạnh hơn) cho từng task.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đơn vị xử lý văn bản của LLM. 1 token ≈ 4 ký tự tiếng Anh.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Caching</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic cache KV state của prompt, 90% discount cho cached tokens. TTL 5 phút.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semantic Cache</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache dựa trên embedding similarity thay vì exact-match key.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Result Cache</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache kết quả business logic (loan decision) theo time window.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Batch API</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic Message Batches: async xử lý nhiều requests, 50% cost discount, kết quả trong 24h.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Task Router</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Component quyết định model nào xử lý task dựa trên complexity score.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Complexity Score</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số 0.0–1.0 đánh giá độ phức tạp của task, dùng để route model selection.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost Attribution</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gắn chi phí cụ thể vào từng agent/task để phân tích bottleneck.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TCO (Total Cost of Ownership)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tổng chi phí thực tế: API + compute + DB + monitoring + external APIs.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Rate Limit</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giới hạn tokens/minute hoặc requests/minute của API provider.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Bucket</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Algorithm rate limiting: bucket chứa tokens, mỗi request tiêu tokens, tự refill theo thời gian.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cache Hit Rate</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">% requests được phục vụ từ cache thay vì gọi LLM. Cần &gt;50% để có ROI tốt.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Budget Alert</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cảnh báo tự động khi chi phí vượt ngưỡng định trước (warning: 75%, critical: 90%).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Breakeven Point</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số cache hits tối thiểu để chi phí setup caching được bù đắp.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Cost-Quality Tradeoff</th><td style="padding:8px 12px;">Cân bằng giữa chi phí (dùng model rẻ hơn) và quality (dùng model mạnh hơn) cho từng task.</td></tr>  </tbody>
+</table>
 </div>
 
     </section>

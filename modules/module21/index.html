@@ -702,27 +702,30 @@ manager = <span class="code-function">ConnectionManager</span>()
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 21</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m21-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m21-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m21-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m21-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TTFB</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Time to First Byte — thời gian từ khi gửi request đến khi nhận byte đầu tiên. Quan trọng hơn total latency cho UX.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Server-Sent Events (SSE)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">HTTP protocol cho phép server push events tới browser qua persistent connection. Một chiều (server→client).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">WebSocket</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Full-duplex TCP-based protocol — cả client và server có thể gửi messages bất kỳ lúc nào.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">gRPC Streaming</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Binary streaming protocol trên HTTP/2 với Protobuf serialization — hiệu quả cho service-to-service.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">StreamingResponse</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">FastAPI class để trả về streaming response từ async generator — tự động set Content-Type và transfer encoding.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EventSource</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Browser native API để consume SSE streams — tự động reconnect, parse event format, dispatch events.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">input_json_delta</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude streaming event type — chứa partial JSON của tool input argument, cần accumulate và parse khi hoàn chỉnh.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Backpressure</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế producer chậm lại hoặc dừng khi consumer không theo kịp — tránh buffer overflow và OOM.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">asyncio.Queue</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thread-safe async queue với maxsize — block producer khi đầy (implements backpressure automatically).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Slow Client</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Client nhận data chậm hơn tốc độ server generate — cần detect và either throttle hoặc drop gracefully.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Ping/Pong</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">WebSocket heartbeat mechanism — server gửi ping mỗi N giây, client reply pong — detect dead connections.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Connection Pool</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quản lý nhiều WebSocket connections đồng thời — map session_id → connection, broadcast, selective send.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Last-Event-ID</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">SSE header cho phép client resume stream từ event cuối đã nhận khi reconnect — server replay missed events.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">X-Accel-Buffering: no</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">HTTP header để disable nginx buffering — critical cho SSE, nếu không nginx sẽ buffer toàn bộ trước khi gửi.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Token Rate</td><td style="padding:8px 12px;">Số LLM tokens gửi đến client mỗi giây — metric để detect slow clients và measure streaming performance.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">TTFB</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Time to First Byte — thời gian từ khi gửi request đến khi nhận byte đầu tiên. Quan trọng hơn total latency cho UX.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Server-Sent Events (SSE)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">HTTP protocol cho phép server push events tới browser qua persistent connection. Một chiều (server→client).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">WebSocket</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Full-duplex TCP-based protocol — cả client và server có thể gửi messages bất kỳ lúc nào.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">gRPC Streaming</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Binary streaming protocol trên HTTP/2 với Protobuf serialization — hiệu quả cho service-to-service.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">StreamingResponse</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">FastAPI class để trả về streaming response từ async generator — tự động set Content-Type và transfer encoding.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EventSource</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Browser native API để consume SSE streams — tự động reconnect, parse event format, dispatch events.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">input_json_delta</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude streaming event type — chứa partial JSON của tool input argument, cần accumulate và parse khi hoàn chỉnh.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Backpressure</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế producer chậm lại hoặc dừng khi consumer không theo kịp — tránh buffer overflow và OOM.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">asyncio.Queue</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thread-safe async queue với maxsize — block producer khi đầy (implements backpressure automatically).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Slow Client</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Client nhận data chậm hơn tốc độ server generate — cần detect và either throttle hoặc drop gracefully.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Ping/Pong</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">WebSocket heartbeat mechanism — server gửi ping mỗi N giây, client reply pong — detect dead connections.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Connection Pool</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Quản lý nhiều WebSocket connections đồng thời — map session_id → connection, broadcast, selective send.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Last-Event-ID</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">SSE header cho phép client resume stream từ event cuối đã nhận khi reconnect — server replay missed events.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">X-Accel-Buffering: no</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">HTTP header để disable nginx buffering — critical cho SSE, nếu không nginx sẽ buffer toàn bộ trước khi gửi.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Token Rate</th><td style="padding:8px 12px;">Số LLM tokens gửi đến client mỗi giây — metric để detect slow clients và measure streaming performance.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

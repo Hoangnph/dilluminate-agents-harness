@@ -648,27 +648,30 @@ Output JSON:
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 23</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m23-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m23-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m23-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m23-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chain-of-Thought (CoT)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kỹ thuật prompting buộc model viết ra reasoning steps trước khi đưa ra kết luận. Tăng accuracy 18-40% trên complex tasks.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Zero-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">CoT chỉ bằng instruction "hãy suy nghĩ từng bước" — không cần examples. Đơn giản nhất.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">CoT với 2-3 worked examples có full reasoning chain. Tốt nhất cho structured domains như loan assessment.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ReAct</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Reasoning + Acting: interleave Thought→Action→Observation trong loop cho đến khi có đủ info để kết luận.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tree-of-Thought (ToT)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Generate nhiều reasoning branches, evaluate từng branch, chọn tốt nhất. Dùng cho conflicting signals.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Beam Search</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">ToT variant: chỉ giữ top-k branches tốt nhất ở mỗi depth → giảm computation từ O(b^d) xuống O(k×d).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Reactive Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent phản ứng trực tiếp với stimuli không có plan. Nhanh nhưng dễ miss steps trong complex workflows.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Deliberative Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent tạo plan trước khi act. Tốt hơn cho multi-step workflows với dependencies và failure handling.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">HTN Planning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hierarchical Task Network: decompose complex task thành subtasks có thứ tự và dependencies.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Reflection</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model review quyết định của chính nó, generate critique, revise nếu phát hiện vấn đề.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Constitutional AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Critique model output dựa trên explicit principles/rules. Anthropic dùng để align Claude; LoanBot dùng để check bias và compliance.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Overthinking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi CoT/ToT làm giảm accuracy vì model bắt đầu doubt đáp án đúng. Thường xảy ra với simple tasks — dùng direct prompting tốt hơn.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ReAct Trace</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Log đầy đủ Thought/Action/Observation của ReAct loop — dùng để debug, audit, và improve agent.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Failure Strategy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Policy khi plan step fail: abort (stop), skip (continue), escalate (human review), replan (adjust plan).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Multi-Agent Debate</td><td style="padding:8px 12px;">2+ LLM instances argue opposing positions → reach consensus. Improves factual accuracy on contested questions.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chain-of-Thought (CoT)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kỹ thuật prompting buộc model viết ra reasoning steps trước khi đưa ra kết luận. Tăng accuracy 18-40% trên complex tasks.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Zero-shot CoT</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">CoT chỉ bằng instruction "hãy suy nghĩ từng bước" — không cần examples. Đơn giản nhất.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-shot CoT</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">CoT với 2-3 worked examples có full reasoning chain. Tốt nhất cho structured domains như loan assessment.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ReAct</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Reasoning + Acting: interleave Thought→Action→Observation trong loop cho đến khi có đủ info để kết luận.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tree-of-Thought (ToT)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Generate nhiều reasoning branches, evaluate từng branch, chọn tốt nhất. Dùng cho conflicting signals.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Beam Search</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">ToT variant: chỉ giữ top-k branches tốt nhất ở mỗi depth → giảm computation từ O(b^d) xuống O(k×d).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Reactive Agent</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent phản ứng trực tiếp với stimuli không có plan. Nhanh nhưng dễ miss steps trong complex workflows.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Deliberative Agent</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent tạo plan trước khi act. Tốt hơn cho multi-step workflows với dependencies và failure handling.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">HTN Planning</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hierarchical Task Network: decompose complex task thành subtasks có thứ tự và dependencies.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Reflection</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model review quyết định của chính nó, generate critique, revise nếu phát hiện vấn đề.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Constitutional AI</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Critique model output dựa trên explicit principles/rules. Anthropic dùng để align Claude; LoanBot dùng để check bias và compliance.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Overthinking</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi CoT/ToT làm giảm accuracy vì model bắt đầu doubt đáp án đúng. Thường xảy ra với simple tasks — dùng direct prompting tốt hơn.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ReAct Trace</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Log đầy đủ Thought/Action/Observation của ReAct loop — dùng để debug, audit, và improve agent.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Failure Strategy</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Policy khi plan step fail: abort (stop), skip (continue), escalate (human review), replan (adjust plan).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Multi-Agent Debate</th><td style="padding:8px 12px;">2+ LLM instances argue opposing positions → reach consensus. Improves factual accuracy on contested questions.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

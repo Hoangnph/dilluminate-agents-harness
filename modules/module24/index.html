@@ -618,27 +618,30 @@ KNOWLEDGE_SOURCES = [
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 24</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m24-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m24-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m24-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m24-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Epistemic Humility</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khả năng nhận biết giới hạn knowledge của mình — nói "tôi không biết" thay vì hallucinate.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hallucination</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">LLM tạo ra thông tin không có trong reality — factual, citation, hoặc numeric hallucination.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Consistency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Sample model nhiều lần cùng câu hỏi → nếu majority disagree → low confidence → flag.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Aleatoric Uncertainty</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Uncertainty do data noise — không reduce được bằng thêm model knowledge. VD: income biến động mùa vụ.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Epistemic Uncertainty</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Uncertainty do thiếu knowledge — có thể reduce bằng query external source hoặc collect data.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Monte Carlo Sampling</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Sample model N lần với slight perturbation → estimate confidence distribution thực sự.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ECE (Expected Calibration Error)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Metric đo calibration: model nói "90% confident" có đúng 90% không? ECE = |stated_conf - actual_accuracy|.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Citation Hallucination</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model cite điều khoản không tồn tại — "TT39 Điều 65" khi TT39 chỉ có 27 điều.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Faithfulness</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAG metric: generated text có trung thành với retrieved context không? Tất cả claims có source?</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Grounded Generation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model chỉ được generate từ retrieved context — không dùng prior knowledge để fill gaps.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Knowledge Cutoff</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Ngày cuối cùng training data của model — mọi event sau ngày này không được biết.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Knowledge Drift</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi thực tế thay đổi (regulation mới) nhưng model knowledge không update theo.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Temporal Hedge</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Auto-add caveat "thông tin này có thể lỗi thời" khi cite time-sensitive information.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Johari Window</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Framework 4 ô phân loại knowledge: Known Known, Known Unknown, Unknown Known, Unknown Unknown.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">RAGAS</td><td style="padding:8px 12px;">Evaluation framework cho RAG systems: faithfulness, answer relevancy, context precision, context recall.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Epistemic Humility</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khả năng nhận biết giới hạn knowledge của mình — nói "tôi không biết" thay vì hallucinate.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hallucination</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">LLM tạo ra thông tin không có trong reality — factual, citation, hoặc numeric hallucination.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Self-Consistency</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Sample model nhiều lần cùng câu hỏi → nếu majority disagree → low confidence → flag.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Aleatoric Uncertainty</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Uncertainty do data noise — không reduce được bằng thêm model knowledge. VD: income biến động mùa vụ.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Epistemic Uncertainty</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Uncertainty do thiếu knowledge — có thể reduce bằng query external source hoặc collect data.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Monte Carlo Sampling</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Sample model N lần với slight perturbation → estimate confidence distribution thực sự.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">ECE (Expected Calibration Error)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Metric đo calibration: model nói "90% confident" có đúng 90% không? ECE = |stated_conf - actual_accuracy|.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Citation Hallucination</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model cite điều khoản không tồn tại — "TT39 Điều 65" khi TT39 chỉ có 27 điều.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Faithfulness</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAG metric: generated text có trung thành với retrieved context không? Tất cả claims có source?</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Grounded Generation</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model chỉ được generate từ retrieved context — không dùng prior knowledge để fill gaps.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Knowledge Cutoff</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Ngày cuối cùng training data của model — mọi event sau ngày này không được biết.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Knowledge Drift</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi thực tế thay đổi (regulation mới) nhưng model knowledge không update theo.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Temporal Hedge</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Auto-add caveat "thông tin này có thể lỗi thời" khi cite time-sensitive information.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Johari Window</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Framework 4 ô phân loại knowledge: Known Known, Known Unknown, Unknown Known, Unknown Unknown.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">RAGAS</th><td style="padding:8px 12px;">Evaluation framework cho RAG systems: faithfulness, answer relevancy, context precision, context recall.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

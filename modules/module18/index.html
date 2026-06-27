@@ -579,27 +579,30 @@ MODEL_COSTS = {
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 18</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m18-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m18-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m18-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m18-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM Gateway</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lớp trung gian giữa application và LLM providers — xử lý auth, routing, retry, caching, logging.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Round-Robin</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Load balancing: phân phối requests đều nhau theo vòng qua các API keys trong pool.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Key Pool</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập hợp nhiều API keys của cùng hoặc khác nhau tài khoản — tăng throughput và resilience.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Failover</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động chuyển sang backend dự phòng khi primary fail. L1→L2→L3 (primary→backup→degraded).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Graceful Degradation</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hệ thống tiếp tục hoạt động (dù kém hơn) thay vì crash khi có partial failure.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Quota Management</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kiểm soát lượng API calls cho từng team/department — ngăn abuse và đảm bảo fairness.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sliding Window</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rate limiting: đếm requests trong cửa sổ N giây vừa qua thay vì fixed interval (chính xác hơn).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Priority Queue</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hàng đợi với ưu tiên: P1 (VIP) được xử lý trước P2 (standard) và P3 (batch).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Backpressure</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế từ chối hoặc làm chậm requests mới khi hệ thống đã quá tải — tránh cascade failure.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Intelligent Routing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chọn model tự động dựa trên request complexity: haiku cho clear cases, sonnet cho borderline.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLA (Service Level Agreement)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cam kết chất lượng dịch vụ: P99 latency ≤ 5s, availability ≥ 99.9%, error rate &lt;0.1%.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">P99 Latency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">99th percentile latency — 99% requests hoàn thành trong thời gian này. Tốt hơn P50 cho SLA.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost Attribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Phân bổ chi phí API về đúng team/department đã tạo ra request — basis cho charge-back.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Health Check</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Proactive monitoring: test API key định kỳ để phát hiện degraded/unhealthy keys sớm.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Cache Hit Rate</td><td style="padding:8px 12px;">% requests được serve từ cache thay vì gọi API thật. Cao → tiết kiệm cost. LoanBot target: 15–25%.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM Gateway</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lớp trung gian giữa application và LLM providers — xử lý auth, routing, retry, caching, logging.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Round-Robin</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Load balancing: phân phối requests đều nhau theo vòng qua các API keys trong pool.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Key Pool</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập hợp nhiều API keys của cùng hoặc khác nhau tài khoản — tăng throughput và resilience.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Failover</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động chuyển sang backend dự phòng khi primary fail. L1→L2→L3 (primary→backup→degraded).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Graceful Degradation</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hệ thống tiếp tục hoạt động (dù kém hơn) thay vì crash khi có partial failure.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Quota Management</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kiểm soát lượng API calls cho từng team/department — ngăn abuse và đảm bảo fairness.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sliding Window</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rate limiting: đếm requests trong cửa sổ N giây vừa qua thay vì fixed interval (chính xác hơn).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Priority Queue</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hàng đợi với ưu tiên: P1 (VIP) được xử lý trước P2 (standard) và P3 (batch).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Backpressure</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế từ chối hoặc làm chậm requests mới khi hệ thống đã quá tải — tránh cascade failure.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Intelligent Routing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chọn model tự động dựa trên request complexity: haiku cho clear cases, sonnet cho borderline.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLA (Service Level Agreement)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cam kết chất lượng dịch vụ: P99 latency ≤ 5s, availability ≥ 99.9%, error rate &lt;0.1%.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">P99 Latency</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">99th percentile latency — 99% requests hoàn thành trong thời gian này. Tốt hơn P50 cho SLA.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cost Attribution</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Phân bổ chi phí API về đúng team/department đã tạo ra request — basis cho charge-back.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Health Check</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Proactive monitoring: test API key định kỳ để phát hiện degraded/unhealthy keys sớm.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Cache Hit Rate</th><td style="padding:8px 12px;">% requests được serve từ cache thay vì gọi API thật. Cao → tiết kiệm cost. LoanBot target: 15–25%.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

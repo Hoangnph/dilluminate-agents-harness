@@ -715,27 +715,30 @@
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 13</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m13-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m13-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m13-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m13-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cách sắp xếp và điều phối nhiều agents: Sequential, Parallel (Fan-Out), Event-Driven.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">DAG (Directed Acyclic Graph)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dependency graph cho agents — edges cho biết agent nào phụ thuộc vào agent nào.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fan-Out</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gửi một request đến nhiều agents để chạy đồng thời.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fan-In</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thu thập và aggregate kết quả từ nhiều agents parallel.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Aggregation Strategy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cách combine parallel results: all_required (tất cả phải success), best_effort (dùng available).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Thundering Herd</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi nhiều requests đồng thời fan-out → quá nhiều concurrent API calls → rate limit. Fix: Semaphore.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Map-Reduce</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Map: apply function parallel trên mỗi item; Reduce: aggregate tất cả kết quả.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Partition</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chia dataset lớn thành nhiều chunks nhỏ để xử lý song song.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Saga Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chuỗi local transactions với compensating transactions cho mỗi bước — distributed rollback.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compensating Transaction</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hành động undo một bước trong Saga khi rollback cần thiết.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Choreography Saga</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mỗi service biết cần làm gì tiếp theo — không có central orchestrator. Loose coupling.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration Saga</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Central SagaOrchestrator chỉ đạo mỗi bước — easier to monitor, single point of control.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Dynamic Routing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Router quyết định execution path tại runtime dựa trên request content.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semaphore</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Concurrency control: giới hạn số lượng goroutines/coroutines chạy đồng thời.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Idempotent</td><td style="padding:8px 12px;">Gọi nhiều lần = cùng kết quả như gọi 1 lần — critical cho retry logic trong Saga.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration Pattern</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cách sắp xếp và điều phối nhiều agents: Sequential, Parallel (Fan-Out), Event-Driven.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">DAG (Directed Acyclic Graph)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dependency graph cho agents — edges cho biết agent nào phụ thuộc vào agent nào.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fan-Out</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gửi một request đến nhiều agents để chạy đồng thời.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fan-In</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thu thập và aggregate kết quả từ nhiều agents parallel.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Aggregation Strategy</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cách combine parallel results: all_required (tất cả phải success), best_effort (dùng available).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Thundering Herd</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi nhiều requests đồng thời fan-out → quá nhiều concurrent API calls → rate limit. Fix: Semaphore.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Map-Reduce</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Map: apply function parallel trên mỗi item; Reduce: aggregate tất cả kết quả.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Partition</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chia dataset lớn thành nhiều chunks nhỏ để xử lý song song.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Saga Pattern</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chuỗi local transactions với compensating transactions cho mỗi bước — distributed rollback.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compensating Transaction</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hành động undo một bước trong Saga khi rollback cần thiết.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Choreography Saga</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mỗi service biết cần làm gì tiếp theo — không có central orchestrator. Loose coupling.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration Saga</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Central SagaOrchestrator chỉ đạo mỗi bước — easier to monitor, single point of control.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Dynamic Routing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Router quyết định execution path tại runtime dựa trên request content.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semaphore</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Concurrency control: giới hạn số lượng goroutines/coroutines chạy đồng thời.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Idempotent</th><td style="padding:8px 12px;">Gọi nhiều lần = cùng kết quả như gọi 1 lần — critical cho retry logic trong Saga.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

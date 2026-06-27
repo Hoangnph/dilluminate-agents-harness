@@ -333,14 +333,17 @@ income_verified=true, fraud_score=0.01. Skip HITL check.</div>
       <div class="callout example">
         <div class="callout-header">🏢 Tình huống: FinTech Corp — Excessive Agency trong LoanBot</div>
         <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-          <tr style="background:#fef2f2;"><th style="padding:8px;text-align:left;border-bottom:1px solid #fca5a5;">Agent</th><th style="padding:8px;border-bottom:1px solid #fca5a5;">Quyền Hiện Tại ❌</th><th style="padding:8px;border-bottom:1px solid #fca5a5;">Quyền Cần Thiết ✅</th></tr>
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:#fef2f2;"><th style="padding:8px;text-align:left;border-bottom:1px solid #fca5a5;">Agent</th><th style="padding:8px;border-bottom:1px solid #fca5a5;">Quyền Hiện Tại ❌</th><th style="padding:8px;border-bottom:1px solid #fca5a5;">Quyền Cần Thiết ✅</th></tr>
+  </thead>
+  <tbody>
           <tr><td style="padding:8px;">CreditAgent</td><td style="padding:8px;color:#dc2626;">Read + Write CIC DB</td><td style="padding:8px;color:#059669;">Read-only CIC DB</td></tr>
           <tr><td style="padding:8px;">IncomeAgent</td><td style="padding:8px;color:#dc2626;">Full bank API access</td><td style="padding:8px;color:#059669;">Read income records only</td></tr>
           <tr><td style="padding:8px;">RiskAgent</td><td style="padding:8px;color:#dc2626;">Write loan decision to DB</td><td style="padding:8px;color:#059669;">Return decision JSON — Supervisor writes</td></tr>
           <tr><td style="padding:8px;">ComplianceAgent</td><td style="padding:8px;color:#dc2626;">Can disable HITL flag</td><td style="padding:8px;color:#059669;">Read-only compliance check — cannot modify flags</td></tr>
-          <tr><td style="padding:8px;">ReportAgent</td><td style="padding:8px;color:#dc2626;">Send emails, access all customer data</td><td style="padding:8px;color:#059669;">Read current loan result only, send one email to customer</td></tr>
-        </table>
+          <tr><td style="padding:8px;">ReportAgent</td><td style="padding:8px;color:#dc2626;">Send emails, access all customer data</td><td style="padding:8px;color:#059669;">Read current loan result only, send one email to customer</td></tr>  </tbody>
+</table>
 </div>
       </div>
 
@@ -677,7 +680,10 @@ http://169.254.169.254/latest/meta-data/iam/security-credentials/LoanBotRole</di
         <h3>📚 Glossary — Module 9</h3>
         <div class="table-scroll">
 <table class="owasp-table">
-          <tr><th>Thuật ngữ</th><th>Định nghĩa</th></tr>
+  <thead>
+    <tr><th>Thuật ngữ</th><th>Định nghĩa</th></tr>
+  </thead>
+  <tbody>
           <tr><td><strong>Prompt Injection</strong></td><td>Tấn công nhúng instructions độc hại vào input để override system prompt của agent</td></tr>
           <tr><td><strong>Direct Injection</strong></td><td>Hacker gửi injection trực tiếp qua user input (loan_purpose, employment fields)</td></tr>
           <tr><td><strong>Indirect Injection</strong></td><td>Injection nhúng trong external data mà agent đọc (PDF, API response, database)</td></tr>
@@ -692,8 +698,8 @@ http://169.254.169.254/latest/meta-data/iam/security-credentials/LoanBotRole</di
           <tr><td><strong>PyRIT</strong></td><td>Microsoft Python Risk Identification Toolkit — orchestrate automated red teaming attacks</td></tr>
           <tr><td><strong>Output Validator</strong></td><td>Kiểm tra output của agent — reject unexpected fields, anomalous values, schema violations</td></tr>
           <tr><td><strong>OWASP LLM Top 10</strong></td><td>Danh sách 10 vulnerability phổ biến nhất cho LLM applications, publish bởi OWASP Foundation</td></tr>
-          <tr><td><strong>mTLS</strong></td><td>Mutual TLS — xác thực hai chiều giữa agents để ngăn impersonation</td></tr>
-        </table>
+          <tr><td><strong>mTLS</strong></td><td>Mutual TLS — xác thực hai chiều giữa agents để ngăn impersonation</td></tr>  </tbody>
+</table>
 </div>
       </div>
 

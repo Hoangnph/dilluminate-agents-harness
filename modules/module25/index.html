@@ -606,27 +606,30 @@ SLO_TARGETS = {
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 25</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m25-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m25-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m25-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m25-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Stateless Agent</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent không giữ local state — mọi state persist ra external store (Redis/DB). Prerequisite của horizontal scaling.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Consumer Group</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: nhóm các consumers cùng consume 1 stream, mỗi message chỉ delivered cho 1 consumer trong group.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">At-least-once Delivery</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Message guarantee: task được deliver ≥1 lần. Cần idempotency để tránh double-processing.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Dead Letter Queue (DLQ)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Queue chứa messages fail sau MAX_RETRIES — để human inspect, không auto-retry để tránh infinite loop.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Saga Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern xử lý distributed transaction: chuỗi steps forward + compensating transactions ngược khi fail.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compensating Transaction</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Action undo effect của step đã success trước đó — VD: release slot nếu downstream step fail.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Central coordinator chỉ huy flow: biết toàn bộ state, dễ audit. Vulnerable: single point of failure.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Choreography</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Decentralized: services react đến events của nhau, không cần coordinator. Resilient nhưng khó trace.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Little's Law</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">L = λ × W: queue length = arrival rate × processing time. Dùng để size worker fleet.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Graceful Shutdown</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Worker finish current task trước khi stop — không drop task giữa chừng khi scale down.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Correlation ID</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Unique identifier gắn vào mọi log/trace của 1 request xuyên suốt tất cả services.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Distributed Tracing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Trace end-to-end journey của request qua nhiều services — chain of spans với duration và status.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLO/SLI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Service Level Objective (target: p99 &lt;8s) vs Service Level Indicator (actual measured value).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">PEL (Pending Entry List)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: danh sách messages đã delivered nhưng chưa ACK — nếu worker crash, PEL cho biết gì cần re-process.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Idempotency</td><td style="padding:8px 12px;">Xử lý cùng task nhiều lần cho ra cùng kết quả — prerequisite để safe retry trong at-least-once systems.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Stateless Agent</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Agent không giữ local state — mọi state persist ra external store (Redis/DB). Prerequisite của horizontal scaling.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Consumer Group</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: nhóm các consumers cùng consume 1 stream, mỗi message chỉ delivered cho 1 consumer trong group.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">At-least-once Delivery</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Message guarantee: task được deliver ≥1 lần. Cần idempotency để tránh double-processing.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Dead Letter Queue (DLQ)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Queue chứa messages fail sau MAX_RETRIES — để human inspect, không auto-retry để tránh infinite loop.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Saga Pattern</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern xử lý distributed transaction: chuỗi steps forward + compensating transactions ngược khi fail.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Compensating Transaction</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Action undo effect của step đã success trước đó — VD: release slot nếu downstream step fail.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Orchestration</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Central coordinator chỉ huy flow: biết toàn bộ state, dễ audit. Vulnerable: single point of failure.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Choreography</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Decentralized: services react đến events của nhau, không cần coordinator. Resilient nhưng khó trace.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Little's Law</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">L = λ × W: queue length = arrival rate × processing time. Dùng để size worker fleet.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Graceful Shutdown</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Worker finish current task trước khi stop — không drop task giữa chừng khi scale down.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Correlation ID</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Unique identifier gắn vào mọi log/trace của 1 request xuyên suốt tất cả services.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Distributed Tracing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Trace end-to-end journey của request qua nhiều services — chain of spans với duration và status.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLO/SLI</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Service Level Objective (target: p99 &lt;8s) vs Service Level Indicator (actual measured value).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">PEL (Pending Entry List)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: danh sách messages đã delivered nhưng chưa ACK — nếu worker crash, PEL cho biết gì cần re-process.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Idempotency</th><td style="padding:8px 12px;">Xử lý cùng task nhiều lần cho ra cùng kết quả — prerequisite để safe retry trong at-least-once systems.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

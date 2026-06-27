@@ -633,27 +633,30 @@ Return JSON: {{"instruction": "...", "explanation": "...", "quality_score": 0.0-
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 22</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m22-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m22-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m22-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m22-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fine-tuning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tiếp tục train một pre-trained model trên domain-specific data để specialize behavior và output.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LoRA</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Low-Rank Adaptation — chỉ train 2 small matrices (B·A) thay vì toàn bộ weight matrix. Giảm trainable params ~100x.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">QLoRA</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">LoRA + 4-bit quantization — giảm VRAM thêm 4x, cho phép fine-tune trên consumer GPU.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">rank (r)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kích thước low-rank subspace trong LoRA. r=8 (nhỏ), r=16 (balance), r=64 (lớn, cần nhiều data).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">alpha (α)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Scaling factor trong LoRA: effective_lr = (α/r) × lr. Thường set α = 2×r.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">target_modules</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Layers nào apply LoRA adapters. Thường: q_proj, v_proj trong attention blocks.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Catastrophic Forgetting</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hiện tượng model "quên" general capabilities sau fine-tuning. Detect bằng general benchmark trước/sau.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Synthetic Data</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Training data được generate bởi LLM từ real anonymized examples — tránh PII leakage trong training.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Anonymization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xóa/thay thế PII (tên, CCCD, địa chỉ) trước khi đưa data vào training pipeline.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Registry</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hệ thống quản lý model versions: metadata, evaluation results, deployment status, rollback history.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Shadow Mode</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chạy new model song song với production model, nhận 100% traffic nhưng không dùng output — chỉ monitor.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Canary Deployment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rollout dần: 5% traffic → 25% → 100%. Automated rollback nếu metrics xấu tại bất kỳ stage nào.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Quantization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giảm precision của model weights: float32 → float16 → int8 → int4. Giảm VRAM nhưng có accuracy trade-off.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Break-even Point</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thời điểm cost savings từ fine-tuned model bù đắp được training cost ban đầu. Training Cost ÷ Monthly Savings.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">PEFT</td><td style="padding:8px 12px;">Parameter-Efficient Fine-Tuning — umbrella term cho các methods chỉ train một phần nhỏ parameters (LoRA, Prefix Tuning, Adapter, etc.).</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fine-tuning</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tiếp tục train một pre-trained model trên domain-specific data để specialize behavior và output.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LoRA</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Low-Rank Adaptation — chỉ train 2 small matrices (B·A) thay vì toàn bộ weight matrix. Giảm trainable params ~100x.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">QLoRA</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">LoRA + 4-bit quantization — giảm VRAM thêm 4x, cho phép fine-tune trên consumer GPU.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">rank (r)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kích thước low-rank subspace trong LoRA. r=8 (nhỏ), r=16 (balance), r=64 (lớn, cần nhiều data).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">alpha (α)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Scaling factor trong LoRA: effective_lr = (α/r) × lr. Thường set α = 2×r.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">target_modules</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Layers nào apply LoRA adapters. Thường: q_proj, v_proj trong attention blocks.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Catastrophic Forgetting</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hiện tượng model "quên" general capabilities sau fine-tuning. Detect bằng general benchmark trước/sau.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Synthetic Data</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Training data được generate bởi LLM từ real anonymized examples — tránh PII leakage trong training.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Anonymization</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xóa/thay thế PII (tên, CCCD, địa chỉ) trước khi đưa data vào training pipeline.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Registry</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hệ thống quản lý model versions: metadata, evaluation results, deployment status, rollback history.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Shadow Mode</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chạy new model song song với production model, nhận 100% traffic nhưng không dùng output — chỉ monitor.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Canary Deployment</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rollout dần: 5% traffic → 25% → 100%. Automated rollback nếu metrics xấu tại bất kỳ stage nào.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Quantization</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Giảm precision của model weights: float32 → float16 → int8 → int4. Giảm VRAM nhưng có accuracy trade-off.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Break-even Point</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thời điểm cost savings từ fine-tuned model bù đắp được training cost ban đầu. Training Cost ÷ Monthly Savings.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">PEFT</th><td style="padding:8px 12px;">Parameter-Efficient Fine-Tuning — umbrella term cho các methods chỉ train một phần nhỏ parameters (LoRA, Prefix Tuning, Adapter, etc.).</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

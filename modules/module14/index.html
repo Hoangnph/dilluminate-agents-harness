@@ -717,27 +717,30 @@
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 14</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m14-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m14-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m14-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m14-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RAG (Retrieval-Augmented Generation)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern cho phép LLM truy cập external knowledge: retrieve relevant docs → augment context → generate grounded response.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sensory Memory</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Context window của model trong một inference call. Ephemeral — mất khi call kết thúc.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Long-term Memory</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Persistent storage (vector store + DB) cho knowledge tồn tại qua nhiều sessions và users.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Vector Embedding</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dense numerical representation của text trong high-dimensional space, cho phép semantic similarity search.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cosine Similarity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Metric đo semantic similarity giữa 2 vectors: 1.0 = identical, 0.0 = unrelated, -1.0 = opposite.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chunking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chia document lớn thành các đoạn nhỏ hơn để embed và retrieve. Strategy: fixed-size, semantic, hierarchical.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Reranking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Bước sau initial retrieval: dùng cross-encoder model để re-score và re-order top-K results, giữ top-5.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hybrid Search</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kết hợp dense (vector) và sparse (BM25) retrieval với RRF score fusion để tối ưu recall.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Faithfulness</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAGAS metric: mỗi claim trong answer có được support bởi retrieved context không. 0–1 scale.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Answer Relevancy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAGAS metric: answer có thực sự trả lời câu hỏi gốc không (relevant to query).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Context Pollution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi retrieve quá nhiều irrelevant chunks → model bị distract, hallucination tăng, quality giảm.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semantic Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache lưu query embeddings và responses. Query mới với cosine sim ≥ 0.95 → serve cached response.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Progressive Summarization</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi conversation history vượt budget → summarize oldest messages, giữ recent messages + summary.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">HyDE (Hypothetical Document Embeddings)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Advanced RAG: generate hypothetical answer → embed it → use for retrieval. Improves recall for complex queries.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">pgvector</td><td style="padding:8px 12px;">PostgreSQL extension cho vector operations, cho phép store và search embeddings trong existing DB.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RAG (Retrieval-Augmented Generation)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern cho phép LLM truy cập external knowledge: retrieve relevant docs → augment context → generate grounded response.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sensory Memory</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Context window của model trong một inference call. Ephemeral — mất khi call kết thúc.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Long-term Memory</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Persistent storage (vector store + DB) cho knowledge tồn tại qua nhiều sessions và users.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Vector Embedding</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dense numerical representation của text trong high-dimensional space, cho phép semantic similarity search.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cosine Similarity</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Metric đo semantic similarity giữa 2 vectors: 1.0 = identical, 0.0 = unrelated, -1.0 = opposite.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chunking</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chia document lớn thành các đoạn nhỏ hơn để embed và retrieve. Strategy: fixed-size, semantic, hierarchical.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Reranking</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Bước sau initial retrieval: dùng cross-encoder model để re-score và re-order top-K results, giữ top-5.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hybrid Search</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kết hợp dense (vector) và sparse (BM25) retrieval với RRF score fusion để tối ưu recall.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Faithfulness</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAGAS metric: mỗi claim trong answer có được support bởi retrieved context không. 0–1 scale.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Answer Relevancy</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAGAS metric: answer có thực sự trả lời câu hỏi gốc không (relevant to query).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Context Pollution</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi retrieve quá nhiều irrelevant chunks → model bị distract, hallucination tăng, quality giảm.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Semantic Cache</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache lưu query embeddings và responses. Query mới với cosine sim ≥ 0.95 → serve cached response.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Progressive Summarization</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi conversation history vượt budget → summarize oldest messages, giữ recent messages + summary.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">HyDE (Hypothetical Document Embeddings)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Advanced RAG: generate hypothetical answer → embed it → use for retrieval. Improves recall for complex queries.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">pgvector</th><td style="padding:8px 12px;">PostgreSQL extension cho vector operations, cho phép store và search embeddings trong existing DB.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

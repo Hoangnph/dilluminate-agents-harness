@@ -656,27 +656,30 @@ Nếu không có vấn đề → trả về JSON nguyên vẹn với field "_rev
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 16</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m16-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m16-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m16-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m16-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">System Prompt</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Instruction block set ở đầu conversation, define model's role, context, constraints. Persistent across all turns.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Architecture</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cấu trúc 5 layers: Role / Context / Tools / Constraints / Format — mỗi layer có mục đích riêng.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chain-of-Thought (CoT)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Yêu cầu model lý luận từng bước trước khi kết luận. Tăng accuracy, tạo audit trail.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Zero-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Let's think step by step" — trigger CoT không cần examples. Đơn giản nhất.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-shot CoT</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cung cấp 2–5 examples có reasoning chain → model học pattern và apply cho cases mới.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extended Thinking</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude feature: extra token budget để deliberate trước khi respond. Dùng cho complex borderline cases.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-Shot Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Học từ 2–5 examples trong context window. Zero training cost, instant update, low overhead.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">In-Context Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model learns from examples in the current context without weight updates. Foundation of few-shot.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Structured Output</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">JSON-formatted model response với strict schema — machine-parseable, validation-friendly.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sycophancy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model tendency to agree with user or tell them what they want to hear — dangerous for loan decisions.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Constitutional AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic technique: model critiques its own responses against a "constitution" of principles.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Meta-Prompting</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Using LLM to generate/critique/improve prompts. Prompt engineer + LLM critic collaboration.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Compression</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Reducing token count while preserving accuracy. LLM Lingua, abstract summarization, key-phrase extraction.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">A/B Prompt Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Running two prompt versions on same test set, using LLM-as-Judge to pick winner systematically.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Prompt Version Control</td><td style="padding:8px 12px;">Tracking prompt changes with git-like versioning. Tag with test scores, never edit production without A/B.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">System Prompt</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Instruction block set ở đầu conversation, define model's role, context, constraints. Persistent across all turns.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Architecture</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cấu trúc 5 layers: Role / Context / Tools / Constraints / Format — mỗi layer có mục đích riêng.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chain-of-Thought (CoT)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Yêu cầu model lý luận từng bước trước khi kết luận. Tăng accuracy, tạo audit trail.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Zero-shot CoT</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"Let's think step by step" — trigger CoT không cần examples. Đơn giản nhất.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-shot CoT</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cung cấp 2–5 examples có reasoning chain → model học pattern và apply cho cases mới.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extended Thinking</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude feature: extra token budget để deliberate trước khi respond. Dùng cho complex borderline cases.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Few-Shot Learning</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Học từ 2–5 examples trong context window. Zero training cost, instant update, low overhead.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">In-Context Learning</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model learns from examples in the current context without weight updates. Foundation of few-shot.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Structured Output</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">JSON-formatted model response với strict schema — machine-parseable, validation-friendly.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sycophancy</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model tendency to agree with user or tell them what they want to hear — dangerous for loan decisions.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Constitutional AI</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Anthropic technique: model critiques its own responses against a "constitution" of principles.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Meta-Prompting</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Using LLM to generate/critique/improve prompts. Prompt engineer + LLM critic collaboration.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Prompt Compression</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Reducing token count while preserving accuracy. LLM Lingua, abstract summarization, key-phrase extraction.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">A/B Prompt Testing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Running two prompt versions on same test set, using LLM-as-Judge to pick winner systematically.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Prompt Version Control</th><td style="padding:8px 12px;">Tracking prompt changes with git-like versioning. Tag with test scores, never edit production without A/B.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

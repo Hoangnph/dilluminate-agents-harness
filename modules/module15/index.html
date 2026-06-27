@@ -704,27 +704,30 @@ TOOL_CONFIGS = {
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 15</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m15-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m15-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m15-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m15-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tool Calling</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế Claude API: model phát ra tool_use block → harness execute → tool_result trả về → model tiếp tục.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agentic Loop</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp model → tool → result cho đến khi stop_reason="end_turn". Mỗi iteration = một API call.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_use block</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Content block trong Claude response: type="tool_use", name, id, input. Triggers tool execution.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_result block</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Content block trong user message: type="tool_result", tool_use_id, content. Passes tool output back to Claude.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Idempotency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gọi nhiều lần = cùng kết quả. Critical cho write tools: hash(params) làm idempotency key.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Bucket</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rate limiter: tokens refill at rate_rps/s, consume 1 per request. Allows burst up to capacity.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tool TTL Cache</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache tool results với TTL phù hợp: credit score 24h, property valuation 7d, compliance always fresh.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Parallel Tool Calls</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude phát nhiều tool_use trong cùng response → harness execute asyncio.gather → speedup.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">JSON Schema</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Standard schema cho tool input_schema — type, properties, required, pattern, description, enum.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Pydantic</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Python data validation library: BaseModel + Field validators → validate tool inputs/outputs.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Circuit Breaker</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Resilience pattern: CLOSED → OPEN (after N failures) → HALF-OPEN (trial) → CLOSED/OPEN.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Exponential Backoff</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Retry delay = base × 2^attempt + jitter. Tránh thundering herd khi service recovers.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_choice</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude API param: auto (model decides), any (must use a tool), {name} (force specific tool).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Schema Evolution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thêm fields mới: backward-compatible nếu optional. Breaking change: version bump (v1 → v2).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Structured Output</td><td style="padding:8px 12px;">JSON-formatted LLM response với strict schema → parse với Pydantic, không cần regex.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tool Calling</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cơ chế Claude API: model phát ra tool_use block → harness execute → tool_result trả về → model tiếp tục.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Agentic Loop</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp model → tool → result cho đến khi stop_reason="end_turn". Mỗi iteration = một API call.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_use block</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Content block trong Claude response: type="tool_use", name, id, input. Triggers tool execution.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_result block</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Content block trong user message: type="tool_result", tool_use_id, content. Passes tool output back to Claude.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Idempotency</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Gọi nhiều lần = cùng kết quả. Critical cho write tools: hash(params) làm idempotency key.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Token Bucket</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Rate limiter: tokens refill at rate_rps/s, consume 1 per request. Allows burst up to capacity.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Tool TTL Cache</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cache tool results với TTL phù hợp: credit score 24h, property valuation 7d, compliance always fresh.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Parallel Tool Calls</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude phát nhiều tool_use trong cùng response → harness execute asyncio.gather → speedup.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">JSON Schema</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Standard schema cho tool input_schema — type, properties, required, pattern, description, enum.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Pydantic</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Python data validation library: BaseModel + Field validators → validate tool inputs/outputs.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Circuit Breaker</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Resilience pattern: CLOSED → OPEN (after N failures) → HALF-OPEN (trial) → CLOSED/OPEN.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Exponential Backoff</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Retry delay = base × 2^attempt + jitter. Tránh thundering herd khi service recovers.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">tool_choice</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude API param: auto (model decides), any (must use a tool), {name} (force specific tool).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Schema Evolution</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thêm fields mới: backward-compatible nếu optional. Breaking change: version bump (v1 → v2).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Structured Output</th><td style="padding:8px 12px;">JSON-formatted LLM response với strict schema → parse với Pydantic, không cần regex.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

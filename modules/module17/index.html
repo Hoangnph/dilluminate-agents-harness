@@ -604,27 +604,30 @@ QUAN TRỌNG:
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 17</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m17-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m17-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m17-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m17-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Multi-Modal AI</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model xử lý nhiều modalities: text, image, document, audio. Claude Vision = text + image.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Intelligence</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI-powered document processing: classify → extract → validate → cross-check. Beyond simple OCR.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Vision API</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude API endpoint cho image understanding. Accepts base64 or URL images in messages.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">OCR vs Visual Understanding</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">OCR = text extraction only. Visual Understanding = layout + context + reasoning → structured data.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extraction Confidence</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Score 0.0–1.0 cho mỗi extracted field. ≥0.95 = auto accept; 0.80–0.95 = flag; &lt;0.80 = HITL.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Classifier</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động nhận biết loại document: payslip, bank statement, property deed, CCCD, tax cert.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Collateral Verification Chain</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">4 links: Identity + Encumbrance + Address match + Area match. All must pass for secured loan.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Encumbrance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lien/mortgage/legal restriction on property title. Existing encumbrance → cannot use as collateral.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Tampering</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chỉnh sửa document. Signals: font inconsistency, unrealistic numbers, metadata mismatch.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Income Discrepancy</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">|doc_income - declared_income| / declared_income. &lt;10% = verified; ≥20% = red flag.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cross-Check Engine</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Compare document-extracted data vs API data vs declared data. Find inconsistencies.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Overdraft Pattern</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số lần số dư âm trong bank statement. &gt;2 lần/năm = risk signal → flag trong assessment.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Income Regularity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern of income deposits: regular (monthly salary), irregular (freelance), volatile (>40% variance).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Completeness</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Check xem đủ required documents chưa. Missing CCCD = cannot process. Missing bank stmt = flag.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Quality Score</td><td style="padding:8px 12px;">Aggregate confidence across all documents. &lt;0.80 overall → HITL mandatory.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Multi-Modal AI</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model xử lý nhiều modalities: text, image, document, audio. Claude Vision = text + image.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Intelligence</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">AI-powered document processing: classify → extract → validate → cross-check. Beyond simple OCR.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Vision API</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Claude API endpoint cho image understanding. Accepts base64 or URL images in messages.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">OCR vs Visual Understanding</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">OCR = text extraction only. Visual Understanding = layout + context + reasoning → structured data.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Extraction Confidence</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Score 0.0–1.0 cho mỗi extracted field. ≥0.95 = auto accept; 0.80–0.95 = flag; &lt;0.80 = HITL.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Classifier</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động nhận biết loại document: payslip, bank statement, property deed, CCCD, tax cert.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Collateral Verification Chain</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">4 links: Identity + Encumbrance + Address match + Area match. All must pass for secured loan.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Encumbrance</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lien/mortgage/legal restriction on property title. Existing encumbrance → cannot use as collateral.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Tampering</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Chỉnh sửa document. Signals: font inconsistency, unrealistic numbers, metadata mismatch.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Income Discrepancy</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">|doc_income - declared_income| / declared_income. &lt;10% = verified; ≥20% = red flag.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Cross-Check Engine</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Compare document-extracted data vs API data vs declared data. Find inconsistencies.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Overdraft Pattern</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Số lần số dư âm trong bank statement. &gt;2 lần/năm = risk signal → flag trong assessment.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Income Regularity</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern of income deposits: regular (monthly salary), irregular (freelance), volatile (>40% variance).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Document Completeness</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Check xem đủ required documents chưa. Missing CCCD = cannot process. Missing bank stmt = flag.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Quality Score</th><td style="padding:8px 12px;">Aggregate confidence across all documents. &lt;0.80 overall → HITL mandatory.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

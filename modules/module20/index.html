@@ -552,27 +552,30 @@ GOLDEN_DATASET = [
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 20</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m20-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m20-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m20-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m20-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Testing Pyramid</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mô hình phân tầng tests: nhiều unit tests ở đáy, ít E2E tests ở đỉnh. AI agents thêm Chaos tier.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Deterministic Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test có output chính xác, lặp lại được — ví dụ: blacklisted=True → REJECT luôn luôn.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Probabilistic Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test verify properties của output thay vì exact string — dùng cho LLM output thay đổi mỗi lần.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Golden Dataset</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập cases có expected outcomes đã được domain expert verify — ground truth để evaluate AI system.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM-as-Judge</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dùng LLM khác để evaluate output của LoanBot — cho phép check semantic correctness thay vì string match.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Property-Based Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test invariants (điều luôn phải đúng) thay vì specific inputs — tìm ra edge cases tự động.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Monotonicity</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Invariant: better input → not worse output. Credit score cao hơn không bao giờ cho decision tệ hơn.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hallucination Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Verify LLM không tự bịa ra số liệu, tên, hoặc thông tin không có trong input.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Regression Test</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test phát hiện khi thay đổi mới phá vỡ existing behavior — so sánh với baseline snapshot.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Contract Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Verify interface giữa LoanBot và external tools (CIC, gateway) không thay đổi unexpectedly.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Snapshot Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lưu known-good output làm baseline, alert khi future output drift quá ngưỡng cho phép.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chaos Engineering</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cố tình inject failures vào hệ thống để test resilience — phát hiện weaknesses trước real incidents.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fault Injection</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kỹ thuật cố tình gây lỗi: timeout, network failure, malformed response — trong controlled environment.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Gameday</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Buổi tập disaster recovery có kế hoạch — toàn team thực hành xử lý various failure scenarios.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Quality Gate</td><td style="padding:8px 12px;">Checkpoint tự động trong CI/CD: block deployment nếu test failure, regression drift, hoặc bias violation.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Testing Pyramid</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mô hình phân tầng tests: nhiều unit tests ở đáy, ít E2E tests ở đỉnh. AI agents thêm Chaos tier.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Deterministic Test</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test có output chính xác, lặp lại được — ví dụ: blacklisted=True → REJECT luôn luôn.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Probabilistic Test</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test verify properties của output thay vì exact string — dùng cho LLM output thay đổi mỗi lần.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Golden Dataset</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập cases có expected outcomes đã được domain expert verify — ground truth để evaluate AI system.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM-as-Judge</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dùng LLM khác để evaluate output của LoanBot — cho phép check semantic correctness thay vì string match.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Property-Based Testing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test invariants (điều luôn phải đúng) thay vì specific inputs — tìm ra edge cases tự động.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Monotonicity</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Invariant: better input → not worse output. Credit score cao hơn không bao giờ cho decision tệ hơn.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Hallucination Test</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Verify LLM không tự bịa ra số liệu, tên, hoặc thông tin không có trong input.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Regression Test</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test phát hiện khi thay đổi mới phá vỡ existing behavior — so sánh với baseline snapshot.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Contract Testing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Verify interface giữa LoanBot và external tools (CIC, gateway) không thay đổi unexpectedly.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Snapshot Testing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Lưu known-good output làm baseline, alert khi future output drift quá ngưỡng cho phép.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Chaos Engineering</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cố tình inject failures vào hệ thống để test resilience — phát hiện weaknesses trước real incidents.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Fault Injection</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Kỹ thuật cố tình gây lỗi: timeout, network failure, malformed response — trong controlled environment.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Gameday</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Buổi tập disaster recovery có kế hoạch — toàn team thực hành xử lý various failure scenarios.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Quality Gate</th><td style="padding:8px 12px;">Checkpoint tự động trong CI/CD: block deployment nếu test failure, regression drift, hoặc bias violation.</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

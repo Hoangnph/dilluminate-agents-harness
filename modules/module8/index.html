@@ -263,7 +263,10 @@
         <div class="callout-header">📌 Khái niệm: Span Attributes cho LLM Agents</div>
         <div class="table-scroll">
 <table class="slo-table">
-          <tr><th>Attribute Key</th><th>Ví dụ Value</th><th>Dùng để</th></tr>
+  <thead>
+    <tr><th>Attribute Key</th><th>Ví dụ Value</th><th>Dùng để</th></tr>
+  </thead>
+  <tbody>
           <tr><td><code>agent.name</code></td><td>"CreditAgent"</td><td>Filter theo agent</td></tr>
           <tr><td><code>agent.capability</code></td><td>"credit_check"</td><td>Group theo capability</td></tr>
           <tr><td><code>llm.model</code></td><td>"claude-haiku-4-5-20251001"</td><td>Model version tracking</td></tr>
@@ -271,8 +274,8 @@
           <tr><td><code>llm.tokens.output</code></td><td>89</td><td>Cost calculation</td></tr>
           <tr><td><code>llm.cost.usd</code></td><td>0.00067</td><td>Per-call cost tracking</td></tr>
           <tr><td><code>loan.id</code></td><td>"FC-2024-001"</td><td>Link span to business object</td></tr>
-          <tr><td><code>span.status</code></td><td>OK / ERROR</td><td>Error rate calculation</td></tr>
-        </table>
+          <tr><td><code>span.status</code></td><td>OK / ERROR</td><td>Error rate calculation</td></tr>  </tbody>
+</table>
 </div>
       </div>
 
@@ -816,7 +819,10 @@ tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
         <h3>📚 Glossary — Module 8</h3>
         <div class="table-scroll">
 <table class="slo-table">
-          <tr><th>Thuật ngữ</th><th>Định nghĩa</th></tr>
+  <thead>
+    <tr><th>Thuật ngữ</th><th>Định nghĩa</th></tr>
+  </thead>
+  <tbody>
           <tr><td><strong>Observability</strong></td><td>Khả năng hiểu trạng thái nội tại của hệ thống chỉ từ outputs bên ngoài (logs, metrics, traces)</td></tr>
           <tr><td><strong>OpenTelemetry (OTel)</strong></td><td>Chuẩn mã nguồn mở CNCF cho instrumentation — vendor-neutral, framework-agnostic</td></tr>
           <tr><td><strong>Span</strong></td><td>Đơn vị cơ bản của trace — đại diện cho một operation (ví dụ: một agent call)</td></tr>
@@ -831,8 +837,8 @@ tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
           <tr><td><strong>Tail-based Sampling</strong></td><td>Quyết định lưu trace sau khi hoàn thành — luôn lưu error traces, sample ngẫu nhiên success traces</td></tr>
           <tr><td><strong>Arize Phoenix</strong></td><td>Open-source LLM observability platform, OTel-native, self-hosted, free</td></tr>
           <tr><td><strong>Langfuse</strong></td><td>Open-source LLM observability với EU cloud option, mạnh về prompt versioning và cost tracking</td></tr>
-          <tr><td><strong>Burn Rate</strong></td><td>Tốc độ "tiêu" error budget — 1x = normal, 14x = sẽ hết budget trong 1 giờ</td></tr>
-        </table>
+          <tr><td><strong>Burn Rate</strong></td><td>Tốc độ "tiêu" error budget — 1x = normal, 14x = sẽ hết budget trong 1 giờ</td></tr>  </tbody>
+</table>
 </div>
       </div>
 

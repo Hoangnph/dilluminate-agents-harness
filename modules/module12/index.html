@@ -649,17 +649,20 @@
       <div class="callout formula">
         <div class="callout-header">📐 RAGAS Metrics cho LoanBot</div>
         <div class="table-scroll">
-<table style="width:100%;font-size:.85rem;border-collapse:collapse;">
-          <tr style="background:var(--m12-light);">
+<table style="font-size:.85rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m12-light);">
             <th style="padding:8px;text-align:left;border-bottom:1px solid var(--m12-border);">Metric</th>
             <th style="padding:8px;text-align:left;border-bottom:1px solid var(--m12-border);">LoanBot Interpretation</th>
             <th style="padding:8px;border-bottom:1px solid var(--m12-border);">Target</th>
           </tr>
+  </thead>
+  <tbody>
           <tr><td style="padding:8px;">Faithfulness</td><td style="padding:8px;">RiskAgent reasoning chỉ claim điều supported bởi agent outputs</td><td style="padding:8px;">≥ 0.90</td></tr>
           <tr><td style="padding:8px;">Answer Relevancy</td><td style="padding:8px;">Recommendation có address câu hỏi "loan có nên approve không?"</td><td style="padding:8px;">≥ 0.92</td></tr>
           <tr><td style="padding:8px;">Context Precision</td><td style="padding:8px;">Tỷ lệ credit data được dùng thực sự liên quan</td><td style="padding:8px;">≥ 0.85</td></tr>
-          <tr><td style="padding:8px;">Context Recall</td><td style="padding:8px;">Bao nhiêu % key factors được đề cập trong reasoning</td><td style="padding:8px;">≥ 0.88</td></tr>
-        </table>
+          <tr><td style="padding:8px;">Context Recall</td><td style="padding:8px;">Bao nhiêu % key factors được đề cập trong reasoning</td><td style="padding:8px;">≥ 0.88</td></tr>  </tbody>
+</table>
 </div>
       </div>
 
@@ -694,27 +697,30 @@
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 12</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m12-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m12-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m12-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m12-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Evaluation Gap</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khoảng cách giữa metric bạn đo và kết quả thực sự bạn quan tâm.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Golden Dataset</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập dữ liệu được chuyên gia label chính xác, dùng làm ground truth cho evaluation.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM-as-Judge</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dùng LLM (Claude) để evaluate output của LLM khác — scalable alternative to human evaluation.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Position Bias</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Judge LLM ưu tiên response xuất hiện ở position đầu tiên khi compare 2 outputs.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Verbosity Bias</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Judge LLM đánh giá cao output dài hơn, không phân biệt quality.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">A/B Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Randomized experiment so sánh 2 versions (Control vs Treatment) trên split traffic.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sticky Assignment</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đảm bảo cùng user/loan_id luôn vào cùng experiment variant — dùng hash deterministic.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Statistical Significance</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">p-value &lt; 0.05: kết quả observed không phải do ngẫu nhiên với ≥ 95% confidence.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">False Positive Rate (FPR)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ approve bad loans (Type I error) — FPR cao = risk tài chính cho ngân hàng.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">False Negative Rate (FNR)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ reject good loans (Type II error) — FNR cao = mất doanh thu + customer dissatisfaction.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Regression Testing</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động verify rằng thay đổi mới không làm giảm performance của behavior đã đúng trước đây.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RAGAS</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAG Assessment framework — 4 metrics: Faithfulness, Answer Relevancy, Context Precision, Recall.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Goodhart's Law</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"When a measure becomes a target, it ceases to be a good measure" — overfitting to evaluation.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EDD (Evaluation-Driven Development)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Viết evaluation cases TRƯỚC khi thay đổi prompt — AI version của TDD.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">Calibration</td><td style="padding:8px 12px;">Confidence score của model phản ánh đúng actual accuracy (confidence 0.9 → 90% thực sự đúng).</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Evaluation Gap</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khoảng cách giữa metric bạn đo và kết quả thực sự bạn quan tâm.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Golden Dataset</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tập dữ liệu được chuyên gia label chính xác, dùng làm ground truth cho evaluation.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">LLM-as-Judge</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Dùng LLM (Claude) để evaluate output của LLM khác — scalable alternative to human evaluation.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Position Bias</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Judge LLM ưu tiên response xuất hiện ở position đầu tiên khi compare 2 outputs.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Verbosity Bias</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Judge LLM đánh giá cao output dài hơn, không phân biệt quality.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">A/B Testing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Randomized experiment so sánh 2 versions (Control vs Treatment) trên split traffic.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sticky Assignment</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Đảm bảo cùng user/loan_id luôn vào cùng experiment variant — dùng hash deterministic.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Statistical Significance</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">p-value &lt; 0.05: kết quả observed không phải do ngẫu nhiên với ≥ 95% confidence.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">False Positive Rate (FPR)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ approve bad loans (Type I error) — FPR cao = risk tài chính cho ngân hàng.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">False Negative Rate (FNR)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tỷ lệ reject good loans (Type II error) — FNR cao = mất doanh thu + customer dissatisfaction.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Regression Testing</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Tự động verify rằng thay đổi mới không làm giảm performance của behavior đã đúng trước đây.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">RAGAS</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">RAG Assessment framework — 4 metrics: Faithfulness, Answer Relevancy, Context Precision, Recall.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Goodhart's Law</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">"When a measure becomes a target, it ceases to be a good measure" — overfitting to evaluation.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EDD (Evaluation-Driven Development)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Viết evaluation cases TRƯỚC khi thay đổi prompt — AI version của TDD.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">Calibration</th><td style="padding:8px 12px;">Confidence score của model phản ánh đúng actual accuracy (confidence 0.9 → 90% thực sự đúng).</td></tr>  </tbody>
+</table>
 </div>
     </section>
 

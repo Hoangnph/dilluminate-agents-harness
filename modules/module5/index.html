@@ -798,21 +798,21 @@ Bạn có quyền khiếu nại quyết định này trong 30 ngày.</code></pre
           <div class="table-scroll">
 <table>
             <tbody>
-              <tr><td style="width:180px;"><strong>Tên model</strong></td><td>LoanBot v1.0 (FinTech Corp)</td></tr>
-              <tr><td><strong>Phiên bản</strong></td><td>1.0.0 — Release date: 2026-06-26</td></tr>
-              <tr><td><strong>Mục đích</strong></td><td>Phân tích hồ sơ vay vốn cá nhân, đưa ra khuyến nghị phê duyệt/từ chối</td></tr>
-              <tr><td><strong>Phạm vi</strong></td><td>Khoản vay cá nhân 50M–2 tỷ VNĐ, khách hàng FinTech Corp có customer_id</td></tr>
-              <tr><td><strong>NGOÀI phạm vi</strong></td><td>Doanh nghiệp, khoản vay nước ngoài, quyết định BẢO LÃNH (chỉ khuyến nghị)</td></tr>
-              <tr><td><strong>LLM backbone</strong></td><td>claude-haiku-4-5-20251001 (Anthropic)</td></tr>
-              <tr><td><strong>Tools</strong></td><td>check_credit_score, verify_income, calculate_dti, check_blacklist, generate_report</td></tr>
-              <tr><td><strong>F1 Score</strong></td><td>95.5% trên eval set 100 cases</td></tr>
-              <tr><td><strong>Faithfulness</strong></td><td>99.2%</td></tr>
-              <tr><td><strong>Fairness</strong></td><td>Demographic parity ≤10% (after debiasing) — cần review định kỳ 3 tháng</td></tr>
-              <tr><td><strong>Rủi ro chính</strong></td><td>Age bias (đã mitigate), LLM hallucination (HITL cho >500M), prompt injection</td></tr>
-              <tr><td><strong>HITL threshold</strong></td><td>&gt;500 triệu VNĐ → mandatory human review</td></tr>
-              <tr><td><strong>Monitoring</strong></td><td>Faithfulness ≥99%, F1 ≥95%, P95 ≤300s — alert nếu vi phạm</td></tr>
-              <tr><td><strong>Owner</strong></td><td>AI Engineering Team — ai-engineering@fintechcorp.vn</td></tr>
-              <tr><td><strong>Review schedule</strong></td><td>Quarterly fairness audit, bi-annual full eval</td></tr>
+              <tr><th scope="row" style="width:180px;">Tên model</th><td>LoanBot v1.0 (FinTech Corp)</td></tr>
+              <tr><th scope="row">Phiên bản</th><td>1.0.0 — Release date: 2026-06-26</td></tr>
+              <tr><th scope="row">Mục đích</th><td>Phân tích hồ sơ vay vốn cá nhân, đưa ra khuyến nghị phê duyệt/từ chối</td></tr>
+              <tr><th scope="row">Phạm vi</th><td>Khoản vay cá nhân 50M–2 tỷ VNĐ, khách hàng FinTech Corp có customer_id</td></tr>
+              <tr><th scope="row">NGOÀI phạm vi</th><td>Doanh nghiệp, khoản vay nước ngoài, quyết định BẢO LÃNH (chỉ khuyến nghị)</td></tr>
+              <tr><th scope="row">LLM backbone</th><td>claude-haiku-4-5-20251001 (Anthropic)</td></tr>
+              <tr><th scope="row">Tools</th><td>check_credit_score, verify_income, calculate_dti, check_blacklist, generate_report</td></tr>
+              <tr><th scope="row">F1 Score</th><td>95.5% trên eval set 100 cases</td></tr>
+              <tr><th scope="row">Faithfulness</th><td>99.2%</td></tr>
+              <tr><th scope="row">Fairness</th><td>Demographic parity ≤10% (after debiasing) — cần review định kỳ 3 tháng</td></tr>
+              <tr><th scope="row">Rủi ro chính</th><td>Age bias (đã mitigate), LLM hallucination (HITL cho >500M), prompt injection</td></tr>
+              <tr><th scope="row">HITL threshold</th><td>&gt;500 triệu VNĐ → mandatory human review</td></tr>
+              <tr><th scope="row">Monitoring</th><td>Faithfulness ≥99%, F1 ≥95%, P95 ≤300s — alert nếu vi phạm</td></tr>
+              <tr><th scope="row">Owner</th><td>AI Engineering Team — ai-engineering@fintechcorp.vn</td></tr>
+              <tr><th scope="row">Review schedule</th><td>Quarterly fairness audit, bi-annual full eval</td></tr>
             </tbody>
           </table>
 </div>

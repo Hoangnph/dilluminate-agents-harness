@@ -877,27 +877,30 @@
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 11</h2>
       <div class="table-scroll">
-<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
-        <tr style="background:var(--m11-light);">
+<table style="font-size:.875rem;border-collapse:collapse">
+  <thead>
+    <tr style="background:var(--m11-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m11-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m11-border);">Định nghĩa</th>
         </tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Human-in-the-Loop (HITL)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern thiết kế: AI tạm dừng và chuyển quyền quyết định sang human cho trường hợp nhất định.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Human-on-the-Loop (HOTL)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Human giám sát nhưng không can thiệp mỗi quyết định — phản ứng khi có anomaly.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act Art.14</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Yêu cầu human oversight cho High-Risk AI systems, bao gồm creditworthiness assessment.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Automation Bias</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xu hướng con người follow AI recommendation dù AI sai, vì tin tưởng quá mức vào automation.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLA (Service Level Agreement)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cam kết thời gian xử lý: HITL L1 = 8h, L2 = 4h, L3 = 24h.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Override</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi human reviewer không đồng ý với AI recommendation và chọn quyết định khác.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Override Rate</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">% HITL cases mà loan officer override AI. Baseline tốt: &lt;5%. >15% → model quality issue.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Explainable AI (XAI)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Techniques giúp AI decisions có thể được explain và hiểu bởi con người (LIME, SHAP, attention).</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Factor Contribution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mức độ đóng góp của từng yếu tố vào quyết định AI — tương tự feature importance.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Borderline Zone</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vùng credit score 560–680 mà AI có low confidence — mọi hồ sơ trong zone này → HITL.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Drift</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hiện tượng model performance giảm dần khi data distribution thực tế thay đổi theo thời gian.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Active Learning</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model chủ động chọn data points không chắc chắn nhất để đưa cho human label, optimize training efficiency.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Virtuous Learning Loop</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp cải tiến: AI decisions → human overrides → training data → better model → fewer overrides.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Idempotency</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Property của operation: gọi nhiều lần có cùng kết quả như gọi 1 lần — critical cho retry logic.</td></tr>
-        <tr><td style="padding:8px 12px;font-weight:600;">GDPR Art.22</td><td style="padding:8px 12px;">Right to explanation: người dùng có quyền yêu cầu giải thích cho quyết định automated có ảnh hưởng significant.</td></tr>
-      </table>
+  </thead>
+  <tbody>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Human-in-the-Loop (HITL)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Pattern thiết kế: AI tạm dừng và chuyển quyền quyết định sang human cho trường hợp nhất định.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Human-on-the-Loop (HOTL)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Human giám sát nhưng không can thiệp mỗi quyết định — phản ứng khi có anomaly.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">EU AI Act Art.14</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Yêu cầu human oversight cho High-Risk AI systems, bao gồm creditworthiness assessment.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Automation Bias</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Xu hướng con người follow AI recommendation dù AI sai, vì tin tưởng quá mức vào automation.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">SLA (Service Level Agreement)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Cam kết thời gian xử lý: HITL L1 = 8h, L2 = 4h, L3 = 24h.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">AI Override</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Khi human reviewer không đồng ý với AI recommendation và chọn quyết định khác.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Override Rate</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">% HITL cases mà loan officer override AI. Baseline tốt: &lt;5%. >15% → model quality issue.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Explainable AI (XAI)</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Techniques giúp AI decisions có thể được explain và hiểu bởi con người (LIME, SHAP, attention).</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Factor Contribution</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Mức độ đóng góp của từng yếu tố vào quyết định AI — tương tự feature importance.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Borderline Zone</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vùng credit score 560–680 mà AI có low confidence — mọi hồ sơ trong zone này → HITL.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Model Drift</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Hiện tượng model performance giảm dần khi data distribution thực tế thay đổi theo thời gian.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Active Learning</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Model chủ động chọn data points không chắc chắn nhất để đưa cho human label, optimize training efficiency.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Virtuous Learning Loop</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Vòng lặp cải tiến: AI decisions → human overrides → training data → better model → fewer overrides.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Idempotency</th><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Property của operation: gọi nhiều lần có cùng kết quả như gọi 1 lần — critical cho retry logic.</td></tr>
+        <tr><th scope="row" style="padding:8px 12px;font-weight:600;">GDPR Art.22</th><td style="padding:8px 12px;">Right to explanation: người dùng có quyền yêu cầu giải thích cho quyết định automated có ảnh hưởng significant.</td></tr>  </tbody>
+</table>
 </div>
 
     </section>
