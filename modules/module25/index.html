@@ -338,6 +338,74 @@
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>3 Delivery Guarantees trong Redis Streams LoanBot: At-Most-Once (mat task khi crash), At-Least-Once + Idempotency (chuan FinTech Corp), Exactly-Once (phuc tap, co latency penalty)</title>
+          <defs>
+            <marker id="arr_m25_3a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+            <marker id="arr_m25_3b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ef4444"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Redis Streams: 3 Delivery Guarantees cho LoanBot Tasks</text>
+          <!-- Vertical dividers -->
+          <line x1="253" y1="34" x2="253" y2="213" stroke="#334155" stroke-width="1" stroke-dasharray="4,3"/>
+          <line x1="507" y1="34" x2="507" y2="213" stroke="#334155" stroke-width="1" stroke-dasharray="4,3"/>
+          <!-- Col 1: At-Most-Once -->
+          <text x="127" y="45" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700">At-Most-Once</text>
+          <rect x="18" y="53" width="90" height="28" rx="6" fill="#2d1212" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="63" y="71" text-anchor="middle" fill="#fca5a5" font-size="10">Producer xAdd</text>
+          <line x1="108" y1="67" x2="152" y2="67" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m25_3a)"/>
+          <rect x="152" y="53" width="90" height="28" rx="6" fill="#2d1212" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="197" y="67" text-anchor="middle" fill="#fca5a5" font-size="10">Worker</text>
+          <text x="197" y="79" text-anchor="middle" fill="#fca5a5" font-size="10">processes...</text>
+          <text x="197" y="105" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">CRASH before ACK</text>
+          <line x1="197" y1="109" x2="197" y2="119" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr_m25_3b)"/>
+          <rect x="98" y="120" width="110" height="22" rx="5" fill="#1e0a0a" stroke="#dc2626" stroke-width="1"/>
+          <text x="153" y="134" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">Task LOST forever</text>
+          <rect x="18" y="152" width="220" height="42" rx="5" fill="#1e0a0a" stroke="#991b1b" stroke-width="1"/>
+          <text x="128" y="165" text-anchor="middle" fill="#fca5a5" font-size="9">Risk: missing loan decisions</text>
+          <text x="128" y="179" text-anchor="middle" fill="#fca5a5" font-size="9">Use case: low-value metrics only</text>
+          <text x="127" y="208" text-anchor="middle" fill="#ef4444" font-size="11" font-weight="700">NOT safe for LoanBot</text>
+          <!-- Col 2: At-Least-Once + Idempotency (FinTech Corp standard) -->
+          <text x="380" y="45" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">At-Least-Once + Idempotency Key</text>
+          <rect x="263" y="53" width="90" height="28" rx="6" fill="#0a2a1a" stroke="#10b981" stroke-width="1.5"/>
+          <text x="308" y="71" text-anchor="middle" fill="#6ee7b7" font-size="10">Producer xAdd</text>
+          <line x1="353" y1="67" x2="398" y2="67" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m25_3a)"/>
+          <rect x="398" y="53" width="90" height="28" rx="6" fill="#0a2a1a" stroke="#10b981" stroke-width="1.5"/>
+          <text x="443" y="71" text-anchor="middle" fill="#6ee7b7" font-size="10">Worker + ACK</text>
+          <text x="380" y="101" text-anchor="middle" fill="#94a3b8" font-size="9">Crash: PEL keeps message</text>
+          <text x="380" y="113" text-anchor="middle" fill="#94a3b8" font-size="9">30s timeout -&gt; xclaim re-deliver</text>
+          <rect x="310" y="120" width="140" height="22" rx="5" fill="#0d2218" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="380" y="134" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">Idempotency: check DB first</text>
+          <rect x="263" y="152" width="234" height="42" rx="5" fill="#0d2218" stroke="#16a34a" stroke-width="1"/>
+          <text x="380" y="165" text-anchor="middle" fill="#86efac" font-size="9">result_exists(correlation_id)? skip</text>
+          <text x="380" y="179" text-anchor="middle" fill="#86efac" font-size="9">else: process + store + ACK</text>
+          <text x="380" y="208" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">FinTech Corp standard choice</text>
+          <!-- Col 3: Exactly-Once -->
+          <text x="633" y="45" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">Exactly-Once (2PC)</text>
+          <rect x="517" y="53" width="90" height="28" rx="6" fill="#0a1a2e" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="562" y="71" text-anchor="middle" fill="#93c5fd" font-size="10">Producer + lock</text>
+          <line x1="607" y1="67" x2="652" y2="67" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m25_3a)"/>
+          <rect x="652" y="53" width="90" height="28" rx="6" fill="#0a1a2e" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="697" y="67" text-anchor="middle" fill="#93c5fd" font-size="10">Worker</text>
+          <text x="697" y="79" text-anchor="middle" fill="#93c5fd" font-size="10">dedup check</text>
+          <text x="633" y="105" text-anchor="middle" fill="#94a3b8" font-size="9">Distributed lock + dedup DB</text>
+          <text x="633" y="117" text-anchor="middle" fill="#94a3b8" font-size="9">Transactional ACK + DB write</text>
+          <rect x="517" y="128" width="224" height="28" rx="5" fill="#0a1220" stroke="#2563eb" stroke-width="1"/>
+          <text x="633" y="143" text-anchor="middle" fill="#93c5fd" font-size="9">Latency penalty: +50-200ms/call</text>
+          <text x="633" y="155" text-anchor="middle" fill="#93c5fd" font-size="9">Kafka EOS or 2-phase commit</text>
+          <rect x="517" y="163" width="224" height="28" rx="5" fill="#0a1220" stroke="#2563eb" stroke-width="1"/>
+          <text x="633" y="175" text-anchor="middle" fill="#93c5fd" font-size="9">Complexity: very high</text>
+          <text x="633" y="187" text-anchor="middle" fill="#93c5fd" font-size="9">Not justified vs At-Least-Once</text>
+          <text x="633" y="208" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="700">Overkill for most loan cases</text>
+        </svg>
+        <div class="diagram-title">Hình 3: 3 Delivery Guarantees so sanh. At-Most-Once mat task khi worker crash (NGUY HIEM cho loan decisions). At-Least-Once + Idempotency Key la lua chon toi uu cho LoanBot: re-deliver an toan vi co check result_exists(correlation_id). Exactly-Once qua phuc tap va co latency penalty khong can thiet.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -501,6 +569,70 @@
         self.queue.r.<span class="code-function">set</span>(<span class="code-string">"signal:stop_one_worker"</span>, <span class="code-string">"1"</span>, ex=<span class="code-number">120</span>)</code></pre>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Little's Law Auto-Scaling Decision: queue depth vs worker count over time, scale-up at depth 50, scale-down at depth 5, FinTech Corp peak 11 workers</title>
+          <defs>
+            <marker id="arr_m25_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Little's Law Auto-Scaling: LoanBot Worker Fleet (L = lambda x W)</text>
+          <!-- Left: Little's Law formula box -->
+          <rect x="15" y="35" width="210" height="105" rx="8" fill="#0f2040" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="120" y="55" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="700">Little's Law: L = lambda x W</text>
+          <text x="120" y="72" text-anchor="middle" fill="#93c5fd" font-size="10">L = tasks in system (queue+processing)</text>
+          <text x="120" y="86" text-anchor="middle" fill="#93c5fd" font-size="10">lambda = arrival rate (tasks/sec)</text>
+          <text x="120" y="100" text-anchor="middle" fill="#93c5fd" font-size="10">W = processing time (sec/task)</text>
+          <line x1="20" y1="107" x2="220" y2="107" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="120" y="122" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">Peak: 3.3 x 2.5 = 8.25 tasks</text>
+          <text x="120" y="135" text-anchor="middle" fill="#34d399" font-size="10">Min workers: 9 (+20% buffer = 11)</text>
+          <!-- Right: Timeline chart -->
+          <text x="490" y="38" text-anchor="middle" fill="#94a3b8" font-size="10">Queue Depth + Workers Over Time</text>
+          <!-- Chart axes -->
+          <line x1="250" y1="155" x2="745" y2="155" stroke="#334155" stroke-width="1.5"/>
+          <line x1="250" y1="45" x2="250" y2="155" stroke="#334155" stroke-width="1.5"/>
+          <!-- Y axis labels -->
+          <text x="244" y="50" text-anchor="end" fill="#94a3b8" font-size="9">120</text>
+          <text x="244" y="80" text-anchor="end" fill="#94a3b8" font-size="9">80</text>
+          <text x="244" y="110" text-anchor="end" fill="#94a3b8" font-size="9">40</text>
+          <text x="244" y="140" text-anchor="end" fill="#94a3b8" font-size="9">0</text>
+          <!-- Horizontal guides -->
+          <line x1="250" y1="50" x2="745" y2="50" stroke="#1e293b" stroke-width="1"/>
+          <line x1="250" y1="80" x2="745" y2="80" stroke="#1e293b" stroke-width="1"/>
+          <line x1="250" y1="110" x2="745" y2="110" stroke="#1e293b" stroke-width="1"/>
+          <!-- Threshold lines -->
+          <line x1="250" y1="97" x2="745" y2="97" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5,3"/>
+          <text x="748" y="100" fill="#f59e0b" font-size="9">scale-up</text>
+          <line x1="250" y1="143" x2="745" y2="143" stroke="#10b981" stroke-width="1" stroke-dasharray="5,3"/>
+          <text x="748" y="146" fill="#10b981" font-size="9">scale-dn</text>
+          <!-- Queue depth curve (blue) -->
+          <polyline points="255,148 290,145 330,112 370,88 410,65 450,58 490,70 530,97 565,125 600,138 640,148 680,148 720,148" fill="none" stroke="#60a5fa" stroke-width="2"/>
+          <!-- Worker count step function (green) -->
+          <polyline points="255,148 290,148 330,130 370,130 410,113 450,113 490,113 530,130 565,130 600,148 640,148 680,148 720,148" fill="none" stroke="#34d399" stroke-width="2" stroke-dasharray="6,2"/>
+          <!-- Labels -->
+          <text x="400" y="58" text-anchor="middle" fill="#60a5fa" font-size="9">Queue depth</text>
+          <text x="400" y="125" text-anchor="middle" fill="#34d399" font-size="9">Worker count</text>
+          <!-- Scale events annotations -->
+          <line x1="340" y1="103" x2="340" y2="80" stroke="#f59e0b" stroke-width="1"/>
+          <text x="340" y="76" text-anchor="middle" fill="#f59e0b" font-size="8">scale up</text>
+          <line x1="545" y1="135" x2="545" y2="155" stroke="#10b981" stroke-width="1"/>
+          <text x="545" y="167" text-anchor="middle" fill="#10b981" font-size="8">scale down</text>
+          <!-- Bottom legend -->
+          <rect x="260" y="170" width="10" height="3" fill="#60a5fa"/>
+          <text x="274" y="176" fill="#94a3b8" font-size="9">Queue Depth (tasks)</text>
+          <rect x="390" y="170" width="10" height="3" fill="#34d399"/>
+          <text x="404" y="176" fill="#94a3b8" font-size="9">Workers (count)</text>
+          <!-- Off-peak calc -->
+          <rect x="15" y="150" width="210" height="55" rx="6" fill="#0f1f1a" stroke="#10b981" stroke-width="1"/>
+          <text x="120" y="165" text-anchor="middle" fill="#6ee7b7" font-size="10" font-weight="700">Off-peak: 0.4/s x 2.5s = 1 task</text>
+          <text x="120" y="179" text-anchor="middle" fill="#6ee7b7" font-size="10">Min workers: 2 (floor)</text>
+          <text x="120" y="193" text-anchor="middle" fill="#6ee7b7" font-size="10">Cooldown: 60s between events</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Little's Law Auto-Scaling cho LoanBot worker fleet. Peak load: lambda=3.3 tasks/s, W=2.5s/task -> L=8.25 concurrent tasks -> can min 9 workers (deploy 11 voi 20% buffer). Off-peak: 2 workers du. Scale-up trigger: queue depth >50; Scale-down: <5. Cooldown 60s giua cac scale events de tranh flapping.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -611,6 +743,73 @@ SLO_TARGETS = {
             </li>
           </ol>
         </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Distributed Tracing Spans cho LoanBot: 5 spans tu API Gateway qua Redis Queue toi Worker, CIC API va Decision DB. Moi span co duration va status. p99 latency = tong cong tat ca spans tren duong critical path.</title>
+          <defs>
+            <marker id="arr_m25_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Distributed Tracing: LoanBot Request Journey (Correlation ID: app-FC-2024-9999)</text>
+          <!-- Timeline bar chart of spans -->
+          <!-- Axis -->
+          <line x1="30" y1="180" x2="740" y2="180" stroke="#334155" stroke-width="1"/>
+          <text x="30" y="193" text-anchor="start" fill="#94a3b8" font-size="9">0ms</text>
+          <text x="177" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">2000ms</text>
+          <text x="325" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">4000ms</text>
+          <text x="473" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">6000ms</text>
+          <text x="621" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">8000ms</text>
+          <text x="740" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">10s</text>
+          <!-- Vertical tick marks -->
+          <line x1="177" y1="178" x2="177" y2="183" stroke="#334155" stroke-width="1"/>
+          <line x1="325" y1="178" x2="325" y2="183" stroke="#334155" stroke-width="1"/>
+          <line x1="473" y1="178" x2="473" y2="183" stroke="#334155" stroke-width="1"/>
+          <line x1="621" y1="178" x2="621" y2="183" stroke="#334155" stroke-width="1"/>
+          <!-- Span 1: API Gateway (0-80ms) -->
+          <rect x="30" y="40" width="10" height="28" rx="3" fill="#3b82f6"/>
+          <text x="44" y="50" fill="#93c5fd" font-size="10" font-weight="700">span: api_gateway</text>
+          <rect x="44" y="50" width="6" height="10" rx="2" fill="#1e40af"/>
+          <text x="54" y="59" fill="#60a5fa" font-size="9">0-80ms | validate + auth | OK</text>
+          <!-- Span 2: Queue Enqueue (80-120ms) -->
+          <rect x="30" y="75" width="10" height="28" rx="3" fill="#8b5cf6"/>
+          <text x="44" y="85" fill="#c4b5fd" font-size="10" font-weight="700">span: queue_enqueue</text>
+          <rect x="44" y="85" width="5" height="10" rx="2" fill="#5b21b6"/>
+          <text x="53" y="94" fill="#a78bfa" font-size="9">80-120ms | xAdd to stream | OK</text>
+          <!-- Span 3: Worker Process (120-5200ms, parallel CIC) -->
+          <rect x="30" y="110" width="10" height="28" rx="3" fill="#10b981"/>
+          <text x="44" y="120" fill="#6ee7b7" font-size="10" font-weight="700">span: worker_process</text>
+          <rect x="44" y="120" width="37" height="10" rx="2" fill="#065f46"/>
+          <text x="83" y="129" fill="#34d399" font-size="9">120-5200ms | LLM inference | OK</text>
+          <!-- Span 4: CIC API call (parallel, 150-1650ms) -->
+          <rect x="110" y="145" width="10" height="20" rx="3" fill="#f59e0b"/>
+          <text x="124" y="157" fill="#fde68a" font-size="9" font-weight="700">span: cic_api_call</text>
+          <rect x="124" y="152" width="11" height="10" rx="2" fill="#92400e"/>
+          <text x="138" y="161" fill="#fcd34d" font-size="9">150-1650ms | external CIC | OK (1500ms)</text>
+          <!-- Span 5: DB Write (5200-5420ms) -->
+          <rect x="30" y="165" width="10" height="10" rx="3" fill="#ef4444"/>
+          <text x="44" y="173" fill="#fca5a5" font-size="9" font-weight="700">span: db_write</text>
+          <rect x="394" y="168" width="3" height="8" rx="2" fill="#991b1b"/>
+          <text x="400" y="175" fill="#f87171" font-size="9">5200-5420ms | postgres insert | OK (220ms)</text>
+          <!-- Total trace line -->
+          <line x1="30" y1="200" x2="441" y2="200" stroke="#34d399" stroke-width="2"/>
+          <text x="235" y="213" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">Total trace p50: ~5.4s | p99: ~8.9s</text>
+          <!-- Legend area on right -->
+          <rect x="545" y="35" width="200" height="130" rx="8" fill="#0f1f35" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="645" y="52" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Trace Analysis</text>
+          <text x="553" y="68" fill="#94a3b8" font-size="9">Critical path bottleneck:</text>
+          <text x="553" y="82" fill="#fde68a" font-size="9" font-weight="700">worker_process (LLM) = 5080ms</text>
+          <text x="553" y="96" fill="#94a3b8" font-size="9">If p99 &gt; 10s -&gt; check this span</text>
+          <line x1="553" y1="104" x2="737" y2="104" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="553" y="118" fill="#94a3b8" font-size="9">SLO targets:</text>
+          <text x="553" y="132" fill="#34d399" font-size="9">p50 &lt; 6s [PASS: 5.4s]</text>
+          <text x="553" y="146" fill="#34d399" font-size="9">p99 &lt; 10s [PASS: 8.9s]</text>
+          <text x="553" y="160" fill="#94a3b8" font-size="9">Correlation ID logged each span</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Distributed Tracing Spans cho mot LoanBot request (Correlation ID: app-FC-2024-9999). Critical path: worker_process (LLM inference) chiem 5080ms / 5420ms tong. CIC API call chay song song (parallel) trong worker span - khong add vao critical path. p99 8.9s van trong SLO target 10s. Neu p99 > 10s: check worker_process span truoc tien.</div>
       </div>
 
       <hr class="lesson-divider">

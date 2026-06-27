@@ -255,6 +255,70 @@
         <p style="font-size:.85rem;margin-top:var(--space-2);">TTFB: 0.3 giây. Nhân viên đọc được ngay dòng đầu trong khi LoanBot vẫn đang xử lý những phần tiếp theo.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>SSE Wire Format: text/event-stream protocol — ba loai event start, data token, done tu FastAPI toi Browser EventSource</title>
+          <defs>
+            <marker id="arr_m21_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#38bdf8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">SSE Wire Format: StreamingResponse → HTTP/1.1 → Browser EventSource</text>
+
+          <!-- Server box -->
+          <rect x="18" y="38" width="210" height="163" fill="#0c1f36" rx="8" stroke="#38bdf8" stroke-width="1.5"/>
+          <text x="123" y="56" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="700">FastAPI Server</text>
+          <text x="123" y="68" text-anchor="middle" fill="#475569" font-size="8">StreamingResponse(gen, media_type="text/event-stream")</text>
+
+          <rect x="28" y="76" width="190" height="30" fill="#0f172a" rx="4" stroke="#86efac" stroke-width="1"/>
+          <text x="38" y="89" fill="#86efac" font-size="9" font-weight="700">event: start</text>
+          <text x="38" y="101" fill="#94a3b8" font-size="8">data: {"app_id":"FC-2024-002"}</text>
+
+          <rect x="28" y="112" width="190" height="30" fill="#0f172a" rx="4" stroke="#38bdf8" stroke-width="1"/>
+          <text x="38" y="126" fill="#38bdf8" font-size="9" font-weight="700">data: {"type":"token","text":"Credit"}</text>
+          <text x="38" y="138" fill="#475569" font-size="8">... repeated per token (~400x) ...</text>
+
+          <rect x="28" y="148" width="190" height="30" fill="#0f172a" rx="4" stroke="#fde047" stroke-width="1"/>
+          <text x="38" y="162" fill="#fde047" font-size="9" font-weight="700">event: done</text>
+          <text x="38" y="174" fill="#94a3b8" font-size="8">data: {"status":"complete"}</text>
+
+          <text x="123" y="196" text-anchor="middle" fill="#334155" font-size="8">X-Accel-Buffering: no  |  Cache-Control: no-cache</text>
+
+          <!-- Arrow -->
+          <line x1="228" y1="119" x2="268" y2="119" stroke="#38bdf8" stroke-width="2" marker-end="url(#arr_m21_3)"/>
+          <text x="248" y="112" text-anchor="middle" fill="#38bdf8" font-size="9" font-weight="700">HTTP/1.1</text>
+          <text x="248" y="133" text-anchor="middle" fill="#475569" font-size="8">persistent conn.</text>
+
+          <!-- Browser box -->
+          <rect x="271" y="38" width="472" height="163" fill="#0c1f36" rx="8" stroke="#34d399" stroke-width="1.5"/>
+          <text x="507" y="56" text-anchor="middle" fill="#6ee7b7" font-size="10" font-weight="700">Browser: EventSource("url")</text>
+
+          <rect x="281" y="64" width="205" height="48" fill="#0f172a" rx="4" stroke="#86efac" stroke-width="1"/>
+          <text x="291" y="79" fill="#86efac" font-size="9" font-weight="700">addEventListener('start', fn)</text>
+          <text x="291" y="93" fill="#94a3b8" font-size="8">UI: hien "Dang phan tich FC-002..."</text>
+          <text x="291" y="106" fill="#475569" font-size="8">readyState → OPEN</text>
+
+          <rect x="281" y="118" width="205" height="48" fill="#0f172a" rx="4" stroke="#38bdf8" stroke-width="1"/>
+          <text x="291" y="133" fill="#38bdf8" font-size="9" font-weight="700">es.onmessage = (e) =></text>
+          <text x="291" y="147" fill="#94a3b8" font-size="8">el.textContent += data.text</text>
+          <text x="291" y="160" fill="#475569" font-size="8">Trigger: anonymous data: frame</text>
+
+          <rect x="498" y="64" width="235" height="48" fill="#0f172a" rx="4" stroke="#fde047" stroke-width="1"/>
+          <text x="508" y="79" fill="#fde047" font-size="9" font-weight="700">addEventListener('done', fn)</text>
+          <text x="508" y="93" fill="#94a3b8" font-size="8">es.close() — giai phong connection</text>
+          <text x="508" y="106" fill="#475569" font-size="8">xoa cursor, danh dau hoan thanh</text>
+
+          <rect x="498" y="118" width="235" height="48" fill="#065f46" rx="4" stroke="#34d399" stroke-width="1"/>
+          <text x="508" y="133" fill="#86efac" font-size="9" font-weight="700">Auto-reconnect (built-in)</text>
+          <text x="508" y="147" fill="#6ee7b7" font-size="8">Last-Event-ID header → resume tu event cuoi</text>
+          <text x="508" y="160" fill="#6ee7b7" font-size="8">TTFB = 0.3s  |  zero setup overhead</text>
+
+          <text x="507" y="196" text-anchor="middle" fill="#334155" font-size="8">readyState: CONNECTING(0) → OPEN(1) → CLOSED(2)</text>
+        </svg>
+        <div class="diagram-title">Hình 3: SSE Wire Format. Server gửi 3 loại events: "start" (khởi tạo UI), anonymous data (từng token), "done" (đóng stream). Browser EventSource tự động parse format `data: ...\n\n` và dispatch events theo đúng type. Auto-reconnect và Last-Event-ID là features built-in, không cần code thêm.</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python / FastAPI (SSE Streaming Endpoint)</span>
         <pre><code><span class="code-keyword">from</span> fastapi <span class="code-keyword">import</span> FastAPI
@@ -529,6 +593,89 @@ manager = <span class="code-function">ConnectionManager</span>()
         </ol>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Streaming Tool Call Event Sequence: content_block_start tool_use, input_json_delta accumulation, execute CIC, resume text stream cho LoanBot</title>
+          <defs>
+            <marker id="arr_m21_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+            <marker id="arr_m21_4g" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#86efac"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Streaming Tool Call Event Sequence — LoanBot query CIC in-stream</text>
+
+          <!-- Phase labels at top -->
+          <text x="80" y="42" text-anchor="middle" fill="#2dd4bf" font-size="9" font-weight="700">Phase 1</text>
+          <text x="80" y="52" text-anchor="middle" fill="#64748b" font-size="8">Text stream</text>
+
+          <text x="245" y="42" text-anchor="middle" fill="#fde047" font-size="9" font-weight="700">Phase 2</text>
+          <text x="245" y="52" text-anchor="middle" fill="#64748b" font-size="8">Tool detected</text>
+
+          <text x="410" y="42" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="700">Phase 3</text>
+          <text x="410" y="52" text-anchor="middle" fill="#64748b" font-size="8">JSON builds</text>
+
+          <text x="560" y="42" text-anchor="middle" fill="#f97316" font-size="9" font-weight="700">Phase 4</text>
+          <text x="560" y="52" text-anchor="middle" fill="#64748b" font-size="8">Execute tool</text>
+
+          <text x="690" y="42" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">Phase 5</text>
+          <text x="690" y="52" text-anchor="middle" fill="#64748b" font-size="8">Resume stream</text>
+
+          <!-- Phase boxes -->
+          <rect x="20" y="60" width="120" height="60" fill="#134e4a" rx="6" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="80" y="79" text-anchor="middle" fill="#2dd4bf" font-size="8" font-weight="700">content_block_delta</text>
+          <text x="80" y="91" text-anchor="middle" fill="#94a3b8" font-size="8">type: text_delta</text>
+          <text x="80" y="105" text-anchor="middle" fill="#99f6e4" font-size="8">"Score 638, can"</text>
+          <text x="80" y="114" text-anchor="middle" fill="#99f6e4" font-size="8">"kiem tra CIC..."</text>
+
+          <line x1="140" y1="90" x2="165" y2="90" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m21_4)"/>
+
+          <rect x="168" y="60" width="155" height="60" fill="#422006" rx="6" stroke="#fde047" stroke-width="1.5"/>
+          <text x="245" y="79" text-anchor="middle" fill="#fde047" font-size="8" font-weight="700">content_block_start</text>
+          <text x="245" y="91" text-anchor="middle" fill="#fdba74" font-size="8">type: tool_use</text>
+          <text x="245" y="105" text-anchor="middle" fill="#fdba74" font-size="8">name: "query_cic"</text>
+          <text x="245" y="114" text-anchor="middle" fill="#fdba74" font-size="8">id: "toolu_01X..."</text>
+
+          <line x1="323" y1="90" x2="348" y2="90" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m21_4)"/>
+
+          <rect x="351" y="60" width="120" height="60" fill="#3b0764" rx="6" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="411" y="79" text-anchor="middle" fill="#a78bfa" font-size="8" font-weight="700">input_json_delta</text>
+          <text x="411" y="91" text-anchor="middle" fill="#94a3b8" font-size="8">chunk: '{"cust'</text>
+          <text x="411" y="103" text-anchor="middle" fill="#94a3b8" font-size="8">chunk: 'omer_id'</text>
+          <text x="411" y="114" text-anchor="middle" fill="#94a3b8" font-size="8">chunk: ':"FC-002"}'</text>
+
+          <line x1="471" y1="90" x2="496" y2="90" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m21_4)"/>
+
+          <rect x="499" y="60" width="125" height="60" fill="#1e3a5f" rx="6" stroke="#f97316" stroke-width="2"/>
+          <text x="561" y="79" text-anchor="middle" fill="#f97316" font-size="8" font-weight="700">stop_reason: tool_use</text>
+          <text x="561" y="91" text-anchor="middle" fill="#fdba74" font-size="8">execute_tool(</text>
+          <text x="561" y="103" text-anchor="middle" fill="#fdba74" font-size="8">"query_cic",</text>
+          <text x="561" y="114" text-anchor="middle" fill="#fdba74" font-size="8">{"customer_id":...})</text>
+
+          <line x1="624" y1="90" x2="649" y2="90" stroke="#86efac" stroke-width="1.5" marker-end="url(#arr_m21_4g)"/>
+
+          <rect x="652" y="60" width="90" height="60" fill="#0c2e0c" rx="6" stroke="#86efac" stroke-width="1.5"/>
+          <text x="697" y="79" text-anchor="middle" fill="#86efac" font-size="8" font-weight="700">tool_result</text>
+          <text x="697" y="91" text-anchor="middle" fill="#6ee7b7" font-size="8">append to</text>
+          <text x="697" y="103" text-anchor="middle" fill="#6ee7b7" font-size="8">messages[]</text>
+          <text x="697" y="114" text-anchor="middle" fill="#6ee7b7" font-size="8">→ new API call</text>
+
+          <!-- Bottom section: UI display -->
+          <rect x="20" y="138" width="720" height="64" fill="#0c1f36" rx="6" stroke="#334155"/>
+          <text x="380" y="153" text-anchor="middle" fill="#64748b" font-size="9" font-weight="700">UI User Experience (what analyst sees):</text>
+          <rect x="30" y="158" width="88" height="18" fill="#134e4a" rx="3"/>
+          <text x="74" y="170" text-anchor="middle" fill="#99f6e4" font-size="8">Text streaming...</text>
+          <rect x="122" y="158" width="120" height="18" fill="#422006" rx="3" stroke="#fde047"/>
+          <text x="182" y="170" text-anchor="middle" fill="#fde047" font-size="8">Dang truy van CIC... (2-4s)</text>
+          <rect x="246" y="158" width="494" height="18" fill="#134e4a" rx="3"/>
+          <text x="493" y="170" text-anchor="middle" fill="#99f6e4" font-size="8">...stream resumes: "CIC: 0 no xau, 2 khoans dung han. Ket luan: APPROVE confidence 0.88"</text>
+          <text x="380" y="196" text-anchor="middle" fill="#334155" font-size="8">Tool execution phase (Phase 4) phai hien thi progress UI — tranh nguoi dung nghi man hinh bi treo khi CIC API mat 2-4 giay</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Streaming Tool Call Event Sequence. Phase 1: text stream bình thường. Phase 2: content_block_start type=tool_use phát hiện. Phase 3: input_json_delta chunks tích lũy thành JSON hoàn chỉnh. Phase 4: execute tool (CIC API, ~2-4s). Phase 5: append tool_result, resume API call, text stream tiếp. UI phải hiển thị "đang truy vấn CIC..." để tránh khoảng im lặng.</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (Streaming Tool Call Handler)</span>
         <pre><code><span class="code-keyword">import</span> json, anthropic
@@ -619,6 +766,94 @@ manager = <span class="code-function">ConnectionManager</span>()
       <div class="callout warning">
         <div class="callout-header">⚠️ Backpressure Problem trong LoanBot</div>
         <p>FinTech Corp triển khai LoanBot streaming cho 200 nhân viên đồng thời. Claude API stream tokens nhanh (~50 tokens/giây), nhưng một số clients (mobile, slow connection) chỉ nhận được ~10 tokens/giây. Nếu không có backpressure: server buffer grow không giới hạn → OOM crash → tất cả 200 streams bị ngắt. Fix cần: queue với max size + slow client detection + graceful degradation.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Backpressure va Flow Control: Producer Claude API 50 tokens/sec vs Slow Consumer 8 tokens/sec — asyncio.Queue maxsize buffer management cho LoanBot 200 concurrent streams</title>
+          <defs>
+            <marker id="arr_m21_5a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#2dd4bf"/>
+            </marker>
+            <marker id="arr_m21_5b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#f87171"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Backpressure: asyncio.Queue(maxsize=100) — 200 Concurrent Streams</text>
+
+          <!-- Producer -->
+          <rect x="15" y="42" width="143" height="138" fill="#0c1f36" rx="8" stroke="#2dd4bf" stroke-width="1.5"/>
+          <text x="86" y="60" text-anchor="middle" fill="#2dd4bf" font-size="10" font-weight="700">Producer</text>
+          <text x="86" y="72" text-anchor="middle" fill="#94a3b8" font-size="8">Claude API async stream</text>
+          <rect x="25" y="80" width="123" height="18" fill="#0f172a" rx="3"/>
+          <text x="86" y="93" text-anchor="middle" fill="#7dd3fc" font-size="9">~50 tokens / sec</text>
+          <rect x="25" y="102" width="123" height="18" fill="#0f172a" rx="3"/>
+          <text x="86" y="115" text-anchor="middle" fill="#7dd3fc" font-size="9">await queue.put(token)</text>
+          <rect x="25" y="124" width="123" height="28" fill="#422006" rx="3" stroke="#f97316"/>
+          <text x="86" y="137" text-anchor="middle" fill="#fdba74" font-size="8">wait_for(put, timeout=2s)</text>
+          <text x="86" y="149" text-anchor="middle" fill="#f97316" font-size="8">BLOCKS when queue full</text>
+          <text x="86" y="170" text-anchor="middle" fill="#2dd4bf" font-size="9" font-weight="700">natural backpressure</text>
+
+          <!-- Arrow P to Q -->
+          <line x1="158" y1="111" x2="196" y2="111" stroke="#2dd4bf" stroke-width="2" marker-end="url(#arr_m21_5a)"/>
+
+          <!-- Queue -->
+          <rect x="199" y="42" width="210" height="138" fill="#0c1f36" rx="8" stroke="#fde047" stroke-width="2"/>
+          <text x="304" y="60" text-anchor="middle" fill="#fde047" font-size="10" font-weight="700">asyncio.Queue(100)</text>
+          <text x="304" y="72" text-anchor="middle" fill="#64748b" font-size="8">buffer depth:</text>
+
+          <rect x="209" y="80" width="190" height="12" fill="#1e293b" rx="2"/>
+          <rect x="209" y="80" width="19" height="12" fill="#86efac" rx="2"/>
+          <text x="406" y="91" fill="#86efac" font-size="8">10% healthy</text>
+
+          <rect x="209" y="96" width="190" height="12" fill="#1e293b" rx="2"/>
+          <rect x="209" y="96" width="95" height="12" fill="#fde047" rx="2"/>
+          <text x="406" y="107" fill="#fde047" font-size="8">50% monitor</text>
+
+          <rect x="209" y="112" width="190" height="12" fill="#1e293b" rx="2"/>
+          <rect x="209" y="112" width="152" height="12" fill="#f97316" rx="2"/>
+          <text x="406" y="123" fill="#f97316" font-size="8">80% alert!</text>
+
+          <rect x="209" y="128" width="190" height="12" fill="#dc2626" rx="2"/>
+          <text x="304" y="139" text-anchor="middle" fill="#f8fafc" font-size="8" font-weight="700">100% FULL — producer BLOCKED</text>
+
+          <text x="304" y="158" text-anchor="middle" fill="#94a3b8" font-size="8">qsize() checked every 50 tokens</text>
+          <text x="304" y="170" text-anchor="middle" fill="#475569" font-size="8">timeout 2s → drop slow client</text>
+
+          <!-- Arrow Q to Consumer -->
+          <line x1="409" y1="111" x2="447" y2="111" stroke="#94a3b8" stroke-width="2" marker-end="url(#arr_m21_5a)"/>
+
+          <!-- Fast Consumer -->
+          <rect x="450" y="42" width="142" height="58" fill="#0c2e0c" rx="8" stroke="#86efac" stroke-width="1.5"/>
+          <text x="521" y="59" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">Fast Consumer</text>
+          <text x="521" y="72" text-anchor="middle" fill="#6ee7b7" font-size="8">WiFi: ~45 tok/sec</text>
+          <text x="521" y="84" text-anchor="middle" fill="#6ee7b7" font-size="8">buffer &lt;20% — SERVED</text>
+          <text x="521" y="95" text-anchor="middle" fill="#4ade80" font-size="9" font-weight="700">normal stream</text>
+
+          <!-- Slow Consumer -->
+          <rect x="450" y="120" width="142" height="60" fill="#3b0000" rx="8" stroke="#f87171" stroke-width="1.5"/>
+          <text x="521" y="137" text-anchor="middle" fill="#f87171" font-size="9" font-weight="700">Slow Consumer</text>
+          <text x="521" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">Mobile 4G: ~8 tok/sec</text>
+          <text x="521" y="162" text-anchor="middle" fill="#fca5a5" font-size="8">buffer hits 100% in ~2s</text>
+          <text x="521" y="174" text-anchor="middle" fill="#f87171" font-size="9" font-weight="700">DROPPED</text>
+
+          <!-- Drop box -->
+          <rect x="610" y="78" width="136" height="104" fill="#0c1f36" rx="8" stroke="#f97316" stroke-width="1.5"/>
+          <text x="678" y="95" text-anchor="middle" fill="#f97316" font-size="9" font-weight="700">Drop Protocol</text>
+          <line x1="618" y1="100" x2="738" y2="100" stroke="#334155" stroke-width="1"/>
+          <text x="678" y="113" text-anchor="middle" fill="#94a3b8" font-size="8">TimeoutError → caught</text>
+          <text x="678" y="125" text-anchor="middle" fill="#94a3b8" font-size="8">health.dropped = True</text>
+          <text x="678" y="137" text-anchor="middle" fill="#fde047" font-size="8">log_slow_client(health)</text>
+          <rect x="618" y="145" width="112" height="16" fill="#7f1d1d" rx="4"/>
+          <text x="674" y="157" text-anchor="middle" fill="#fca5a5" font-size="8" font-weight="700">ALERT if &gt;1% clients</text>
+          <text x="678" y="173" text-anchor="middle" fill="#86efac" font-size="8">199 fast OK unaffected</text>
+
+          <line x1="592" y1="152" x2="607" y2="152" stroke="#f87171" stroke-width="1.5" marker-end="url(#arr_m21_5b)"/>
+
+          <text x="380" y="204" text-anchor="middle" fill="#334155" font-size="8">Backpressure rule: producer wait_for(put, 2s). Queue full &gt;2s = slow client. Break producer, free buffer. 199 fast clients unaffected. Alert ops when drop_rate &gt;1%.</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Backpressure với asyncio.Queue(maxsize=100). Producer (Claude ~50 tok/s) tự block khi queue đầy — natural backpressure không cần code thêm. Slow consumer (~8 tok/s) làm queue fill → timeout 2s → graceful drop, log_slow_client(). Alert khi >1% clients bị drop. 199 fast clients không bị ảnh hưởng.</div>
       </div>
 
       <div class="code-block">

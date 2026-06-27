@@ -404,6 +404,81 @@
         <div class="tier-stat"><span class="saving-badge">-10–20%</span></div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>3-Layer Caching Architecture cho LoanBot: L1 Prompt Cache (provider-side), L2 Semantic Cache (vector store), L3 Result Cache (business logic) — mỗi lớp giảm chi phí ở điểm khác nhau</title>
+          <defs>
+            <marker id="arrow10a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="240" fill="#0f172a" rx="12"/>
+          <text x="380" y="26" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">3-Layer Caching Architecture — LoanBot v3.0</text>
+
+          <!-- Request box -->
+          <rect x="18" y="100" width="100" height="45" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+          <text x="68" y="120" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="700">Loan Request</text>
+          <text x="68" y="136" text-anchor="middle" fill="#64748b" font-size="10">50K/month</text>
+
+          <!-- Arrow to L3 -->
+          <line x1="118" y1="122" x2="148" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10a)"/>
+
+          <!-- L3 Result Cache -->
+          <rect x="150" y="80" width="150" height="85" rx="8" fill="#1a2e1a" stroke="#10b981" stroke-width="1.5"/>
+          <text x="225" y="102" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">L3 Result Cache</text>
+          <text x="225" y="118" text-anchor="middle" fill="#d1fae5" font-size="11">Business Logic</text>
+          <text x="225" y="134" text-anchor="middle" fill="#64748b" font-size="10">Same customer 24h</text>
+          <text x="225" y="148" text-anchor="middle" fill="#10b981" font-size="10" font-weight="700">-10 to -20% cost</text>
+
+          <!-- Hit return L3 -->
+          <line x1="150" y1="90" x2="118" y2="70" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow10a)"/>
+          <text x="100" y="66" text-anchor="middle" fill="#10b981" font-size="10">HIT</text>
+
+          <!-- Miss arrow to L2 -->
+          <line x1="300" y1="122" x2="330" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10a)"/>
+          <text x="315" y="115" text-anchor="middle" fill="#64748b" font-size="10">MISS</text>
+
+          <!-- L2 Semantic Cache -->
+          <rect x="332" y="80" width="150" height="85" rx="8" fill="#1e1b4b" stroke="#818cf8" stroke-width="1.5"/>
+          <text x="407" y="102" text-anchor="middle" fill="#c7d2fe" font-size="11" font-weight="700">L2 Semantic Cache</text>
+          <text x="407" y="118" text-anchor="middle" fill="#ddd6fe" font-size="11">Vector Store</text>
+          <text x="407" y="134" text-anchor="middle" fill="#64748b" font-size="10">similarity &gt; 0.95</text>
+          <text x="407" y="148" text-anchor="middle" fill="#818cf8" font-size="10" font-weight="700">-30 to -50% cost</text>
+
+          <!-- Hit return L2 -->
+          <line x1="332" y1="90" x2="300" y2="70" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow10a)"/>
+          <text x="282" y="66" text-anchor="middle" fill="#818cf8" font-size="10">HIT</text>
+
+          <!-- Miss arrow to L1 -->
+          <line x1="482" y1="122" x2="512" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10a)"/>
+          <text x="497" y="115" text-anchor="middle" fill="#64748b" font-size="10">MISS</text>
+
+          <!-- L1 Prompt Cache -->
+          <rect x="514" y="80" width="150" height="85" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="589" y="102" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="700">L1 Prompt Cache</text>
+          <text x="589" y="118" text-anchor="middle" fill="#bfdbfe" font-size="11">Provider-Side</text>
+          <text x="589" y="134" text-anchor="middle" fill="#64748b" font-size="10">Anthropic KV, 5 min</text>
+          <text x="589" y="148" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700">-90% cached tokens</text>
+
+          <!-- Hit return L1 -->
+          <line x1="514" y1="90" x2="482" y2="70" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="4 2" marker-end="url(#arrow10a)"/>
+          <text x="464" y="66" text-anchor="middle" fill="#3b82f6" font-size="10">HIT</text>
+
+          <!-- LLM Call (all miss) -->
+          <line x1="664" y1="122" x2="694" y2="122" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10a)"/>
+          <text x="679" y="115" text-anchor="middle" fill="#64748b" font-size="10">MISS</text>
+          <rect x="696" y="100" width="52" height="45" rx="8" fill="#292524" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="722" y="120" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="700">LLM</text>
+          <text x="722" y="134" text-anchor="middle" fill="#64748b" font-size="10">Full cost</text>
+
+          <!-- Bottom combined savings label -->
+          <text x="380" y="195" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700">Combined Savings: ~60% tong chi phi voi LoanBot (50K ho so/thang)</text>
+          <text x="380" y="215" text-anchor="middle" fill="#64748b" font-size="10">L3 check truoc (fastest) → L2 check (similarity) → L1 check (provider) → LLM call (full price)</text>
+          <text x="380" y="230" text-anchor="middle" fill="#475569" font-size="10" font-style="italic">Breakeven sau 2 hits — voi 50K ho so/thang, cache always pays off</text>
+        </svg>
+        <div class="diagram-title">Hình 10.2: 3-Layer Caching Architecture — request đi qua từng lớp từ nhanh/rẻ đến chậm/đắt</div>
+      </div>
+
       <div class="callout analogy">
         <div class="callout-header">💡 Analogy: Nhân viên ngân hàng và bộ nhớ</div>
         <p>Hình dung Prompt Cache như nhân viên đã <strong>đọc sẵn quy trình</strong> trước ca làm việc — không cần đọc lại cho mỗi khách. Semantic Cache như nhớ rằng "ông A và ông B có cùng profile nên quyết định giống nhau". Result Cache như ghi vào sổ: "khách C đã được duyệt sáng nay, không cần thẩm định lại".</p>
@@ -758,6 +833,70 @@ client = anthropic.Anthropic()
         <div class="concept-check-answer">
           <strong>Gợi ý:</strong> Baseline: 50.000 × $0.006 = $300/tháng. Batch portion: 17.500 hồ sơ × $0.003 (50% off) = $52.5. Real-time portion: 32.500 × $0.006 = $195. Total: $247.5/tháng. Tiết kiệm: $52.5/tháng (17.5%). Nhỏ nhưng không cần thay đổi code logic — chỉ add routing layer.
         </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 250" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Mixed Strategy: Real-time Pipeline vs Batch API cho LoanBot — phân loại hồ sơ theo priority để tối ưu chi phí và latency</title>
+          <defs>
+            <marker id="arrow10b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="250" fill="#0f172a" rx="12"/>
+          <text x="380" y="26" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Mixed Strategy: Real-time vs Batch — LoanBot Cost Optimization</text>
+
+          <!-- Incoming loans -->
+          <rect x="20" y="105" width="110" height="50" rx="8" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+          <text x="75" y="127" text-anchor="middle" fill="#cbd5e1" font-size="12" font-weight="700">50K Ho So</text>
+          <text x="75" y="143" text-anchor="middle" fill="#64748b" font-size="10">moi thang</text>
+
+          <!-- Arrow to router -->
+          <line x1="130" y1="130" x2="165" y2="130" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10b)"/>
+
+          <!-- Priority Router -->
+          <rect x="167" y="100" width="120" height="60" rx="8" fill="#292524" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="227" y="124" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">Priority</text>
+          <text x="227" y="140" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">Router</text>
+          <text x="227" y="153" text-anchor="middle" fill="#64748b" font-size="10">VIP / Amount / SLA</text>
+
+          <!-- Arrow up to Real-time -->
+          <line x1="287" y1="115" x2="340" y2="85" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10b)"/>
+          <text x="305" y="95" text-anchor="middle" fill="#94a3b8" font-size="10">65%</text>
+
+          <!-- Arrow down to Batch -->
+          <line x1="287" y1="148" x2="340" y2="178" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow10b)"/>
+          <text x="305" y="172" text-anchor="middle" fill="#94a3b8" font-size="10">35%</text>
+
+          <!-- Real-time pipeline -->
+          <rect x="342" y="50" width="185" height="75" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="434" y="74" text-anchor="middle" fill="#93c5fd" font-size="12" font-weight="700">Real-time Pipeline</text>
+          <text x="434" y="90" text-anchor="middle" fill="#bfdbfe" font-size="11">asyncio.gather() + Rate Limiter</text>
+          <text x="434" y="105" text-anchor="middle" fill="#64748b" font-size="10">Latency: 5 sec target</text>
+          <text x="434" y="118" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="700">Cost: $0.006 / ho so</text>
+
+          <!-- Batch pipeline -->
+          <rect x="342" y="155" width="185" height="75" rx="8" fill="#14532d" stroke="#10b981" stroke-width="1.5"/>
+          <text x="434" y="179" text-anchor="middle" fill="#6ee7b7" font-size="12" font-weight="700">Batch API Pipeline</text>
+          <text x="434" y="195" text-anchor="middle" fill="#d1fae5" font-size="11">Submit 22:00, results 06:00</text>
+          <text x="434" y="210" text-anchor="middle" fill="#64748b" font-size="10">Latency: up to 24 hours</text>
+          <text x="434" y="223" text-anchor="middle" fill="#10b981" font-size="10" font-weight="700">Cost: $0.003 / ho so (50% off)</text>
+
+          <!-- Arrow real-time result -->
+          <line x1="527" y1="88" x2="590" y2="88" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#arrow10b)"/>
+          <rect x="592" y="65" width="145" height="45" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1"/>
+          <text x="664" y="85" text-anchor="middle" fill="#93c5fd" font-size="11">Loan Officer notified</text>
+          <text x="664" y="100" text-anchor="middle" fill="#64748b" font-size="10">instantly in dashboard</text>
+
+          <!-- Arrow batch result -->
+          <line x1="527" y1="192" x2="590" y2="192" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow10b)"/>
+          <rect x="592" y="170" width="145" height="45" rx="8" fill="#1e293b" stroke="#10b981" stroke-width="1"/>
+          <text x="664" y="189" text-anchor="middle" fill="#6ee7b7" font-size="11">Morning batch report</text>
+          <text x="664" y="205" text-anchor="middle" fill="#64748b" font-size="10">bulk review by team</text>
+
+          <text x="380" y="244" text-anchor="middle" fill="#475569" font-size="10" font-style="italic">Total savings vs all real-time: 17.5% cost reduction — khong thay doi business logic, chi add routing layer</text>
+        </svg>
+        <div class="diagram-title">Hình 10.4: Mixed Real-time + Batch Strategy — phân loại hồ sơ theo priority để cân bằng cost và latency</div>
       </div>
 
       <hr class="lesson-divider">

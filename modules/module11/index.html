@@ -502,6 +502,72 @@
         <p>Hình dung loan officer như bác sĩ nhận kết quả từ hệ thống chẩn đoán AI. Bác sĩ không chỉ nhìn "Positive/Negative" — họ cần: các chỉ số cụ thể, mức độ tin cậy, yếu tố nào đóng góp nhiều nhất, lịch sử bệnh nhân. Loan officer cũng vậy: cần explanation đủ để <em>hiểu và chịu trách nhiệm</em> về quyết định của mình.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>XAI Explanation Pipeline cho LoanBot: Agent outputs qua ExplanationGenerator thành Explanation Card có SHAP factors, confidence, và HITL reason cho loan officer</title>
+          <defs>
+            <marker id="arrow11a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="230" fill="#0f172a" rx="12"/>
+          <text x="380" y="26" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">XAI Pipeline: Agent Outputs → Explanation Card</text>
+
+          <!-- Agent outputs column -->
+          <rect x="18" y="42" width="140" height="30" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="88" y="61" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="700">CreditAgent Output</text>
+          <rect x="18" y="80" width="140" height="30" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="88" y="99" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">IncomeAgent Output</text>
+          <rect x="18" y="118" width="140" height="30" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="88" y="137" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="700">RiskAgent Output</text>
+          <rect x="18" y="156" width="140" height="30" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+          <text x="88" y="175" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700">FraudAgent Output</text>
+
+          <!-- Arrows to generator -->
+          <line x1="158" y1="57" x2="218" y2="110" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow11a)"/>
+          <line x1="158" y1="95" x2="218" y2="113" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow11a)"/>
+          <line x1="158" y1="133" x2="218" y2="120" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow11a)"/>
+          <line x1="158" y1="171" x2="218" y2="126" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrow11a)"/>
+
+          <!-- ExplanationGenerator -->
+          <rect x="220" y="88" width="155" height="60" rx="8" fill="#312e81" stroke="#818cf8" stroke-width="1.5"/>
+          <text x="297" y="112" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="700">Explanation</text>
+          <text x="297" y="128" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="700">Generator</text>
+          <text x="297" y="142" text-anchor="middle" fill="#64748b" font-size="10">SHAP-style factors</text>
+
+          <!-- Arrow to card -->
+          <line x1="375" y1="118" x2="415" y2="118" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrow11a)"/>
+
+          <!-- Explanation Card -->
+          <rect x="417" y="50" width="320" height="160" rx="8" fill="#1e1b4b" stroke="#4f46e5" stroke-width="1.5"/>
+          <text x="577" y="74" text-anchor="middle" fill="#e0e7ff" font-size="12" font-weight="700">Explanation Card (FC-2024-004)</text>
+
+          <!-- Verdict line -->
+          <rect x="430" y="82" width="295" height="24" rx="4" fill="#292524" stroke="#f59e0b" stroke-width="1"/>
+          <text x="577" y="98" text-anchor="middle" fill="#fbbf24" font-size="11">Verdict: REVIEW  |  Confidence: 61%</text>
+
+          <!-- Factors -->
+          <text x="435" y="122" fill="#94a3b8" font-size="10" font-weight="700">Top Factors:</text>
+          <!-- Credit score bar -->
+          <rect x="435" y="128" width="130" height="8" rx="3" fill="#fbbf24"/>
+          <text x="572" y="136" fill="#fbbf24" font-size="10">Credit 645  +0.65</text>
+          <!-- Income bar -->
+          <rect x="435" y="142" width="80" height="8" rx="3" fill="#f97316"/>
+          <text x="521" y="150" fill="#f97316" font-size="10">Income self-emp  -0.40</text>
+          <!-- DTI bar -->
+          <rect x="435" y="156" width="60" height="8" rx="3" fill="#34d399"/>
+          <text x="501" y="164" fill="#34d399" font-size="10">DTI 38%  +0.30</text>
+
+          <!-- HITL reason -->
+          <rect x="430" y="172" width="295" height="28" rx="4" fill="#0f172a" stroke="#6366f1" stroke-width="1"/>
+          <text x="577" y="186" text-anchor="middle" fill="#a5b4fc" font-size="10">HITL Reason: Borderline score + self-employed income</text>
+          <text x="577" y="198" text-anchor="middle" fill="#64748b" font-size="10">Loan officer must verify independently</text>
+
+          <text x="380" y="225" text-anchor="middle" fill="#475569" font-size="10" font-style="italic">Loan officer thay factors cu the — khong chi "AI bao vay" — dam bao accountability va compliance</text>
+        </svg>
+        <div class="diagram-title">Hình 11.3: XAI Pipeline — 4 agent outputs qua ExplanationGenerator thành Explanation Card có đủ context cho loan officer</div>
+      </div>
+
       <h3>3.1 Explanation Card của LoanBot</h3>
 
       <div class="explanation-card">
@@ -882,6 +948,71 @@
         current = self._override_rate_history[-<span class="code-number">1</span>]
         baseline = mean(self._override_rate_history[-<span class="code-number">4</span>:-<span class="code-number">1</span>])
         <span class="code-keyword">return</span> current > baseline * <span class="code-number">1.5</span></code></pre>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 230" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Model Drift Detection qua Override Rate Monitoring — override rate tang dot ngot theo segment chi ra model can retrain cho segment do</title>
+          <defs>
+            <marker id="arrow11b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="230" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Model Drift Detection — Override Rate Monitoring by Segment</text>
+
+          <!-- Y-axis label -->
+          <text x="28" y="130" text-anchor="middle" fill="#64748b" font-size="10" transform="rotate(-90 28 130)">Override Rate (%)</text>
+
+          <!-- Grid -->
+          <line x1="60" y1="40" x2="60" y2="185" stroke="#1e293b" stroke-width="1"/>
+          <line x1="60" y1="185" x2="740" y2="185" stroke="#1e293b" stroke-width="1"/>
+
+          <!-- Y gridlines and labels -->
+          <line x1="60" y1="185" x2="740" y2="185" stroke="#1e293b" stroke-width="0.5"/>
+          <text x="52" y="188" text-anchor="end" fill="#64748b" font-size="9">0%</text>
+          <line x1="60" y1="155" x2="740" y2="155" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="3 3"/>
+          <text x="52" y="158" text-anchor="end" fill="#64748b" font-size="9">5%</text>
+          <line x1="60" y1="125" x2="740" y2="125" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="3 3"/>
+          <text x="52" y="128" text-anchor="end" fill="#64748b" font-size="9">10%</text>
+          <line x1="60" y1="95" x2="740" y2="95" stroke="#1e293b" stroke-width="0.5" stroke-dasharray="3 3"/>
+          <text x="52" y="98" text-anchor="end" fill="#64748b" font-size="9">15%</text>
+          <line x1="60" y1="65" x2="740" y2="65" stroke="#dc2626" stroke-width="1" stroke-dasharray="5 3"/>
+          <text x="52" y="68" text-anchor="end" fill="#dc2626" font-size="9">20%</text>
+          <text x="420" y="58" text-anchor="middle" fill="#dc2626" font-size="10" font-weight="700">Alert Threshold (1.5x baseline)</text>
+
+          <!-- X axis months -->
+          <text x="100" y="198" text-anchor="middle" fill="#64748b" font-size="9">Jan</text>
+          <text x="200" y="198" text-anchor="middle" fill="#64748b" font-size="9">Feb</text>
+          <text x="300" y="198" text-anchor="middle" fill="#64748b" font-size="9">Mar</text>
+          <text x="400" y="198" text-anchor="middle" fill="#64748b" font-size="9">Apr</text>
+          <text x="500" y="198" text-anchor="middle" fill="#64748b" font-size="9">May</text>
+          <text x="600" y="198" text-anchor="middle" fill="#64748b" font-size="9">Jun</text>
+          <text x="700" y="198" text-anchor="middle" fill="#64748b" font-size="9">Jul</text>
+
+          <!-- Salary employee line (stable, low) -->
+          <polyline points="100,167 200,161 300,163 400,159 500,161 600,157 700,155" fill="none" stroke="#3b82f6" stroke-width="2"/>
+          <text x="710" y="152" fill="#3b82f6" font-size="10">Salaried</text>
+
+          <!-- Self-employed line (spikes after Apr) -->
+          <polyline points="100,161 200,155 300,152 400,149 500,119 600,80 700,65" fill="none" stroke="#f59e0b" stroke-width="2"/>
+          <!-- Spike marker -->
+          <circle cx="600" cy="80" r="5" fill="#f59e0b" opacity="0.8"/>
+          <circle cx="700" cy="65" r="5" fill="#dc2626"/>
+          <text x="710" y="138" fill="#f59e0b" font-size="10">Self-employed</text>
+
+          <!-- Alert annotation -->
+          <line x1="660" y1="65" x2="660" y2="65" stroke="#dc2626" stroke-width="1"/>
+          <rect x="620" y="35" width="130" height="24" rx="4" fill="#7f1d1d" stroke="#dc2626" stroke-width="1"/>
+          <text x="685" y="48" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">ALERT: Retrain Triggered</text>
+
+          <!-- Legend -->
+          <rect x="68" y="205" width="12" height="4" rx="1" fill="#3b82f6"/>
+          <text x="84" y="210" fill="#64748b" font-size="10">Salaried (stable ~3%)</text>
+          <rect x="220" y="205" width="12" height="4" rx="1" fill="#f59e0b"/>
+          <text x="236" y="210" fill="#64748b" font-size="10">Self-employed (spiking — post-economy shift)</text>
+        </svg>
+        <div class="diagram-title">Hình 11.5: Drift Detection — override rate tăng đột ngột ở segment "self-employed" chỉ ra model cần retrain cho segment đó</div>
       </div>
 
       <hr class="lesson-divider">

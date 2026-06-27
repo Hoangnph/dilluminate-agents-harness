@@ -169,6 +169,80 @@
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Cost Waterfall Chart: Manual vs LoanBot monthly operating cost breakdown. Net savings 12.677 ty VND/thang across 5 cost categories. LoanBot 5.9 ty vs Manual 18.78 ty.</title>
+          <defs>
+            <marker id="arr_m29_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Monthly Operating Cost: Manual (18.78T VND) vs LoanBot v4.0 (5.9T VND)</text>
+          <!-- Y axis -->
+          <line x1="60" y1="175" x2="745" y2="175" stroke="#334155" stroke-width="1.5"/>
+          <line x1="60" y1="35" x2="60" y2="175" stroke="#334155" stroke-width="1.5"/>
+          <text x="55" y="40" text-anchor="end" fill="#94a3b8" font-size="9">1,080B</text>
+          <text x="55" y="75" text-anchor="end" fill="#94a3b8" font-size="9">700B</text>
+          <text x="55" y="110" text-anchor="end" fill="#94a3b8" font-size="9">350B</text>
+          <text x="55" y="145" text-anchor="end" fill="#94a3b8" font-size="9">100B</text>
+          <!-- Grid -->
+          <line x1="60" y1="40" x2="745" y2="40" stroke="#1e293b" stroke-width="1"/>
+          <line x1="60" y1="75" x2="745" y2="75" stroke="#1e293b" stroke-width="1"/>
+          <line x1="60" y1="110" x2="745" y2="110" stroke="#1e293b" stroke-width="1"/>
+          <line x1="60" y1="145" x2="745" y2="145" stroke="#1e293b" stroke-width="1"/>
+          <!-- Category 1: Staff Cost -->
+          <text x="155" y="33" text-anchor="middle" fill="#94a3b8" font-size="9">Staff Cost</text>
+          <!-- Manual: 17.5B → bar: 17.5/18.78*140 = 130px, y=175-130=45 -->
+          <rect x="75" y="44" width="60" height="131" rx="3" fill="#ef4444" opacity="0.9"/>
+          <text x="105" y="40" text-anchor="middle" fill="#fca5a5" font-size="8">17.5T</text>
+          <!-- LoanBot: 4.375B → bar: 4.375/18.78*140=32.6px, y=175-33=142 -->
+          <rect x="145" y="142" width="60" height="33" rx="3" fill="#22c55e" opacity="0.9"/>
+          <text x="175" y="138" text-anchor="middle" fill="#bbf7d0" font-size="8">4.4T</text>
+          <text x="155" y="188" text-anchor="middle" fill="#86efac" font-size="8">-13.1T</text>
+          <!-- Category 2: LLM API -->
+          <text x="285" y="33" text-anchor="middle" fill="#94a3b8" font-size="9">LLM API</text>
+          <!-- Manual: 0 -->
+          <rect x="220" y="174" width="60" height="1" rx="0" fill="#475569"/>
+          <text x="250" y="190" text-anchor="middle" fill="#94a3b8" font-size="8">—</text>
+          <!-- LoanBot: 340M → bar: 0.34/18.78*140=2.5px -->
+          <rect x="285" y="172" width="60" height="3" rx="1" fill="#f59e0b" opacity="0.9"/>
+          <text x="315" y="168" text-anchor="middle" fill="#fde68a" font-size="8">0.34T</text>
+          <text x="285" y="188" text-anchor="middle" fill="#f87171" font-size="8">+0.34T</text>
+          <!-- Category 3: Bad Loans (Type I) -->
+          <text x="415" y="33" text-anchor="middle" fill="#94a3b8" font-size="9">Bad Loans (Type I)</text>
+          <!-- Manual: 1080B → bar: 1080/18780*140 = 8px -->
+          <rect x="355" y="167" width="60" height="8" rx="2" fill="#ef4444" opacity="0.7"/>
+          <text x="385" y="163" text-anchor="middle" fill="#fca5a5" font-size="8">1,080T</text>
+          <!-- LoanBot: 738B → bar smaller -->
+          <rect x="425" y="169" width="60" height="6" rx="2" fill="#22c55e" opacity="0.9"/>
+          <text x="455" y="165" text-anchor="middle" fill="#bbf7d0" font-size="8">738T</text>
+          <text x="415" y="188" text-anchor="middle" fill="#86efac" font-size="8">-342T</text>
+          <!-- Category 4: Infra -->
+          <text x="550" y="33" text-anchor="middle" fill="#94a3b8" font-size="9">Infra</text>
+          <!-- Manual: 200M, LoanBot: 500M (slight increase) -->
+          <rect x="490" y="173" width="60" height="2" rx="1" fill="#3b82f6" opacity="0.8"/>
+          <text x="520" y="170" text-anchor="middle" fill="#93c5fd" font-size="8">0.2T</text>
+          <rect x="560" y="172" width="60" height="3" rx="1" fill="#f59e0b" opacity="0.9"/>
+          <text x="590" y="168" text-anchor="middle" fill="#fde68a" font-size="8">0.5T</text>
+          <text x="550" y="188" text-anchor="middle" fill="#f87171" font-size="8">+0.3T</text>
+          <!-- Category 5: Governance -->
+          <text x="680" y="33" text-anchor="middle" fill="#94a3b8" font-size="9">Governance</text>
+          <rect x="625" y="174" width="60" height="1" rx="0" fill="#475569"/>
+          <text x="655" y="190" text-anchor="middle" fill="#94a3b8" font-size="8">—</text>
+          <rect x="695" y="173" width="50" height="2" rx="1" fill="#f59e0b" opacity="0.9"/>
+          <text x="720" y="169" text-anchor="middle" fill="#fde68a" font-size="8">0.15T</text>
+          <text x="680" y="188" text-anchor="middle" fill="#f87171" font-size="8">+0.15T</text>
+          <!-- Legend at bottom -->
+          <rect x="60" y="198" width="14" height="10" fill="#ef4444" opacity="0.9"/>
+          <text x="78" y="208" fill="#94a3b8" font-size="9">Manual (Total: 18.78T VND/month)</text>
+          <rect x="330" y="198" width="14" height="10" fill="#22c55e" opacity="0.9"/>
+          <text x="348" y="208" fill="#94a3b8" font-size="9">LoanBot v4.0 (Total: 5.9T VND/month)</text>
+          <text x="600" y="208" fill="#34d399" font-size="9" font-weight="700">NET SAVINGS: 12.677T/month</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Monthly Operating Cost Waterfall — Manual vs LoanBot v4.0. Tiet kiem lon nhat: Staff Cost (17.5T→4.4T, -13.1T) va Bad Loan Reduction (1,080T→738T, -342T). Tang nhe: LLM API (+0.34T), Infra (+0.3T), Governance (+0.15T). Net savings: 12.677T VND/thang. Payback period: 2.3T investment / 12.677T/thang = 5.5 ngay.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -554,6 +628,95 @@ total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-functio
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>3-Year NPV Cash Flow Model cho LoanBot: Year 0 (6 thang pilot), Year 1 (full operation), Year 2 (rural expansion +20%). Net cash flow tich luy tang manh. NPV duong manh ngay tu Year 0.</title>
+          <defs>
+            <marker id="arr_m29_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">3-Year NPV Model — LoanBot v4.0 Business Case (Discount Rate: 12% WACC)</text>
+          <!-- Left panel: Year-by-Year breakdown -->
+          <rect x="15" y="35" width="245" height="175" rx="8" fill="#0f1e35" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="137" y="52" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Cash Flow Components</text>
+          <line x1="23" y1="58" x2="252" y2="58" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- Header -->
+          <text x="80" y="71" text-anchor="middle" fill="#64748b" font-size="9">Item</text>
+          <text x="175" y="71" text-anchor="middle" fill="#64748b" font-size="9">Y0 (6mo)</text>
+          <text x="225" y="71" text-anchor="middle" fill="#64748b" font-size="9">Y1 (12mo)</text>
+          <!-- Row: Staff savings -->
+          <text x="80" y="84" text-anchor="middle" fill="#94a3b8" font-size="8">Staff savings</text>
+          <text x="175" y="84" text-anchor="middle" fill="#34d399" font-size="8">78.8T</text>
+          <text x="225" y="84" text-anchor="middle" fill="#34d399" font-size="8">157.5T</text>
+          <!-- Row: Error savings -->
+          <text x="80" y="97" text-anchor="middle" fill="#94a3b8" font-size="8">Error savings</text>
+          <text x="175" y="97" text-anchor="middle" fill="#34d399" font-size="8">2,052T</text>
+          <text x="225" y="97" text-anchor="middle" fill="#34d399" font-size="8">4,104T</text>
+          <!-- Row: Speed + Compliance value -->
+          <text x="80" y="110" text-anchor="middle" fill="#94a3b8" font-size="8">Speed+Compliance</text>
+          <text x="175" y="110" text-anchor="middle" fill="#34d399" font-size="8">16.8T</text>
+          <text x="225" y="110" text-anchor="middle" fill="#34d399" font-size="8">33.6T</text>
+          <!-- Row: Total costs -->
+          <text x="80" y="123" text-anchor="middle" fill="#94a3b8" font-size="8">Total Costs (API+Infra+Gov)</text>
+          <text x="175" y="123" text-anchor="middle" fill="#f87171" font-size="8">-7.98T</text>
+          <text x="225" y="123" text-anchor="middle" fill="#f87171" font-size="8">-11.88T</text>
+          <!-- Row: CapEx -->
+          <text x="80" y="136" text-anchor="middle" fill="#94a3b8" font-size="8">CapEx (development)</text>
+          <text x="175" y="136" text-anchor="middle" fill="#f87171" font-size="8">-2.3T</text>
+          <text x="225" y="136" text-anchor="middle" fill="#94a3b8" font-size="8">0</text>
+          <line x1="23" y1="141" x2="252" y2="141" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- Net cash flow -->
+          <text x="80" y="153" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700">Net Cash Flow</text>
+          <text x="175" y="153" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">2,137T</text>
+          <text x="225" y="153" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">4,283T</text>
+          <!-- NPV/IRR summary -->
+          <rect x="23" y="160" width="229" height="42" rx="5" fill="#0d2218" stroke="#22c55e" stroke-width="1"/>
+          <text x="137" y="175" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">3-Year NPV: STRONG POSITIVE</text>
+          <text x="137" y="189" text-anchor="middle" fill="#34d399" font-size="9">Payback: 5.5 days from go-live</text>
+          <text x="137" y="199" text-anchor="middle" fill="#86efac" font-size="9">ROI 3-year: ~19,700%</text>
+          <!-- Right panel: Stacked bar chart Y0, Y1, Y2 -->
+          <text x="500" y="38" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="700">Annual Net Benefit Breakdown</text>
+          <!-- Y axis -->
+          <line x1="280" y1="170" x2="745" y2="170" stroke="#334155" stroke-width="1.5"/>
+          <line x1="280" y1="45" x2="280" y2="170" stroke="#334155" stroke-width="1.5"/>
+          <text x="275" y="50" text-anchor="end" fill="#94a3b8" font-size="9">5,000T</text>
+          <text x="275" y="90" text-anchor="end" fill="#94a3b8" font-size="9">3,000T</text>
+          <text x="275" y="130" text-anchor="end" fill="#94a3b8" font-size="9">1,000T</text>
+          <!-- Grid -->
+          <line x1="280" y1="50" x2="745" y2="50" stroke="#1e293b" stroke-width="1"/>
+          <line x1="280" y1="90" x2="745" y2="90" stroke="#1e293b" stroke-width="1"/>
+          <line x1="280" y1="130" x2="745" y2="130" stroke="#1e293b" stroke-width="1"/>
+          <!-- Year 0 stacked bars (2137T total → 2137/5000*125=53px) -->
+          <!-- Staff savings 78.8T: 78.8/5000*125=2px -->
+          <rect x="310" y="167" width="90" height="53" rx="3" fill="#0ea5e9" opacity="0.9"/>
+          <rect x="310" y="167" width="90" height="2" rx="1" fill="#34d399" opacity="1"/>
+          <text x="355" y="158" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">2,137T</text>
+          <text x="355" y="184" text-anchor="middle" fill="#93c5fd" font-size="9">Year 0</text>
+          <text x="355" y="196" text-anchor="middle" fill="#94a3b8" font-size="8">(6mo + CapEx)</text>
+          <!-- Year 1 (4283T → 4283/5000*125=107px) -->
+          <rect x="430" y="63" width="90" height="107" rx="3" fill="#0ea5e9" opacity="0.9"/>
+          <rect x="430" y="63" width="90" height="4" rx="1" fill="#34d399" opacity="1"/>
+          <text x="475" y="57" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">4,283T</text>
+          <text x="475" y="184" text-anchor="middle" fill="#93c5fd" font-size="9">Year 1</text>
+          <text x="475" y="196" text-anchor="middle" fill="#94a3b8" font-size="8">(full operation)</text>
+          <!-- Year 2 (assumed 5800T with rural expansion → 5800/5000*125=145 but cap at 120) -->
+          <rect x="550" y="50" width="90" height="120" rx="3" fill="#0ea5e9" opacity="0.9"/>
+          <rect x="550" y="50" width="90" height="5" rx="1" fill="#34d399" opacity="1"/>
+          <text x="595" y="44" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">&gt;5,800T</text>
+          <text x="595" y="184" text-anchor="middle" fill="#93c5fd" font-size="9">Year 2</text>
+          <text x="595" y="196" text-anchor="middle" fill="#94a3b8" font-size="8">(+rural expansion)</text>
+          <!-- Sensitivity: break-even scenario -->
+          <rect x="655" y="110" width="85" height="60" rx="5" fill="#1a1a1a" stroke="#475569" stroke-width="1"/>
+          <text x="697" y="125" text-anchor="middle" fill="#94a3b8" font-size="8" font-weight="700">Pessimistic:</text>
+          <text x="697" y="138" text-anchor="middle" fill="#94a3b8" font-size="8">Error savings=0</text>
+          <text x="697" y="151" text-anchor="middle" fill="#fde68a" font-size="8">Still GO (staff</text>
+          <text x="697" y="163" text-anchor="middle" fill="#fde68a" font-size="8">savings alone)</text>
+        </svg>
+        <div class="diagram-title">Hình 4: 3-Year NPV Cash Flow Model cho LoanBot v4.0. Year 0 (6 thang pilot + CapEx 2.3T): Net 2,137T. Year 1 (full 12 thang): Net 4,283T. Year 2 (rural expansion +20%): Net >5,800T. Discount rate 12% WACC. Pessimistic scenario (error savings = 0): van GO vi staff savings mot minh du justify. Payback period: chi 5.5 ngay ke tu go-live.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -624,6 +787,92 @@ total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-functio
                 <span class="code-string">'on_track'</span>: <span class="code-function">len</span>(on_track), <span class="code-string">'off_track'</span>: <span class="code-function">len</span>(off_track),
                 <span class="code-string">'alerts'</span>: [k.name <span class="code-keyword">for</span> k <span class="code-keyword">in</span> alerts],
                 <span class="code-string">'overall_health'</span>: <span class="code-string">'GREEN'</span> <span class="code-keyword">if not</span> alerts <span class="code-keyword">else</span> (<span class="code-string">'YELLOW'</span> <span class="code-keyword">if not</span> off_track <span class="code-keyword">else</span> <span class="code-string">'RED'</span>)}</code></pre>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Value Dashboard: 8 KPIs chia thanh Leading Indicators (monitor daily) va Lagging Indicators (review monthly), moi KPI hien thi current vs target va traffic light status GREEN/YELLOW/RED</title>
+          <defs>
+            <marker id="arr_m29_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">LoanBot Value Dashboard — Leading + Lagging KPIs (Overall: GREEN)</text>
+          <!-- Left side: Leading Indicators -->
+          <rect x="15" y="32" width="365" height="180" rx="8" fill="#0a1520" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="197" y="49" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Leading Indicators — Monitor Daily (Predict Future)</text>
+          <line x1="23" y1="55" x2="372" y2="55" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- Header -->
+          <text x="115" y="67" text-anchor="middle" fill="#64748b" font-size="9">KPI Name</text>
+          <text x="255" y="67" text-anchor="middle" fill="#64748b" font-size="9">Current / Target</text>
+          <text x="355" y="67" text-anchor="middle" fill="#64748b" font-size="9">Status</text>
+          <line x1="23" y1="71" x2="372" y2="71" stroke="#1e293b" stroke-width="1"/>
+          <!-- KPI 1: Cost Per Decision -->
+          <rect x="23" y="73" width="349" height="19" rx="2" fill="#0f1e35"/>
+          <text x="115" y="86" text-anchor="middle" fill="#e2e8f0" font-size="9">Cost Per Decision</text>
+          <text x="255" y="86" text-anchor="middle" fill="#e2e8f0" font-size="9">118 VND / target 125 VND</text>
+          <rect x="333" y="75" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="350" y="86" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- KPI 2: Type I Error Rate -->
+          <rect x="23" y="94" width="349" height="19" rx="2" fill="#0a1520"/>
+          <text x="115" y="107" text-anchor="middle" fill="#e2e8f0" font-size="9">Type I Error Rate</text>
+          <text x="255" y="107" text-anchor="middle" fill="#e2e8f0" font-size="9">8.2% / target 10.0%</text>
+          <rect x="333" y="96" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="350" y="107" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- KPI 3: Decision Confidence P50 -->
+          <rect x="23" y="115" width="349" height="19" rx="2" fill="#0f1e35"/>
+          <text x="115" y="128" text-anchor="middle" fill="#e2e8f0" font-size="9">Decision Confidence P50</text>
+          <text x="255" y="128" text-anchor="middle" fill="#e2e8f0" font-size="9">0.78 score / target 0.75</text>
+          <rect x="333" y="117" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="350" y="128" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- KPI 4: PSI Drift -->
+          <rect x="23" y="136" width="349" height="19" rx="2" fill="#0a1520"/>
+          <text x="115" y="149" text-anchor="middle" fill="#e2e8f0" font-size="9">PSI Drift Score</text>
+          <text x="255" y="149" text-anchor="middle" fill="#e2e8f0" font-size="9">0.08 / target &lt;0.10</text>
+          <rect x="333" y="138" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="350" y="149" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- KPI 5: Fairness Disparity -->
+          <rect x="23" y="157" width="349" height="19" rx="2" fill="#0f1e35"/>
+          <text x="115" y="170" text-anchor="middle" fill="#e2e8f0" font-size="9">Fairness Disparity Ratio</text>
+          <text x="255" y="170" text-anchor="middle" fill="#e2e8f0" font-size="9">0.87 / target &gt;0.80</text>
+          <rect x="333" y="159" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="350" y="170" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <text x="197" y="200" text-anchor="middle" fill="#60a5fa" font-size="9">If any Leading turns RED -&gt; PREDICT value erosion in 30-60 days</text>
+          <!-- Right side: Lagging Indicators -->
+          <rect x="390" y="32" width="355" height="180" rx="8" fill="#0a1f10" stroke="#10b981" stroke-width="1.5"/>
+          <text x="567" y="49" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">Lagging Indicators — Review Monthly (Confirm Outcomes)</text>
+          <line x1="398" y1="55" x2="737" y2="55" stroke="#0d2218" stroke-width="1"/>
+          <!-- Header -->
+          <text x="490" y="67" text-anchor="middle" fill="#64748b" font-size="9">KPI Name</text>
+          <text x="625" y="67" text-anchor="middle" fill="#64748b" font-size="9">Current / Target</text>
+          <text x="722" y="67" text-anchor="middle" fill="#64748b" font-size="9">Status</text>
+          <line x1="398" y1="71" x2="737" y2="71" stroke="#1e293b" stroke-width="1"/>
+          <!-- KPI 6: 30-Day Default Rate -->
+          <rect x="398" y="73" width="334" height="19" rx="2" fill="#0a2a1a"/>
+          <text x="490" y="86" text-anchor="middle" fill="#e2e8f0" font-size="9">30-Day Default Rate</text>
+          <text x="625" y="86" text-anchor="middle" fill="#e2e8f0" font-size="9">4.2% / target &lt;5.0%</text>
+          <rect x="700" y="75" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="717" y="86" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- KPI 7: Monthly Net Savings -->
+          <rect x="398" y="94" width="334" height="19" rx="2" fill="#0f2a1a"/>
+          <text x="490" y="107" text-anchor="middle" fill="#e2e8f0" font-size="9">Monthly Net Savings</text>
+          <text x="625" y="107" text-anchor="middle" fill="#e2e8f0" font-size="9">12.4T VND / target 12.0T</text>
+          <rect x="700" y="96" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="717" y="107" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- KPI 8: Customer NPS -->
+          <rect x="398" y="115" width="334" height="19" rx="2" fill="#0a2a1a"/>
+          <text x="490" y="128" text-anchor="middle" fill="#e2e8f0" font-size="9">Customer NPS (Speed)</text>
+          <text x="625" y="128" text-anchor="middle" fill="#e2e8f0" font-size="9">72 score / target 70</text>
+          <rect x="700" y="117" width="35" height="14" rx="4" fill="#14532d"/>
+          <text x="717" y="128" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">GREEN</text>
+          <!-- Overall health -->
+          <rect x="398" y="148" width="334" height="56" rx="5" fill="#0d2218" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="567" y="164" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">Overall Health: GREEN</text>
+          <text x="567" y="180" text-anchor="middle" fill="#6ee7b7" font-size="9">8/8 KPIs on track | 0 alerts</text>
+          <text x="567" y="196" text-anchor="middle" fill="#94a3b8" font-size="9">Review Board: no escalation needed this month</text>
+        </svg>
+        <div class="diagram-title">Hình 5: LoanBot Value Dashboard — 8 KPIs chia thanh Leading (monitor daily, predict future) va Lagging (review monthly, confirm outcomes). Leading indicators: Cost Per Decision 118 VND (target 125), Type I Error 8.2% (target 10%), PSI Drift 0.08 (target 0.10) — tat ca GREEN. Lagging: Default Rate 4.2%, Net Savings 12.4T, Customer NPS 72 — tat ca GREEN. Overall: GREEN, khong can escalation thang nay.</div>
       </div>
 
       <hr class="lesson-divider">

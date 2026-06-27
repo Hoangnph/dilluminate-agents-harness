@@ -218,6 +218,65 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
         <span class="code-keyword">return</span> violations</code></pre>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>3-Tier AI Governance Structure cho FinTech Corp LoanBot: Operational Layer (daily), Tactical Layer (weekly/monthly), Strategic Layer (quarterly). Escalation path tu duoi len tren khi co violation.</title>
+          <defs>
+            <marker id="arr_m28_2a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+            <marker id="arr_m28_2b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#f59e0b"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">FinTech Corp AI Governance: 3-Tier Accountability Structure</text>
+          <!-- Layer 1: Operational (bottom, widest) -->
+          <rect x="15" y="160" width="730" height="50" rx="8" fill="#134e4a" stroke="#10b981" stroke-width="2"/>
+          <text x="380" y="178" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">LAYER 1: Operational — AI Engineers + Data Scientists</text>
+          <text x="200" y="195" text-anchor="middle" fill="#34d399" font-size="9">Daily automated checks: bias metrics, decision logs, explainability reports</text>
+          <text x="580" y="195" text-anchor="middle" fill="#34d399" font-size="9">Trigger: every 24h or anomaly detected</text>
+          <text x="200" y="207" text-anchor="middle" fill="#94a3b8" font-size="9">GP-001 Demographic Parity | GP-002 Error Rate | GP-003 Explainability</text>
+          <text x="580" y="207" text-anchor="middle" fill="#94a3b8" font-size="9">Alert: Slack + PagerDuty + auto-ticket creation</text>
+          <!-- Layer 2: Tactical (middle) -->
+          <rect x="60" y="100" width="640" height="50" rx="8" fill="#065f46" stroke="#059669" stroke-width="2"/>
+          <text x="380" y="118" text-anchor="middle" fill="#a7f3d0" font-size="11" font-weight="700">LAYER 2: Tactical — AI Product Manager + Risk Committee</text>
+          <text x="230" y="135" text-anchor="middle" fill="#6ee7b7" font-size="9">Weekly/monthly reviews: threshold adjustments, model updates, fairness audits</text>
+          <text x="610" y="135" text-anchor="middle" fill="#6ee7b7" font-size="9">Trigger: monthly cycle + incident escalations from Layer 1</text>
+          <text x="230" y="147" text-anchor="middle" fill="#94a3b8" font-size="9">Reviews: Type I trend, bias report, human override rate, customer complaints</text>
+          <text x="610" y="147" text-anchor="middle" fill="#94a3b8" font-size="9">Authority: approve threshold changes, trigger improvement cycles</text>
+          <!-- Layer 3: Strategic (top, narrowest) -->
+          <rect x="150" y="40" width="460" height="50" rx="8" fill="#78350f" stroke="#f59e0b" stroke-width="2"/>
+          <text x="380" y="58" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="700">LAYER 3: Strategic — Board + C-Suite + Ethics Advisor</text>
+          <text x="380" y="73" text-anchor="middle" fill="#fcd34d" font-size="9">Quarterly governance review: policy changes, major model decisions, regulatory response</text>
+          <text x="380" y="87" text-anchor="middle" fill="#fcd34d" font-size="9">Trigger: quarterly schedule + NHNN inquiry + media exposure + CRITICAL policy breach</text>
+          <!-- Escalation arrows (upward) -->
+          <line x1="380" y1="155" x2="380" y2="150" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr_m28_2b)"/>
+          <line x1="380" y1="95" x2="380" y2="90" stroke="#f59e0b" stroke-width="2" marker-end="url(#arr_m28_2b)"/>
+          <text x="400" y="130" fill="#f59e0b" font-size="9">escalate</text>
+          <text x="400" y="72" fill="#f59e0b" font-size="9">escalate</text>
+          <!-- RACI summary on sides -->
+          <rect x="15" y="40" width="130" height="110" rx="6" fill="#0f1a2e" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="80" y="57" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">RACI: Loan Decision</text>
+          <text x="23" y="73" fill="#94a3b8" font-size="9">R = LoanBot AI</text>
+          <text x="23" y="87" fill="#94a3b8" font-size="9">A = Chief Risk Officer</text>
+          <text x="23" y="101" fill="#94a3b8" font-size="9">C = Ethics Committee</text>
+          <text x="23" y="115" fill="#94a3b8" font-size="9">I = Customer + NHNN</text>
+          <text x="80" y="135" text-anchor="middle" fill="#60a5fa" font-size="9">CRO = accountable</text>
+          <text x="80" y="147" text-anchor="middle" fill="#60a5fa" font-size="9">needs full visibility</text>
+          <!-- EU AI Act note -->
+          <rect x="615" y="40" width="130" height="110" rx="6" fill="#1a0d00" stroke="#92400e" stroke-width="1"/>
+          <text x="680" y="57" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">EU AI Act</text>
+          <text x="680" y="71" text-anchor="middle" fill="#fcd34d" font-size="9">Credit Scoring =</text>
+          <text x="680" y="83" text-anchor="middle" fill="#fcd34d" font-size="9">HIGH-RISK AI</text>
+          <text x="680" y="97" text-anchor="middle" fill="#fcd34d" font-size="9">Annex III Cat. 5b</text>
+          <text x="680" y="115" text-anchor="middle" fill="#94a3b8" font-size="9">All 3 layers</text>
+          <text x="680" y="127" text-anchor="middle" fill="#94a3b8" font-size="9">mandatory</text>
+          <text x="680" y="141" text-anchor="middle" fill="#94a3b8" font-size="9">to comply</text>
+        </svg>
+        <div class="diagram-title">Hình 2: 3-Tier AI Governance Structure cho FinTech Corp. Layer 1 (Operational): daily automated checks boi AI Engineers. Layer 2 (Tactical): weekly/monthly reviews boi Risk Committee. Layer 3 (Strategic): quarterly Board review. Escalation path: violation phat hien o Layer 1 → escalate len Layer 2 → neu critical → len Layer 3 → NHNN. RACI: CRO la Accountable (chiu trach nhiem phap ly), LoanBot la Responsible (thuc hien quyet dinh).</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -385,6 +444,77 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
         <div class="concept-check-answer">
           <strong>Gợi ý:</strong> Nghĩa là FinTech Corp phải explicitly choose ưu tiên metric nào — không thể have it all. Lựa chọn điển hình trong credit: (1) Equalized Odds (equal TPR/FPR) thường được prioritize vì nó ensure "equally qualified borrowers từ mọi group đều được approve ở rate tương đương" — fair process. (2) Demographic Parity đòi hỏi equal approval rates, điều này có thể require approving some unqualified applicants từ disadvantaged group để match rates. FinTech Corp cần document decision trong Governance Charter và get sign-off từ Ethics Committee + Legal. Không có "đúng" tuyệt đối — chỉ có trade-offs cần transparent.
         </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Fairness Audit Dashboard: Approval rate, Disparity Ratio, va 80% Rule Pass/Fail cho cac nhom dan so tai FinTech Corp. Rural va Age 18-30 fail 80% rule can immediate fix.</title>
+          <defs>
+            <marker id="arr_m28_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">FinTech Corp Fairness Audit — Approval Rate by Demographic Group (80% Rule)</text>
+          <!-- Y Axis -->
+          <line x1="60" y1="170" x2="745" y2="170" stroke="#334155" stroke-width="1.5"/>
+          <line x1="60" y1="40" x2="60" y2="170" stroke="#334155" stroke-width="1.5"/>
+          <text x="55" y="45" text-anchor="end" fill="#94a3b8" font-size="9">100%</text>
+          <text x="55" y="80" text-anchor="end" fill="#94a3b8" font-size="9">70%</text>
+          <text x="55" y="115" text-anchor="end" fill="#94a3b8" font-size="9">40%</text>
+          <text x="55" y="150" text-anchor="end" fill="#94a3b8" font-size="9">10%</text>
+          <!-- Grid lines -->
+          <line x1="60" y1="80" x2="745" y2="80" stroke="#1e293b" stroke-width="1"/>
+          <line x1="60" y1="115" x2="745" y2="115" stroke="#1e293b" stroke-width="1"/>
+          <line x1="60" y1="150" x2="745" y2="150" stroke="#1e293b" stroke-width="1"/>
+          <!-- 80% rule threshold = 80% of Urban baseline 68.2% = 54.6% → y = 40 + (100-54.6)/60 * 130 = 40+98 = 138 -->
+          <line x1="60" y1="138" x2="745" y2="138" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="6,3"/>
+          <text x="748" y="141" fill="#f59e0b" font-size="8">80% rule</text>
+          <text x="748" y="151" fill="#f59e0b" font-size="8">54.6%</text>
+          <!-- Bars (approval rates as % of 100% scale, y=170 is 0%, y=40 is 100%) -->
+          <!-- Urban baseline 68.2% → bar height = 68.2/100*130 = 89, y_top = 170-89 = 81 -->
+          <rect x="75" y="81" width="80" height="89" rx="4" fill="#3b82f6" opacity="0.9"/>
+          <text x="115" y="75" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">68.2%</text>
+          <text x="115" y="184" text-anchor="middle" fill="#93c5fd" font-size="9">Urban</text>
+          <text x="115" y="196" text-anchor="middle" fill="#93c5fd" font-size="9">(Baseline)</text>
+          <text x="115" y="210" text-anchor="middle" fill="#34d399" font-size="9">PASS</text>
+          <!-- Rural 44.8% → bar height = 44.8/100*130 = 58, y_top = 112 -->
+          <rect x="180" y="112" width="80" height="58" rx="4" fill="#ef4444" opacity="0.9"/>
+          <text x="220" y="106" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">44.8%</text>
+          <text x="220" y="184" text-anchor="middle" fill="#fca5a5" font-size="9">Rural</text>
+          <text x="220" y="196" text-anchor="middle" fill="#fca5a5" font-size="9">Ratio: 0.657</text>
+          <text x="220" y="210" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="700">FAIL</text>
+          <!-- Male 65.1% → bar height = 84.6, y_top = 85 -->
+          <rect x="285" y="85" width="80" height="85" rx="4" fill="#22c55e" opacity="0.9"/>
+          <text x="325" y="79" text-anchor="middle" fill="#bbf7d0" font-size="9" font-weight="700">65.1%</text>
+          <text x="325" y="184" text-anchor="middle" fill="#bbf7d0" font-size="9">Male</text>
+          <text x="325" y="196" text-anchor="middle" fill="#bbf7d0" font-size="9">Ratio: 0.955</text>
+          <text x="325" y="210" text-anchor="middle" fill="#34d399" font-size="9">PASS</text>
+          <!-- Female 61.3% → bar height = 79.7, y_top = 90 -->
+          <rect x="390" y="90" width="80" height="80" rx="4" fill="#22c55e" opacity="0.9"/>
+          <text x="430" y="84" text-anchor="middle" fill="#bbf7d0" font-size="9" font-weight="700">61.3%</text>
+          <text x="430" y="184" text-anchor="middle" fill="#bbf7d0" font-size="9">Female</text>
+          <text x="430" y="196" text-anchor="middle" fill="#bbf7d0" font-size="9">Ratio: 0.899</text>
+          <text x="430" y="210" text-anchor="middle" fill="#34d399" font-size="9">PASS</text>
+          <!-- Age 18-30 51.7% → bar height = 67.2, y_top = 103 -->
+          <rect x="495" y="103" width="80" height="67" rx="4" fill="#f59e0b" opacity="0.9"/>
+          <text x="535" y="97" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">51.7%</text>
+          <text x="535" y="184" text-anchor="middle" fill="#fde68a" font-size="9">Age 18-30</text>
+          <text x="535" y="196" text-anchor="middle" fill="#fde68a" font-size="9">Ratio: 0.758</text>
+          <text x="535" y="210" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="700">FAIL</text>
+          <!-- Age 30-50 68.2% → bar height = 89, y_top = 81 -->
+          <rect x="600" y="81" width="80" height="89" rx="4" fill="#3b82f6" opacity="0.9"/>
+          <text x="640" y="75" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">68.2%</text>
+          <text x="640" y="184" text-anchor="middle" fill="#93c5fd" font-size="9">Age 30-50</text>
+          <text x="640" y="196" text-anchor="middle" fill="#93c5fd" font-size="9">(Baseline)</text>
+          <text x="640" y="210" text-anchor="middle" fill="#34d399" font-size="9">PASS</text>
+          <!-- Disparity ratio annotations for FAIL groups -->
+          <text x="220" y="57" text-anchor="middle" fill="#f87171" font-size="9">Proxy discrim:</text>
+          <text x="220" y="68" text-anchor="middle" fill="#f87171" font-size="9">seasonal work</text>
+          <text x="535" y="57" text-anchor="middle" fill="#fde68a" font-size="9">Monitor:</text>
+          <text x="535" y="68" text-anchor="middle" fill="#fde68a" font-size="9">alt. data needed</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Fairness Audit Dashboard — 2 groups FAIL 80% Rule. Rural: approval rate 44.8% vs Urban 68.2% → disparity ratio 0.657 (well below 0.80 threshold) — IMMEDIATE FIX required. Age 18-30: ratio 0.758 — MONITOR. Root cause Rural: proxy discrimination qua seasonal employment data, khong phai conscious bias. Fix: separate employment tenure thresholds cho seasonal vs permanent workers.</div>
       </div>
 
       <hr class="lesson-divider">
@@ -627,6 +757,87 @@ Yêu cầu: Không kỹ thuật, thân thiện, nêu rõ bước tiếp theo."""
         }</code></pre>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>EU AI Act High-Risk Compliance Requirements Map: 9 articles tu Art.9 den Art.86, mapping sang evidence types va compliance status cho LoanBot FinTech Corp</title>
+          <defs>
+            <marker id="arr_m28_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">EU AI Act + NHNN Compliance Map — LoanBot (High-Risk AI, Annex III Cat. 5b)</text>
+          <!-- Header row -->
+          <rect x="15" y="32" width="730" height="22" rx="4" fill="#1e293b"/>
+          <text x="95" y="47" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="700">Regulation</text>
+          <text x="230" y="47" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="700">Requirement</text>
+          <text x="440" y="47" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="700">Evidence Type</text>
+          <text x="620" y="47" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="700">Location</text>
+          <text x="715" y="47" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="700">Status</text>
+          <!-- Rows -->
+          <!-- Row 1: Art.9 Risk Mgmt -->
+          <rect x="15" y="56" width="730" height="17" rx="2" fill="#0a1520"/>
+          <text x="95" y="68" text-anchor="middle" fill="#93c5fd" font-size="8">EU AI Act Art.9</text>
+          <text x="230" y="68" text-anchor="middle" fill="#e2e8f0" font-size="8">Risk Management System</text>
+          <text x="440" y="68" text-anchor="middle" fill="#94a3b8" font-size="8">DOCUMENT — Governance Charter</text>
+          <text x="620" y="68" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/risk_mgmt.pdf</text>
+          <rect x="685" y="60" width="52" height="10" rx="3" fill="#14532d"/>
+          <text x="711" y="69" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">COMPLIANT</text>
+          <!-- Row 2: Art.10 Data Gov -->
+          <rect x="15" y="75" width="730" height="17" rx="2" fill="#0f1a2a"/>
+          <text x="95" y="87" text-anchor="middle" fill="#93c5fd" font-size="8">EU AI Act Art.10</text>
+          <text x="230" y="87" text-anchor="middle" fill="#e2e8f0" font-size="8">Data Governance &amp; Quality</text>
+          <text x="440" y="87" text-anchor="middle" fill="#94a3b8" font-size="8">DATA_AUDIT — bias metrics logged</text>
+          <text x="620" y="87" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/data_audit.json</text>
+          <rect x="685" y="79" width="52" height="10" rx="3" fill="#78350f"/>
+          <text x="711" y="88" text-anchor="middle" fill="#fcd34d" font-size="8" font-weight="700">PARTIAL</text>
+          <!-- Row 3: Art.11 Tech Doc -->
+          <rect x="15" y="94" width="730" height="17" rx="2" fill="#0a1520"/>
+          <text x="95" y="106" text-anchor="middle" fill="#93c5fd" font-size="8">EU AI Act Art.11</text>
+          <text x="230" y="106" text-anchor="middle" fill="#e2e8f0" font-size="8">Technical Documentation</text>
+          <text x="440" y="106" text-anchor="middle" fill="#94a3b8" font-size="8">MODEL_CARD — performance metrics</text>
+          <text x="620" y="106" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/model_card.md</text>
+          <rect x="685" y="98" width="52" height="10" rx="3" fill="#14532d"/>
+          <text x="711" y="107" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">COMPLIANT</text>
+          <!-- Row 4: Art.12 Logging -->
+          <rect x="15" y="113" width="730" height="17" rx="2" fill="#0f1a2a"/>
+          <text x="95" y="125" text-anchor="middle" fill="#93c5fd" font-size="8">EU AI Act Art.12</text>
+          <text x="230" y="125" text-anchor="middle" fill="#e2e8f0" font-size="8">Record-keeping &amp; Logging</text>
+          <text x="440" y="125" text-anchor="middle" fill="#94a3b8" font-size="8">LOG_SYSTEM — every decision logged</text>
+          <text x="620" y="125" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/decisions/</text>
+          <rect x="685" y="117" width="52" height="10" rx="3" fill="#14532d"/>
+          <text x="711" y="126" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">COMPLIANT</text>
+          <!-- Row 5: Art.14 Human Oversight -->
+          <rect x="15" y="132" width="730" height="17" rx="2" fill="#0a1520"/>
+          <text x="95" y="144" text-anchor="middle" fill="#93c5fd" font-size="8">EU AI Act Art.14</text>
+          <text x="230" y="144" text-anchor="middle" fill="#e2e8f0" font-size="8">Human Oversight Mechanisms</text>
+          <text x="440" y="144" text-anchor="middle" fill="#94a3b8" font-size="8">PROCESS — 25 oversight staff + REVIEW escalation</text>
+          <text x="620" y="144" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/hitl_process.pdf</text>
+          <rect x="685" y="136" width="52" height="10" rx="3" fill="#14532d"/>
+          <text x="711" y="145" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">COMPLIANT</text>
+          <!-- Row 6: Art.86 Right to Explanation -->
+          <rect x="15" y="151" width="730" height="17" rx="2" fill="#0f1a2a"/>
+          <text x="95" y="163" text-anchor="middle" fill="#93c5fd" font-size="8">EU AI Act Art.86</text>
+          <text x="230" y="163" text-anchor="middle" fill="#e2e8f0" font-size="8">Right to Explanation</text>
+          <text x="440" y="163" text-anchor="middle" fill="#fca5a5" font-size="8">EXPLAINABILITY — coverage 98.3% (target 100%)</text>
+          <text x="620" y="163" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/explanations/</text>
+          <rect x="685" y="155" width="52" height="10" rx="3" fill="#7f1d1d"/>
+          <text x="711" y="164" text-anchor="middle" fill="#f87171" font-size="8" font-weight="700">NON-COMP</text>
+          <!-- Row 7: NHNN -->
+          <rect x="15" y="170" width="730" height="17" rx="2" fill="#0a1520"/>
+          <text x="95" y="182" text-anchor="middle" fill="#fde68a" font-size="8">NHNN Circ.12/2020</text>
+          <text x="230" y="182" text-anchor="middle" fill="#e2e8f0" font-size="8">AI Risk Assessment Report</text>
+          <text x="440" y="182" text-anchor="middle" fill="#94a3b8" font-size="8">DOCUMENT — quarterly risk assessment</text>
+          <text x="620" y="182" text-anchor="middle" fill="#94a3b8" font-size="8">s3://loanbot-audit/nhnn_q1_2026.pdf</text>
+          <rect x="685" y="174" width="52" height="10" rx="3" fill="#14532d"/>
+          <text x="711" y="183" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">COMPLIANT</text>
+          <!-- Summary bar -->
+          <rect x="15" y="193" width="730" height="20" rx="4" fill="#1a0505" stroke="#dc2626" stroke-width="1"/>
+          <text x="380" y="207" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">Overall: NON-COMPLIANT — Art.86 explanation_coverage &lt; 100% requires immediate fix (generate 850 missing explanations)</text>
+        </svg>
+        <div class="diagram-title">Hình 4: EU AI Act + NHNN Compliance Map cho LoanBot (High-Risk AI). Overall status: NON-COMPLIANT vi Art.86 Right to Explanation chi dat 98.3% (can 100%). Action: generate explanations cho 850 decisions con lai trong 24h. PARTIAL: Art.10 Data Governance do bias violation dang active. Tat ca requirements khac: COMPLIANT.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -727,6 +938,62 @@ Yêu cầu: Không kỹ thuật, thân thiện, nêu rõ bước tiếp theo."""
             <li><strong>Prevent (sau 168h)</strong>: Post-mortem report. Update governance charter. Add new monitoring metric. Ethics Board review. Regulatory disclosure nếu required.</li>
           </ol>
         </div>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Ethics Escalation Ladder: 6 levels tu None, Log Only, Alert, Human Review, Ethics Board den Halt. Moi level co trigger conditions va required actions cu the cho LoanBot FinTech Corp.</title>
+          <defs>
+            <marker id="arr_m28_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Ethics Escalation Ladder — LoanBot Incident Response Levels</text>
+          <!-- Level 0: None -->
+          <rect x="270" y="190" width="220" height="22" rx="5" fill="#1e293b" stroke="#475569" stroke-width="1.5"/>
+          <text x="380" y="205" text-anchor="middle" fill="#94a3b8" font-size="10">LEVEL 0: NONE — Normal operation, all metrics OK</text>
+          <!-- Arrow up 0→1 -->
+          <line x1="380" y1="188" x2="380" y2="179" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr_m28_5)"/>
+          <!-- Level 1: Log Only -->
+          <rect x="240" y="157" width="280" height="22" rx="5" fill="#1e2d1a" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="380" y="172" text-anchor="middle" fill="#86efac" font-size="9">LEVEL 1: LOG ONLY — Minor anomaly: drift PSI 0.10-0.14</text>
+          <!-- Arrow up 1→2 -->
+          <line x1="380" y1="155" x2="380" y2="146" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr_m28_5)"/>
+          <!-- Level 2: Alert -->
+          <rect x="205" y="124" width="350" height="22" rx="5" fill="#0a2a1a" stroke="#10b981" stroke-width="1.5"/>
+          <text x="380" y="139" text-anchor="middle" fill="#34d399" font-size="9">LEVEL 2: ALERT — Fairness ratio 0.75-0.80, Type I rate 15-18%</text>
+          <!-- Arrow up 2→3 -->
+          <line x1="380" y1="122" x2="380" y2="113" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr_m28_5)"/>
+          <!-- Level 3: Human Review -->
+          <rect x="160" y="91" width="440" height="22" rx="5" fill="#0c1f3b" stroke="#3b82f6" stroke-width="2"/>
+          <text x="380" y="106" text-anchor="middle" fill="#93c5fd" font-size="9">LEVEL 3: HUMAN REVIEW — High-value (&gt;1B) + confidence &lt;0.65 | Short emp + borderline</text>
+          <!-- Arrow up 3→4 -->
+          <line x1="380" y1="89" x2="380" y2="80" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr_m28_5)"/>
+          <!-- Level 4: Ethics Board -->
+          <rect x="100" y="58" width="560" height="22" rx="5" fill="#1e1b4b" stroke="#818cf8" stroke-width="2"/>
+          <text x="380" y="73" text-anchor="middle" fill="#c7d2fe" font-size="9">LEVEL 4: ETHICS BOARD — NHNN inquiry | Disparity ratio &lt;0.75 | Media exposure</text>
+          <!-- Arrow up 4→5 -->
+          <line x1="380" y1="56" x2="380" y2="47" stroke="#ef4444" stroke-width="1.5" marker-end="url(#arr_m28_5)"/>
+          <!-- Level 5: HALT -->
+          <rect x="30" y="32" width="700" height="22" rx="5" fill="#2d1212" stroke="#ef4444" stroke-width="2"/>
+          <text x="380" y="47" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">LEVEL 5: HALT — Severe disparate impact (&lt;60% rule) | Proven discriminatory pattern</text>
+          <!-- Right side: Timeline requirements -->
+          <rect x="15" y="130" width="155" height="85" rx="6" fill="#0f1e35" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="92" y="147" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">Response SLA</text>
+          <text x="20" y="162" fill="#94a3b8" font-size="9">L2 Alert: 4h to investigate</text>
+          <text x="20" y="175" fill="#94a3b8" font-size="9">L3 Review: 24h decision</text>
+          <text x="20" y="188" fill="#94a3b8" font-size="9">L4 Ethics: 48h board meeting</text>
+          <text x="20" y="201" fill="#ef4444" font-size="9" font-weight="700">L5 HALT: immediate &lt; 1h</text>
+          <!-- Left side: Advisory power note -->
+          <rect x="590" y="130" width="155" height="85" rx="6" fill="#1a0d00" stroke="#92400e" stroke-width="1"/>
+          <text x="667" y="147" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">Ethics Board Power</text>
+          <text x="597" y="162" fill="#fcd34d" font-size="9">Advisory, NOT veto</text>
+          <text x="597" y="176" fill="#fcd34d" font-size="9">Ignore -&gt; C-suite must</text>
+          <text x="597" y="189" fill="#fcd34d" font-size="9">justify in writing</text>
+          <text x="597" y="202" fill="#94a3b8" font-size="9">Paper trail = accountability</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Ethics Escalation Ladder 6 Levels cho LoanBot. Level 5 (HALT) triggered khi disparity ratio &lt;0.60 — immediate stop cho affected segment, manual review bat buoc. Level 4 (Ethics Board) khi NHNN inquiry active. Level 3 (Human Review) cho high-value + low confidence. Ethics Board co advisory power, khong co veto — nhung ignore recommendation can C-suite justification bang van ban (tao audit trail).</div>
       </div>
 
       <hr class="lesson-divider">

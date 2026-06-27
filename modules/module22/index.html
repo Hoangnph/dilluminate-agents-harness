@@ -362,6 +362,101 @@ model.<span class="code-function">print_trainable_parameters</span>()
         <p>FinTech Corp có 300,000 real loan decisions với tên KH, CCCD, địa chỉ, thu nhập. <strong>Tuyệt đối không dùng raw production data</strong> để fine-tune — model có thể memorize và leak PII sau này. GDPR Art.17 và NĐ13/2023 yêu cầu xóa PII khi không cần thiết. Pipeline bắt buộc: (1) Anonymize: thay tên → "KH_001", thay CCCD → random 12 digits, thay địa chỉ → tỉnh/thành phố chỉ; (2) Synthetic generation từ anonymized data; (3) Verify: không còn PII nào trong training set.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Synthetic Data Pipeline: raw production data → anonymize PII → Claude generate → quality filter → clean training set</title>
+          <defs>
+            <marker id="arr_m22_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#f97316"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Synthetic Data Pipeline: Raw Production → Clean Training Set</text>
+
+          <!-- Stage 1: Raw Data -->
+          <rect x="15" y="42" width="125" height="128" fill="#431407" rx="8" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="77" y="62" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">Raw Prod. Data</text>
+          <text x="77" y="76" text-anchor="middle" fill="#94a3b8" font-size="8">300,000 records</text>
+          <rect x="25" y="84" width="105" height="18" fill="#0f172a" rx="3"/>
+          <text x="77" y="97" text-anchor="middle" fill="#f87171" font-size="8">name: "Nguyen Van A"</text>
+          <rect x="25" y="106" width="105" height="18" fill="#0f172a" rx="3"/>
+          <text x="77" y="119" text-anchor="middle" fill="#f87171" font-size="8">cccd: "036082345678"</text>
+          <rect x="25" y="128" width="105" height="18" fill="#0f172a" rx="3"/>
+          <text x="77" y="141" text-anchor="middle" fill="#f87171" font-size="8">address: "12 Le Loi, Q1"</text>
+          <text x="77" y="162" text-anchor="middle" fill="#dc2626" font-size="8" font-weight="700">CONTAINS PII</text>
+
+          <!-- Arrow 1 -->
+          <line x1="140" y1="106" x2="165" y2="106" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_3)"/>
+          <text x="152" y="99" text-anchor="middle" fill="#f97316" font-size="8" font-weight="700">Step 1</text>
+          <text x="152" y="118" text-anchor="middle" fill="#475569" font-size="8">anonymize</text>
+
+          <!-- Stage 2: Anonymized -->
+          <rect x="168" y="42" width="130" height="128" fill="#1a0a00" rx="8" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="233" y="62" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="700">Anonymized Cases</text>
+          <rect x="178" y="72" width="110" height="18" fill="#0f172a" rx="3"/>
+          <text x="233" y="85" text-anchor="middle" fill="#fde047" font-size="8">id: "KH_A3B2C1"</text>
+          <rect x="178" y="94" width="110" height="18" fill="#0f172a" rx="3"/>
+          <text x="233" y="107" text-anchor="middle" fill="#86efac" font-size="8">score: 638</text>
+          <rect x="178" y="116" width="110" height="18" fill="#0f172a" rx="3"/>
+          <text x="233" y="129" text-anchor="middle" fill="#86efac" font-size="8">region: "Ha Noi"</text>
+          <rect x="178" y="138" width="110" height="18" fill="#0f172a" rx="3"/>
+          <text x="233" y="151" text-anchor="middle" fill="#86efac" font-size="8">loan: 120,000,000</text>
+          <text x="233" y="165" text-anchor="middle" fill="#86efac" font-size="8">PII removed</text>
+
+          <!-- Arrow 2 -->
+          <line x1="298" y1="106" x2="323" y2="106" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_3)"/>
+          <text x="310" y="99" text-anchor="middle" fill="#f97316" font-size="8" font-weight="700">Step 2</text>
+          <text x="310" y="118" text-anchor="middle" fill="#475569" font-size="8">generate</text>
+
+          <!-- Stage 3: Claude Generate -->
+          <rect x="326" y="42" width="150" height="128" fill="#0c1f36" rx="8" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="401" y="62" text-anchor="middle" fill="#c4b5fd" font-size="9" font-weight="700">Claude Haiku</text>
+          <text x="401" y="74" text-anchor="middle" fill="#94a3b8" font-size="8">Generate instruction + explanation</text>
+          <rect x="336" y="82" width="130" height="42" fill="#0f172a" rx="3"/>
+          <text x="401" y="96" text-anchor="middle" fill="#c4b5fd" font-size="8">"Phan tich ho so KH_A3B2C1:</text>
+          <text x="401" y="108" text-anchor="middle" fill="#c4b5fd" font-size="8">Score 638 bien gioi, DTI 0.41</text>
+          <text x="401" y="120" text-anchor="middle" fill="#c4b5fd" font-size="8">can kiem tra CIC..."</text>
+          <rect x="336" y="130" width="130" height="22" fill="#3b0764" rx="3"/>
+          <text x="401" y="141" text-anchor="middle" fill="#a78bfa" font-size="8">quality_score: 0.87</text>
+          <text x="401" y="158" text-anchor="middle" fill="#94a3b8" font-size="8">source: "synthetic"</text>
+          <text x="401" y="165" text-anchor="middle" fill="#475569" font-size="8">~50K examples generated</text>
+
+          <!-- Arrow 3 -->
+          <line x1="476" y1="106" x2="501" y2="106" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_3)"/>
+          <text x="488" y="99" text-anchor="middle" fill="#f97316" font-size="8" font-weight="700">Step 3</text>
+          <text x="488" y="118" text-anchor="middle" fill="#475569" font-size="8">filter</text>
+
+          <!-- Stage 4: Filter -->
+          <rect x="504" y="42" width="130" height="128" fill="#0c1f36" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="569" y="62" text-anchor="middle" fill="#fde047" font-size="9" font-weight="700">Quality Filter</text>
+          <rect x="514" y="72" width="110" height="20" fill="#0f172a" rx="3"/>
+          <text x="569" y="86" text-anchor="middle" fill="#94a3b8" font-size="8">quality_score &gt;= 0.7</text>
+          <rect x="514" y="96" width="110" height="20" fill="#0f172a" rx="3"/>
+          <text x="569" y="110" text-anchor="middle" fill="#94a3b8" font-size="8">length: 30–500 chars</text>
+          <rect x="514" y="120" width="110" height="20" fill="#0f172a" rx="3"/>
+          <text x="569" y="134" text-anchor="middle" fill="#94a3b8" font-size="8">MD5 deduplication</text>
+          <text x="569" y="156" text-anchor="middle" fill="#f87171" font-size="8">removed: ~12K low-quality</text>
+          <text x="569" y="168" text-anchor="middle" fill="#86efac" font-size="8">kept: ~38K</text>
+
+          <!-- Arrow 4 -->
+          <line x1="634" y1="106" x2="659" y2="106" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_3)"/>
+          <text x="646" y="99" text-anchor="middle" fill="#86efac" font-size="8" font-weight="700">Ready</text>
+
+          <!-- Stage 5: Training Set -->
+          <rect x="662" y="42" width="84" height="128" fill="#0c2e0c" rx="8" stroke="#4ade80" stroke-width="2"/>
+          <text x="704" y="62" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">Training</text>
+          <text x="704" y="74" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">Set</text>
+          <text x="704" y="96" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="700">38K</text>
+          <text x="704" y="114" text-anchor="middle" fill="#6ee7b7" font-size="8">clean examples</text>
+          <text x="704" y="128" text-anchor="middle" fill="#6ee7b7" font-size="8">no PII</text>
+          <text x="704" y="142" text-anchor="middle" fill="#6ee7b7" font-size="8">quality &gt;= 0.7</text>
+          <text x="704" y="158" text-anchor="middle" fill="#4ade80" font-size="8">verified</text>
+
+          <text x="380" y="200" text-anchor="middle" fill="#334155" font-size="8">Pipeline chay offline truoc training. Expert review sample 5% examples. Toan bo 38K examples phai pass PII scan lan 2 truoc khi dua vao training job.</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Synthetic Data Pipeline. 300K raw records → anonymize PII (hash IDs, round amounts, drop names/CCCD) → Claude Haiku generate natural-language instruction+explanation → quality filter (score≥0.7, dedup, length) → 38K clean training examples. Pipeline đảm bảo zero PII trong training set.</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (Synthetic Training Data Generator)</span>
         <pre><code><span class="code-keyword">import</span> anthropic, json, random, hashlib
@@ -464,6 +559,83 @@ Return JSON: {{"instruction": "...", "explanation": "...", "quality_score": 0.0-
         <p><strong>Catastrophic forgetting</strong>: khi fine-tune LoanBot trên loan data, model có thể "quên" general capabilities — ví dụ không còn có thể viết email hay translate tiếng Anh nữa. Với LoanBot: acceptable nếu chỉ dùng để thẩm định tín dụng. <strong>Nhưng nguy hiểm</strong> nếu forget: khả năng follow instructions, common sense reasoning, JSON formatting (cần cho output). Cách detect: test general capability benchmarks trước và sau fine-tuning. Cách mitigate: (1) dùng lower learning rate; (2) đừng fine-tune quá nhiều epochs; (3) xen lẫn general instructions vào training data (~10-20% của dataset).</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>4-Dimension Evaluation: Base Model vs Fine-tuned LoanBot comparison tren domain accuracy, json compliance, general capability, latency</title>
+          <defs>
+            <marker id="arr_m22_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">4-Dimension Evaluation: Base Model vs Fine-tuned LoanBot</text>
+
+          <!-- Legend -->
+          <rect x="490" y="35" width="14" height="10" fill="#38bdf8" rx="2"/>
+          <text x="508" y="44" fill="#94a3b8" font-size="9">Base Model (Claude claude-sonnet-4-6)</text>
+          <rect x="490" y="52" width="14" height="10" fill="#f97316" rx="2"/>
+          <text x="508" y="61" fill="#94a3b8" font-size="9">Fine-tuned LLaMA-3-8B (QLoRA)</text>
+
+          <!-- Bar chart: horizontal -->
+          <!-- Y labels -->
+          <text x="178" y="85" text-anchor="end" fill="#94a3b8" font-size="9">Domain Accuracy</text>
+          <text x="178" y="110" text-anchor="end" fill="#94a3b8" font-size="9">JSON Compliance</text>
+          <text x="178" y="135" text-anchor="end" fill="#94a3b8" font-size="9">General Capability</text>
+          <text x="178" y="160" text-anchor="end" fill="#94a3b8" font-size="9">Latency (norm.)</text>
+
+          <!-- Max line at x=550 = 100% -->
+          <line x1="183" y1="68" x2="183" y2="172" stroke="#1e293b" stroke-width="1"/>
+          <line x1="550" y1="68" x2="550" y2="172" stroke="#334155" stroke-width="1" stroke-dasharray="3,2"/>
+          <text x="553" y="72" fill="#475569" font-size="8">100%</text>
+
+          <!-- Tick marks -->
+          <line x1="366" y1="68" x2="366" y2="172" stroke="#1e293b" stroke-width="1"/>
+          <text x="366" y="72" text-anchor="middle" fill="#475569" font-size="8">50%</text>
+
+          <!-- Row 1: Domain Accuracy — Base 91%, FT 97.2% -->
+          <rect x="184" y="74" width="205" height="10" fill="#1e3a5f" rx="2"/>
+          <text x="393" y="83" fill="#38bdf8" font-size="8" font-weight="700">91%</text>
+          <rect x="184" y="86" width="219" height="10" fill="#f97316" rx="2"/>
+          <text x="407" y="95" fill="#f97316" font-size="8" font-weight="700">97.2% (+6.2pp)</text>
+
+          <!-- Row 2: JSON Compliance — Base 98%, FT 99.5% -->
+          <rect x="184" y="100" width="221" height="10" fill="#1e3a5f" rx="2"/>
+          <text x="409" y="109" fill="#38bdf8" font-size="8" font-weight="700">98%</text>
+          <rect x="184" y="112" width="224" height="10" fill="#f97316" rx="2"/>
+          <text x="412" y="121" fill="#f97316" font-size="8" font-weight="700">99.5% (+1.5pp)</text>
+
+          <!-- Row 3: General Capability — Base 100%, FT 87% — FT worse! -->
+          <rect x="184" y="125" width="225" height="10" fill="#1e3a5f" rx="2"/>
+          <text x="413" y="134" fill="#38bdf8" font-size="8" font-weight="700">100%</text>
+          <rect x="184" y="137" width="196" height="10" fill="#dc2626" rx="2"/>
+          <text x="384" y="146" fill="#f87171" font-size="8" font-weight="700">87% (-13pp) — Catastrophic Forgetting!</text>
+
+          <!-- Row 4: Latency — Base 50%, FT 85% (FT faster) -->
+          <rect x="184" y="150" width="112" height="10" fill="#1e3a5f" rx="2"/>
+          <text x="300" y="159" fill="#38bdf8" font-size="8" font-weight="700">50% (~5s p50)</text>
+          <rect x="184" y="162" width="191" height="10" fill="#f97316" rx="2"/>
+          <text x="379" y="171" fill="#f97316" font-size="8" font-weight="700">85% (~1.8s p50) — 2.8x faster</text>
+
+          <!-- Pass/Fail thresholds -->
+          <rect x="560" y="35" width="192" height="168" fill="#0c1f36" rx="6" stroke="#334155"/>
+          <text x="656" y="51" text-anchor="middle" fill="#64748b" font-size="9" font-weight="700">Pass Thresholds</text>
+          <line x1="568" y1="56" x2="744" y2="56" stroke="#334155" stroke-width="1"/>
+          <text x="656" y="71" text-anchor="middle" fill="#86efac" font-size="8">Domain: &gt;= 95% PASS</text>
+          <text x="656" y="83" text-anchor="middle" fill="#86efac" font-size="8">FT: 97.2% → PASS</text>
+          <text x="656" y="99" text-anchor="middle" fill="#86efac" font-size="8">JSON: &gt;= 99% PASS</text>
+          <text x="656" y="111" text-anchor="middle" fill="#86efac" font-size="8">FT: 99.5% → PASS</text>
+          <text x="656" y="127" text-anchor="middle" fill="#f87171" font-size="8">General: &gt;= 85% PASS</text>
+          <text x="656" y="139" text-anchor="middle" fill="#f87171" font-size="8">FT: 87% → PASS (barely!)</text>
+          <text x="656" y="155" text-anchor="middle" fill="#86efac" font-size="8">Latency: p50 &lt; 2s PASS</text>
+          <text x="656" y="167" text-anchor="middle" fill="#86efac" font-size="8">FT: 1.8s → PASS</text>
+          <rect x="568" y="175" width="168" height="22" fill="#065f46" rx="4"/>
+          <text x="652" y="190" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">READY TO DEPLOY (canary 5%)</text>
+
+          <text x="380" y="204" text-anchor="middle" fill="#334155" font-size="8">General capability 87% — barely above 85% threshold. Monitor closely tren canary. Increase general instructions data neu next training round.</text>
+        </svg>
+        <div class="diagram-title">Hình 4: 4-Dimension Evaluation — Base vs Fine-tuned. Domain Accuracy: 91%→97.2% (PASS). JSON Compliance: 98%→99.5% (PASS). General Capability: 100%→87% (PASS barely, -13pp catastrophic forgetting detected). Latency: 5s→1.8s (PASS, 2.8x faster). Fine-tuned model sẵn sàng deploy canary 5% với close monitoring.</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (4-Dimension Evaluation Suite)</span>
         <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass, field
@@ -560,6 +732,88 @@ Return JSON: {{"instruction": "...", "explanation": "...", "quality_score": 0.0-
           <li><strong>v3.6-ft-shadow</strong>: LLaMA-3-8B + LoRA fine-tuned. Shadow mode — chạy 100% requests nhưng output không dùng. Đang monitor accuracy, latency.</li>
           <li><strong>v3.6-ft-canary</strong>: Sau 2 tuần shadow OK → promote to canary 5%. Nếu 7 ngày stable → 25% → 100%.</li>
         </ul>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 215" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Canary Deployment Pipeline: Shadow 0% → Canary 5% → Canary 25% → Production 100% voi automated rollback triggers cho fine-tuned LoanBot</title>
+          <defs>
+            <marker id="arr_m22_5a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#f97316"/>
+            </marker>
+            <marker id="arr_m22_5b" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#f87171"/>
+            </marker>
+          </defs>
+          <rect width="760" height="215" fill="#0f172a" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Fine-tuned Model Canary Deployment — LoanBot v3.6-ft</text>
+
+          <!-- Stage 1: Shadow -->
+          <rect x="15" y="42" width="152" height="110" fill="#0c1f36" rx="8" stroke="#475569" stroke-width="1.5"/>
+          <text x="91" y="59" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="700">Stage 1: Shadow</text>
+          <text x="91" y="72" text-anchor="middle" fill="#475569" font-size="9">Traffic: 0% (monitor only)</text>
+          <rect x="25" y="78" width="132" height="18" fill="#0f172a" rx="3"/>
+          <text x="91" y="91" text-anchor="middle" fill="#64748b" font-size="8">100% requests → v3.5-base</text>
+          <rect x="25" y="100" width="132" height="18" fill="#0f172a" rx="3"/>
+          <text x="91" y="113" text-anchor="middle" fill="#64748b" font-size="8">100% requests → v3.6-ft (shadow)</text>
+          <text x="91" y="132" text-anchor="middle" fill="#94a3b8" font-size="8">Duration: 2 weeks</text>
+          <text x="91" y="143" text-anchor="middle" fill="#94a3b8" font-size="8">Monitor: accuracy, latency</text>
+
+          <!-- Arrow 1→2 -->
+          <line x1="167" y1="97" x2="192" y2="97" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_5a)"/>
+          <text x="179" y="88" text-anchor="middle" fill="#86efac" font-size="8">all OK</text>
+          <text x="179" y="110" text-anchor="middle" fill="#475569" font-size="7">14 days</text>
+
+          <!-- Stage 2: Canary 5% -->
+          <rect x="195" y="42" width="152" height="110" fill="#1a0a00" rx="8" stroke="#f97316" stroke-width="1.5"/>
+          <text x="271" y="59" text-anchor="middle" fill="#fdba74" font-size="10" font-weight="700">Stage 2: Canary 5%</text>
+          <text x="271" y="72" text-anchor="middle" fill="#f97316" font-size="9">Traffic: 5% ft / 95% base</text>
+          <rect x="205" y="78" width="132" height="10" fill="#1e3a5f" rx="2"/>
+          <rect x="205" y="78" width="6" height="10" fill="#f97316" rx="2"/>
+          <text x="271" y="98" text-anchor="middle" fill="#94a3b8" font-size="8">Real users, real decisions</text>
+          <text x="271" y="110" text-anchor="middle" fill="#94a3b8" font-size="8">Domain acc must be &gt;= 95%</text>
+          <text x="271" y="125" text-anchor="middle" fill="#94a3b8" font-size="8">Duration: 7 days</text>
+          <text x="271" y="137" text-anchor="middle" fill="#94a3b8" font-size="8">Deterministic routing by user_id</text>
+
+          <!-- Arrow 2→3 -->
+          <line x1="347" y1="97" x2="372" y2="97" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_5a)"/>
+          <text x="359" y="88" text-anchor="middle" fill="#86efac" font-size="8">stable</text>
+          <text x="359" y="110" text-anchor="middle" fill="#475569" font-size="7">7 days</text>
+
+          <!-- Stage 3: Canary 25% -->
+          <rect x="375" y="42" width="152" height="110" fill="#1a0a00" rx="8" stroke="#fdba74" stroke-width="1.5"/>
+          <text x="451" y="59" text-anchor="middle" fill="#fdba74" font-size="10" font-weight="700">Stage 3: Canary 25%</text>
+          <text x="451" y="72" text-anchor="middle" fill="#f97316" font-size="9">Traffic: 25% ft / 75% base</text>
+          <rect x="385" y="78" width="132" height="10" fill="#1e3a5f" rx="2"/>
+          <rect x="385" y="78" width="33" height="10" fill="#fdba74" rx="2"/>
+          <text x="451" y="98" text-anchor="middle" fill="#94a3b8" font-size="8">Higher volume → more data</text>
+          <text x="451" y="110" text-anchor="middle" fill="#94a3b8" font-size="8">Check: no regression detected</text>
+          <text x="451" y="125" text-anchor="middle" fill="#94a3b8" font-size="8">Duration: 7 days</text>
+          <text x="451" y="137" text-anchor="middle" fill="#94a3b8" font-size="8">A/B test statistical sig.</text>
+
+          <!-- Arrow 3→4 -->
+          <line x1="527" y1="97" x2="552" y2="97" stroke="#f97316" stroke-width="2" marker-end="url(#arr_m22_5a)"/>
+          <text x="539" y="88" text-anchor="middle" fill="#86efac" font-size="8">stable</text>
+          <text x="539" y="110" text-anchor="middle" fill="#475569" font-size="7">7 days</text>
+
+          <!-- Stage 4: Production 100% -->
+          <rect x="555" y="42" width="190" height="110" fill="#0c2e0c" rx="8" stroke="#4ade80" stroke-width="2"/>
+          <text x="650" y="59" text-anchor="middle" fill="#86efac" font-size="10" font-weight="700">Stage 4: Production</text>
+          <text x="650" y="72" text-anchor="middle" fill="#4ade80" font-size="9">Traffic: 100% ft</text>
+          <rect x="565" y="80" width="170" height="10" fill="#f97316" rx="2"/>
+          <text x="650" y="101" text-anchor="middle" fill="#6ee7b7" font-size="8">v3.6-ft status → production</text>
+          <text x="650" y="113" text-anchor="middle" fill="#6ee7b7" font-size="8">v3.5-base status → retired</text>
+          <text x="650" y="128" text-anchor="middle" fill="#86efac" font-size="9" font-weight="700">97.2% accuracy LIVE</text>
+          <text x="650" y="140" text-anchor="middle" fill="#6ee7b7" font-size="8">Cost savings: 60% token reduction</text>
+
+          <!-- Rollback arrow (bottom) -->
+          <line x1="530" y1="170" x2="200" y2="170" stroke="#f87171" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr_m22_5b)"/>
+          <text x="365" y="163" text-anchor="middle" fill="#f87171" font-size="9" font-weight="700">AUTOMATED ROLLBACK (any stage)</text>
+          <rect x="200" y="177" width="328" height="25" fill="#3b0000" rx="4" stroke="#f87171"/>
+          <text x="364" y="189" text-anchor="middle" fill="#fca5a5" font-size="8" font-weight="700">Triggers: accuracy &lt; 93% | latency p99 &gt; 5s | error_rate &gt; 2% | compliance_violation</text>
+          <text x="364" y="202" text-anchor="middle" fill="#94a3b8" font-size="8">On rollback: canary → 0%, production → 100%, demote ft to shadow</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Canary Deployment Pipeline. 4 stages: Shadow (0%, 2 tuần monitor) → Canary 5% (7 ngày, real traffic) → Canary 25% (7 ngày, A/B) → Production 100%. Automated rollback khi accuracy &lt;93%, p99 latency &gt;5s, error rate &gt;2%, hoặc compliance violation — không cần manual intervention.</div>
       </div>
 
       <div class="code-block">

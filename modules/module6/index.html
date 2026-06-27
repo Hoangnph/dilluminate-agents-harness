@@ -255,6 +255,7 @@
           <rect x="310" y="258" width="140" height="18" rx="5" fill="#dcfce7" stroke="#86efac"/>
           <text x="380" y="271" text-anchor="middle" font-size="9" fill="#065f46" font-weight="700">Results aggregated → Final decision</text>
         </svg>
+        <div class="diagram-title">Hình 1: Supervisor Pattern — Supervisor nhận loan_request, dispatch parallel tasks tới CreditAgent + IncomeAgent + RiskAgent, aggregates results, trả final_decision. ReportAgent chạy last.</div>
       </div>
 
       <div class="callout key-insight">
@@ -405,6 +406,7 @@
             v2.0 Total: ~135s (vs v1.0: ~187s P95) | Parallelism saves ~52s | Throughput: 4x
           </text>
         </svg>
+        <div class="diagram-title">Hình 2: Parallel Execution Flow — CreditAgent và IncomeAgent chạy đồng thời (asyncio.gather), giảm latency từ 8s xuống 4s. RiskAgent chờ cả hai hoàn thành mới chạy.</div>
       </div>
 
       <div class="callout example">
@@ -525,6 +527,7 @@
           <line x1="675" y1="270" x2="75" y2="270" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr6d)"/>
           <text x="375" y="285" text-anchor="middle" font-size="9" fill="#7c3aed">RESULT: APPROVED — report RPT-001 generated</text>
         </svg>
+        <div class="diagram-title">Hình 3: Agent Handoff Sequence Diagram — AgentMessage schema với trace_id xuyên suốt pipeline. Mỗi handoff giữ context, không mất data giữa các agent.</div>
       </div>
 
       <div class="callout example">
@@ -653,6 +656,7 @@ risk_result = await risk_agent.run(credit_result, income_result)</code></pre>
           <rect x="361" y="78" width="2" height="52" fill="#ef4444" opacity="0.5"/>
           <text x="305" y="76" font-size="8" fill="#ef4444">both complete →</text>
         </svg>
+        <div class="diagram-title">Hình 4: Distributed Trace — trace_id: abc-123 propagate qua 5 agents. Flamegraph cho thấy CreditAgent (2.1s) là bottleneck chính; cần optimize CIC API call.</div>
       </div>
 
       <div class="callout concept">

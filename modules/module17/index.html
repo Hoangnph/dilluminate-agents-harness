@@ -164,6 +164,70 @@
         <p>Traditional OCR chỉ extract text — không hiểu context. Claude Vision <em>hiểu</em> document structure: biết "Net Income" là số cuối cùng trong cột lương, không phải "Tax Deduction". Với payslip có format khác nhau từ hàng nghìn employer khác nhau, rule-based OCR fail 23% cases. Claude Vision generalize tốt hơn vì nó reason về layout, label, và context.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Traditional OCR vs Claude Vision — kha nang hieu document context va extraction accuracy cho LoanBot document types</title>
+          <defs>
+            <marker id="arr_m17_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0ea5e9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#e0f2fe" font-size="13" font-weight="700">Traditional OCR vs Claude Vision — LoanBot Document Processing</text>
+          <!-- Left: Traditional OCR -->
+          <rect x="10" y="38" width="340" height="148" fill="#1e293b" rx="10" stroke="#dc2626" stroke-width="1.5"/>
+          <text x="180" y="60" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">Traditional OCR</text>
+          <text x="180" y="76" text-anchor="middle" fill="#94a3b8" font-size="8">Extracts raw text only. No layout or context understanding.</text>
+          <!-- OCR accuracy bars -->
+          <text x="25" y="98" fill="#94a3b8" font-size="8">Payslip (varied formats)</text>
+          <rect x="175" y="86" width="155" height="14" fill="#374151" rx="3"/>
+          <rect x="175" y="86" width="119" height="14" fill="#dc2626" rx="3"/>
+          <text x="334" y="98" fill="#fca5a5" font-size="8"> 77%</text>
+          <text x="25" y="118" fill="#94a3b8" font-size="8">Bank Statement (multi-page)</text>
+          <rect x="175" y="106" width="155" height="14" fill="#374151" rx="3"/>
+          <rect x="175" y="106" width="107" height="14" fill="#dc2626" rx="3"/>
+          <text x="334" y="118" fill="#fca5a5" font-size="8"> 69%</text>
+          <text x="25" y="138" fill="#94a3b8" font-size="8">Property Deed (stamps)</text>
+          <rect x="175" y="126" width="155" height="14" fill="#374151" rx="3"/>
+          <rect x="175" y="126" width="122" height="14" fill="#dc2626" rx="3"/>
+          <text x="334" y="138" fill="#fca5a5" font-size="8"> 79%</text>
+          <text x="25" y="158" fill="#94a3b8" font-size="8">CCCD / ID card</text>
+          <rect x="175" y="146" width="155" height="14" fill="#374151" rx="3"/>
+          <rect x="175" y="146" width="140" height="14" fill="#dc2626" rx="3"/>
+          <text x="334" y="158" fill="#fca5a5" font-size="8"> 90%</text>
+          <text x="180" y="178" text-anchor="middle" fill="#64748b" font-size="7">Fails on: blurry scans, rotated text, non-standard layouts</text>
+          <!-- Arrow in center -->
+          <text x="380" y="115" text-anchor="middle" fill="#0ea5e9" font-size="18" font-weight="700">+</text>
+          <text x="380" y="132" text-anchor="middle" fill="#0ea5e9" font-size="8">Context</text>
+          <text x="380" y="143" text-anchor="middle" fill="#0ea5e9" font-size="8">Reasoning</text>
+          <!-- Right: Claude Vision -->
+          <rect x="410" y="38" width="340" height="148" fill="#075985" rx="10" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="580" y="60" text-anchor="middle" fill="#7dd3fc" font-size="11" font-weight="700">Claude Vision</text>
+          <text x="580" y="76" text-anchor="middle" fill="#93c5fd" font-size="8">Understands layout, labels, context. Reasons about structure.</text>
+          <!-- Vision accuracy bars -->
+          <text x="425" y="98" fill="#7dd3fc" font-size="8">Payslip (varied formats)</text>
+          <rect x="567" y="86" width="155" height="14" fill="#0c4a6e" rx="3"/>
+          <rect x="567" y="86" width="151" height="14" fill="#0ea5e9" rx="3"/>
+          <text x="726" y="98" fill="#e0f2fe" font-size="8"> 97%</text>
+          <text x="425" y="118" fill="#7dd3fc" font-size="8">Bank Statement (multi-page)</text>
+          <rect x="567" y="106" width="155" height="14" fill="#0c4a6e" rx="3"/>
+          <rect x="567" y="106" width="147" height="14" fill="#0ea5e9" rx="3"/>
+          <text x="726" y="118" fill="#e0f2fe" font-size="8"> 95%</text>
+          <text x="425" y="138" fill="#7dd3fc" font-size="8">Property Deed (stamps)</text>
+          <rect x="567" y="126" width="155" height="14" fill="#0c4a6e" rx="3"/>
+          <rect x="567" y="126" width="149" height="14" fill="#0ea5e9" rx="3"/>
+          <text x="726" y="138" fill="#e0f2fe" font-size="8"> 96%</text>
+          <text x="425" y="158" fill="#7dd3fc" font-size="8">CCCD / ID card</text>
+          <rect x="567" y="146" width="155" height="14" fill="#0c4a6e" rx="3"/>
+          <rect x="567" y="146" width="154" height="14" fill="#0ea5e9" rx="3"/>
+          <text x="726" y="158" fill="#e0f2fe" font-size="8"> 99%</text>
+          <text x="580" y="178" text-anchor="middle" fill="#7dd3fc" font-size="7">Handles: blurry scans, variable formats, stamps, handwriting</text>
+          <!-- Bottom stat -->
+          <text x="380" y="196" text-anchor="middle" fill="#7dd3fc" font-size="8">LoanBot uses claude-haiku-4-5 for CCCD (structured, fast) and claude-sonnet-4-6 for payslip/bank stmt (complex)</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Traditional OCR vs Claude Vision — Vision reasoning về layout và context giúp tăng accuracy từ 69–90% (OCR) lên 95–99% (Vision) trên 4 document types chính của LoanBot</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (Claude Vision API)</span>
         <pre><code><span class="code-keyword">import</span> anthropic, base64, pathlib
@@ -359,6 +423,71 @@ Nếu field không tìm thấy → null. Amounts in VNĐ (integers)."""</span>
         <p><strong>Decision: APPROVE</strong> — bank statement xác nhận income và spending pattern ổn định.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Bank Statement Analysis Pipeline — Extract transactions, detect income patterns, cross-check vs declared income cho LoanBot</title>
+          <defs>
+            <marker id="arr_m17_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0ea5e9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#e0f2fe" font-size="13" font-weight="700">Bank Statement Analysis — 12-Month Transaction Processing (FC-2024-004 VCB)</text>
+          <!-- Stage 1: PDF -->
+          <rect x="10" y="50" width="100" height="100" fill="#1e293b" rx="8"/>
+          <text x="60" y="73" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700">PDF Input</text>
+          <text x="60" y="90" text-anchor="middle" fill="#94a3b8" font-size="7">12 pages</text>
+          <text x="60" y="103" text-anchor="middle" fill="#94a3b8" font-size="7">200+ rows</text>
+          <text x="60" y="116" text-anchor="middle" fill="#94a3b8" font-size="7">Jul 25 - Jun 26</text>
+          <text x="60" y="129" text-anchor="middle" fill="#64748b" font-size="7">VCB format</text>
+          <text x="60" y="141" text-anchor="middle" fill="#64748b" font-size="7">multi-column</text>
+          <line x1="110" y1="100" x2="140" y2="100" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr_m17_4)"/>
+          <!-- Stage 2: Extract -->
+          <rect x="142" y="50" width="112" height="100" fill="#075985" rx="8"/>
+          <text x="198" y="73" text-anchor="middle" fill="#e0f2fe" font-size="9" font-weight="700">Claude Vision</text>
+          <text x="198" y="87" text-anchor="middle" fill="#7dd3fc" font-size="8">Extract all</text>
+          <text x="198" y="100" text-anchor="middle" fill="#7dd3fc" font-size="8">transactions</text>
+          <text x="198" y="114" text-anchor="middle" fill="#93c5fd" font-size="7">date, amount,</text>
+          <text x="198" y="126" text-anchor="middle" fill="#93c5fd" font-size="7">description</text>
+          <text x="198" y="140" text-anchor="middle" fill="#64748b" font-size="7">claude-sonnet-4-6</text>
+          <line x1="254" y1="100" x2="284" y2="100" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr_m17_4)"/>
+          <!-- Stage 3: Pattern detection -->
+          <rect x="286" y="50" width="112" height="100" fill="#1e3a8a" rx="8"/>
+          <text x="342" y="73" text-anchor="middle" fill="#dbeafe" font-size="9" font-weight="700">Pattern Detect</text>
+          <text x="342" y="89" text-anchor="middle" fill="#93c5fd" font-size="8">salary: 28th/month</text>
+          <text x="342" y="103" text-anchor="middle" fill="#93c5fd" font-size="8">from FPT Software</text>
+          <text x="342" y="117" text-anchor="middle" fill="#93c5fd" font-size="8">avg inflow: 31.25M</text>
+          <text x="342" y="131" text-anchor="middle" fill="#93c5fd" font-size="8">overdraft: 0 times</text>
+          <text x="342" y="143" text-anchor="middle" fill="#6ee7b7" font-size="7">red_flags: none</text>
+          <line x1="398" y1="100" x2="428" y2="100" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr_m17_4)"/>
+          <!-- Stage 4: Cross-check -->
+          <rect x="430" y="50" width="112" height="100" fill="#065f46" rx="8"/>
+          <text x="486" y="73" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">Cross-Check</text>
+          <text x="486" y="89" text-anchor="middle" fill="#6ee7b7" font-size="8">doc: 31.25M/mo</text>
+          <text x="486" y="103" text-anchor="middle" fill="#6ee7b7" font-size="8">declared: 32M/mo</text>
+          <text x="486" y="117" text-anchor="middle" fill="#6ee7b7" font-size="8">diff: 2.4% &lt; 10%</text>
+          <text x="486" y="131" text-anchor="middle" fill="#a7f3d0" font-size="8">VERIFIED</text>
+          <text x="486" y="143" text-anchor="middle" fill="#6ee7b7" font-size="7">income_verified=true</text>
+          <line x1="542" y1="100" x2="572" y2="100" stroke="#0ea5e9" stroke-width="1.5" marker-end="url(#arr_m17_4)"/>
+          <!-- Stage 5: Result -->
+          <rect x="574" y="50" width="176" height="100" fill="#312e81" rx="8"/>
+          <text x="662" y="73" text-anchor="middle" fill="#e0e7ff" font-size="9" font-weight="700">Analysis Result</text>
+          <text x="662" y="90" text-anchor="middle" fill="#a5b4fc" font-size="8">income_source: employment</text>
+          <text x="662" y="104" text-anchor="middle" fill="#a5b4fc" font-size="8">regularity: regular</text>
+          <text x="662" y="118" text-anchor="middle" fill="#a5b4fc" font-size="8">employer: FPT Software</text>
+          <text x="662" y="132" text-anchor="middle" fill="#6ee7b7" font-size="8">income_verified: TRUE</text>
+          <text x="662" y="146" text-anchor="middle" fill="#6ee7b7" font-size="7">confidence: 0.96</text>
+          <!-- Bottom note: red flag detection -->
+          <rect x="10" y="162" width="740" height="38" fill="#1e293b" rx="8"/>
+          <text x="380" y="178" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700">Red Flag Detection (auto-flagged if found):</text>
+          <text x="100" y="192" text-anchor="middle" fill="#fca5a5" font-size="7">overdraft &gt;2/yr</text>
+          <text x="240" y="192" text-anchor="middle" fill="#fca5a5" font-size="7">gambling keywords (betano, casino)</text>
+          <text x="420" y="192" text-anchor="middle" fill="#fca5a5" font-size="7">round transfers to unknown (10M, 50M)</text>
+          <text x="620" y="192" text-anchor="middle" fill="#fca5a5" font-size="7">income variance &gt;40%</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Bank Statement Analysis Pipeline — PDF → Claude Vision extracts 200+ transactions → Pattern detection → Cross-check vs declared income (2.4% discrepancy = VERIFIED) → Result với confidence 0.96</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (Bank Statement Extractor)</span>
         <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
@@ -445,6 +574,67 @@ Confidence: tính dựa trên clarity của document (0.0-1.0).
       <div class="callout concept">
         <div class="callout-header">📌 Khái niệm: Collateral Verification Chain</div>
         <p>Để approve loan với collateral, LoanBot phải verify 4 links trong chain: (1) <strong>Identity</strong>: người đứng tên sổ = người vay (CCCD match); (2) <strong>Encumbrance</strong>: sổ không có mortgage/lien đang tồn tại; (3) <strong>Valuation</strong>: địa chỉ trong sổ = địa chỉ định giá; (4) <strong>Area</strong>: diện tích trong sổ ≈ diện tích định giá. Nếu bất kỳ link nào fail → HITL Level 2. LoanBot không thể approve secured loan với broken chain.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Collateral Verification Chain — 4 links phai PASS het de approve secured loan cho LoanBot</title>
+          <defs>
+            <marker id="arr_m17_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0ea5e9"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#082f49" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#e0f2fe" font-size="13" font-weight="700">Collateral Verification Chain — All 4 Links Must PASS</text>
+          <!-- Link 1: Identity -->
+          <rect x="10" y="42" width="166" height="120" fill="#075985" rx="10" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="93" y="64" text-anchor="middle" fill="#e0f2fe" font-size="10" font-weight="700">Link 1: Identity</text>
+          <text x="93" y="82" text-anchor="middle" fill="#7dd3fc" font-size="8">deed owner names</text>
+          <text x="93" y="96" text-anchor="middle" fill="#7dd3fc" font-size="8">= loan applicant</text>
+          <text x="93" y="110" text-anchor="middle" fill="#7dd3fc" font-size="8">CCCD match</text>
+          <text x="93" y="128" text-anchor="middle" fill="#6ee7b7" font-size="8" font-weight="700">PASS: proceed</text>
+          <text x="93" y="142" text-anchor="middle" fill="#fca5a5" font-size="7">FAIL: HITL L2</text>
+          <text x="93" y="154" text-anchor="middle" fill="#64748b" font-size="7">(spousal property: L2)</text>
+          <!-- Arrow 1 -->
+          <line x1="176" y1="102" x2="200" y2="102" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arr_m17_5)"/>
+          <!-- Link 2: Encumbrance -->
+          <rect x="202" y="42" width="166" height="120" fill="#075985" rx="10" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="285" y="64" text-anchor="middle" fill="#e0f2fe" font-size="10" font-weight="700">Link 2: Encumbrance</text>
+          <text x="285" y="82" text-anchor="middle" fill="#7dd3fc" font-size="8">no existing mortgage</text>
+          <text x="285" y="96" text-anchor="middle" fill="#7dd3fc" font-size="8">no liens or disputes</text>
+          <text x="285" y="110" text-anchor="middle" fill="#7dd3fc" font-size="8">no restriction stamps</text>
+          <text x="285" y="128" text-anchor="middle" fill="#6ee7b7" font-size="8" font-weight="700">PASS: proceed</text>
+          <text x="285" y="142" text-anchor="middle" fill="#fca5a5" font-size="7">FAIL: REJECT or HITL L2</text>
+          <text x="285" y="154" text-anchor="middle" fill="#64748b" font-size="7">(cannot double-mortgage)</text>
+          <!-- Arrow 2 -->
+          <line x1="368" y1="102" x2="392" y2="102" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arr_m17_5)"/>
+          <!-- Link 3: Address -->
+          <rect x="394" y="42" width="166" height="120" fill="#075985" rx="10" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="477" y="64" text-anchor="middle" fill="#e0f2fe" font-size="10" font-weight="700">Link 3: Address</text>
+          <text x="477" y="82" text-anchor="middle" fill="#7dd3fc" font-size="8">deed address</text>
+          <text x="477" y="96" text-anchor="middle" fill="#7dd3fc" font-size="8">= valuation address</text>
+          <text x="477" y="110" text-anchor="middle" fill="#7dd3fc" font-size="8">first 30 chars match</text>
+          <text x="477" y="128" text-anchor="middle" fill="#6ee7b7" font-size="8" font-weight="700">PASS: proceed</text>
+          <text x="477" y="142" text-anchor="middle" fill="#fde68a" font-size="7">WARN: flag for review</text>
+          <text x="477" y="154" text-anchor="middle" fill="#64748b" font-size="7">(different property)</text>
+          <!-- Arrow 3 -->
+          <line x1="560" y1="102" x2="584" y2="102" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arr_m17_5)"/>
+          <!-- Link 4: Area -->
+          <rect x="586" y="42" width="164" height="120" fill="#075985" rx="10" stroke="#0ea5e9" stroke-width="1.5"/>
+          <text x="668" y="64" text-anchor="middle" fill="#e0f2fe" font-size="10" font-weight="700">Link 4: Area</text>
+          <text x="668" y="82" text-anchor="middle" fill="#7dd3fc" font-size="8">deed area (sqm)</text>
+          <text x="668" y="96" text-anchor="middle" fill="#7dd3fc" font-size="8">vs valuation area</text>
+          <text x="668" y="110" text-anchor="middle" fill="#7dd3fc" font-size="8">tolerance: 5%</text>
+          <text x="668" y="128" text-anchor="middle" fill="#6ee7b7" font-size="8" font-weight="700">PASS: chain valid</text>
+          <text x="668" y="142" text-anchor="middle" fill="#fde68a" font-size="7">WARN: request re-survey</text>
+          <text x="668" y="154" text-anchor="middle" fill="#64748b" font-size="7">(&gt;5% diff = flag)</text>
+          <!-- Bottom: outcome row -->
+          <rect x="10" y="172" width="370" height="28" fill="#065f46" rx="8"/>
+          <text x="195" y="190" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">All 4 PASS: chain_valid=true → proceed to credit assessment</text>
+          <rect x="390" y="172" width="360" height="28" fill="#7f1d1d" rx="8"/>
+          <text x="570" y="190" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">Any FAIL: hitl_required=true, hitl_level=2 — human verifies</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Collateral Verification Chain — 4 links phải PASS hết: Identity (owner = borrower) → Encumbrance (no mortgage) → Address (deed = valuation) → Area (5% tolerance). Bất kỳ FAIL nào → HITL Level 2</div>
       </div>
 
       <div class="code-block">

@@ -136,6 +136,74 @@
         <p>Bối cảnh: Năm 2028. FinTech Corp đã mở rộng ra 5 quốc gia Đông Nam Á. LoanBot v5.0 xử lý 5 triệu hồ sơ/tháng (100× M4 speed). Khác biệt cốt lõi so với v4.0: (1) <strong>Persistent Memory</strong>: LoanBot nhớ toàn bộ 3-year loan history của mỗi customer — không cần RAG, full context mỗi decision. (2) <strong>Multimodal Document Processing</strong>: Camera phone photo của bảng lương → instant OCR + structured data, không cần manual entry. (3) <strong>Real-time Adaptation</strong>: Model cập nhật thresholds daily từ defaults, không cần 30-day batch cycle. (4) <strong>Cross-border Agent Network</strong>: LoanBot Vietnam ↔ LoanBot Thailand ↔ Credit Bureau ASEAN Agent — real-time fraud detection cross-country.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>AI Agent Capability Timeline 2024-2030: 4 eras - Foundation Era (2024-25), Scale Era Now (2026-27), Autonomy Era (2027-28), Ecosystem Era (2028-30). LoanBot journey qua tung era.</title>
+          <defs>
+            <marker id="arr_m30_2a" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">AI Agent Capability Timeline 2024-2030: Moore's Law for AI</text>
+          <!-- Timeline arrow -->
+          <line x1="20" y1="110" x2="745" y2="110" stroke="#334155" stroke-width="2" marker-end="url(#arr_m30_2a)"/>
+          <text x="748" y="113" fill="#94a3b8" font-size="9">Time</text>
+          <!-- Era 1: Foundation 2024-25 -->
+          <rect x="20" y="45" width="160" height="55" rx="8" fill="#0f2040" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="100" y="63" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Foundation Era</text>
+          <text x="100" y="76" text-anchor="middle" fill="#60a5fa" font-size="9">2024 - 2025</text>
+          <text x="100" y="90" text-anchor="middle" fill="#93c5fd" font-size="8">Single agents, RAG</text>
+          <text x="100" y="101" text-anchor="middle" fill="#93c5fd" font-size="8">Basic tool use</text>
+          <!-- Year marker -->
+          <line x1="100" y1="100" x2="100" y2="110" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="100" y="122" text-anchor="middle" fill="#64748b" font-size="9">2024</text>
+          <!-- LoanBot label below -->
+          <rect x="20" y="125" width="160" height="35" rx="5" fill="#0a1520" stroke="#1e3a5f" stroke-width="1"/>
+          <text x="100" y="138" text-anchor="middle" fill="#60a5fa" font-size="8" font-weight="700">LoanBot M1-M15</text>
+          <text x="100" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">v1: single Haiku + tools</text>
+          <!-- Era 2: Scale 2026-27 (NOW) -->
+          <rect x="200" y="35" width="175" height="65" rx="8" fill="#1e1b4b" stroke="#818cf8" stroke-width="2"/>
+          <text x="287" y="53" text-anchor="middle" fill="#c7d2fe" font-size="10" font-weight="700">Scale Era — NOW</text>
+          <text x="287" y="66" text-anchor="middle" fill="#a78bfa" font-size="9">2026 - 2027</text>
+          <text x="287" y="79" text-anchor="middle" fill="#c7d2fe" font-size="8">Multi-agent debate</text>
+          <text x="287" y="90" text-anchor="middle" fill="#c7d2fe" font-size="8">Self-improvement, Governance</text>
+          <text x="287" y="100" text-anchor="middle" fill="#c7d2fe" font-size="8">Computer-use mainstream</text>
+          <line x1="287" y1="100" x2="287" y2="110" stroke="#818cf8" stroke-width="2"/>
+          <text x="287" y="122" text-anchor="middle" fill="#a78bfa" font-size="9" font-weight="700">2026 (YOU ARE HERE)</text>
+          <rect x="200" y="125" width="175" height="35" rx="5" fill="#130f2d" stroke="#4c1d95" stroke-width="1"/>
+          <text x="287" y="138" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="700">LoanBot M16-M30</text>
+          <text x="287" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">v4.0: Condorcet + governance</text>
+          <!-- Era 3: Autonomy 2027-28 -->
+          <rect x="395" y="45" width="175" height="55" rx="8" fill="#0f2d1a" stroke="#10b981" stroke-width="1.5"/>
+          <text x="482" y="63" text-anchor="middle" fill="#6ee7b7" font-size="10" font-weight="700">Autonomy Era</text>
+          <text x="482" y="76" text-anchor="middle" fill="#34d399" font-size="9">2027 - 2028</text>
+          <text x="482" y="90" text-anchor="middle" fill="#6ee7b7" font-size="8">Weeks-long autonomous tasks</text>
+          <text x="482" y="101" text-anchor="middle" fill="#6ee7b7" font-size="8">Real-time learning, Multimodal</text>
+          <line x1="482" y1="100" x2="482" y2="110" stroke="#10b981" stroke-width="1.5"/>
+          <text x="482" y="122" text-anchor="middle" fill="#64748b" font-size="9">2028</text>
+          <rect x="395" y="125" width="175" height="35" rx="5" fill="#0a1f10" stroke="#0d4a20" stroke-width="1"/>
+          <text x="482" y="138" text-anchor="middle" fill="#34d399" font-size="8" font-weight="700">LoanBot v5.0</text>
+          <text x="482" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">Multimodal interview + 1M context</text>
+          <!-- Era 4: Ecosystem 2028-30 -->
+          <rect x="590" y="45" width="155" height="55" rx="8" fill="#2d1f00" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="667" y="63" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="700">Ecosystem Era</text>
+          <text x="667" y="76" text-anchor="middle" fill="#fcd34d" font-size="9">2028 - 2030</text>
+          <text x="667" y="90" text-anchor="middle" fill="#fde68a" font-size="8">Agent marketplaces</text>
+          <text x="667" y="101" text-anchor="middle" fill="#fde68a" font-size="8">Cross-org networks, meta-AI</text>
+          <line x1="667" y1="100" x2="667" y2="110" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="667" y="122" text-anchor="middle" fill="#64748b" font-size="9">2030</text>
+          <rect x="590" y="125" width="155" height="35" rx="5" fill="#1a1000" stroke="#78350f" stroke-width="1"/>
+          <text x="667" y="138" text-anchor="middle" fill="#fcd34d" font-size="8" font-weight="700">LoanBot v6.0</text>
+          <text x="667" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">ASEAN agent network</text>
+          <!-- Cost trend arrow (bottom) -->
+          <text x="380" y="175" text-anchor="middle" fill="#64748b" font-size="9">Cost-per-token trend: 2020→2026 reduced ~100x. Capability trend: ~10x. Both continue exponential.</text>
+          <text x="380" y="190" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="700">5-agent panel at 1,150 VND today -&gt; ~100 VND by 2028 (same Haiku price, Sonnet capability)</text>
+          <text x="380" y="205" text-anchor="middle" fill="#94a3b8" font-size="9">Skills built in this course have LONG half-life: system design judgment &gt; specific model knowledge</text>
+        </svg>
+        <div class="diagram-title">Hình 2: AI Agent Capability Timeline 2024-2030. Ban dang o Scale Era (2026-27) — diem ly tuong de build agentic systems. Autonomy Era (2027-28): agents run weeks-long tasks, real-time learning. Ecosystem Era (2028-30): cross-org agent networks, agent marketplaces. Cost-per-token giam ~100x tu 2020-2026: 5-agent panel hien tai 1,150 VND se cost ~100 VND vao 2028, mo ra economics cho ultra-complex decisions.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -259,6 +327,63 @@ Produce: decision (APPROVE/REVIEW/REJECT), confidence, key factors, customer exp
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>6 Advanced Capabilities cho LoanBot v5.0 2027-2028: Computer-Use, Long Context 1M+ tokens, Voice+Visual Multimodal, Real-time In-Context Learning, Self-Designing Tools, MCP Ecosystem Maturity - voi maturity level va LoanBot application cho moi capability</title>
+          <defs>
+            <marker id="arr_m30_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">LoanBot v5.0 Advanced Capabilities — Horizon 2027-2028</text>
+          <!-- 6 capability cards in 2x3 grid -->
+          <!-- Cap 1: Computer-Use (top-left) -->
+          <rect x="15" y="33" width="235" height="82" rx="8" fill="#0f2d1a" stroke="#10b981" stroke-width="1.5"/>
+          <text x="127" y="50" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">Computer-Use Agents</text>
+          <text x="127" y="63" text-anchor="middle" fill="#6ee7b7" font-size="9">Maturity 2027: PRODUCTION</text>
+          <text x="127" y="77" text-anchor="middle" fill="#94a3b8" font-size="9">LoanBot: login BHXH portal -&gt; verify</text>
+          <text x="127" y="89" text-anchor="middle" fill="#94a3b8" font-size="9">employment -&gt; fill forms -&gt; track</text>
+          <text x="127" y="104" text-anchor="middle" fill="#34d399" font-size="8">No API needed: uses existing UI</text>
+          <!-- Cap 2: Long-Context (top-center) -->
+          <rect x="263" y="33" width="235" height="82" rx="8" fill="#0f2040" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="380" y="50" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Long-Context 1M+ Tokens</text>
+          <text x="380" y="63" text-anchor="middle" fill="#60a5fa" font-size="9">Maturity 2026: EARLY PRODUCTION</text>
+          <text x="380" y="77" text-anchor="middle" fill="#94a3b8" font-size="9">LoanBot: 5-year customer history as</text>
+          <text x="380" y="89" text-anchor="middle" fill="#94a3b8" font-size="9">single context. No RAG latency.</text>
+          <text x="380" y="104" text-anchor="middle" fill="#60a5fa" font-size="8">Full relationship context, not fragments</text>
+          <!-- Cap 3: Voice+Visual (top-right) -->
+          <rect x="511" y="33" width="235" height="82" rx="8" fill="#1e1b4b" stroke="#818cf8" stroke-width="1.5"/>
+          <text x="628" y="50" text-anchor="middle" fill="#c7d2fe" font-size="10" font-weight="700">Voice + Visual Multimodal</text>
+          <text x="628" y="63" text-anchor="middle" fill="#a78bfa" font-size="9">Maturity 2027: EMERGING</text>
+          <text x="628" y="77" text-anchor="middle" fill="#94a3b8" font-size="9">LoanBot: video call -&gt; listen verbal</text>
+          <text x="628" y="89" text-anchor="middle" fill="#94a3b8" font-size="9">income -&gt; OCR salary slip on camera</text>
+          <text x="628" y="104" text-anchor="middle" fill="#c4b5fd" font-size="8">1 agent session: full interview + decision</text>
+          <!-- Cap 4: Real-time Learning (bottom-left) -->
+          <rect x="15" y="128" width="235" height="82" rx="8" fill="#2d1f00" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="127" y="145" text-anchor="middle" fill="#fde68a" font-size="10" font-weight="700">Real-Time In-Context Learning</text>
+          <text x="127" y="158" text-anchor="middle" fill="#fcd34d" font-size="9">Maturity 2028: R&amp;D STAGE</text>
+          <text x="127" y="172" text-anchor="middle" fill="#94a3b8" font-size="9">LoanBot: update thresholds daily</text>
+          <text x="127" y="184" text-anchor="middle" fill="#94a3b8" font-size="9">from defaults in-flight (no 30-day</text>
+          <text x="127" y="196" text-anchor="middle" fill="#fde68a" font-size="8">batch retrain cycle needed)</text>
+          <!-- Cap 5: Self-Designing Tools (bottom-center) -->
+          <rect x="263" y="128" width="235" height="82" rx="8" fill="#2d1212" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="380" y="145" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">Self-Designing Tools</text>
+          <text x="380" y="158" text-anchor="middle" fill="#f87171" font-size="9">Maturity 2028: EXPERIMENTAL</text>
+          <text x="380" y="172" text-anchor="middle" fill="#94a3b8" font-size="9">LoanBot discovers needs BizLicense</text>
+          <text x="380" y="184" text-anchor="middle" fill="#94a3b8" font-size="9">Lookup -&gt; writes tool code -&gt; tests</text>
+          <text x="380" y="196" text-anchor="middle" fill="#fca5a5" font-size="8">-&gt; deploys -&gt; uses (same session)</text>
+          <!-- Cap 6: MCP Ecosystem (bottom-right) -->
+          <rect x="511" y="128" width="235" height="82" rx="8" fill="#0a2a1a" stroke="#10b981" stroke-width="2"/>
+          <text x="628" y="145" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">MCP Ecosystem Maturity</text>
+          <text x="628" y="158" text-anchor="middle" fill="#34d399" font-size="9">Maturity 2026-27: PRODUCTION</text>
+          <text x="628" y="172" text-anchor="middle" fill="#94a3b8" font-size="9">LoanBot uses MCP marketplace:</text>
+          <text x="628" y="184" text-anchor="middle" fill="#94a3b8" font-size="9">CreditBureauAgent, TaxAuthAgent,</text>
+          <text x="628" y="196" text-anchor="middle" fill="#34d399" font-size="8">FraudDetectorAgent — like app store</text>
+        </svg>
+        <div class="diagram-title">Hình 3: 6 Advanced Capabilities cho LoanBot v5.0. Production-ready nay: Long-Context + MCP Ecosystem. Production 2027: Computer-Use Agents (login BHXH, fill forms). Emerging 2027: Voice+Visual (video interview + OCR). R&D 2028: Real-time In-Context Learning va Self-Designing Tools. LoanBot v5.0 ket hop Computer-Use + Long-Context + Multimodal de conduct full loan interview trong 1 session.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -372,6 +497,72 @@ Produce: decision (APPROVE/REVIEW/REJECT), confidence, key factors, customer exp
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Centaur Model 2028: Human Strategic Thinking + AI Operational Speed &gt; either alone. FinTech Corp Org Chart transformation: 200 manual reviewers 2024 -&gt; 35 specialized AI roles 2028, average salary 3x higher.</title>
+          <defs>
+            <marker id="arr_m30_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Centaur Model 2028: Human + AI &gt; AI alone &gt; Human alone</text>
+          <!-- Left: Centaur division circles -->
+          <rect x="15" y="35" width="330" height="175" rx="8" fill="#0f1e35" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="180" y="52" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Division of Labor — Centaur Model</text>
+          <!-- Human domain -->
+          <rect x="23" y="60" width="145" height="140" rx="8" fill="#0c1f3b" stroke="#3b82f6" stroke-width="2"/>
+          <text x="95" y="76" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">HUMAN (Strategic)</text>
+          <text x="95" y="91" text-anchor="middle" fill="#60a5fa" font-size="8">Exception handling</text>
+          <text x="95" y="104" text-anchor="middle" fill="#60a5fa" font-size="8">Ethical dilemmas</text>
+          <text x="95" y="117" text-anchor="middle" fill="#60a5fa" font-size="8">VIP relationship mgmt</text>
+          <text x="95" y="130" text-anchor="middle" fill="#60a5fa" font-size="8">Policy design</text>
+          <text x="95" y="143" text-anchor="middle" fill="#60a5fa" font-size="8">System oversight</text>
+          <text x="95" y="156" text-anchor="middle" fill="#60a5fa" font-size="8">Black swan response</text>
+          <text x="95" y="175" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">35 roles @ 3x salary</text>
+          <text x="95" y="188" text-anchor="middle" fill="#64748b" font-size="8">(was: 200 roles @ 1x)</text>
+          <!-- AI domain -->
+          <rect x="180" y="60" width="157" height="140" rx="8" fill="#0a2a1a" stroke="#10b981" stroke-width="2"/>
+          <text x="258" y="76" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">AI (Operational)</text>
+          <text x="258" y="91" text-anchor="middle" fill="#6ee7b7" font-size="8">98% of decisions</text>
+          <text x="258" y="104" text-anchor="middle" fill="#6ee7b7" font-size="8">5-min processing</text>
+          <text x="258" y="117" text-anchor="middle" fill="#6ee7b7" font-size="8">Consistent rules</text>
+          <text x="258" y="130" text-anchor="middle" fill="#6ee7b7" font-size="8">24/7 availability</text>
+          <text x="258" y="143" text-anchor="middle" fill="#6ee7b7" font-size="8">Infinite scalability</text>
+          <text x="258" y="156" text-anchor="middle" fill="#6ee7b7" font-size="8">Full audit trail</text>
+          <text x="258" y="175" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">5M cases/month</text>
+          <text x="258" y="188" text-anchor="middle" fill="#64748b" font-size="8">(LoanBot v5.0)</text>
+          <!-- Right: New role cards -->
+          <rect x="358" y="35" width="388" height="175" rx="8" fill="#0a1520" stroke="#1e3a5f" stroke-width="1.5"/>
+          <text x="552" y="52" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">New Roles Created (not eliminated) by AI</text>
+          <!-- Role 1: AI Oversight Manager -->
+          <rect x="366" y="58" width="185" height="46" rx="5" fill="#0c1f3b" stroke="#3b82f6" stroke-width="1"/>
+          <text x="458" y="73" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="700">AI Oversight Manager</text>
+          <text x="458" y="86" text-anchor="middle" fill="#60a5fa" font-size="8">Supervise LoanBot panels</text>
+          <text x="458" y="98" text-anchor="middle" fill="#94a3b8" font-size="8">Handle REVIEW escalations</text>
+          <!-- Role 2: Agent Trainer -->
+          <rect x="559" y="58" width="180" height="46" rx="5" fill="#0a2a1a" stroke="#10b981" stroke-width="1"/>
+          <text x="649" y="73" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">Agent Trainer</text>
+          <text x="649" y="86" text-anchor="middle" fill="#6ee7b7" font-size="8">Write ground truth labels</text>
+          <text x="649" y="98" text-anchor="middle" fill="#94a3b8" font-size="8">Red-team agents, improve prompts</text>
+          <!-- Role 3: AI Ethics Officer -->
+          <rect x="366" y="110" width="185" height="46" rx="5" fill="#1a0d00" stroke="#f59e0b" stroke-width="1"/>
+          <text x="458" y="125" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">AI Ethics Officer</text>
+          <text x="458" y="138" text-anchor="middle" fill="#fcd34d" font-size="8">Governance + bias auditing</text>
+          <text x="458" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">Regulatory liaison (NHNN)</text>
+          <!-- Role 4: Agent Architect -->
+          <rect x="559" y="110" width="180" height="46" rx="5" fill="#1e1b4b" stroke="#818cf8" stroke-width="1"/>
+          <text x="649" y="125" text-anchor="middle" fill="#c7d2fe" font-size="9" font-weight="700">Agent Architect</text>
+          <text x="649" y="138" text-anchor="middle" fill="#a78bfa" font-size="8">Design multi-agent systems</text>
+          <text x="649" y="150" text-anchor="middle" fill="#94a3b8" font-size="8">Select models, manage costs</text>
+          <!-- Bottom note -->
+          <rect x="366" y="162" width="373" height="40" rx="5" fill="#0d2218" stroke="#22c55e" stroke-width="1"/>
+          <text x="552" y="178" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">Centaur Chess principle: Human + AI &gt; AI alone &gt; Human alone</text>
+          <text x="552" y="194" text-anchor="middle" fill="#6ee7b7" font-size="9">Optimal when each domain plays to its strength — strategy vs operations</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Centaur Model 2028 cho FinTech Corp. Human domain (strategic): exception cases, ethical dilemmas, VIP relationship, policy design, black swan response — 35 roles, luong 3x. AI domain (operational): 98% decisions, 5-min processing, 5M cases/month, 24/7, full audit trail. 4 new roles created: AI Oversight Manager, Agent Trainer, AI Ethics Officer, Agent Architect — tat ca require skills tu khoa hoc nay.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -402,6 +593,75 @@ Produce: decision (APPROVE/REVIEW/REJECT), confidence, key factors, customer exp
       <div class="review-module"><div class="review-badge" style="background:#4c1d95;color:white;">25-27</div><div><strong>Scale & Learning:</strong> Orchestration at scale, Multi-agent debate, Self-improvement. LoanBot v4.0: Condorcet panels + auto self-improvement.</div></div>
       <div class="review-module"><div class="review-badge" style="background:linear-gradient(135deg,#134e4a,#14532d);color:white;">28-29</div><div><strong>Governance & Economics:</strong> AI Governance, ROI Analysis. LoanBot v4.0: fully governed, NPV-justified, ROI tracked.</div></div>
       <div class="review-module"><div class="review-badge" style="background:linear-gradient(135deg,#1e1b4b,#818cf8);color:white;">30</div><div><strong>Future:</strong> Agent ecosystems, human-AI collaboration 2.0, capstone. LoanBot v5.0 vision: cross-org, multimodal, autonomous.</div></div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>LoanBot Version Journey: tu v1.0 den v5.0 qua 30 module dao tao, the hien su tien hoa cua he thong AI tu don gian den ecosystem</title>
+          <defs>
+            <marker id="arr_m30_5" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#64748b"/>
+            </marker>
+          </defs>
+          <!-- Background -->
+          <rect width="760" height="210" fill="#0f172a" rx="12"/>
+          <!-- Title -->
+          <text x="380" y="26" text-anchor="middle" font-size="13" font-weight="700" fill="#f8fafc" font-family="sans-serif">LoanBot Version Journey: 30 Modules to Production AI System</text>
+          <!-- Timeline arrow -->
+          <line x1="30" y1="118" x2="728" y2="118" stroke="#334155" stroke-width="2.5" marker-end="url(#arr_m30_5)"/>
+
+          <!-- v1.0 node — center x=75 -->
+          <rect x="18" y="48" width="114" height="56" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="75" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#60a5fa" font-family="sans-serif">v1.0</text>
+          <text x="75" y="80" text-anchor="middle" font-size="11" fill="#e2e8f0" font-family="sans-serif">Single Agent</text>
+          <text x="75" y="95" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="sans-serif">M1-3 · Haiku</text>
+          <circle cx="75" cy="118" r="5" fill="#3b82f6"/>
+          <text x="75" y="135" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">M1-3</text>
+          <text x="75" y="149" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">Basic Q&amp;A</text>
+
+          <!-- v2.0 node — center x=215 -->
+          <rect x="158" y="48" width="114" height="56" rx="8" fill="#1a3a2a" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="215" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#4ade80" font-family="sans-serif">v2.0</text>
+          <text x="215" y="80" text-anchor="middle" font-size="11" fill="#e2e8f0" font-family="sans-serif">Multi-Tool</text>
+          <text x="215" y="95" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="sans-serif">M4-9 · Harness</text>
+          <circle cx="215" cy="118" r="5" fill="#22c55e"/>
+          <text x="215" y="135" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">M4-9</text>
+          <text x="215" y="149" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">Tool calls</text>
+
+          <!-- v3.0-3.8 node — center x=380 -->
+          <rect x="323" y="48" width="114" height="56" rx="8" fill="#3d1a00" stroke="#f59e0b" stroke-width="1.5"/>
+          <text x="380" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#fbbf24" font-family="sans-serif">v3.0-3.8</text>
+          <text x="380" y="80" text-anchor="middle" font-size="11" fill="#e2e8f0" font-family="sans-serif">Optimized</text>
+          <text x="380" y="95" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="sans-serif">M10-24 · RAG</text>
+          <circle cx="380" cy="118" r="5" fill="#f59e0b"/>
+          <text x="380" y="135" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">M10-24</text>
+          <text x="380" y="149" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">RAG + Comply</text>
+
+          <!-- v4.0 node — center x=535 -->
+          <rect x="478" y="48" width="114" height="56" rx="8" fill="#2d1a4e" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="535" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#c084fc" font-family="sans-serif">v4.0</text>
+          <text x="535" y="80" text-anchor="middle" font-size="11" fill="#e2e8f0" font-family="sans-serif">Multi-Agent</text>
+          <text x="535" y="95" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="sans-serif">M25-29</text>
+          <circle cx="535" cy="118" r="5" fill="#a855f7"/>
+          <text x="535" y="135" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">M25-29</text>
+          <text x="535" y="149" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">Governed + ROI</text>
+
+          <!-- v5.0 node — center x=680 -->
+          <rect x="624" y="42" width="120" height="62" rx="8" fill="#1e1b4b" stroke="#818cf8" stroke-width="2"/>
+          <rect x="646" y="36" width="68" height="16" rx="4" fill="#818cf8"/>
+          <text x="680" y="47" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff" font-family="sans-serif">FUTURE</text>
+          <text x="680" y="67" text-anchor="middle" font-size="13" font-weight="700" fill="#a5b4fc" font-family="sans-serif">v5.0</text>
+          <text x="680" y="81" text-anchor="middle" font-size="11" fill="#e2e8f0" font-family="sans-serif">Ecosystem</text>
+          <text x="680" y="96" text-anchor="middle" font-size="11" fill="#94a3b8" font-family="sans-serif">M30 · Vision</text>
+          <circle cx="680" cy="118" r="6" fill="#818cf8" stroke="#c7d2fe" stroke-width="1.5"/>
+          <text x="680" y="135" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">M30</text>
+          <text x="680" y="149" text-anchor="middle" font-size="11" fill="#64748b" font-family="sans-serif">Cross-Org AI</text>
+
+          <!-- Bottom metrics summary -->
+          <text x="380" y="174" text-anchor="middle" font-size="11" fill="#475569" font-family="sans-serif">Accuracy: 67% to 94%  |  Cost: 350K VND to 8K VND/ho so  |  Throughput: 200 to 50,000 ho so/thang</text>
+          <text x="380" y="192" text-anchor="middle" font-size="11" fill="#334155" font-family="sans-serif">ROI: 99.7%  |  NPV 3-year: 8.2 ty VND  |  Payback: 14 thang</text>
+        </svg>
+        <div class="diagram-title">Hình 5: LoanBot Version Journey — Từ single-agent đơn giản (Module 1) đến AI Ecosystem production (Module 30)</div>
+      </div>
 
       <hr class="lesson-divider">
 

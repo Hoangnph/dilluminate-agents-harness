@@ -355,6 +355,81 @@
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Error Segmentation Analysis: Type I rate theo 4 risk segments (Combined, DTI Danger Zone, Short Employment, Score Borderline) voi Business Cost Matrix - Type I cost 180M vs Type II 42M per case</title>
+          <defs>
+            <marker id="arr_m27_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">LoanBot v3.9 Error Segmentation: Type I Rate by Risk Segment</text>
+          <!-- Left: Cost matrix -->
+          <rect x="15" y="35" width="175" height="175" rx="8" fill="#0f1e35" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="102" y="52" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Business Cost Matrix</text>
+          <rect x="23" y="58" width="159" height="40" rx="5" fill="#2d1212" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="102" y="73" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">Type I Error (False +)</text>
+          <text x="102" y="87" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">Cost: 180M VND/case</text>
+          <rect x="23" y="103" width="159" height="40" rx="5" fill="#1e2d1a" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="102" y="118" text-anchor="middle" fill="#86efac" font-size="10" font-weight="700">Type II Error (False -)</text>
+          <text x="102" y="132" text-anchor="middle" fill="#86efac" font-size="11" font-weight="700">Cost: 42M VND/case</text>
+          <line x1="23" y1="149" x2="182" y2="149" stroke="#1e293b" stroke-width="1"/>
+          <text x="102" y="163" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="700">Type I = 4.3x more costly</text>
+          <text x="102" y="177" text-anchor="middle" fill="#94a3b8" font-size="9">Implication: accept higher</text>
+          <text x="102" y="191" text-anchor="middle" fill="#94a3b8" font-size="9">Type II to reduce Type I</text>
+          <!-- Bar chart: Type I rate by segment -->
+          <text x="490" y="38" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="700">Type I Error Rate by Segment (v3.9)</text>
+          <!-- Y axis -->
+          <line x1="210" y1="170" x2="745" y2="170" stroke="#334155" stroke-width="1.5"/>
+          <line x1="210" y1="55" x2="210" y2="170" stroke="#334155" stroke-width="1.5"/>
+          <text x="205" y="60" text-anchor="end" fill="#94a3b8" font-size="9">50%</text>
+          <text x="205" y="90" text-anchor="end" fill="#94a3b8" font-size="9">35%</text>
+          <text x="205" y="120" text-anchor="end" fill="#94a3b8" font-size="9">20%</text>
+          <text x="205" y="150" text-anchor="end" fill="#94a3b8" font-size="9">5%</text>
+          <!-- Grid lines -->
+          <line x1="210" y1="60" x2="745" y2="60" stroke="#1e293b" stroke-width="1"/>
+          <line x1="210" y1="90" x2="745" y2="90" stroke="#1e293b" stroke-width="1"/>
+          <line x1="210" y1="120" x2="745" y2="120" stroke="#1e293b" stroke-width="1"/>
+          <line x1="210" y1="150" x2="745" y2="150" stroke="#1e293b" stroke-width="1"/>
+          <!-- 15% threshold line -->
+          <line x1="210" y1="115" x2="745" y2="115" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5,3"/>
+          <text x="748" y="118" fill="#f59e0b" font-size="8">target</text>
+          <!-- Bars: combined_risk 45%, dti 28%, short_emp 19%, score_border 12%, other 4.2% -->
+          <!-- Segment 1: combined_risk = 45% → height = 45/55*110 = 90 -->
+          <rect x="225" y="79" width="80" height="91" rx="4" fill="#ef4444" opacity="0.9"/>
+          <text x="265" y="73" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">45%</text>
+          <text x="265" y="185" text-anchor="middle" fill="#fca5a5" font-size="8">Combined</text>
+          <text x="265" y="196" text-anchor="middle" fill="#fca5a5" font-size="8">Risk Zone</text>
+          <text x="265" y="207" text-anchor="middle" fill="#f59e0b" font-size="7" font-weight="700">IMMEDIATE FIX</text>
+          <!-- Segment 2: dti_danger = 28% → height = 28/55*110 = 56 -->
+          <rect x="335" y="114" width="80" height="56" rx="4" fill="#f97316" opacity="0.9"/>
+          <text x="375" y="108" text-anchor="middle" fill="#fed7aa" font-size="11" font-weight="700">28%</text>
+          <text x="375" y="185" text-anchor="middle" fill="#fed7aa" font-size="8">DTI Danger</text>
+          <text x="375" y="196" text-anchor="middle" fill="#fed7aa" font-size="8">0.40-0.45</text>
+          <text x="375" y="207" text-anchor="middle" fill="#f59e0b" font-size="7" font-weight="700">IMMEDIATE FIX</text>
+          <!-- Segment 3: short_emp = 19% → height = 19/55*110 = 38 -->
+          <rect x="445" y="132" width="80" height="38" rx="4" fill="#eab308" opacity="0.9"/>
+          <text x="485" y="126" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">19%</text>
+          <text x="485" y="185" text-anchor="middle" fill="#fef08a" font-size="8">Short Emp</text>
+          <text x="485" y="196" text-anchor="middle" fill="#fef08a" font-size="8">&lt; 12 months</text>
+          <text x="485" y="207" text-anchor="middle" fill="#f59e0b" font-size="7" font-weight="700">IMMEDIATE FIX</text>
+          <!-- Segment 4: score_borderline = 12% → height = 12/55*110 = 24 -->
+          <rect x="555" y="146" width="80" height="24" rx="4" fill="#22c55e" opacity="0.9"/>
+          <text x="595" y="140" text-anchor="middle" fill="#bbf7d0" font-size="11" font-weight="700">12%</text>
+          <text x="595" y="185" text-anchor="middle" fill="#bbf7d0" font-size="8">Score</text>
+          <text x="595" y="196" text-anchor="middle" fill="#bbf7d0" font-size="8">600-650</text>
+          <text x="595" y="207" text-anchor="middle" fill="#86efac" font-size="7">MONITOR</text>
+          <!-- Segment 5: other = 4.2% → height ≈ 8 -->
+          <rect x="660" y="162" width="75" height="8" rx="4" fill="#3b82f6" opacity="0.9"/>
+          <text x="697" y="156" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="700">4.2%</text>
+          <text x="697" y="185" text-anchor="middle" fill="#93c5fd" font-size="8">Other</text>
+          <text x="697" y="196" text-anchor="middle" fill="#93c5fd" font-size="8">segments</text>
+          <text x="697" y="207" text-anchor="middle" fill="#86efac" font-size="7">OK</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Error Segmentation Analysis LoanBot v3.9. 72% Type I errors tap trung vao Combined Risk Zone (DTI 0.40-0.45 + emp &lt;12 thang + score 600-650) voi rate 45% — gap 3x so voi target 15%. Root cause: OptimistAgent anchor qua nhieu vao income amount, bo qua employment tenure risk. Ca 3 segment dau (Combined, DTI, Short Emp) can IMMEDIATE FIX trong cycle tiep theo.</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -459,6 +534,102 @@
         </div>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Threshold Grid Search: 3 chieu (credit score, DTI, employment) tim optimal config minimizing total business cost. Optimal: score=620, DTI=0.42, emp=9 thang. Type I giam 53%, net savings 66B VND/thang.</title>
+          <defs>
+            <marker id="arr_m27_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Threshold Grid Search: Cost Surface (score x DTI) — Business Cost Minimization</text>
+          <!-- Left: Grid search cost surface (score vs DTI heatmap) -->
+          <text x="200" y="40" text-anchor="middle" fill="#94a3b8" font-size="10">Score (x-axis) x DTI (y-axis) Cost Surface</text>
+          <!-- Y axis labels (DTI) -->
+          <text x="240" y="57" text-anchor="end" fill="#94a3b8" font-size="9">0.38</text>
+          <text x="240" y="82" text-anchor="end" fill="#94a3b8" font-size="9">0.40</text>
+          <text x="240" y="107" text-anchor="end" fill="#94a3b8" font-size="9">0.42</text>
+          <text x="240" y="132" text-anchor="end" fill="#94a3b8" font-size="9">0.43</text>
+          <text x="240" y="157" text-anchor="end" fill="#94a3b8" font-size="9">0.45</text>
+          <!-- X axis labels (Score) -->
+          <text x="248" y="175" fill="#94a3b8" font-size="9">580</text>
+          <text x="278" y="175" fill="#94a3b8" font-size="9">600</text>
+          <text x="308" y="175" fill="#94a3b8" font-size="9">620</text>
+          <text x="338" y="175" fill="#94a3b8" font-size="9">640</text>
+          <text x="368" y="175" fill="#94a3b8" font-size="9">660</text>
+          <!-- Heatmap cells (5 DTI x 5 Score) -->
+          <!-- Row DTI=0.38 (very tight, many Type II, high cost) -->
+          <rect x="244" y="45" width="25" height="22" fill="#c2410c" rx="2" opacity="0.9"/>
+          <rect x="269" y="45" width="25" height="22" fill="#ea580c" rx="2" opacity="0.9"/>
+          <rect x="294" y="45" width="25" height="22" fill="#ea580c" rx="2" opacity="0.9"/>
+          <rect x="319" y="45" width="25" height="22" fill="#f97316" rx="2" opacity="0.9"/>
+          <rect x="344" y="45" width="25" height="22" fill="#fb923c" rx="2" opacity="0.9"/>
+          <!-- Row DTI=0.40 -->
+          <rect x="244" y="70" width="25" height="22" fill="#ca8a04" rx="2" opacity="0.9"/>
+          <rect x="269" y="70" width="25" height="22" fill="#a16207" rx="2" opacity="0.9"/>
+          <rect x="294" y="70" width="25" height="22" fill="#15803d" rx="2" opacity="0.9"/>
+          <rect x="319" y="70" width="25" height="22" fill="#16a34a" rx="2" opacity="0.9"/>
+          <rect x="344" y="70" width="25" height="22" fill="#22c55e" rx="2" opacity="0.9"/>
+          <!-- Row DTI=0.42 (optimal area) -->
+          <rect x="244" y="95" width="25" height="22" fill="#854d0e" rx="2" opacity="0.9"/>
+          <rect x="269" y="95" width="25" height="22" fill="#15803d" rx="2" opacity="0.9"/>
+          <!-- OPTIMAL CELL: score=620, DTI=0.42 -->
+          <rect x="294" y="95" width="25" height="22" fill="#166534" rx="2" stroke="#34d399" stroke-width="2"/>
+          <text x="306" y="109" text-anchor="middle" fill="#34d399" font-size="7" font-weight="700">OPT</text>
+          <rect x="319" y="95" width="25" height="22" fill="#16a34a" rx="2" opacity="0.9"/>
+          <rect x="344" y="95" width="25" height="22" fill="#22c55e" rx="2" opacity="0.9"/>
+          <!-- Row DTI=0.43 -->
+          <rect x="244" y="120" width="25" height="22" fill="#7e22ce" rx="2" opacity="0.9"/>
+          <rect x="269" y="120" width="25" height="22" fill="#854d0e" rx="2" opacity="0.9"/>
+          <rect x="294" y="120" width="25" height="22" fill="#ca8a04" rx="2" opacity="0.9"/>
+          <rect x="319" y="120" width="25" height="22" fill="#a16207" rx="2" opacity="0.9"/>
+          <rect x="344" y="120" width="25" height="22" fill="#15803d" rx="2" opacity="0.9"/>
+          <!-- Row DTI=0.45 (too loose, many Type I, high cost) -->
+          <rect x="244" y="145" width="25" height="22" fill="#7c3aed" rx="2" opacity="0.9"/>
+          <rect x="244" y="145" width="25" height="22" fill="#7c3aed" rx="2" opacity="0.9"/>
+          <rect x="269" y="145" width="25" height="22" fill="#6d28d9" rx="2" opacity="0.9"/>
+          <rect x="294" y="145" width="25" height="22" fill="#7e22ce" rx="2" opacity="0.9"/>
+          <rect x="319" y="145" width="25" height="22" fill="#854d0e" rx="2" opacity="0.9"/>
+          <rect x="344" y="145" width="25" height="22" fill="#ca8a04" rx="2" opacity="0.9"/>
+          <!-- Legend -->
+          <rect x="244" y="183" width="15" height="8" fill="#166534" stroke="#34d399" stroke-width="1.5"/>
+          <text x="262" y="191" fill="#34d399" font-size="8">Lowest cost (optimal)</text>
+          <rect x="370" y="183" width="15" height="8" fill="#7c3aed"/>
+          <text x="388" y="191" fill="#a78bfa" font-size="8">High cost (too loose)</text>
+          <!-- Right: Results panel -->
+          <rect x="395" y="35" width="355" height="175" rx="8" fill="#0f2040" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="572" y="52" text-anchor="middle" fill="#93c5fd" font-size="10" font-weight="700">Grid Search Results (emp=9 months fixed)</text>
+          <line x1="403" y1="58" x2="742" y2="58" stroke="#1e3a5f" stroke-width="1"/>
+          <!-- Config comparison table -->
+          <text x="450" y="72" text-anchor="middle" fill="#64748b" font-size="9">Config</text>
+          <text x="570" y="72" text-anchor="middle" fill="#64748b" font-size="9">Type I</text>
+          <text x="645" y="72" text-anchor="middle" fill="#64748b" font-size="9">Type II</text>
+          <text x="720" y="72" text-anchor="middle" fill="#64748b" font-size="9">Net Cost</text>
+          <!-- Current config -->
+          <rect x="403" y="78" width="344" height="22" rx="3" fill="#1e293b"/>
+          <text x="450" y="93" text-anchor="middle" fill="#94a3b8" font-size="9">s=600 DTI=0.45 (current)</text>
+          <text x="570" y="93" text-anchor="middle" fill="#f87171" font-size="9">945 (18.2%)</text>
+          <text x="645" y="93" text-anchor="middle" fill="#94a3b8" font-size="9">404 (7.8%)</text>
+          <text x="720" y="93" text-anchor="middle" fill="#f87171" font-size="9">174B VND</text>
+          <!-- Optimal config -->
+          <rect x="403" y="103" width="344" height="22" rx="3" fill="#0d2218" stroke="#22c55e" stroke-width="1"/>
+          <text x="450" y="118" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">s=620 DTI=0.42 (OPTIMAL)</text>
+          <text x="570" y="118" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">437 (-53.8%)</text>
+          <text x="645" y="118" text-anchor="middle" fill="#fde68a" font-size="9">692 (+71%)</text>
+          <text x="720" y="118" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">107B VND</text>
+          <!-- Savings -->
+          <rect x="403" y="133" width="344" height="30" rx="3" fill="#0a1f10" stroke="#16a34a" stroke-width="1"/>
+          <text x="572" y="148" text-anchor="middle" fill="#86efac" font-size="11" font-weight="700">Net Savings: 66.6B VND/month</text>
+          <text x="572" y="161" text-anchor="middle" fill="#86efac" font-size="9">Type I 4.3x more costly: -507 TypeI (+288 TypeII net)</text>
+          <!-- 3rd dimension note -->
+          <rect x="403" y="170" width="344" height="32" rx="3" fill="#1a1a1a" stroke="#475569" stroke-width="1"/>
+          <text x="572" y="184" text-anchor="middle" fill="#94a3b8" font-size="9">3rd dimension (employment): sweep 6,9,12,18 months</text>
+          <text x="572" y="196" text-anchor="middle" fill="#94a3b8" font-size="9">Total search space: 5 x 5 x 4 = 100 configs evaluated</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Threshold Grid Search Cost Surface (score x DTI, employment=9 thang fixed). Optimal config score=620 + DTI=0.42: Type I giam 53.8% (945→437 cases), Type II tang 71% (404→692), net savings 66.6B VND/thang. Mau: xanh la thap (optimal), tim la cao (qua loose). 3 chieu toan bo: 100 configs evaluated (5 score x 5 DTI x 4 employment candidates).</div>
+      </div>
+
       <hr class="lesson-divider">
     </section>
 
@@ -543,6 +714,65 @@
 # PessimistAgent: accuracy=81% → multiplier=1.157 → weight 1.2→1.39
 # RegulatorAgent: accuracy=76% → multiplier=1.086 → weight 1.5→1.63 (clip: 1.63)
 # Action: Update persona prompt for OptimistAgent to be less aggressive on borderlines</span></code></pre>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Bayesian Weight Update cho 3 Agent Personas: OptimistAgent accuracy 61% nen weight giam 1.0→0.87, PessimistAgent 81% tang 1.2→1.39, RegulatorAgent 76% tang 1.5→1.63</title>
+          <defs>
+            <marker id="arr_m27_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#94a3b8"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#0f172a" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">Bayesian Weight Update: 3-Agent Persona Rebalancing After 90-Day Cycle</text>
+          <!-- Formula box -->
+          <rect x="15" y="35" width="230" height="55" rx="8" fill="#1e1b4b" stroke="#818cf8" stroke-width="1.5"/>
+          <text x="130" y="52" text-anchor="middle" fill="#c4b5fd" font-size="10" font-weight="700">Bayesian Update Formula</text>
+          <text x="130" y="66" text-anchor="middle" fill="#c4b5fd" font-size="10">new_w = prior_w x (accuracy / baseline)</text>
+          <text x="130" y="80" text-anchor="middle" fill="#a78bfa" font-size="9">baseline = 0.70 | clip: [0.50, 2.00]</text>
+          <!-- Agent 1: OptimistAgent (down) -->
+          <rect x="15" y="103" width="230" height="105" rx="8" fill="#2d1212" stroke="#ef4444" stroke-width="1.5"/>
+          <text x="130" y="121" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">OptimistAgent</text>
+          <text x="130" y="135" text-anchor="middle" fill="#fca5a5" font-size="9">accuracy = 61% (below baseline 70%)</text>
+          <text x="130" y="149" text-anchor="middle" fill="#fca5a5" font-size="9">multiplier = 61/70 = 0.871</text>
+          <text x="130" y="163" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700">1.00 → 0.87 (DOWN)</text>
+          <text x="130" y="179" text-anchor="middle" fill="#fca5a5" font-size="9">Root cause: over-approve borderlines</text>
+          <text x="130" y="193" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="700">Action: update persona prompt too</text>
+          <!-- Agent 2: PessimistAgent (up) -->
+          <rect x="265" y="35" width="230" height="105" rx="8" fill="#0a2a1a" stroke="#10b981" stroke-width="2"/>
+          <text x="380" y="53" text-anchor="middle" fill="#6ee7b7" font-size="10" font-weight="700">PessimistAgent</text>
+          <text x="380" y="67" text-anchor="middle" fill="#6ee7b7" font-size="9">accuracy = 81% (above baseline 70%)</text>
+          <text x="380" y="81" text-anchor="middle" fill="#6ee7b7" font-size="9">multiplier = 81/70 = 1.157</text>
+          <text x="380" y="95" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">1.20 → 1.39 (UP)</text>
+          <text x="380" y="113" text-anchor="middle" fill="#6ee7b7" font-size="9">Best at spotting real risk</text>
+          <!-- Weight bars comparison for PessimistAgent -->
+          <rect x="275" y="120" width="40" height="100" rx="4" fill="#0f4c81" opacity="0.8"/>
+          <text x="295" y="115" text-anchor="middle" fill="#93c5fd" font-size="9">Prior</text>
+          <text x="295" y="210" text-anchor="middle" fill="#93c5fd" font-size="9">1.20</text>
+          <rect x="325" y="100" width="40" height="120" rx="4" fill="#0ea5e9" opacity="0.9"/>
+          <text x="345" y="95" text-anchor="middle" fill="#7dd3fc" font-size="9">New</text>
+          <text x="345" y="210" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">1.39</text>
+          <!-- Agent 3: RegulatorAgent (up, clipped) -->
+          <rect x="515" y="35" width="230" height="105" rx="8" fill="#0f2d1a" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="630" y="53" text-anchor="middle" fill="#86efac" font-size="10" font-weight="700">RegulatorAgent</text>
+          <text x="630" y="67" text-anchor="middle" fill="#86efac" font-size="9">accuracy = 76% (above baseline 70%)</text>
+          <text x="630" y="81" text-anchor="middle" fill="#86efac" font-size="9">multiplier = 76/70 = 1.086</text>
+          <text x="630" y="95" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">1.50 → 1.63 (UP)</text>
+          <text x="630" y="113" text-anchor="middle" fill="#6ee7b7" font-size="9">Compliance accuracy high</text>
+          <!-- Weight bars comparison for RegulatorAgent -->
+          <rect x="525" y="95" width="40" height="125" rx="4" fill="#0f4c81" opacity="0.8"/>
+          <text x="545" y="90" text-anchor="middle" fill="#93c5fd" font-size="9">Prior</text>
+          <text x="545" y="210" text-anchor="middle" fill="#93c5fd" font-size="9">1.50</text>
+          <rect x="575" y="77" width="40" height="143" rx="4" fill="#0ea5e9" opacity="0.9"/>
+          <text x="595" y="72" text-anchor="middle" fill="#7dd3fc" font-size="9">New</text>
+          <text x="595" y="210" text-anchor="middle" fill="#34d399" font-size="9" font-weight="700">1.63</text>
+          <text x="630" y="155" text-anchor="middle" fill="#f59e0b" font-size="9">Ceiling cap: 2.0</text>
+          <text x="630" y="167" text-anchor="middle" fill="#f59e0b" font-size="9">Floor cap: 0.5</text>
+          <text x="630" y="179" text-anchor="middle" fill="#94a3b8" font-size="9">Min 200 samples required</text>
+          <text x="630" y="193" text-anchor="middle" fill="#94a3b8" font-size="9">before updating weight</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Bayesian Weight Update sau 90-day ground truth cycle. OptimistAgent accuracy=61% nên weight giam 1.0→0.87 (van can update persona prompt de fix root cause). PessimistAgent accuracy=81% tang 1.2→1.39 (nhan dien risk tot nhat). RegulatorAgent accuracy=76% tang 1.5→1.63. Weight clip range [0.5, 2.0] tranh extreme dominance. Can min 200 samples truoc khi update.</div>
       </div>
 
       <hr class="lesson-divider">

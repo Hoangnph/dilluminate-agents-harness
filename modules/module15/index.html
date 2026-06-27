@@ -309,6 +309,62 @@ CREDIT_BUREAU_TOOL = {
         <p>Read-only tool (CreditBureauTool) = công tắc đèn bình thường — bật tắt nhiều lần cũng không sao. Write tool (NotificationTool) = chuông cửa — gọi hai lần sẽ rung hai lần → customer nhận 2 SMS. <strong>Idempotency</strong> = đảm bảo gọi nhiều lần = gọi một lần. Với write tools: hash(params) làm idempotency key, lưu trong Redis. Nếu đã gửi → skip silently.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>ToolRegistry Architecture — Cache, Rate Limiter, Idempotency bao ve external API calls cho LoanBot production</title>
+          <defs>
+            <marker id="arr_m15_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ea580c"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#431407" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#ffedd5" font-size="13" font-weight="700">ToolRegistry — 3 Production Guards Before External API Calls</text>
+          <!-- Claude -->
+          <rect x="10" y="74" width="108" height="58" fill="#1e293b" rx="8"/>
+          <text x="64" y="97" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="700">Claude LLM</text>
+          <text x="64" y="112" text-anchor="middle" fill="#94a3b8" font-size="8">tool_use block</text>
+          <text x="64" y="124" text-anchor="middle" fill="#94a3b8" font-size="8">{name, input}</text>
+          <line x1="118" y1="103" x2="156" y2="103" stroke="#ea580c" stroke-width="2" marker-end="url(#arr_m15_3)"/>
+          <!-- ToolRegistry outer -->
+          <rect x="158" y="42" width="396" height="124" fill="#7c2d12" rx="10" stroke="#ea580c" stroke-width="1.5"/>
+          <text x="356" y="61" text-anchor="middle" fill="#ffedd5" font-size="11" font-weight="700">ToolRegistry</text>
+          <!-- Guard 1: Cache -->
+          <rect x="168" y="68" width="116" height="88" fill="#1e293b" rx="7"/>
+          <text x="226" y="86" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">Guard 1: Cache</text>
+          <text x="226" y="101" text-anchor="middle" fill="#94a3b8" font-size="8">credit_bureau: 24h</text>
+          <text x="226" y="114" text-anchor="middle" fill="#94a3b8" font-size="8">property: 7d</text>
+          <text x="226" y="127" text-anchor="middle" fill="#94a3b8" font-size="8">compliance: no cache</text>
+          <text x="226" y="146" text-anchor="middle" fill="#6ee7b7" font-size="8">HIT: return instantly</text>
+          <!-- Guard 2: Rate Limit -->
+          <rect x="292" y="68" width="116" height="88" fill="#1e293b" rx="7"/>
+          <text x="350" y="86" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">Guard 2: Rate Limit</text>
+          <text x="350" y="101" text-anchor="middle" fill="#94a3b8" font-size="8">credit: 5 req/s</text>
+          <text x="350" y="114" text-anchor="middle" fill="#94a3b8" font-size="8">property: 2 req/s</text>
+          <text x="350" y="127" text-anchor="middle" fill="#94a3b8" font-size="8">notify: 50 req/s</text>
+          <text x="350" y="146" text-anchor="middle" fill="#fca5a5" font-size="8">EXCEEDED: raise 429</text>
+          <!-- Guard 3: Idempotency -->
+          <rect x="416" y="68" width="130" height="88" fill="#1e293b" rx="7"/>
+          <text x="481" y="86" text-anchor="middle" fill="#fde68a" font-size="9" font-weight="700">Guard 3: Idempotency</text>
+          <text x="481" y="101" text-anchor="middle" fill="#94a3b8" font-size="8">write tools only</text>
+          <text x="481" y="114" text-anchor="middle" fill="#94a3b8" font-size="8">hash(tool + params)</text>
+          <text x="481" y="127" text-anchor="middle" fill="#94a3b8" font-size="8">= idempotency key</text>
+          <text x="481" y="146" text-anchor="middle" fill="#fca5a5" font-size="8">SEEN: skip (1 SMS only)</text>
+          <line x1="554" y1="103" x2="592" y2="103" stroke="#ea580c" stroke-width="2" marker-end="url(#arr_m15_3)"/>
+          <!-- External APIs -->
+          <rect x="594" y="52" width="156" height="104" fill="#065f46" rx="8"/>
+          <text x="672" y="71" text-anchor="middle" fill="#d1fae5" font-size="10" font-weight="700">External APIs</text>
+          <text x="672" y="88" text-anchor="middle" fill="#6ee7b7" font-size="8">CreditBureau   1.2s</text>
+          <text x="672" y="102" text-anchor="middle" fill="#6ee7b7" font-size="8">Compliance     0.6s</text>
+          <text x="672" y="116" text-anchor="middle" fill="#6ee7b7" font-size="8">IncomeTool     1.5s</text>
+          <text x="672" y="130" text-anchor="middle" fill="#6ee7b7" font-size="8">Notification   0.2s</text>
+          <text x="672" y="146" text-anchor="middle" fill="#a7f3d0" font-size="7">result to Claude</text>
+          <!-- Bottom note -->
+          <text x="380" y="182" text-anchor="middle" fill="#fdba74" font-size="8">Read tools: Guard 1 (Cache) then Guard 2 (Rate Limit) then API. Write tools: Guard 2 + Guard 3 then API.</text>
+          <text x="380" y="196" text-anchor="middle" fill="#fdba74" font-size="8">Cache HIT returns instantly — skips Guard 2, Guard 3, and external API call entirely.</text>
+        </svg>
+        <div class="diagram-title">Hình 3: ToolRegistry Architecture — 3 Production Guards bảo vệ external API calls: Cache (giảm load), Rate Limiter (tránh quota exceeded), Idempotency (mỗi write chỉ chạy 1 lần)</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python</span>
         <pre><code><span class="code-keyword">import</span> hashlib, time, functools
@@ -415,6 +471,64 @@ TOOL_CONFIGS = {
       <div class="callout concept">
         <div class="callout-header">📌 Khái niệm: Parallel Tool Blocks</div>
         <p>Khi Claude response chứa nhiều <code>type: "tool_use"</code> blocks, đây là signal để execute song song. Ví dụ: Claude cần cả credit score lẫn compliance check để assess FC-2024-004 — hai thông tin này độc lập nhau. Sequential: 1.2s + 0.6s = 1.8s. Parallel: max(1.2, 0.6) = 1.2s. Harness phải detect multiple tool_use → asyncio.gather → collect all results → trả về dưới dạng list of tool_result blocks.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>asyncio.gather Parallel Tool Execution — 4 LoanBot tools chay dong thoi, tong thoi gian bang tool cham nhat</title>
+          <defs>
+            <marker id="arr_m15_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ea580c"/>
+            </marker>
+          </defs>
+          <rect width="760" height="210" fill="#431407" rx="12"/>
+          <text x="380" y="20" text-anchor="middle" fill="#ffedd5" font-size="13" font-weight="700">asyncio.gather() — 4 LoanBot Tools Run in Parallel</text>
+          <text x="380" y="36" text-anchor="middle" fill="#94a3b8" font-size="8">All tools start at t=0. Total time = slowest tool (2.1s) vs sequential 5.4s — 61% faster</text>
+          <!-- Row labels -->
+          <text x="147" y="73" text-anchor="end" fill="#94a3b8" font-size="9">CreditBureau</text>
+          <text x="147" y="103" text-anchor="end" fill="#94a3b8" font-size="9">Compliance</text>
+          <text x="147" y="133" text-anchor="end" fill="#94a3b8" font-size="9">IncomeTool</text>
+          <text x="147" y="163" text-anchor="end" fill="#fdba74" font-size="9">PropertyValuation</text>
+          <!-- gather() fork box -->
+          <rect x="5" y="106" width="62" height="26" fill="#312e81" rx="6"/>
+          <text x="36" y="123" text-anchor="middle" fill="#e0e7ff" font-size="9" font-weight="700">gather()</text>
+          <!-- Fan-out lines -->
+          <line x1="67" y1="119" x2="148" y2="69" stroke="#a5b4fc" stroke-width="1"/>
+          <line x1="67" y1="119" x2="148" y2="99" stroke="#a5b4fc" stroke-width="1"/>
+          <line x1="67" y1="119" x2="148" y2="129" stroke="#a5b4fc" stroke-width="1"/>
+          <line x1="67" y1="119" x2="148" y2="159" stroke="#a5b4fc" stroke-width="1"/>
+          <!-- Bars: all start x=150; scale: 2.1s = 500px -->
+          <!-- CreditBureau: 1.2s = 286px -->
+          <rect x="150" y="58" width="286" height="22" fill="#065f46" rx="4"/>
+          <text x="294" y="73" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">1.2s</text>
+          <!-- Compliance: 0.6s = 143px -->
+          <rect x="150" y="88" width="143" height="22" fill="#065f46" rx="4"/>
+          <text x="222" y="103" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">0.6s</text>
+          <!-- IncomeTool: 1.5s = 357px -->
+          <rect x="150" y="118" width="357" height="22" fill="#065f46" rx="4"/>
+          <text x="328" y="133" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">1.5s</text>
+          <!-- PropertyValuation: 2.1s = 500px (bottleneck) -->
+          <rect x="150" y="148" width="500" height="22" fill="#7c2d12" rx="4" stroke="#ea580c" stroke-width="1.5"/>
+          <text x="400" y="163" text-anchor="middle" fill="#fdba74" font-size="9" font-weight="700">2.1s — BOTTLENECK (total time = this bar)</text>
+          <!-- Bottleneck dashed line at x=650 -->
+          <line x1="650" y1="50" x2="650" y2="178" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <!-- Fan-in lines from bar ends to results box -->
+          <line x1="436" y1="69" x2="703" y2="112" stroke="#a5b4fc" stroke-width="1"/>
+          <line x1="293" y1="99" x2="703" y2="112" stroke="#a5b4fc" stroke-width="1"/>
+          <line x1="507" y1="129" x2="703" y2="112" stroke="#a5b4fc" stroke-width="1"/>
+          <line x1="650" y1="159" x2="703" y2="112" stroke="#a5b4fc" stroke-width="1"/>
+          <rect x="705" y="99" width="50" height="26" fill="#065f46" rx="6"/>
+          <text x="730" y="116" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">Results</text>
+          <!-- Time axis -->
+          <line x1="150" y1="182" x2="658" y2="182" stroke="#94a3b8" stroke-width="1" marker-end="url(#arr_m15_4)"/>
+          <line x1="150" y1="179" x2="150" y2="185" stroke="#94a3b8" stroke-width="1"/>
+          <text x="150" y="196" text-anchor="middle" fill="#94a3b8" font-size="8">0s</text>
+          <line x1="388" y1="179" x2="388" y2="185" stroke="#94a3b8" stroke-width="1"/>
+          <text x="388" y="196" text-anchor="middle" fill="#94a3b8" font-size="8">1.0s</text>
+          <line x1="650" y1="179" x2="650" y2="185" stroke="#ea580c" stroke-width="1.5"/>
+          <text x="650" y="196" text-anchor="middle" fill="#ea580c" font-size="8" font-weight="700">2.1s</text>
+        </svg>
+        <div class="diagram-title">Hình 4: asyncio.gather() Parallel Execution — 4 tools chạy đồng thời, tổng thời gian = tool chậm nhất (PropertyValuation 2.1s). Speedup 61% so với sequential (5.4s)</div>
       </div>
 
       <div class="call-type">
@@ -528,6 +642,61 @@ TOOL_CONFIGS = {
       <div class="callout warning">
         <div class="callout-header">⚠️ Cảnh báo: Schema quá lỏng → Hallucination tăng</div>
         <p>Tool schema với chỉ <code>"type": "string"</code> cho mọi field → Claude có thể pass bất cứ thứ gì. Ví dụ: <code>id_number: "twelve digits"</code> thay vì 12 chữ số thực tế. Strict schema với <code>pattern: "^\\d{12}$"</code> + <code>description</code> rõ ràng → Claude generate đúng format rate 97% vs 78% khi schema lỏng (LoanBot A/B test). Invest time vào schema design upfront.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Pydantic Schema Validation Pipeline — Raw input phai qua JSON Schema, Pydantic, Business Rules truoc khi goi external API</title>
+          <defs>
+            <marker id="arr_m15_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ea580c"/>
+            </marker>
+          </defs>
+          <rect width="760" height="200" fill="#431407" rx="12"/>
+          <text x="380" y="22" text-anchor="middle" fill="#ffedd5" font-size="13" font-weight="700">Schema Validation Pipeline — LoanBot Tool Input Guards</text>
+          <!-- Stage 1: Raw Input -->
+          <rect x="10" y="66" width="108" height="66" fill="#1e293b" rx="8"/>
+          <text x="64" y="88" text-anchor="middle" fill="#e2e8f0" font-size="9" font-weight="700">Raw Input</text>
+          <text x="64" y="103" text-anchor="middle" fill="#94a3b8" font-size="8">customer_id: str</text>
+          <text x="64" y="116" text-anchor="middle" fill="#94a3b8" font-size="8">id_number: str</text>
+          <text x="64" y="126" text-anchor="middle" fill="#64748b" font-size="7">(unvalidated)</text>
+          <line x1="118" y1="99" x2="153" y2="99" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arr_m15_5)"/>
+          <!-- Stage 2: JSON Schema -->
+          <rect x="155" y="58" width="128" height="82" fill="#312e81" rx="8" stroke="#818cf8" stroke-width="1"/>
+          <text x="219" y="78" text-anchor="middle" fill="#e0e7ff" font-size="9" font-weight="700">JSON Schema</text>
+          <text x="219" y="94" text-anchor="middle" fill="#a5b4fc" font-size="8">type: "object"</text>
+          <text x="219" y="107" text-anchor="middle" fill="#a5b4fc" font-size="8">pattern: "^FC-"</text>
+          <text x="219" y="120" text-anchor="middle" fill="#a5b4fc" font-size="8">required: [...]</text>
+          <text x="219" y="132" text-anchor="middle" fill="#6ee7b7" font-size="7">Claude sees this</text>
+          <line x1="283" y1="99" x2="318" y2="99" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arr_m15_5)"/>
+          <!-- Stage 3: Pydantic -->
+          <rect x="320" y="58" width="128" height="82" fill="#065f46" rx="8" stroke="#10b981" stroke-width="1"/>
+          <text x="384" y="78" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">Pydantic Model</text>
+          <text x="384" y="94" text-anchor="middle" fill="#a7f3d0" font-size="8">Field(pattern=...)</text>
+          <text x="384" y="107" text-anchor="middle" fill="#a7f3d0" font-size="8">ge=300, le=850</text>
+          <text x="384" y="120" text-anchor="middle" fill="#a7f3d0" font-size="8">Literal['A','B','C']</text>
+          <text x="384" y="132" text-anchor="middle" fill="#fca5a5" font-size="7">ValidationError if fail</text>
+          <line x1="448" y1="99" x2="483" y2="99" stroke="#ea580c" stroke-width="1.5" marker-end="url(#arr_m15_5)"/>
+          <!-- Stage 4: Business Rules -->
+          <rect x="485" y="58" width="130" height="82" fill="#92400e" rx="8" stroke="#d97706" stroke-width="1"/>
+          <text x="550" y="78" text-anchor="middle" fill="#fef3c7" font-size="9" font-weight="700">Business Rules</text>
+          <text x="550" y="94" text-anchor="middle" fill="#fde68a" font-size="8">score &gt;= 450</text>
+          <text x="550" y="107" text-anchor="middle" fill="#fde68a" font-size="8">DTI &lt;= 65%</text>
+          <text x="550" y="120" text-anchor="middle" fill="#fde68a" font-size="8">amount &lt;= 10x income</text>
+          <text x="550" y="132" text-anchor="middle" fill="#fca5a5" font-size="7">ValueError if violated</text>
+          <!-- Success arrow (up-right) -->
+          <line x1="615" y1="88" x2="655" y2="64" stroke="#10b981" stroke-width="1.5" marker-end="url(#arr_m15_5)"/>
+          <rect x="657" y="48" width="96" height="26" fill="#065f46" rx="6"/>
+          <text x="705" y="65" text-anchor="middle" fill="#d1fae5" font-size="9" font-weight="700">VALID: call API</text>
+          <!-- Error arrow (down-right) -->
+          <line x1="615" y1="110" x2="655" y2="134" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arr_m15_5)"/>
+          <rect x="657" y="126" width="96" height="26" fill="#7f1d1d" rx="6"/>
+          <text x="705" y="143" text-anchor="middle" fill="#fca5a5" font-size="9" font-weight="700">ERROR: to Claude</text>
+          <!-- Bottom note -->
+          <text x="380" y="172" text-anchor="middle" fill="#fdba74" font-size="8">Strict schema: Claude generates correct format 97% vs 78% with loose schema (LoanBot A/B test).</text>
+          <text x="380" y="185" text-anchor="middle" fill="#94a3b8" font-size="7">ValidationError returned as tool_result is_error=true — Claude corrects input and retries automatically.</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Schema Validation Pipeline — Raw input phải qua JSON Schema + Pydantic + Business Rules trước khi gọi external API. Schema chặt → Claude generate đúng format rate 97% vs 78%</div>
       </div>
 
       <div class="code-block">

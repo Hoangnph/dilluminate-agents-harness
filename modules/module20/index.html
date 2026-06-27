@@ -228,6 +228,84 @@
         <p>Tháng 1/2025, FinTech Corp nhờ 5 cán bộ tín dụng senior review 200 hồ sơ đặc biệt (50 easy approve, 50 easy reject, 50 borderline approve, 50 borderline reject). Đây là <strong>golden dataset</strong> — ground truth để evaluate LoanBot. Mỗi khi team thay đổi prompt, model, hoặc logic: chạy lại 200 cases này và so sánh kết quả với expert judgment. Accuracy drop > 2% → rollback.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Golden Dataset Curation and Continuous Evaluation Pipeline — từ expert review tới stratified accuracy metrics và CI/CD gating</title>
+          <defs>
+            <marker id="arr_m20_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#eab308"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#422006" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#fefce8" font-size="13" font-weight="700">Golden Dataset — Curation and Evaluation Pipeline</text>
+
+          <!-- Step 1: Expert Curation -->
+          <rect x="15" y="40" width="130" height="78" fill="#713f12" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="80" y="58" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">Expert Curation</text>
+          <text x="80" y="72" text-anchor="middle" fill="#fde047" font-size="9">5 senior loan officers</text>
+          <text x="80" y="83" text-anchor="middle" fill="#fde047" font-size="9">Review 200 applications</text>
+          <text x="80" y="94" text-anchor="middle" fill="#fde047" font-size="9">50 easy approve</text>
+          <text x="80" y="105" text-anchor="middle" fill="#fde047" font-size="9">50 easy reject</text>
+          <text x="80" y="113" text-anchor="middle" fill="#fde047" font-size="8">100 borderline + edge</text>
+
+          <line x1="145" y1="79" x2="165" y2="79" stroke="#eab308" stroke-width="1.5" marker-end="url(#arr_m20_3)"/>
+
+          <!-- Step 2: Dataset -->
+          <rect x="167" y="40" width="130" height="78" fill="#854d0e" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="232" y="58" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">Golden Dataset</text>
+          <text x="232" y="72" text-anchor="middle" fill="#fde047" font-size="9">200 verified cases</text>
+          <text x="232" y="83" text-anchor="middle" fill="#fde047" font-size="9">easy + borderline + edge</text>
+          <text x="232" y="94" text-anchor="middle" fill="#fde047" font-size="9">expert_decision label</text>
+          <text x="232" y="105" text-anchor="middle" fill="#fde047" font-size="9">difficulty stratified</text>
+          <text x="232" y="113" text-anchor="middle" fill="#fde047" font-size="8">expert_notes included</text>
+
+          <line x1="297" y1="79" x2="317" y2="79" stroke="#eab308" stroke-width="1.5" marker-end="url(#arr_m20_3)"/>
+
+          <!-- Step 3: Run LoanBot -->
+          <rect x="319" y="40" width="130" height="78" fill="#4a1d96" rx="8" stroke="#a855f7" stroke-width="1.5"/>
+          <text x="384" y="58" text-anchor="middle" fill="#f3e8ff" font-size="11" font-weight="700">Run LoanBot</text>
+          <text x="384" y="72" text-anchor="middle" fill="#d8b4fe" font-size="9">evaluate() each case</text>
+          <text x="384" y="83" text-anchor="middle" fill="#d8b4fe" font-size="9">Record decision</text>
+          <text x="384" y="94" text-anchor="middle" fill="#d8b4fe" font-size="9">Record confidence</text>
+          <text x="384" y="105" text-anchor="middle" fill="#d8b4fe" font-size="9">Record explanation</text>
+          <text x="384" y="113" text-anchor="middle" fill="#d8b4fe" font-size="8">Track latency per case</text>
+
+          <line x1="449" y1="79" x2="469" y2="79" stroke="#eab308" stroke-width="1.5" marker-end="url(#arr_m20_3)"/>
+
+          <!-- Step 4: Compare -->
+          <rect x="471" y="40" width="130" height="78" fill="#1e3a5f" rx="8" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="536" y="58" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="700">Compare</text>
+          <text x="536" y="72" text-anchor="middle" fill="#93c5fd" font-size="9">predicted vs expert</text>
+          <text x="536" y="83" text-anchor="middle" fill="#93c5fd" font-size="9">Stratified by difficulty</text>
+          <text x="536" y="94" text-anchor="middle" fill="#93c5fd" font-size="9">Log all mismatches</text>
+          <text x="536" y="105" text-anchor="middle" fill="#93c5fd" font-size="9">Calculate F1 per tier</text>
+          <text x="536" y="113" text-anchor="middle" fill="#93c5fd" font-size="8">Flag borderline errors</text>
+
+          <line x1="601" y1="79" x2="621" y2="79" stroke="#eab308" stroke-width="1.5" marker-end="url(#arr_m20_3)"/>
+
+          <!-- Step 5: Metrics -->
+          <rect x="623" y="40" width="122" height="78" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="684" y="58" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">Metrics</text>
+          <text x="684" y="72" text-anchor="middle" fill="#6ee7b7" font-size="9">overall: above 95%</text>
+          <text x="684" y="83" text-anchor="middle" fill="#6ee7b7" font-size="9">easy: above 99%</text>
+          <text x="684" y="94" text-anchor="middle" fill="#6ee7b7" font-size="9">borderline: above 90%</text>
+          <text x="684" y="105" text-anchor="middle" fill="#6ee7b7" font-size="9">edge: above 80%</text>
+          <text x="684" y="113" text-anchor="middle" fill="#6ee7b7" font-size="8">F1 + precision + recall</text>
+
+          <!-- Gating rules -->
+          <rect x="15" y="130" width="730" height="40" fill="#1a0a00" rx="8" stroke="#fde047" stroke-width="1"/>
+          <text x="380" y="148" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">Gating Rules — When to Block Deployment?</text>
+          <text x="200" y="163" text-anchor="middle" fill="#fde047" font-size="9">Overall below 95%: BLOCK merge immediately</text>
+          <text x="560" y="163" text-anchor="middle" fill="#fde047" font-size="9">Easy tier below 99%: ALERT team + manual review</text>
+
+          <!-- Continuous eval note -->
+          <rect x="15" y="180" width="730" height="34" fill="#1e293b" rx="6" stroke="#94a3b8"/>
+          <text x="380" y="195" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="700">Continuous Evaluation: auto-run on every prompt change, model update, or config change</text>
+          <text x="380" y="208" text-anchor="middle" fill="#94a3b8" font-size="9">CI/CD triggers evaluation pipeline — results posted to PR as comment with stratified breakdown before merge decision</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Golden Dataset Evaluation Pipeline — từ expert curation (5 senior officers, 200 cases) qua LoanBot evaluation tới stratified accuracy metrics. Gating: overall trên 95%, easy tier trên 99%, borderline trên 90%. Chạy tự động trên mọi PR.</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (Golden Dataset Evaluation)</span>
         <pre><code><span class="code-keyword">from</span> dataclasses <span class="code-keyword">import</span> dataclass
@@ -317,6 +395,73 @@ GOLDEN_DATASET = [
       <div class="callout warning">
         <div class="callout-header">⚠️ Property Vi Phạm Nguy Hiểm Nhất: Score Inversion</div>
         <p>Scenario thực tế: LoanBot với prompt mới approve FC-A (score 580, DTI 58%) nhưng reject FC-B (score 680, DTI 35%). Đây là <strong>monotonicity violation</strong> — người có profile tốt hơn bị từ chối, người tệ hơn được duyệt. Về mặt business và pháp lý, đây là disaster: EU AI Act §10 yêu cầu consistent, non-discriminatory decisions; nếu phát hiện sau khi deploy → phải cancel tất cả decisions trong period đó và re-process thủ công.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>6 Core Invariants của LoanBot — điều kiện không bao giờ được vi phạm bất kể input nào, tested bằng Hypothesis property-based testing</title>
+          <defs>
+            <marker id="arr_m20_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#eab308"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#422006" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#fefce8" font-size="13" font-weight="700">LoanBot — 6 Core Invariants (Property-Based Tests)</text>
+
+          <!-- INV-1: Output Schema -->
+          <rect x="15" y="36" width="232" height="52" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="131" y="54" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">INV-1: Output Schema</text>
+          <text x="131" y="67" text-anchor="middle" fill="#6ee7b7" font-size="9">decision in {APPROVE, REJECT, REVIEW}</text>
+          <text x="131" y="79" text-anchor="middle" fill="#6ee7b7" font-size="9">0.0 &lt;= confidence &lt;= 1.0 always valid</text>
+
+          <!-- INV-2: Blacklist Rule -->
+          <rect x="264" y="36" width="232" height="52" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="380" y="54" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">INV-2: Blacklist Rule</text>
+          <text x="380" y="67" text-anchor="middle" fill="#6ee7b7" font-size="9">blacklisted=True ALWAYS leads to REJECT</text>
+          <text x="380" y="79" text-anchor="middle" fill="#6ee7b7" font-size="9">regardless of credit_score value</text>
+
+          <!-- INV-3: Monotonicity -->
+          <rect x="513" y="36" width="232" height="52" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="629" y="54" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">INV-3: Monotonicity</text>
+          <text x="629" y="67" text-anchor="middle" fill="#6ee7b7" font-size="9">better profile: decision rank never lower</text>
+          <text x="629" y="79" text-anchor="middle" fill="#6ee7b7" font-size="9">APPROVE(2) &gt;= REVIEW(1) &gt;= REJECT(0)</text>
+
+          <!-- INV-4: No Hallucination -->
+          <rect x="15" y="100" width="232" height="52" fill="#713f12" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="131" y="118" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">INV-4: No Hallucination</text>
+          <text x="131" y="131" text-anchor="middle" fill="#fde047" font-size="9">explanation numbers must match input</text>
+          <text x="131" y="143" text-anchor="middle" fill="#fde047" font-size="9">no invented loan amounts or scores</text>
+
+          <!-- INV-5: Regulation Refs -->
+          <rect x="264" y="100" width="232" height="52" fill="#713f12" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="380" y="118" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">INV-5: Regulation Refs</text>
+          <text x="380" y="131" text-anchor="middle" fill="#fde047" font-size="9">regulation_refs must be non-empty</text>
+          <text x="380" y="143" text-anchor="middle" fill="#fde047" font-size="9">at least 1 legal reference per decision</text>
+
+          <!-- INV-6: Explanation Length -->
+          <rect x="513" y="100" width="232" height="52" fill="#713f12" rx="8" stroke="#fde047" stroke-width="1.5"/>
+          <text x="629" y="118" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">INV-6: Explanation Length</text>
+          <text x="629" y="131" text-anchor="middle" fill="#fde047" font-size="9">len(explanation) &gt;= 50 chars always</text>
+          <text x="629" y="143" text-anchor="middle" fill="#fde047" font-size="9">no empty or trivial explanations</text>
+
+          <!-- Severity legend -->
+          <rect x="15" y="163" width="232" height="32" fill="#065f46" rx="6" stroke="#6ee7b7"/>
+          <text x="131" y="178" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">INV 1–3: Critical (legal risk)</text>
+          <text x="131" y="190" text-anchor="middle" fill="#6ee7b7" font-size="9">Violation: block deploy immediately + audit all decisions</text>
+
+          <rect x="264" y="163" width="232" height="32" fill="#713f12" rx="6" stroke="#fde047"/>
+          <text x="380" y="178" text-anchor="middle" fill="#fef08a" font-size="11" font-weight="700">INV 4–6: Quality (UX risk)</text>
+          <text x="380" y="190" text-anchor="middle" fill="#fde047" font-size="9">Violation: alert team + rollback to last stable</text>
+
+          <rect x="513" y="163" width="232" height="32" fill="#1e293b" rx="6" stroke="#94a3b8"/>
+          <text x="629" y="178" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="700">Testing: Hypothesis library</text>
+          <text x="629" y="190" text-anchor="middle" fill="#94a3b8" font-size="9">500+ random inputs per invariant per commit</text>
+
+          <!-- Bottom bar -->
+          <rect x="15" y="203" width="730" height="14" fill="#3b1f00" rx="4" stroke="#fde047"/>
+          <text x="380" y="213" text-anchor="middle" fill="#fde047" font-size="10">Property tests on EVERY commit — Hypothesis shrinks failures to minimal reproducible case automatically</text>
+        </svg>
+        <div class="diagram-title">Hình 4: 6 Core Invariants — INV 1–3 (Critical: output schema, blacklist rule, monotonicity) và INV 4–6 (Quality: no hallucination, regulation refs, explanation length). Critical violations block deployment; Hypothesis auto-generates 500+ random inputs.</div>
       </div>
 
       <div class="code-block">
@@ -503,6 +648,93 @@ GOLDEN_DATASET = [
           <li><strong>11:00</strong> — Recovery: drain queue, verify all queued decisions processed correctly</li>
         </ol>
         <p>Kết quả: team phát hiện 2 bugs trong recovery code và fix trước khi xảy ra real outage.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Chaos Engineering Experiment Map — 4 loại fault injection với expected resilience outcomes cho LoanBot Gameday</title>
+          <defs>
+            <marker id="arr_m20_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#eab308"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#422006" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#fefce8" font-size="13" font-weight="700">Chaos Engineering — Fault Injection + Expected Outcomes</text>
+
+          <!-- Chaos 1: API Timeout -->
+          <rect x="15" y="38" width="170" height="76" fill="#7f1d1d" rx="8" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="100" y="56" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">API Timeout Inject</text>
+          <text x="100" y="69" text-anchor="middle" fill="#fca5a5" font-size="9">inject_api_timeout(0.3)</text>
+          <text x="100" y="80" text-anchor="middle" fill="#fca5a5" font-size="9">30% random TimeoutError</text>
+          <text x="100" y="91" text-anchor="middle" fill="#fca5a5" font-size="9">Duration: 10 minutes</text>
+          <text x="100" y="102" text-anchor="middle" fill="#fca5a5" font-size="9">Frequency: monthly</text>
+          <text x="100" y="111" text-anchor="middle" fill="#fca5a5" font-size="8">Tests retry + backoff logic</text>
+
+          <line x1="100" y1="114" x2="100" y2="134" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arr_m20_5)"/>
+
+          <!-- Expected 1 -->
+          <rect x="15" y="136" width="170" height="50" fill="#065f46" rx="7" stroke="#6ee7b7"/>
+          <text x="100" y="152" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">Expected: PASS</text>
+          <text x="100" y="164" text-anchor="middle" fill="#6ee7b7" font-size="9">success rate above 90%</text>
+          <text x="100" y="175" text-anchor="middle" fill="#6ee7b7" font-size="9">retry absorbs timeouts</text>
+          <text x="100" y="183" text-anchor="middle" fill="#6ee7b7" font-size="8">no crash, correct decisions</text>
+
+          <!-- Chaos 2: Full Outage -->
+          <rect x="200" y="38" width="170" height="76" fill="#7f1d1d" rx="8" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="285" y="56" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">Full API Outage</text>
+          <text x="285" y="69" text-anchor="middle" fill="#fca5a5" font-size="9">all primary keys blocked</text>
+          <text x="285" y="80" text-anchor="middle" fill="#fca5a5" font-size="9">backup keys also blocked</text>
+          <text x="285" y="91" text-anchor="middle" fill="#fca5a5" font-size="9">Duration: 30 minutes</text>
+          <text x="285" y="102" text-anchor="middle" fill="#fca5a5" font-size="9">Frequency: quarterly gameday</text>
+          <text x="285" y="111" text-anchor="middle" fill="#fca5a5" font-size="8">Tests degraded mode trigger</text>
+
+          <line x1="285" y1="114" x2="285" y2="134" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arr_m20_5)"/>
+
+          <rect x="200" y="136" width="170" height="50" fill="#065f46" rx="7" stroke="#6ee7b7"/>
+          <text x="285" y="152" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">Expected: PASS</text>
+          <text x="285" y="164" text-anchor="middle" fill="#6ee7b7" font-size="9">degraded mode in 60s</text>
+          <text x="285" y="175" text-anchor="middle" fill="#6ee7b7" font-size="9">queue to Redis TTL 2h</text>
+          <text x="285" y="183" text-anchor="middle" fill="#6ee7b7" font-size="8">ops alert sent immediately</text>
+
+          <!-- Chaos 3: Malformed JSON -->
+          <rect x="385" y="38" width="170" height="76" fill="#7f1d1d" rx="8" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="470" y="56" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">Malformed Response</text>
+          <text x="470" y="69" text-anchor="middle" fill="#fca5a5" font-size="9">invalid JSON 10% cases</text>
+          <text x="470" y="80" text-anchor="middle" fill="#fca5a5" font-size="9">out-of-range confidence</text>
+          <text x="470" y="91" text-anchor="middle" fill="#fca5a5" font-size="9">empty response string</text>
+          <text x="470" y="102" text-anchor="middle" fill="#fca5a5" font-size="9">Frequency: per-PR validation</text>
+          <text x="470" y="111" text-anchor="middle" fill="#fca5a5" font-size="8">Tests parse error handling</text>
+
+          <line x1="470" y1="114" x2="470" y2="134" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arr_m20_5)"/>
+
+          <rect x="385" y="136" width="170" height="50" fill="#065f46" rx="7" stroke="#6ee7b7"/>
+          <text x="470" y="152" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">Expected: PASS</text>
+          <text x="470" y="164" text-anchor="middle" fill="#6ee7b7" font-size="9">parse error handled gracefully</text>
+          <text x="470" y="175" text-anchor="middle" fill="#6ee7b7" font-size="9">fallback: decision = REVIEW</text>
+          <text x="470" y="183" text-anchor="middle" fill="#6ee7b7" font-size="8">no crash, logged for audit</text>
+
+          <!-- Chaos 4: CIC API Down -->
+          <rect x="570" y="38" width="175" height="76" fill="#7f1d1d" rx="8" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="657" y="56" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">CIC Bureau Down</text>
+          <text x="657" y="69" text-anchor="middle" fill="#fca5a5" font-size="9">query_cic() raises error</text>
+          <text x="657" y="80" text-anchor="middle" fill="#fca5a5" font-size="9">credit bureau unavailable</text>
+          <text x="657" y="91" text-anchor="middle" fill="#fca5a5" font-size="9">Duration: 15 minutes</text>
+          <text x="657" y="102" text-anchor="middle" fill="#fca5a5" font-size="9">Frequency: monthly sim</text>
+          <text x="657" y="111" text-anchor="middle" fill="#fca5a5" font-size="8">Tests tool error handling</text>
+
+          <line x1="657" y1="114" x2="657" y2="134" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arr_m20_5)"/>
+
+          <rect x="570" y="136" width="175" height="50" fill="#065f46" rx="7" stroke="#6ee7b7"/>
+          <text x="657" y="152" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">Expected: PASS</text>
+          <text x="657" y="164" text-anchor="middle" fill="#6ee7b7" font-size="9">queue request for retry</text>
+          <text x="657" y="175" text-anchor="middle" fill="#6ee7b7" font-size="9">partial data mode: REVIEW</text>
+          <text x="657" y="183" text-anchor="middle" fill="#6ee7b7" font-size="8">alert CIC team immediately</text>
+
+          <!-- Gameday note -->
+          <rect x="15" y="196" width="730" height="20" fill="#1a0a00" rx="5" stroke="#fde047"/>
+          <text x="380" y="209" text-anchor="middle" fill="#fde047" font-size="10" font-weight="700">Gameday: run all 4 experiments in sequence — team must detect, respond, and recover within documented SLA windows</text>
+        </svg>
+        <div class="diagram-title">Hình 5: Chaos Engineering Experiment Map — 4 fault injection scenarios (API timeout 30%, full outage, malformed JSON, CIC down) với expected outcomes. Tất cả phải PASS: không crash, fallback graceful, alert ngay. Gameday chạy quarterly với toàn team.</div>
       </div>
 
       <div class="code-block">

@@ -308,6 +308,95 @@
         <p>Anthropic rate limit là ceiling của provider, không phải ceiling của business. FinTech Corp có thể cần giới hạn: (1) Department A không được dùng quá 20% total quota; (2) Khách hàng priority 3 không được queue cùng priority 1; (3) Test/dev environment không ăn production quota. Quota management là business logic, cần implement riêng trong gateway.</p>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>API Key Pool Round-Robin Load Balancing — LoanBot quota management theo department với sliding window 3600s</title>
+          <defs>
+            <marker id="arr_m18_3" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ec4899"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#500724" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#fce7f3" font-size="13" font-weight="700">Round-Robin Load Balancing + Sliding Window Quota</text>
+
+          <!-- Departments column -->
+          <text x="75" y="46" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="700">Departments</text>
+          <rect x="15" y="54" width="120" height="26" fill="#831843" rx="6" stroke="#f9a8d4"/>
+          <text x="75" y="71" text-anchor="middle" fill="#fce7f3" font-size="10">loan_dept  30K / mo</text>
+          <rect x="15" y="85" width="120" height="26" fill="#831843" rx="6" stroke="#f9a8d4"/>
+          <text x="75" y="102" text-anchor="middle" fill="#fce7f3" font-size="10">risk_dept  10K / mo</text>
+          <rect x="15" y="116" width="120" height="26" fill="#831843" rx="6" stroke="#f9a8d4"/>
+          <text x="75" y="133" text-anchor="middle" fill="#fce7f3" font-size="10">priority_vip  5K / mo</text>
+          <rect x="15" y="147" width="120" height="26" fill="#7f1d1d" rx="6" stroke="#fca5a5"/>
+          <text x="75" y="164" text-anchor="middle" fill="#fca5a5" font-size="10">test_env  500 / mo</text>
+
+          <!-- Arrows to Quota Manager -->
+          <line x1="135" y1="67" x2="183" y2="90" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+          <line x1="135" y1="98" x2="183" y2="98" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+          <line x1="135" y1="129" x2="183" y2="105" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+          <line x1="135" y1="160" x2="183" y2="112" stroke="#dc2626" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+
+          <!-- Quota Manager -->
+          <rect x="185" y="65" width="112" height="72" fill="#6b1535" rx="8" stroke="#ec4899" stroke-width="1.5"/>
+          <text x="241" y="82" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="700">Quota Manager</text>
+          <text x="241" y="95" text-anchor="middle" fill="#f9a8d4" font-size="9">Sliding window</text>
+          <text x="241" y="106" text-anchor="middle" fill="#f9a8d4" font-size="9">3600s per dept</text>
+          <text x="241" y="117" text-anchor="middle" fill="#f9a8d4" font-size="9">Reject if over quota</text>
+          <text x="241" y="128" text-anchor="middle" fill="#f9a8d4" font-size="9">usage_pct tracked</text>
+
+          <!-- Arrow to Round-Robin -->
+          <line x1="297" y1="101" x2="327" y2="101" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+
+          <!-- Round-Robin Balancer -->
+          <rect x="329" y="65" width="112" height="72" fill="#831843" rx="8" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="385" y="82" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="700">Round-Robin</text>
+          <text x="385" y="95" text-anchor="middle" fill="#fda4af" font-size="9">key_idx % pool_size</text>
+          <text x="385" y="106" text-anchor="middle" fill="#fda4af" font-size="9">Skip degraded keys</text>
+          <text x="385" y="117" text-anchor="middle" fill="#fda4af" font-size="9">Increment counter</text>
+          <text x="385" y="128" text-anchor="middle" fill="#fda4af" font-size="9">Thread-safe lock</text>
+
+          <!-- Arrows to keys -->
+          <line x1="441" y1="80" x2="481" y2="63" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+          <line x1="441" y1="101" x2="481" y2="101" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+          <line x1="441" y1="122" x2="481" y2="139" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+
+          <!-- API Keys -->
+          <rect x="483" y="44" width="122" height="35" fill="#065f46" rx="7" stroke="#6ee7b7"/>
+          <text x="544" y="61" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">API Key 1</text>
+          <text x="544" y="74" text-anchor="middle" fill="#6ee7b7" font-size="9">status: healthy</text>
+
+          <rect x="483" y="83" width="122" height="35" fill="#065f46" rx="7" stroke="#6ee7b7"/>
+          <text x="544" y="100" text-anchor="middle" fill="#d1fae5" font-size="11" font-weight="700">API Key 2</text>
+          <text x="544" y="113" text-anchor="middle" fill="#6ee7b7" font-size="9">status: healthy</text>
+
+          <rect x="483" y="122" width="122" height="35" fill="#7c2d12" rx="7" stroke="#fdba74"/>
+          <text x="544" y="139" text-anchor="middle" fill="#fed7aa" font-size="11" font-weight="700">API Key 3</text>
+          <text x="544" y="152" text-anchor="middle" fill="#fdba74" font-size="9">status: degraded — skip</text>
+
+          <!-- Arrow to Claude API -->
+          <line x1="605" y1="62" x2="645" y2="78" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+          <line x1="605" y1="100" x2="645" y2="100" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_3)"/>
+
+          <!-- Claude API -->
+          <rect x="647" y="58" width="100" height="62" fill="#1e3a5f" rx="8" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="697" y="76" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="700">Anthropic</text>
+          <text x="697" y="89" text-anchor="middle" fill="#93c5fd" font-size="9">Claude API</text>
+          <text x="697" y="101" text-anchor="middle" fill="#93c5fd" font-size="9">haiku / sonnet</text>
+          <text x="697" y="113" text-anchor="middle" fill="#6ee7b7" font-size="9">4000 RPM limit</text>
+
+          <!-- Quota exceeded note -->
+          <rect x="15" y="185" width="310" height="28" fill="#3b0b1a" rx="6" stroke="#fca5a5"/>
+          <text x="170" y="198" text-anchor="middle" fill="#fca5a5" font-size="10" font-weight="700">Quota Exceeded: HTTP 429 — queue to P3 backlog</text>
+          <text x="170" y="209" text-anchor="middle" fill="#fca5a5" font-size="9">usage_pct returned to department dashboard</text>
+
+          <!-- Health check note -->
+          <rect x="335" y="185" width="412" height="28" fill="#1e293b" rx="6" stroke="#94a3b8"/>
+          <text x="541" y="198" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="700">Health Check every 60s — detect degraded keys early</text>
+          <text x="541" y="209" text-anchor="middle" fill="#94a3b8" font-size="9">error rate above 5% or latency above 10s: mark key skip, re-check after 5 min cooldown</text>
+        </svg>
+        <div class="diagram-title">Hình 3: Round-Robin Load Balancing + Sliding Window Quota — mỗi request qua Quota Manager (sliding window 3600s per department) rồi Round-Robin distributor. Key 3 "degraded" bị skip tự động. Health check chạy mỗi 60 giây.</div>
+      </div>
+
       <div class="code-block">
         <span class="code-label">Python (Quota Manager)</span>
         <pre><code><span class="code-keyword">from</span> collections <span class="code-keyword">import</span> defaultdict, deque
@@ -477,6 +566,95 @@ QUOTA_CONFIG = {
         <span class="rule-action">claude-haiku-4-5 (instant reject — không cần reasoning)</span>
       </div>
 
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>Priority Queue Routing — P1 VIP xử lý dưới 30s, P2 Standard dưới 5 phút, P3 Batch có thể chờ, model được chọn tự động theo risk profile</title>
+          <defs>
+            <marker id="arr_m18_4" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ec4899"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#500724" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#fce7f3" font-size="13" font-weight="700">Priority Queue — Intelligent Model Routing</text>
+
+          <!-- Incoming request -->
+          <rect x="15" y="88" width="95" height="44" fill="#831843" rx="8" stroke="#f9a8d4" stroke-width="1.5"/>
+          <text x="62" y="107" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="700">Request</text>
+          <text x="62" y="121" text-anchor="middle" fill="#f9a8d4" font-size="9">Credit app + metadata</text>
+
+          <line x1="110" y1="110" x2="140" y2="110" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+
+          <!-- Priority Classifier -->
+          <rect x="142" y="73" width="112" height="74" fill="#6b1535" rx="8" stroke="#ec4899" stroke-width="1.5"/>
+          <text x="198" y="91" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="700">Classifier</text>
+          <text x="198" y="104" text-anchor="middle" fill="#f9a8d4" font-size="9">VIP tier = P1</text>
+          <text x="198" y="115" text-anchor="middle" fill="#f9a8d4" font-size="9">standard = P2</text>
+          <text x="198" y="126" text-anchor="middle" fill="#f9a8d4" font-size="9">batch reprocess = P3</text>
+          <text x="198" y="137" text-anchor="middle" fill="#f9a8d4" font-size="9">loan above 2B: upgrade P1</text>
+
+          <!-- Arrows to queues -->
+          <line x1="254" y1="88" x2="292" y2="57" stroke="#dc2626" stroke-width="2" marker-end="url(#arr_m18_4)"/>
+          <line x1="254" y1="110" x2="292" y2="110" stroke="#eab308" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+          <line x1="254" y1="132" x2="292" y2="163" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+
+          <!-- P1 Queue -->
+          <rect x="294" y="34" width="108" height="46" fill="#7f1d1d" rx="7" stroke="#fca5a5" stroke-width="1.5"/>
+          <text x="348" y="53" text-anchor="middle" fill="#fca5a5" font-size="11" font-weight="700">P1 Queue — VIP</text>
+          <text x="348" y="66" text-anchor="middle" fill="#fca5a5" font-size="9">wait below 30s always</text>
+          <text x="348" y="76" text-anchor="middle" fill="#fca5a5" font-size="8">platinum + loan above 2B</text>
+
+          <!-- P2 Queue -->
+          <rect x="294" y="87" width="108" height="46" fill="#78350f" rx="7" stroke="#fcd34d" stroke-width="1.5"/>
+          <text x="348" y="106" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="700">P2 Queue — Std</text>
+          <text x="348" y="119" text-anchor="middle" fill="#fde68a" font-size="9">wait below 5 min</text>
+          <text x="348" y="129" text-anchor="middle" fill="#fcd34d" font-size="8">FC-002 standard customers</text>
+
+          <!-- P3 Queue -->
+          <rect x="294" y="140" width="108" height="46" fill="#1e293b" rx="7" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="348" y="159" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="700">P3 Queue — Batch</text>
+          <text x="348" y="172" text-anchor="middle" fill="#94a3b8" font-size="9">wait up to 30 min ok</text>
+          <text x="348" y="182" text-anchor="middle" fill="#94a3b8" font-size="8">reprocess backlog jobs</text>
+
+          <!-- Arrows to routing -->
+          <line x1="402" y1="57" x2="435" y2="79" stroke="#fca5a5" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+          <line x1="402" y1="110" x2="435" y2="110" stroke="#fcd34d" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+          <line x1="402" y1="163" x2="435" y2="141" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+
+          <!-- Model Router -->
+          <rect x="437" y="65" width="112" height="90" fill="#4c0519" rx="8" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="493" y="82" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="700">Model Router</text>
+          <text x="493" y="95" text-anchor="middle" fill="#fda4af" font-size="9">score above 700: haiku</text>
+          <text x="493" y="106" text-anchor="middle" fill="#fda4af" font-size="9">risk 0.35–0.65: sonnet</text>
+          <text x="493" y="117" text-anchor="middle" fill="#fda4af" font-size="9">loan above 2B: sonnet+think</text>
+          <text x="493" y="128" text-anchor="middle" fill="#fda4af" font-size="9">blacklisted: haiku fast</text>
+          <text x="493" y="139" text-anchor="middle" fill="#fda4af" font-size="9">low risk: haiku batch</text>
+          <text x="493" y="150" text-anchor="middle" fill="#fda4af" font-size="9">rule: cheapest model adequate</text>
+
+          <!-- Arrows to models -->
+          <line x1="549" y1="82" x2="585" y2="68" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+          <line x1="549" y1="110" x2="585" y2="110" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+          <line x1="549" y1="138" x2="585" y2="152" stroke="#ec4899" stroke-width="1.5" marker-end="url(#arr_m18_4)"/>
+
+          <!-- Models -->
+          <rect x="587" y="50" width="160" height="36" fill="#1e3a5f" rx="7" stroke="#93c5fd"/>
+          <text x="667" y="67" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="700">claude-haiku-4-5</text>
+          <text x="667" y="80" text-anchor="middle" fill="#93c5fd" font-size="9">fast, cheap — clear decisions</text>
+
+          <rect x="587" y="92" width="160" height="36" fill="#312e81" rx="7" stroke="#a5b4fc"/>
+          <text x="667" y="109" text-anchor="middle" fill="#c7d2fe" font-size="11" font-weight="700">claude-sonnet-4-6</text>
+          <text x="667" y="122" text-anchor="middle" fill="#a5b4fc" font-size="9">borderline + high-value</text>
+
+          <rect x="587" y="134" width="160" height="36" fill="#1e1b4b" rx="7" stroke="#7c3aed"/>
+          <text x="667" y="151" text-anchor="middle" fill="#ddd6fe" font-size="11" font-weight="700">sonnet + thinking</text>
+          <text x="667" y="164" text-anchor="middle" fill="#a78bfa" font-size="9">loan above 2B high-stakes</text>
+
+          <!-- Backpressure note -->
+          <rect x="15" y="194" width="730" height="20" fill="#1a0505" rx="6" stroke="#fca5a5"/>
+          <text x="380" y="208" text-anchor="middle" fill="#fca5a5" font-size="10">Backpressure: queue above 500 items → HTTP 503 for P3; P1 and P2 always accepted — LoanBot VIP never blocked</text>
+        </svg>
+        <div class="diagram-title">Hình 4: Priority Queue + Intelligent Model Routing — 3 lanes (P1 VIP dưới 30s, P2 Standard dưới 5 phút, P3 Batch tối đa 30 phút). Model Router tự chọn haiku (clear cases) hoặc sonnet/thinking (borderline/high-value) để tối ưu cost + accuracy.</div>
+      </div>
+
       <div class="concept-check">
         <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
         <p class="concept-check-q">Tại sao dùng haiku cho blacklisted cases thay vì reject ngay mà không gọi API?</p>
@@ -508,6 +686,81 @@ QUOTA_CONFIG = {
       <div class="callout key-insight">
         <div class="callout-header">🔑 Key Insight: Gateway là Billing System</div>
         <p>FinTech Corp có 5 departments dùng LoanBot. IT Central trả toàn bộ API bill cho Anthropic. Nhưng ai chịu cost-allocation? Gateway log mỗi request với department tag → tháng sau: loan_dept = 68%, risk_dept = 21%, compliance = 8%, IT_test = 3%. Finance có số liệu để charge-back. Không có gateway logging → IT absorbs toàn bộ cost và không có incentive để optimize.</p>
+      </div>
+
+      <div class="diagram-container">
+        <svg viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">
+          <title>LoanBot SLA Dashboard và Cost Attribution — P99 latency, availability, error rate đều đạt target, phân bổ chi phí theo department</title>
+          <defs>
+            <marker id="arr_m18_5" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#ec4899"/>
+            </marker>
+          </defs>
+          <rect width="760" height="220" fill="#500724" rx="12"/>
+          <text x="380" y="24" text-anchor="middle" fill="#fce7f3" font-size="13" font-weight="700">LoanBot SLA Dashboard + Cost Attribution</text>
+
+          <!-- SLA Metrics Section (left) -->
+          <text x="152" y="46" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="700">SLA Metrics — Current Month</text>
+
+          <!-- P99 Latency card -->
+          <rect x="15" y="54" width="132" height="62" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="81" y="73" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">P99 Latency</text>
+          <text x="81" y="92" text-anchor="middle" fill="#d1fae5" font-size="20" font-weight="700">4.2s</text>
+          <text x="81" y="109" text-anchor="middle" fill="#6ee7b7" font-size="9">target: below 5.0s  OK</text>
+
+          <!-- Availability card -->
+          <rect x="155" y="54" width="132" height="62" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="221" y="73" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">Availability</text>
+          <text x="221" y="92" text-anchor="middle" fill="#d1fae5" font-size="18" font-weight="700">99.94%</text>
+          <text x="221" y="109" text-anchor="middle" fill="#6ee7b7" font-size="9">target: above 99.9%  OK</text>
+
+          <!-- Error Rate card -->
+          <rect x="15" y="124" width="132" height="62" fill="#065f46" rx="8" stroke="#6ee7b7" stroke-width="1.5"/>
+          <text x="81" y="143" text-anchor="middle" fill="#6ee7b7" font-size="11" font-weight="700">Error Rate</text>
+          <text x="81" y="162" text-anchor="middle" fill="#d1fae5" font-size="20" font-weight="700">0.06%</text>
+          <text x="81" y="179" text-anchor="middle" fill="#6ee7b7" font-size="9">target: below 0.1%  OK</text>
+
+          <!-- Cache Hit card -->
+          <rect x="155" y="124" width="132" height="62" fill="#1e3a5f" rx="8" stroke="#93c5fd"/>
+          <text x="221" y="143" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="700">Cache Hit Rate</text>
+          <text x="221" y="162" text-anchor="middle" fill="#bfdbfe" font-size="18" font-weight="700">18.3%</text>
+          <text x="221" y="179" text-anchor="middle" fill="#93c5fd" font-size="9">target: 15–25%  OK</text>
+
+          <!-- Divider -->
+          <line x1="300" y1="44" x2="300" y2="205" stroke="#831843" stroke-width="1" stroke-dasharray="4,3"/>
+
+          <!-- Cost Attribution Section (right) -->
+          <text x="530" y="46" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="700">Cost Attribution — This Month</text>
+
+          <!-- Bar chart labels and bars -->
+          <text x="315" y="66" fill="#f9a8d4" font-size="10">loan_dept</text>
+          <rect x="390" y="54" width="248" height="18" fill="#ec4899" rx="3"/>
+          <text x="643" y="67" fill="#fce7f3" font-size="10" font-weight="700">68% — $1,428</text>
+
+          <text x="315" y="90" fill="#f9a8d4" font-size="10">risk_dept</text>
+          <rect x="390" y="78" width="90" height="18" fill="#a855f7" rx="3"/>
+          <text x="485" y="91" fill="#fce7f3" font-size="10" font-weight="700">21% — $441</text>
+
+          <text x="315" y="114" fill="#f9a8d4" font-size="10">compliance</text>
+          <rect x="390" y="102" width="37" height="18" fill="#3b82f6" rx="3"/>
+          <text x="432" y="115" fill="#fce7f3" font-size="10">8% — $168</text>
+
+          <text x="315" y="138" fill="#f9a8d4" font-size="10">priority_vip</text>
+          <rect x="390" y="126" width="21" height="18" fill="#f59e0b" rx="3"/>
+          <text x="416" y="139" fill="#fce7f3" font-size="10">0% — $42</text>
+
+          <text x="315" y="162" fill="#f9a8d4" font-size="10">IT_test</text>
+          <rect x="390" y="150" width="12" height="18" fill="#64748b" rx="3"/>
+          <text x="407" y="163" fill="#94a3b8" font-size="10">3% — $21</text>
+
+          <!-- Total and ROI -->
+          <rect x="310" y="178" width="440" height="35" fill="#3b0b1a" rx="6" stroke="#f9a8d4"/>
+          <text x="400" y="192" fill="#f9a8d4" font-size="10" font-weight="700">Total: $2,100 / month</text>
+          <text x="400" y="205" fill="#fce7f3" font-size="9">50,400 requests x avg $0.042 / request</text>
+          <text x="628" y="192" fill="#86efac" font-size="10" font-weight="700">ROI vs manual:</text>
+          <text x="628" y="205" fill="#d1fae5" font-size="9">99.7% savings</text>
+        </svg>
+        <div class="diagram-title">Hình 5: SLA Dashboard + Cost Attribution — 4 SLA metrics đều đạt target (P99: 4.2s, availability: 99.94%, error: 0.06%, cache: 18.3%). Cost attribution: loan_dept chiếm 68%, risk_dept 21%, compliance 8%. Tổng $2,100/tháng, tiết kiệm 99.7% vs manual.</div>
       </div>
 
       <div class="code-block">
