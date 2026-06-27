@@ -1666,6 +1666,22 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
   flex-wrap: wrap;
 }
 
+/* ===== LESSON SECTION H2 STYLING (M10-30 pattern) =====
+   M10-30: h2 is a direct child of lesson-section (no wrapper div).
+   M1-4/M7: h2 is inside .section-heading (not direct child — unaffected).
+   M5-6/M8-9: h2 is inside .lesson-header (not direct child — unaffected).
+   Adding a left-accent stripe and spacing for visual chapter separation.
+================================================================ */
+.lesson-section > h2:first-child {
+  padding: var(--space-4) var(--space-5);
+  background: linear-gradient(to right, var(--info-light) 0%, transparent 70%);
+  border-left: 4px solid var(--primary);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: var(--space-10) 0 var(--space-5);
+  color: var(--primary-dark);
+  font-size: 1.4rem;
+}
+
 /* Button variants */
 .btn-secondary {
   display: inline-flex; align-items: center; gap: var(--space-2);

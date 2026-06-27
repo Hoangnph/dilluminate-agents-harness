@@ -308,8 +308,155 @@ The `.roadmap` section in `index.html` shows the 30-step FinTech Corp journey. K
 **Rule:** `roadmap-line` must be INSIDE `.roadmap-left`, never a standalone sibling element.
 Roadmap CSS lives in `main.css` (not inline) — use `.roadmap`, `.roadmap-item`, `.roadmap-circle`, `.roadmap-line`, `.roadmap-body`, `.roadmap-tags` classes.
 
+### Module Header (Lesson Header)
+
+Every module begins with a gradient banner. Two valid patterns exist:
+
+**Pattern A (M1-4) — `.lesson-header` with breadcrumb:**
+```html
+<div class="lesson-header">
+  <div class="breadcrumb"><a href="../../index.html">Trang chủ</a><span>›</span> Module N</div>
+  <h1>Module N: Title</h1>
+  <p style="color:rgba(255,255,255,.8)">Short description</p>
+  <div class="lesson-meta">
+    <span class="meta-badge">⏱ ~N giờ</span>
+    <span class="meta-badge">📖 N bài giảng</span>
+    <span class="meta-badge">🎯 Mức: Level</span>
+    <span class="meta-badge">🏢 Ví dụ: FinTech Corp</span>
+  </div>
+</div>
+```
+
+**Pattern B (M10-30) — `.lesson-header` with `module-tag`:**
+```html
+<div class="lesson-header">
+  <span class="module-tag">MODULE N · Tuần X–Y</span>
+  <h1>Emoji Title</h1>
+  <p>Short description</p>
+  <div class="lesson-meta">
+    <span>⏱ N tuần</span><span>📖 5 bài giảng</span><span>KeyTopic</span>
+  </div>
+</div>
+```
+
+### Module Objectives Box (BẮT BUỘC)
+
+Every module must have an `.objectives-box` after the lesson-header and before the first `<section`:
+```html
+<div class="objectives-box">
+  <h4>🎯 Sau Module N, bạn sẽ có thể:</h4>
+  <ul>
+    <li>Objective derived from lesson 1's learning-objective first bullet</li>
+    <li>Objective derived from lesson 2's learning-objective first bullet</li>
+    <li>Objective derived from lesson 3's learning-objective first bullet</li>
+    <li>Objective derived from lesson 4's learning-objective first bullet</li>
+    <li>Objective derived from lesson 5's learning-objective first bullet</li>
+  </ul>
+</div>
+```
+
+### Lesson Section Heading Patterns
+
+Three valid patterns depending on module generation:
+
+**Pattern A (M1-4, M7) — `.section-heading` with number circle:**
+```html
+<section id="lessonN" class="lesson-section">
+  <div class="section-heading">
+    <div class="section-number">N</div>
+    <h2>Lesson Title</h2>
+  </div>
+  <div class="learning-objective">...</div>
+```
+
+**Pattern B (M5-6, M8-9) — `.lesson-header` per-lesson gradient banner:**
+```html
+<section class="lesson-section" id="lesson-N">
+  <div class="lesson-header">
+    <span class="lesson-badge">Bài N</span>
+    <h2 class="lesson-title">Lesson Title</h2>
+    <p>Intro text</p>
+  </div>
+  <div class="learning-objective">...</div>
+```
+
+**Pattern C (M10-30) — bare `<h2>` with CSS auto-counter:**
+```html
+<section id="lessonN" class="lesson-section">
+  <h2>Bài N: Lesson Title</h2>
+  <div class="learning-objective">...</div>
+```
+CSS auto-counter: `.lesson-section > h2:first-child::before` adds a blue numbered circle automatically (defined in main.css). **No inline HTML needed.**
+
+### Learning Map (Bản Đồ Học Tập)
+
+Two styled implementations — both use `.step-flow` with `.step` items:
+
+**Pattern A (M1-4) — Colored boxes with inline flex (arrow separators):**
+```html
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:var(--space-6);margin-bottom:var(--space-6);">
+  <h4 style="color:var(--primary-dark);margin-bottom:var(--space-4);">🗺️ Bản Đồ Học Tập Module N</h4>
+  <div style="display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;">
+    <div style="text-align:center;min-width:130px;">
+      <div style="background:var(--primary);color:#fff;border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4);font-weight:700;font-size:.875rem;">🧠 Bài 1<br><span style="font-weight:400;font-size:.8rem;">Subtitle</span></div>
+      <div style="font-size:.72rem;color:var(--text-muted);margin-top:4px;">Label</div>
+    </div>
+    <div style="color:var(--accent);font-size:1.5rem;padding:0 4px;padding-bottom:16px;">→</div>
+    <!-- repeat for each lesson -->
+  </div>
+</div>
+```
+
+**Pattern B (M5-7) — `.callout concept` with `.step-flow` + `.step-num/.step-title/.step-desc`:**
+```html
+<div class="callout concept" style="margin-bottom:var(--space-8);">
+  <div class="callout-header">🗺️ Bản Đồ Học Tập Module N</div>
+  <div class="step-flow">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">Lesson Name</div>
+      <div class="step-desc">Short description</div>
+    </div>
+    <!-- repeat for each lesson -->
+  </div>
+</div>
+```
+CSS for `.step-num`, `.step-title`, `.step-desc`, `.step-flow` gap is defined in main.css.
+
+**CRITICAL:** Never use `style="grid-template-columns: repeat(5,1fr);"` on `.step-flow` — it uses `display:flex`, not grid.
+
 ### Callout Boxes
 6 types: `example` (amber), `analogy` (sky), `warning` (red), `concept` (blue), `key-insight` (purple), `formula` (green). Max 3 per section, max 2 same-type consecutive.
+
+**CRITICAL:** Always use `.callout-header` class, NEVER `.callout-title`.
+
+### Process Steps (`.process-steps`)
+
+Numbered ordered list using CSS counters. **Do NOT use `display:grid`** — CSS uses `position:absolute` for the counter circle:
+```html
+<ol class="process-steps">
+  <li>
+    <strong>Step Title</strong>
+    <p>Description text</p>
+  </li>
+</ol>
+```
+The `::before` pseudo-element (number circle) is `position:absolute;left:0;top:0` with `padding-left:58px` on `<li>`. The `<strong>` and `<p>` share the padded area and wrap correctly.
+
+### Step Flow (`.step-flow`)
+
+Horizontal flow indicator used for learning maps and progress displays:
+```html
+<div class="step-flow">
+  <div class="step">
+    <div class="step-num">1</div>      <!-- blue circle number -->
+    <div class="step-title">Title</div> <!-- bold label -->
+    <div class="step-desc">Desc</div>   <!-- muted description -->
+  </div>
+  <!-- repeat -->
+</div>
+```
+CSS: `step-flow` = `display:flex; gap:var(--space-3); flex-wrap:wrap`. Items have `flex:1; max-width:140px`.
 
 ### SVG Diagrams
 All diagrams must be inline SVG. Required: `<title>` element (accessibility), `viewBox`, `.diagram-title` caption. Max 760px wide viewBox for landscape, 500px for portrait. Use module-specific color palette with white/light text.
@@ -318,21 +465,34 @@ All diagrams must be inline SVG. Required: `<title>` element (accessibility), `v
 - **Scroll progress bar:** Fixed at top, fills as user scrolls. Class: `.scroll-progress` > `.scroll-progress-fill`.
 - **Quiz progress:** Fraction counter + horizontal fill bar within quiz container.
 
+### Bottom Navigation
+
+Every module index.html must have navigation to prev module, quiz, AND next module:
+```html
+<div class="bottom-nav">
+  <a href="../moduleN-1/index.html" class="btn btn-outline">← Module N-1: ShortTitle</a>
+  <a href="quiz.html" class="btn btn-outline">📝 Quiz Module N</a>
+  <a href="../moduleN+1/index.html" class="btn btn-primary">Module N+1: ShortTitle →</a>
+</div>
+```
+**Note:** Module 30 omits the next link. Quiz result pages MUST also link to the next module.
+
 ## Do's and Don'ts
 
 **Do:**
-- Use `.page-layout` wrapper for all module index pages.
-- Include `.sidebar-nav` with links to every lesson h2 in every module.
+- Use `.page-layout` or `.layout` wrapper for all module index pages (both work identically in CSS).
+- Include sidebar with links to every lesson section in every module.
 - Add `<title>` to every SVG diagram.
 - Use FinTech Corp / LoanBot examples in every lesson.
 - Add `.learning-objective` at the start of each lesson.
+- Add `.objectives-box` at the module level before the first lesson section.
 - Keep SVG backgrounds dark (#0f172a or module-dark color) with light text for contrast.
 - Use `<script src="../../assets/js/main.js"></script>` at the end of every index.html body.
+- Use `.callout-header` (not `.callout-title`) for callout box headers.
 
 **Don't:**
-- Don't use `.lesson-nav` class (legacy, only modules 1-7). Use `.bottom-nav` instead.
 - Don't use `.callout-title` — always use `.callout-header`.
-- Don't use `.wrapper`, `.layout`, or `.container` as the page wrapper.
+- Don't use `grid-template-columns` on `.step-flow` — it uses flexbox.
 - Don't place more than 2 callouts consecutively.
 - Don't use font-size below 0.8rem for reading text.
 - Don't use raster images — SVG only for diagrams.
@@ -340,3 +500,4 @@ All diagrams must be inline SVG. Required: `<title>` element (accessibility), `v
 - Don't add hamburger button markup to HTML — main.js injects it automatically.
 - Don't use `display:none` to hide the sidebar on mobile — use `transform` so scrollspy stays live.
 - Don't create breakpoint-specific JS — all responsive behavior lives in CSS; JS only toggles classes.
+- Don't use `display:grid` in `.process-steps > li` — use `position:relative; padding-left:58px` instead.
