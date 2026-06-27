@@ -98,7 +98,8 @@
         <div class="formula-desc">Net Benefit = Total Savings − Total Operating Cost of AI. Total Savings = Staff Cost Reduction + Error Cost Reduction + Speed Value + Compliance Value. Total Investment = Development Cost + Infrastructure Setup. Tất cả tính trên cùng time horizon (thường 3 năm).</div>
       </div>
 
-      <table class="roi-table">
+      <div class="table-scroll">
+<table class="roi-table">
         <tr>
           <th>Hạng mục Chi phí</th>
           <th>Manual (tháng)</th>
@@ -142,6 +143,7 @@
           <td style="color:#16a34a;"><strong>+12.677 tỷ/tháng</strong></td>
         </tr>
       </table>
+</div>
 
       <div class="concept-check">
         <div class="concept-check-header">🧠 Kiểm tra nhanh</div>
@@ -520,7 +522,8 @@ total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-functio
         </button>
         <div class="expand-content">
           <p>Sensitivity analysis test: nếu 1 assumption thay đổi, NPV thay đổi bao nhiêu?</p>
-          <table class="roi-table" style="font-size:.8rem;">
+          <div class="table-scroll">
+<table class="roi-table" style="font-size:.8rem;">
             <tr><th>Scenario</th><th>Assumption thay đổi</th><th>NPV Impact</th><th>Go/No-Go</th></tr>
             <tr><td>Optimistic</td><td>Error savings +20% (Type I giảm xuống 6%)</td><td style="color:#16a34a;">+68.4 tỷ/năm</td><td style="color:#16a34a;">GO</td></tr>
             <tr><td>Base Case</td><td>Tất cả assumptions như modeled</td><td style="color:#16a34a;">NPV dương mạnh</td><td style="color:#16a34a;">GO</td></tr>
@@ -528,6 +531,7 @@ total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-functio
             <tr><td>Pessimistic</td><td>Error savings = 0 (accuracy không improve)</td><td style="color:#dc2626;">−342 tỷ/năm savings lost</td><td style="color:#16a34a;">STILL GO (nhờ staff savings)</td></tr>
             <tr><td>Break-Even</td><td>Staff savings giảm xuống còn 5 tỷ/năm</td><td>NPV ≈ 0</td><td style="color:#d97706;">BORDERLINE</td></tr>
           </table>
+</div>
           <p>Key takeaway: Business case của LoanBot robust ngay cả trong pessimistic scenario — vì staff savings một mình đã justify investment. Error reduction là bonus.</p>
         </div>
       </div>
@@ -607,7 +611,8 @@ total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-functio
       <hr class="lesson-divider">
 
       <h2>📚 Glossary Module 29</h2>
-      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+      <div class="table-scroll">
+<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
         <tr style="background:var(--m29-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m29-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m29-border);">Định nghĩa</th>
@@ -628,6 +633,7 @@ total_vnd = <span class="code-function">sum</span>(mgr.<span class="code-functio
         <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Sensitivity Analysis</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Test "what-if": nếu 1 assumption thay đổi ±X%, NPV thay đổi bao nhiêu? Xác định assumptions nào critical vs immaterial.</td></tr>
         <tr><td style="padding:8px 12px;font-weight:600;">Value Erosion</td><td style="padding:8px 12px;">ROI giảm dần theo thời gian do model drift, market changes, hoặc competitor actions. Early detection via leading KPIs.</td></tr>
       </table>
+</div>
     </section>
 
     <div class="bottom-nav">

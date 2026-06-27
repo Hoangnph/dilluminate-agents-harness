@@ -338,7 +338,8 @@
 
       <h3 style="margin-top:var(--space-6)">1.3 Khả Năng và Giới Hạn</h3>
 
-      <table class="comparison-table">
+      <div class="table-scroll">
+<table class="comparison-table">
         <thead>
           <tr>
             <th>✅ LLM giỏi</th>
@@ -353,6 +354,7 @@
           <tr><td>Phân loại và trích xuất thông tin</td><td><strong>Hallucination</strong> — bịa đặt thuyết phục</td></tr>
         </tbody>
       </table>
+</div>
 
       <div class="callout warning">
         <div class="callout-header">⚠️ Hallucination — Rủi ro lớn nhất của LLM</div>
@@ -506,7 +508,8 @@
 
       <h3 style="margin-top:var(--space-8)">2.3 Phân Loại: Single Agent vs Multi-Agent</h3>
 
-      <table class="comparison-table">
+      <div class="table-scroll">
+<table class="comparison-table">
         <thead>
           <tr><th>Loại</th><th>Mô tả</th><th>Dùng khi nào</th><th>Ví dụ LoanBot</th></tr>
         </thead>
@@ -525,6 +528,7 @@
           </tr>
         </tbody>
       </table>
+</div>
 
       <div class="callout concept">
         <div class="callout-header">🔵 LoanBot trong chương trình này</div>
@@ -910,7 +914,8 @@
 
       <p>Không phải mọi tool call đều an toàn như nhau. LoanBot cần phân loại và kiểm soát:</p>
 
-      <table class="comparison-table">
+      <div class="table-scroll">
+<table class="comparison-table">
         <thead><tr><th>Mức độ rủi ro</th><th>Ví dụ LoanBot</th><th>Kiểm soát</th></tr></thead>
         <tbody>
           <tr><td>🟢 <strong>Read-only</strong></td><td>check_credit_score, check_blacklist</td><td>Tự động, không cần approve</td></tr>
@@ -918,6 +923,7 @@
           <tr><td>🔴 <strong>Critical action</strong></td><td>approve_loan (khoản vay &gt;500 triệu)</td><td>Bắt buộc human review trước</td></tr>
         </tbody>
       </table>
+</div>
 
       <div class="callout concept">
         <div class="callout-header">🔵 Preview: Tool Permission Model</div>

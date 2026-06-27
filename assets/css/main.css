@@ -489,6 +489,51 @@ code {
 .code-type     { color: #c4b5fd; }
 .code-output   { color: #6ee7b7; }
 
+/* ===== BASE TABLE STYLES (all plain <table> elements) ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+  line-height: 1.5;
+}
+
+table th {
+  background: var(--primary);
+  color: #fff;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+
+table tr:last-child td { border-bottom: none; }
+table tbody tr:nth-child(even) td { background: var(--surface-2); }
+table tbody tr:hover td { background: var(--info-light); transition: background .15s ease; }
+
+/* Scroll wrapper — wraps every <table> for mobile overflow */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin: var(--space-5) 0;
+  box-shadow: var(--shadow-sm);
+}
+.table-scroll table {
+  margin: 0; /* reset margin — border/shadow is on wrapper */
+  border-radius: 0; /* wrapper handles corners */
+}
+/* Mobile scroll hint added in main 768px media block below */
+
 /* ===== COMPARISON TABLE ===== */
 .comparison-table {
   width: 100%;
@@ -1335,9 +1380,21 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
   .diagram-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .diagram-container svg { min-width: 320px; }
 
-  /* Tables — horizontal scroll */
-  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
-  table th, table td { min-width: 80px; }
+  /* Tables — wrapper handles horizontal scroll */
+  .table-scroll { margin: var(--space-4) 0; position: relative; }
+  /* Scroll hint: faint gradient on right edge indicates more content */
+  .table-scroll::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0; width: 28px;
+    background: linear-gradient(to left, rgba(255,255,255,.75), transparent);
+    pointer-events: none;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  }
+  table th, table td { padding: var(--space-2) var(--space-3); font-size: .82rem; }
+  /* Fallback for tables not wrapped in .table-scroll */
+  .table-scroll table { display: table; overflow: visible; }
+  table:not(.comparison-table):not(.table-scroll table) { display: block; overflow-x: auto; max-width: 100%; }
 
   /* Bottom nav */
   .bottom-nav { flex-direction: column; align-items: stretch; gap: var(--space-3); }

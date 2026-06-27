@@ -261,7 +261,8 @@
 
       <div class="callout concept">
         <div class="callout-header">📌 Khái niệm: Span Attributes cho LLM Agents</div>
-        <table class="slo-table">
+        <div class="table-scroll">
+<table class="slo-table">
           <tr><th>Attribute Key</th><th>Ví dụ Value</th><th>Dùng để</th></tr>
           <tr><td><code>agent.name</code></td><td>"CreditAgent"</td><td>Filter theo agent</td></tr>
           <tr><td><code>agent.capability</code></td><td>"credit_check"</td><td>Group theo capability</td></tr>
@@ -272,6 +273,7 @@
           <tr><td><code>loan.id</code></td><td>"FC-2024-001"</td><td>Link span to business object</td></tr>
           <tr><td><code>span.status</code></td><td>OK / ERROR</td><td>Error rate calculation</td></tr>
         </table>
+</div>
       </div>
 
       <h3>Trace Context Propagation — Xuyên Suốt 8 Agents</h3>
@@ -426,7 +428,8 @@ tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
       </div>
 
       <h3>SLO của LoanBot v3.0 — Định nghĩa Đầy Đủ</h3>
-      <table class="slo-table">
+      <div class="table-scroll">
+<table class="slo-table">
         <thead>
           <tr><th>Agent</th><th>SLI (Metric)</th><th>SLO Target</th><th>Error Budget/tháng</th><th>Alert Threshold</th></tr>
         </thead>
@@ -441,6 +444,7 @@ tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
           <tr><td><strong>Cost per hồ sơ</strong></td><td>USD/application</td><td class="slo-ok">< $0.01</td><td>N/A</td><td>> $0.008 (rolling 1h)</td></tr>
         </tbody>
       </table>
+</div>
 
       <h3>Alert Rules — SLO-Based Alerting</h3>
       <p>Thay vì alert khi "CPU > 80%", alert khi "SLO đang bị consume quá nhanh". Đây là 3 alerts quan trọng nhất cho LoanBot v3.0:</p>
@@ -810,7 +814,8 @@ tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
       <!-- Glossary -->
       <div id="glossary" style="margin-top:var(--space-12);">
         <h3>📚 Glossary — Module 8</h3>
-        <table class="slo-table">
+        <div class="table-scroll">
+<table class="slo-table">
           <tr><th>Thuật ngữ</th><th>Định nghĩa</th></tr>
           <tr><td><strong>Observability</strong></td><td>Khả năng hiểu trạng thái nội tại của hệ thống chỉ từ outputs bên ngoài (logs, metrics, traces)</td></tr>
           <tr><td><strong>OpenTelemetry (OTel)</strong></td><td>Chuẩn mã nguồn mở CNCF cho instrumentation — vendor-neutral, framework-agnostic</td></tr>
@@ -828,6 +833,7 @@ tracer = trace.get_tracer(<span class="code-string">"loanbot.v3"</span>)
           <tr><td><strong>Langfuse</strong></td><td>Open-source LLM observability với EU cloud option, mạnh về prompt versioning và cost tracking</td></tr>
           <tr><td><strong>Burn Rate</strong></td><td>Tốc độ "tiêu" error budget — 1x = normal, 14x = sẽ hết budget trong 1 giờ</td></tr>
         </table>
+</div>
       </div>
 
     </div>

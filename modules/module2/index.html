@@ -805,7 +805,8 @@
         <p style="margin:0">Permission Resolver implement logic tương tự: mỗi action có một <em>permission tier</em>, và harness kiểm tra trước khi cho phép thực thi.</p>
       </div>
 
-      <table class="comparison-table">
+      <div class="table-scroll">
+<table class="comparison-table">
         <thead><tr><th>Permission Level</th><th>LoanBot Actions</th><th>Kiểm soát</th></tr></thead>
         <tbody>
           <tr><td>🟢 <strong>AUTO</strong></td><td>check_credit_score, check_blacklist, calculate_dti</td><td>Tự động, không cần duyệt</td></tr>
@@ -814,6 +815,7 @@
           <tr><td>⛔ <strong>BLOCKED</strong></td><td>delete_record, modify_credit_score</td><td>Từ chối hoàn toàn, log incident</td></tr>
         </tbody>
       </table>
+</div>
 
       <h3 style="margin-top:var(--space-6)">4.2 HITL Gateway — Cổng Kiểm Soát Con Người</h3>
 

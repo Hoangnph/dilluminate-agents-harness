@@ -605,7 +605,8 @@ SLO_TARGETS = {
 
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 25</h2>
-      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+      <div class="table-scroll">
+<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
         <tr style="background:var(--m25-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m25-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m25-border);">Định nghĩa</th>
@@ -626,6 +627,7 @@ SLO_TARGETS = {
         <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">PEL (Pending Entry List)</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Redis Streams: danh sách messages đã delivered nhưng chưa ACK — nếu worker crash, PEL cho biết gì cần re-process.</td></tr>
         <tr><td style="padding:8px 12px;font-weight:600;">Idempotency</td><td style="padding:8px 12px;">Xử lý cùng task nhiều lần cho ra cùng kết quả — prerequisite để safe retry trong at-least-once systems.</td></tr>
       </table>
+</div>
     </section>
 
     <div class="bottom-nav">

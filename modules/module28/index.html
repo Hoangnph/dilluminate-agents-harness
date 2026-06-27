@@ -228,7 +228,8 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
         <p><strong>1. Demographic Parity</strong>: P(APPROVE | group A) ≈ P(APPROVE | group B). Không phân biệt nhóm trong approval rate. <strong>2. Equalized Odds</strong>: TPR và FPR phải bằng nhau giữa các groups. Nếu Group A có 70% true positives, Group B cũng phải có ~70%. <strong>3. Calibration</strong>: Khi model nói "70% likely to repay", 70% thực sự repay — across all demographic groups. <strong>4. Individual Fairness</strong>: Hai cá nhân giống nhau (same credit profile) phải nhận cùng quyết định bất kể group membership. Nota bene: không thể satisfy tất cả 4 metrics cùng lúc khi base rates khác nhau giữa groups (Impossibility Theorem).</p>
       </div>
 
-      <table class="bias-table">
+      <div class="table-scroll">
+<table class="bias-table">
         <tr>
           <th>Nhóm</th>
           <th>Approval Rate</th>
@@ -293,6 +294,7 @@ LOANBOT_GOVERNANCE_CHARTER: List[GovernancePolicy] = [
           <td><span class="pass">✓ Baseline</span></td>
         </tr>
       </table>
+</div>
 
       <div class="callout warning">
         <div class="callout-header">⚠️ Root Cause: Proxy Discrimination trong Credit Score</div>
@@ -715,7 +717,8 @@ Yêu cầu: Không kỹ thuật, thân thiện, nêu rõ bước tiếp theo."""
       <hr class="lesson-divider">
 
       <h2>📚 Glossary Module 28</h2>
-      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+      <div class="table-scroll">
+<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
         <tr style="background:var(--m28-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m28-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m28-border);">Định nghĩa</th>
@@ -736,6 +739,7 @@ Yêu cầu: Không kỹ thuật, thân thiện, nêu rõ bước tiếp theo."""
         <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Escalation Path</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Defined chain: AI System → AI Engineer → Risk Manager → CRO → NHNN. Severity determines at which level decision must be made.</td></tr>
         <tr><td style="padding:8px 12px;font-weight:600;">Compliance Evidence Package</td><td style="padding:8px 12px;">Tập hợp documents chứng minh compliance với regulations. Bao gồm: decision logs, bias metrics, explainability records, audit trails — generated tự động.</td></tr>
       </table>
+</div>
     </section>
 
     <div class="bottom-nav">

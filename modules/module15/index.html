@@ -703,7 +703,8 @@ TOOL_CONFIGS = {
 
       <!-- GLOSSARY -->
       <h2>📚 Glossary Module 15</h2>
-      <table style="width:100%;font-size:.875rem;border-collapse:collapse;">
+      <div class="table-scroll">
+<table style="width:100%;font-size:.875rem;border-collapse:collapse;">
         <tr style="background:var(--m15-light);">
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m15-border);">Thuật ngữ</th>
           <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--m15-border);">Định nghĩa</th>
@@ -724,6 +725,7 @@ TOOL_CONFIGS = {
         <tr><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid var(--border);">Schema Evolution</td><td style="padding:8px 12px;border-bottom:1px solid var(--border);">Thêm fields mới: backward-compatible nếu optional. Breaking change: version bump (v1 → v2).</td></tr>
         <tr><td style="padding:8px 12px;font-weight:600;">Structured Output</td><td style="padding:8px 12px;">JSON-formatted LLM response với strict schema → parse với Pydantic, không cần regex.</td></tr>
       </table>
+</div>
     </section>
 
     <div class="bottom-nav">
