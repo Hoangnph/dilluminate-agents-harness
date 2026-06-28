@@ -1966,3 +1966,65 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
   .topbar, .sidebar, .scroll-progress { display: none; }
   .main-content { margin-left: 0; }
 }
+
+/* ===== ROTATE HINT OVERLAY (portrait mobile only) ===== */
+#rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px 24px;
+  text-align: center;
+}
+#rotate-hint.visible { display: flex; }
+
+#rotate-hint .rotate-icon {
+  font-size: 3.5rem;
+  animation: rotate-pulse 1.8s ease-in-out infinite;
+}
+@keyframes rotate-pulse {
+  0%, 100% { transform: rotate(-15deg); }
+  50%       { transform: rotate(15deg); }
+}
+#rotate-hint h3 {
+  color: #f8fafc;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.4;
+}
+#rotate-hint p {
+  color: #94a3b8;
+  font-size: .9rem;
+  margin: 0;
+  line-height: 1.6;
+  max-width: 280px;
+}
+#rotate-hint .btn-dismiss {
+  margin-top: 8px;
+  padding: 10px 24px;
+  background: #0f4c81;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+}
+#rotate-hint .btn-dismiss:hover { background: #1a6fb3; }
+
+/* Only show on narrow portrait screens (phones) */
+@media (min-width: 600px) {
+  #rotate-hint { display: none !important; }
+}
+@media (orientation: landscape) {
+  #rotate-hint { display: none !important; }
+}

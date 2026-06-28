@@ -274,6 +274,53 @@ function initMobileMenu() {
   }, { passive: true });
 }
 
+// ─── Rotate hint overlay (portrait mobile) ──────────────
+function initRotateHint() {
+  // Only relevant on touch devices narrower than 600px
+  if (!('ontouchstart' in window) && navigator.maxTouchPoints === 0) return;
+
+  const DISMISSED_KEY = 'rotateHintDismissed';
+
+  // Build overlay once
+  const el = document.createElement('div');
+  el.id = 'rotate-hint';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-modal', 'true');
+  el.innerHTML = `
+    <div class="rotate-icon">📱</div>
+    <h3>Xoay ngang màn hình<br>để đọc tốt hơn</h3>
+    <p>Nội dung khoá học có sơ đồ và code block rộng — chế độ ngang cho trải nghiệm đọc tốt nhất.</p>
+    <button class="btn-dismiss" aria-label="Đóng thông báo">Tôi hiểu rồi, tiếp tục</button>
+  `;
+  document.body.appendChild(el);
+
+  const btn = el.querySelector('.btn-dismiss');
+
+  function shouldShow() {
+    return window.innerWidth < 600 &&
+           window.innerHeight > window.innerWidth && // portrait
+           !sessionStorage.getItem(DISMISSED_KEY);
+  }
+
+  function update() {
+    if (shouldShow()) {
+      el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
+  }
+
+  btn.addEventListener('click', () => {
+    sessionStorage.setItem(DISMISSED_KEY, '1');
+    el.classList.remove('visible');
+  });
+
+  // Check on load and on orientation change
+  update();
+  window.addEventListener('resize', update, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(update, 300), { passive: true });
+}
+
 // ─── Init ───────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   initScrollProgress();
@@ -287,4 +334,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initAnimateOnScroll();
   initTableScroll();
   initMobileMenu();
+  initRotateHint();
 });
