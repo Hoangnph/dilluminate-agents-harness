@@ -320,7 +320,7 @@ Purple (#7e22ce)       → key insight, đột phá
     <a href="#lesson2">L2. Tên Bài</a>
     ...
     <a href="quiz.html" style="margin-top:var(--space-4);color:var(--mN-accent);">📝 Quiz Module N</a>
-    <a href="lab.ipynb" download style="color:var(--mN-accent);">🔬 Lab Notebook</a>
+    <a href="https://colab.research.google.com/github/Hoangnph/dilluminate-agents-harness/blob/main/modules/moduleN/lab.ipynb" target="_blank" rel="noopener" style="color:var(--mN-accent);">🔬 Mở Lab trong Colab</a>
   </nav>
   <div style="margin-top:auto;padding-top:var(--space-6);">
     <a href="../moduleN-1/index.html" style="font-size:.8rem;color:var(--text-muted);">← Module N-1</a>
@@ -328,7 +328,21 @@ Purple (#7e22ce)       → key insight, đột phá
 </aside>
 ```
 
-### 11.6 Quiz HTML pattern — sử dụng pattern đơn giản cho modules 11+
+### 11.6 Lab Notebook — LUÔN dùng Google Colab link, KHÔNG dùng `download`
+```html
+<!-- ĐÚNG — mở trực tiếp trong Google Colab -->
+<a href="https://colab.research.google.com/github/Hoangnph/dilluminate-agents-harness/blob/main/modules/moduleN/lab.ipynb"
+   target="_blank" rel="noopener">🔬 Mở Lab trong Colab</a>
+
+<!-- SAI — tải file về máy người dùng -->
+<a href="lab.ipynb" download>🔬 Tải Notebook</a>
+```
+- URL pattern: `https://colab.research.google.com/github/Hoangnph/dilluminate-agents-harness/blob/main/modules/moduleN/lab.ipynb`
+- Thay `moduleN` bằng tên module thực tế (e.g. `module1`, `module15`)
+- Luôn thêm `target="_blank" rel="noopener"` để mở tab mới
+- Notebook file vẫn giữ trong repo tại `modules/moduleN/lab.ipynb` — Colab đọc trực tiếp từ GitHub
+
+### 11.7 Quiz HTML pattern — sử dụng pattern đơn giản cho modules 11+
 ```html
 <!-- Cấu trúc quiz.html mới (modules 11+) -->
 <div class="quiz-hero">
