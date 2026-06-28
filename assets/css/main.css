@@ -1449,8 +1449,9 @@ mark.critical { background: var(--danger-light);  color: var(--danger); }
   /* Expand section */
   .expand-trigger { min-height: 44px; padding: var(--space-3) var(--space-4); font-size: .9rem; }
 
-  /* Process steps */
-  .process-steps li { padding: var(--space-3) var(--space-4); }
+  /* Process steps — keep left padding so absolute circle doesn't overlap text */
+  .process-steps li { padding-top: var(--space-3); padding-bottom: var(--space-3); padding-left: 54px; padding-right: var(--space-2); }
+  .process-steps > li::before { width: 36px; height: 36px; font-size: .8rem; }
 
   /* Code blocks — horizontal scroll */
   .code-block { border-radius: var(--radius-lg); }
